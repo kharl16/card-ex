@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Save, Eye, Mail, Phone, Globe } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { z } from "zod";
+import ImageUpload from "@/components/ImageUpload";
 
 type CardData = Tables<"cards">;
 
@@ -106,6 +107,9 @@ export default function CardEditor() {
         phone: card.phone,
         website: card.website,
         location: card.location,
+        avatar_url: card.avatar_url,
+        cover_url: card.cover_url,
+        logo_url: card.logo_url,
         is_published: card.is_published,
       })
       .eq("id", card.id);
@@ -175,6 +179,36 @@ export default function CardEditor() {
 
       <main className="container mx-auto grid gap-6 px-4 py-8 lg:grid-cols-2">
         <div className="space-y-6">
+          {/* Images Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Images</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <ImageUpload
+                value={card.avatar_url}
+                onChange={(url) => setCard({ ...card, avatar_url: url })}
+                label="Avatar"
+                aspectRatio="aspect-square"
+                maxSize={5}
+              />
+              <ImageUpload
+                value={card.cover_url}
+                onChange={(url) => setCard({ ...card, cover_url: url })}
+                label="Cover Photo"
+                aspectRatio="aspect-[3/1]"
+                maxSize={5}
+              />
+              <ImageUpload
+                value={card.logo_url}
+                onChange={(url) => setCard({ ...card, logo_url: url })}
+                label="Company Logo"
+                aspectRatio="aspect-square"
+                maxSize={2}
+              />
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
@@ -311,11 +345,24 @@ export default function CardEditor() {
             <CardContent className="p-4">
               <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm">
                 {/* Cover */}
-                <div className="relative h-32 bg-gradient-to-br from-primary/20 to-primary/5" />
+                <div className="relative h-32 bg-gradient-to-br from-primary/20 to-primary/5">
+                  {card.cover_url && (
+                    <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
+                  )}
+                  {card.logo_url && (
+                    <div className="absolute right-3 top-3 h-12 w-12 rounded-lg border-2 border-background bg-background p-1">
+                      <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
+                    </div>
+                  )}
+                </div>
                 
                 {/* Avatar */}
                 <div className="relative -mt-12 px-4">
-                  <div className="mx-auto h-24 w-24 rounded-full border-4 border-background bg-muted" />
+                  <div className="mx-auto h-24 w-24 rounded-full border-4 border-background bg-muted overflow-hidden">
+                    {card.avatar_url && (
+                      <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
+                    )}
+                  </div>
                 </div>
 
                 {/* Info */}

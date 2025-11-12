@@ -65,13 +65,18 @@ export default function PublicCard() {
             {card.cover_url && (
               <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
             )}
+            {card.logo_url && (
+              <div className="absolute right-4 top-4 h-16 w-16 rounded-lg border-2 border-background bg-background p-2">
+                <img src={card.logo_url} alt="Company Logo" className="h-full w-full object-contain" />
+              </div>
+            )}
           </div>
 
           {/* Avatar */}
           <div className="relative -mt-16 px-6">
-            <div className="mx-auto h-32 w-32 rounded-full border-4 border-background bg-muted">
+            <div className="mx-auto h-32 w-32 overflow-hidden rounded-full border-4 border-background bg-muted">
               {card.avatar_url && (
-                <img src={card.avatar_url} alt={card.full_name} className="h-full w-full rounded-full object-cover" />
+                <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
               )}
             </div>
           </div>
