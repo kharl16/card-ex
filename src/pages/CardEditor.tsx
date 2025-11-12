@@ -35,6 +35,16 @@ const socialIconMap: Record<string, any> = {
   Music,
 };
 
+const socialBrandColors: Record<string, string> = {
+  facebook: "bg-[#1877F2]",
+  linkedin: "bg-[#0A66C2]",
+  instagram: "bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#FD1D1D]",
+  x: "bg-black",
+  youtube: "bg-[#FF0000]",
+  telegram: "bg-[#26A5E4]",
+  tiktok: "bg-black",
+};
+
 // Validation schema for card data
 const cardSchema = z.object({
   full_name: z.string().trim().min(1, "Full name is required").max(100, "Full name must be 100 characters or less"),
@@ -519,10 +529,11 @@ export default function CardEditor() {
                   <div className="flex flex-wrap gap-3 justify-center px-4 pb-4">
                     {socialLinks.map((link) => {
                       const IconComponent = socialIconMap[link.icon];
+                      const brandColor = socialBrandColors[link.kind] || "bg-green-600";
                       return (
                         <div
                           key={link.id}
-                          className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600 hover:bg-green-700 transition-colors cursor-pointer"
+                          className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:opacity-90 transition-opacity cursor-pointer shadow-md`}
                           title={link.label}
                         >
                           {IconComponent && <IconComponent className="h-6 w-6 text-white" />}
