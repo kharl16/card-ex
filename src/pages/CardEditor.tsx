@@ -251,28 +251,30 @@ export default function CardEditor() {
             <CardHeader>
               <CardTitle>Images</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <ImageUpload
-                value={card.avatar_url}
-                onChange={(url) => setCard({ ...card, avatar_url: url })}
-                label="Avatar"
-                aspectRatio="aspect-square"
-                maxSize={5}
-              />
-              <ImageUpload
-                value={card.cover_url}
-                onChange={(url) => setCard({ ...card, cover_url: url })}
-                label="Cover Photo"
-                aspectRatio="aspect-[3/1]"
-                maxSize={5}
-              />
-              <ImageUpload
-                value={card.logo_url}
-                onChange={(url) => setCard({ ...card, logo_url: url })}
-                label="Company Logo"
-                aspectRatio="aspect-square"
-                maxSize={2}
-              />
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <ImageUpload
+                  value={card.avatar_url}
+                  onChange={(url) => setCard({ ...card, avatar_url: url })}
+                  label="Avatar"
+                  aspectRatio="aspect-square"
+                  maxSize={5}
+                />
+                <ImageUpload
+                  value={card.logo_url}
+                  onChange={(url) => setCard({ ...card, logo_url: url })}
+                  label="Company Logo"
+                  aspectRatio="aspect-square"
+                  maxSize={2}
+                />
+                <ImageUpload
+                  value={card.cover_url}
+                  onChange={(url) => setCard({ ...card, cover_url: url })}
+                  label="Cover Photo"
+                  aspectRatio="aspect-square"
+                  maxSize={5}
+                />
+              </div>
             </CardContent>
           </Card>
 
