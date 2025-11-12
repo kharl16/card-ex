@@ -9,8 +9,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { z } from "zod";
 
 type CardData = Tables<"cards">;
+
+// Validation schema for card data
+const cardSchema = z.object({
+  full_name: z.string().trim().min(1, "Full name is required").max(100, "Full name must be 100 characters or less"),
+  title: z.string().trim().max(100, "Title must be 100 characters or less").optional().or(z.literal("")),
+  company: z.string().trim().max(100, "Company must be 100 characters or less").optional().or(z.literal("")),
+  bio: z.string().trim().max(500, "Bio must be 500 characters or less").optional().or(z.literal("")),
+  email: z.string().trim().email("Invalid email format").max(255, "Email must be 255 characters or less").optional().or(z.literal("")),
+  phone: z.string().trim().max(30, "Phone must be 30 characters or less").optional().or(z.literal("")),
+  website: z.string().trim().max(255, "Website must be 255 characters or less")
+    .refine((val) => !val || val.startsWith("http://") || val.startsWith("https://"), {
+      message: "Website must start with http:// or https://"
+    })
+    .refine((val) => !val || !/^(javascript|data|vbscript):/i.test(val), {
+      message: "Invalid URL scheme"
+    })
+    .optional().or(z.literal("")),
+  location: z.string().trim().max(200, "Location must be 200 characters or less").optional().or(z.literal("")),
+});
 
 export default function CardEditor() {
   const { id } = useParams();
@@ -18,6 +38,7 @@ export default function CardEditor() {
   const [card, setCard] = useState<CardData | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadCard();
@@ -44,6 +65,35 @@ export default function CardEditor() {
   const handleSave = async () => {
     if (!card) return;
 
+    // Validate data before saving
+    try {
+      const validationData = {
+        full_name: card.full_name,
+        title: card.title || "",
+        company: card.company || "",
+        bio: card.bio || "",
+        email: card.email || "",
+        phone: card.phone || "",
+        website: card.website || "",
+        location: card.location || "",
+      };
+
+      cardSchema.parse(validationData);
+      setValidationErrors({});
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path[0]) {
+            errors[err.path[0] as string] = err.message;
+          }
+        });
+        setValidationErrors(errors);
+        toast.error("Please fix validation errors before saving");
+        return;
+      }
+    }
+
     setSaving(true);
     const { error } = await supabase
       .from("cards")
@@ -61,7 +111,7 @@ export default function CardEditor() {
       .eq("id", card.id);
 
     if (error) {
-      toast.error("Failed to save card");
+      toast.error(error.message || "Failed to save card");
     } else {
       toast.success("Card saved!");
     }
@@ -131,12 +181,16 @@ export default function CardEditor() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name</Label>
+                <Label htmlFor="full_name">Full Name *</Label>
                 <Input
                   id="full_name"
                   value={card.full_name}
                   onChange={(e) => setCard({ ...card, full_name: e.target.value })}
+                  className={validationErrors.full_name ? "border-destructive" : ""}
                 />
+                {validationErrors.full_name && (
+                  <p className="text-sm text-destructive">{validationErrors.full_name}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="title">Title</Label>
@@ -145,7 +199,12 @@ export default function CardEditor() {
                   value={card.title || ""}
                   onChange={(e) => setCard({ ...card, title: e.target.value })}
                   placeholder="e.g. CEO, Designer"
+                  maxLength={100}
+                  className={validationErrors.title ? "border-destructive" : ""}
                 />
+                {validationErrors.title && (
+                  <p className="text-sm text-destructive">{validationErrors.title}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="company">Company</Label>
@@ -153,7 +212,12 @@ export default function CardEditor() {
                   id="company"
                   value={card.company || ""}
                   onChange={(e) => setCard({ ...card, company: e.target.value })}
+                  maxLength={100}
+                  className={validationErrors.company ? "border-destructive" : ""}
                 />
+                {validationErrors.company && (
+                  <p className="text-sm text-destructive">{validationErrors.company}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="bio">Bio</Label>
@@ -162,7 +226,12 @@ export default function CardEditor() {
                   value={card.bio || ""}
                   onChange={(e) => setCard({ ...card, bio: e.target.value })}
                   rows={4}
+                  maxLength={500}
+                  className={validationErrors.bio ? "border-destructive" : ""}
                 />
+                {validationErrors.bio && (
+                  <p className="text-sm text-destructive">{validationErrors.bio}</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -179,7 +248,12 @@ export default function CardEditor() {
                   type="email"
                   value={card.email || ""}
                   onChange={(e) => setCard({ ...card, email: e.target.value })}
+                  maxLength={255}
+                  className={validationErrors.email ? "border-destructive" : ""}
                 />
+                {validationErrors.email && (
+                  <p className="text-sm text-destructive">{validationErrors.email}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
@@ -188,7 +262,12 @@ export default function CardEditor() {
                   type="tel"
                   value={card.phone || ""}
                   onChange={(e) => setCard({ ...card, phone: e.target.value })}
+                  maxLength={30}
+                  className={validationErrors.phone ? "border-destructive" : ""}
                 />
+                {validationErrors.phone && (
+                  <p className="text-sm text-destructive">{validationErrors.phone}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="website">Website</Label>
@@ -198,7 +277,12 @@ export default function CardEditor() {
                   value={card.website || ""}
                   onChange={(e) => setCard({ ...card, website: e.target.value })}
                   placeholder="https://"
+                  maxLength={255}
+                  className={validationErrors.website ? "border-destructive" : ""}
                 />
+                {validationErrors.website && (
+                  <p className="text-sm text-destructive">{validationErrors.website}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="location">Location</Label>
@@ -207,7 +291,12 @@ export default function CardEditor() {
                   value={card.location || ""}
                   onChange={(e) => setCard({ ...card, location: e.target.value })}
                   placeholder="City, Country"
+                  maxLength={200}
+                  className={validationErrors.location ? "border-destructive" : ""}
                 />
+                {validationErrors.location && (
+                  <p className="text-sm text-destructive">{validationErrors.location}</p>
+                )}
               </div>
             </CardContent>
           </Card>
