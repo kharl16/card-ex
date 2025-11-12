@@ -2,6 +2,8 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
 
+// Ensure proper type inference for vCard generation
+
 export function generateVCard(card: CardData): string {
   const lines: string[] = [
     'BEGIN:VCARD',
