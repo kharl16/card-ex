@@ -509,6 +509,13 @@ export default function CardEditor() {
                     </div>
                   )}
                 </div>
+
+                {/* Save Contact Button */}
+                <div className="px-4 pb-4">
+                  <button className="w-full h-14 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-full transition-colors">
+                    Save Contact
+                  </button>
+                </div>
               </div>
             </CardContent>
           </Card>
