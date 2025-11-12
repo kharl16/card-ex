@@ -57,79 +57,101 @@ export default function PublicCard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
-      <div className="container mx-auto max-w-2xl">
-        <Card className="overflow-hidden border-primary/20 shadow-gold">
-          <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-8">
-            <div className="mx-auto mb-6 h-32 w-32 rounded-full bg-primary/20" />
-            <div className="text-center">
-              <h1 className="mb-2 text-3xl font-bold">{card.full_name}</h1>
-              {card.title && <p className="text-lg text-muted-foreground">{card.title}</p>}
-              {card.company && (
-                <p className="text-sm text-muted-foreground">{card.company}</p>
+    <div className="min-h-screen bg-background py-8 px-4">
+      <div className="container mx-auto max-w-md">
+        <Card className="overflow-hidden border-border/50 shadow-lg">
+          {/* Header with cover image placeholder */}
+          <div className="relative h-40 bg-gradient-to-br from-primary/20 to-primary/5">
+            {card.cover_url && (
+              <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
+            )}
+          </div>
+
+          {/* Avatar */}
+          <div className="relative -mt-16 px-6">
+            <div className="mx-auto h-32 w-32 rounded-full border-4 border-background bg-muted">
+              {card.avatar_url && (
+                <img src={card.avatar_url} alt={card.full_name} className="h-full w-full rounded-full object-cover" />
               )}
             </div>
           </div>
 
-          <div className="space-y-6 p-8">
-            {card.bio && (
-              <p className="text-center text-muted-foreground">{card.bio}</p>
+          {/* Profile Info */}
+          <div className="px-6 py-4 text-center">
+            <h1 className="text-2xl font-bold">{card.full_name}</h1>
+            {card.title && <p className="text-lg text-foreground/80">{card.title}</p>}
+            {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
+            {card.bio && <p className="mt-3 text-sm text-muted-foreground">{card.bio}</p>}
+          </div>
+
+          {/* Contact Buttons with Green Circles */}
+          <div className="space-y-3 px-6 pb-6">
+            {card.email && (
+              <button
+                onClick={() => window.open(`mailto:${card.email}`)}
+                className="flex w-full items-center gap-3 text-left transition-opacity hover:opacity-80"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500">
+                  <Mail className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{card.email}</p>
+                  <p className="text-xs text-muted-foreground">Personal</p>
+                </div>
+              </button>
             )}
 
-            <div className="space-y-3">
-              {card.email && (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-3"
-                  onClick={() => window.open(`mailto:${card.email}`)}
-                >
-                  <Mail className="h-5 w-5 text-primary" />
-                  <span className="flex-1 text-left">{card.email}</span>
-                </Button>
-              )}
+            {card.phone && (
+              <button
+                onClick={() => window.open(`tel:${card.phone}`)}
+                className="flex w-full items-center gap-3 text-left transition-opacity hover:opacity-80"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500">
+                  <Phone className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{card.phone}</p>
+                  <p className="text-xs text-muted-foreground">Mobile</p>
+                </div>
+              </button>
+            )}
 
-              {card.phone && (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-3"
-                  onClick={() => window.open(`tel:${card.phone}`)}
-                >
-                  <Phone className="h-5 w-5 text-primary" />
-                  <span className="flex-1 text-left">{card.phone}</span>
-                </Button>
-              )}
+            {card.website && (
+              <button
+                onClick={() => window.open(card.website!, "_blank")}
+                className="flex w-full items-center gap-3 text-left transition-opacity hover:opacity-80"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500">
+                  <Globe className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Visit Website</p>
+                  <p className="text-xs text-muted-foreground">{card.website}</p>
+                </div>
+              </button>
+            )}
 
-              {card.website && (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-3"
-                  onClick={() => window.open(card.website!, "_blank")}
-                >
-                  <Globe className="h-5 w-5 text-primary" />
-                  <span className="flex-1 text-left">{card.website}</span>
-                </Button>
-              )}
-
-              {card.location && (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-3"
-                  disabled
-                >
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <span className="flex-1 text-left">{card.location}</span>
-                </Button>
-              )}
-            </div>
-
-            <div className="pt-4">
-              <Button className="w-full gap-2">
-                <Download className="h-4 w-4" />
-                Save Contact
-              </Button>
-            </div>
+            {card.location && (
+              <div className="flex w-full items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500">
+                  <MapPin className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{card.location}</p>
+                  <p className="text-xs text-muted-foreground">Location</p>
+                </div>
+              </div>
+            )}
           </div>
         </Card>
+
+        {/* Save Contact Button */}
+        <div className="mt-6">
+          <Button className="w-full gap-2 bg-green-500 hover:bg-green-600">
+            <Download className="h-4 w-4" />
+            Save Contact
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye } from "lucide-react";
+import { ArrowLeft, Save, Eye, Mail, Phone, Globe } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { z } from "zod";
 
@@ -302,33 +302,61 @@ export default function CardEditor() {
           </Card>
         </div>
 
+        {/* Live Preview */}
         <div className="lg:sticky lg:top-8 lg:h-fit">
-          <Card className="overflow-hidden border-primary/20">
-            <CardHeader className="bg-gradient-to-br from-primary/10 to-primary/5">
-              <CardTitle className="text-center">Live Preview</CardTitle>
+          <Card className="overflow-hidden border-border/50">
+            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20">
+              <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-4 rounded-2xl border border-border/50 bg-card/50 p-6 text-center">
-                <div className="mx-auto h-24 w-24 rounded-full bg-primary/10" />
-                <div>
-                  <h2 className="text-2xl font-bold">{card.full_name}</h2>
-                  {card.title && <p className="text-muted-foreground">{card.title}</p>}
-                  {card.company && (
-                    <p className="text-sm text-muted-foreground">{card.company}</p>
-                  )}
+            <CardContent className="p-4">
+              <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm">
+                {/* Cover */}
+                <div className="relative h-32 bg-gradient-to-br from-primary/20 to-primary/5" />
+                
+                {/* Avatar */}
+                <div className="relative -mt-12 px-4">
+                  <div className="mx-auto h-24 w-24 rounded-full border-4 border-background bg-muted" />
                 </div>
-                {card.bio && (
-                  <p className="text-sm text-muted-foreground">{card.bio}</p>
-                )}
-                <div className="space-y-2 pt-4">
+
+                {/* Info */}
+                <div className="px-4 py-3 text-center">
+                  <h3 className="text-lg font-bold">{card.full_name}</h3>
+                  {card.title && <p className="text-sm text-foreground/70">{card.title}</p>}
+                  {card.company && <p className="text-xs text-muted-foreground">{card.company}</p>}
+                  {card.bio && <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{card.bio}</p>}
+                </div>
+
+                {/* Contact Buttons Preview */}
+                <div className="space-y-2 px-4 pb-4">
                   {card.email && (
-                    <p className="text-sm text-muted-foreground">{card.email}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500">
+                        <Mail className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1 truncate">
+                        <p className="text-xs font-medium truncate">{card.email}</p>
+                      </div>
+                    </div>
                   )}
                   {card.phone && (
-                    <p className="text-sm text-muted-foreground">{card.phone}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500">
+                        <Phone className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium">{card.phone}</p>
+                      </div>
+                    </div>
                   )}
-                  {card.location && (
-                    <p className="text-sm text-muted-foreground">{card.location}</p>
+                  {card.website && (
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500">
+                        <Globe className="h-5 w-5 text-white" />
+                      </div>
+                      <div className="flex-1 truncate">
+                        <p className="text-xs font-medium truncate">{card.website}</p>
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
