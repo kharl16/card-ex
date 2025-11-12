@@ -29,11 +29,10 @@ export default function PublicCard() {
 
     if (!error && data) {
       setCard(data);
-      // Track view
-      await supabase.from("card_events").insert({
-        card_id: data.id,
-        kind: "view",
-      });
+      // Track view through Edge Function (with rate limiting)
+      supabase.functions.invoke('track-card-event', {
+        body: { card_id: data.id, kind: 'view' }
+      }).catch(err => console.error('Failed to track view:', err));
     }
     setLoading(false);
   };

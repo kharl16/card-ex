@@ -1,1 +1,4 @@
 project_id = "lorowpouhpjjxembvwyi"
+
+[functions.track-card-event]
+verify_jwt = false
