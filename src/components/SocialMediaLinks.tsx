@@ -6,8 +6,25 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trash2, Facebook, Linkedin, Instagram, Twitter, Github } from "lucide-react";
+import { Plus, Trash2, GripVertical } from "lucide-react";
 import { z } from "zod";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface SocialLink {
   id: string;
@@ -39,10 +56,62 @@ const linkSchema = z.object({
     }),
 });
 
+function SortableLink({ link, onDelete }: { link: SocialLink; onDelete: (id: string) => void }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: link.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 p-3 border border-border rounded-lg bg-card"
+    >
+      <button
+        className="cursor-grab active:cursor-grabbing touch-none"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </button>
+      <div className="flex-1">
+        <p className="font-medium text-sm">{link.label}</p>
+        <p className="text-xs text-muted-foreground truncate">{link.value}</p>
+      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => onDelete(link.id)}
+        className="text-destructive hover:text-destructive"
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
 export default function SocialMediaLinks({ cardId }: SocialMediaLinksProps) {
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [newLink, setNewLink] = useState({ platform: "", url: "" });
   const [loading, setLoading] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     loadLinks();
@@ -121,30 +190,57 @@ export default function SocialMediaLinks({ cardId }: SocialMediaLinksProps) {
     }
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = links.findIndex((link) => link.id === active.id);
+    const newIndex = links.findIndex((link) => link.id === over.id);
+
+    const newLinks = arrayMove(links, oldIndex, newIndex);
+    setLinks(newLinks);
+
+    // Update sort_index in database
+    const updates = newLinks.map((link, index) => ({
+      id: link.id,
+      sort_index: index,
+    }));
+
+    for (const update of updates) {
+      await supabase
+        .from("card_links")
+        .update({ sort_index: update.sort_index })
+        .eq("id", update.id);
+    }
+
+    toast.success("Links reordered");
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Social Media Links</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-4">
-          {links.map((link) => (
-            <div key={link.id} className="flex items-center gap-2 p-3 border border-border rounded-lg">
-              <div className="flex-1">
-                <p className="font-medium text-sm">{link.label}</p>
-                <p className="text-xs text-muted-foreground truncate">{link.value}</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => deleteLink(link.id)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="space-y-4">
+            <SortableContext
+              items={links.map((link) => link.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {links.map((link) => (
+                <SortableLink key={link.id} link={link} onDelete={deleteLink} />
+              ))}
+            </SortableContext>
+          </div>
+        </DndContext>
 
         <div className="space-y-3 pt-4 border-t border-border">
           <div className="space-y-2">
