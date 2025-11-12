@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download, BarChart3 } from "lucide-react";
+import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download, BarChart3, Facebook, Linkedin, Instagram, Twitter, Youtube, MessageCircle, Music } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { z } from "zod";
 import ImageUpload from "@/components/ImageUpload";
@@ -16,6 +16,24 @@ import SocialMediaLinks from "@/components/SocialMediaLinks";
 import QRCode from "qrcode";
 
 type CardData = Tables<"cards">;
+
+interface SocialLink {
+  id: string;
+  kind: string;
+  label: string;
+  value: string;
+  icon: string;
+}
+
+const socialIconMap: Record<string, any> = {
+  Facebook,
+  Linkedin,
+  Instagram,
+  Twitter,
+  Youtube,
+  MessageCircle,
+  Music,
+};
 
 // Validation schema for card data
 const cardSchema = z.object({
@@ -43,9 +61,11 @@ export default function CardEditor() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
 
   useEffect(() => {
     loadCard();
+    loadSocialLinks();
   }, [id]);
 
   const loadCard = async () => {
@@ -64,6 +84,27 @@ export default function CardEditor() {
       setCard(data);
     }
     setLoading(false);
+  };
+
+  const loadSocialLinks = async () => {
+    if (!id) return;
+
+    const { data } = await supabase
+      .from("card_links")
+      .select("*")
+      .eq("card_id", id)
+      .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok"])
+      .order("sort_index");
+
+    if (data) {
+      setSocialLinks(data.map(link => ({
+        id: link.id,
+        kind: link.kind,
+        label: link.label,
+        value: link.value,
+        icon: link.icon || "",
+      })));
+    }
   };
 
   const generateQRCode = async (cardSlug: string) => {
@@ -472,6 +513,24 @@ export default function CardEditor() {
                   {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
                   {card.bio && <p className="mt-3 text-sm text-muted-foreground">{card.bio}</p>}
                 </div>
+
+                {/* Social Media Links */}
+                {socialLinks.length > 0 && (
+                  <div className="flex flex-wrap gap-3 justify-center px-4 pb-4">
+                    {socialLinks.map((link) => {
+                      const IconComponent = socialIconMap[link.icon];
+                      return (
+                        <div
+                          key={link.id}
+                          className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600 hover:bg-green-700 transition-colors cursor-pointer"
+                          title={link.label}
+                        >
+                          {IconComponent && <IconComponent className="h-6 w-6 text-white" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Contact Buttons Preview */}
                 <div className="space-y-3 px-4 pb-4">
