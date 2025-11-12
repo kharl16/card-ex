@@ -18,27 +18,30 @@ export type Database = {
         Row: {
           card_id: string
           cta_clicks: number | null
-          date: string
+          day: string
           id: string
           qr_scans: number | null
+          unique_views: number | null
           vcard_downloads: number | null
           views: number | null
         }
         Insert: {
           card_id: string
           cta_clicks?: number | null
-          date: string
+          day: string
           id?: string
           qr_scans?: number | null
+          unique_views?: number | null
           vcard_downloads?: number | null
           views?: number | null
         }
         Update: {
           card_id?: string
           cta_clicks?: number | null
-          date?: string
+          day?: string
           id?: string
           qr_scans?: number | null
+          unique_views?: number | null
           vcard_downloads?: number | null
           views?: number | null
         }
@@ -97,42 +100,30 @@ export type Database = {
       card_events: {
         Row: {
           card_id: string
-          created_at: string
-          event_type: string
+          created_at: string | null
           id: string
           ip_hash: string | null
-          link_id: string | null
+          kind: Database["public"]["Enums"]["event_kind"]
           referrer: string | null
           user_agent: string | null
-          utm_campaign: string | null
-          utm_medium: string | null
-          utm_source: string | null
         }
         Insert: {
           card_id: string
-          created_at?: string
-          event_type: string
+          created_at?: string | null
           id?: string
           ip_hash?: string | null
-          link_id?: string | null
+          kind: Database["public"]["Enums"]["event_kind"]
           referrer?: string | null
           user_agent?: string | null
-          utm_campaign?: string | null
-          utm_medium?: string | null
-          utm_source?: string | null
         }
         Update: {
           card_id?: string
-          created_at?: string
-          event_type?: string
+          created_at?: string | null
           id?: string
           ip_hash?: string | null
-          link_id?: string | null
+          kind?: Database["public"]["Enums"]["event_kind"]
           referrer?: string | null
           user_agent?: string | null
-          utm_campaign?: string | null
-          utm_medium?: string | null
-          utm_source?: string | null
         }
         Relationships: [
           {
@@ -142,44 +133,37 @@ export type Database = {
             referencedRelation: "cards"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "card_events_link_id_fkey"
-            columns: ["link_id"]
-            isOneToOne: false
-            referencedRelation: "card_links"
-            referencedColumns: ["id"]
-          },
         ]
       }
       card_links: {
         Row: {
           card_id: string
-          created_at: string
+          created_at: string | null
           icon: string | null
           id: string
+          kind: Database["public"]["Enums"]["link_kind"]
           label: string
-          position: number
-          type: string
+          sort_index: number | null
           value: string
         }
         Insert: {
           card_id: string
-          created_at?: string
+          created_at?: string | null
           icon?: string | null
           id?: string
+          kind: Database["public"]["Enums"]["link_kind"]
           label: string
-          position?: number
-          type: string
+          sort_index?: number | null
           value: string
         }
         Update: {
           card_id?: string
-          created_at?: string
+          created_at?: string | null
           icon?: string | null
           id?: string
+          kind?: Database["public"]["Enums"]["link_kind"]
           label?: string
-          position?: number
-          type?: string
+          sort_index?: number | null
           value?: string
         }
         Relationships: [
@@ -211,9 +195,12 @@ export type Database = {
           slug: string
           theme: Json | null
           title: string | null
+          unique_views: number | null
           updated_at: string
           user_id: string
           vcard_url: string | null
+          views_count: number | null
+          wallet_pass_url: string | null
           website: string | null
         }
         Insert: {
@@ -234,9 +221,12 @@ export type Database = {
           slug: string
           theme?: Json | null
           title?: string | null
+          unique_views?: number | null
           updated_at?: string
           user_id: string
           vcard_url?: string | null
+          views_count?: number | null
+          wallet_pass_url?: string | null
           website?: string | null
         }
         Update: {
@@ -257,19 +247,15 @@ export type Database = {
           slug?: string
           theme?: Json | null
           title?: string | null
+          unique_views?: number | null
           updated_at?: string
           user_id?: string
           vcard_url?: string | null
+          views_count?: number | null
+          wallet_pass_url?: string | null
           website?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "cards_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "cards_user_id_fkey"
             columns: ["user_id"]
@@ -344,24 +330,24 @@ export type Database = {
       }
       memberships: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
           organization_id: string
-          role: string
+          role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           organization_id: string
-          role: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
           organization_id?: string
-          role?: string
+          role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
         Relationships: [
@@ -383,36 +369,39 @@ export type Database = {
       }
       organizations: {
         Row: {
-          created_at: string
+          created_at: string | null
+          created_by: string
           id: string
           logo_url: string | null
           name: string
-          owner_id: string
           slug: string
-          updated_at: string
+          theme_color: string | null
+          updated_at: string | null
         }
         Insert: {
-          created_at?: string
+          created_at?: string | null
+          created_by: string
           id?: string
           logo_url?: string | null
           name: string
-          owner_id: string
           slug: string
-          updated_at?: string
+          theme_color?: string | null
+          updated_at?: string | null
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
+          created_by?: string
           id?: string
           logo_url?: string | null
           name?: string
-          owner_id?: string
           slug?: string
-          updated_at?: string
+          theme_color?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "organizations_owner_id_fkey"
-            columns: ["owner_id"]
+            foreignKeyName: "organizations_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -452,6 +441,7 @@ export type Database = {
           created_at: string
           full_name: string | null
           id: string
+          is_super_admin: boolean | null
           phone: string | null
           phone_verified: boolean | null
           updated_at: string
@@ -461,6 +451,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id: string
+          is_super_admin?: boolean | null
           phone?: string | null
           phone_verified?: boolean | null
           updated_at?: string
@@ -470,6 +461,7 @@ export type Database = {
           created_at?: string
           full_name?: string | null
           id?: string
+          is_super_admin?: boolean | null
           phone?: string | null
           phone_verified?: boolean | null
           updated_at?: string
@@ -484,7 +476,29 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "admin" | "member"
+      event_kind:
+        | "view"
+        | "qr_scan"
+        | "vcard_download"
+        | "cta_click"
+        | "unique_view"
+      link_kind:
+        | "phone"
+        | "sms"
+        | "email"
+        | "url"
+        | "whatsapp"
+        | "messenger"
+        | "telegram"
+        | "viber"
+        | "facebook"
+        | "instagram"
+        | "tiktok"
+        | "x"
+        | "youtube"
+        | "linkedin"
+        | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -611,6 +625,32 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "admin", "member"],
+      event_kind: [
+        "view",
+        "qr_scan",
+        "vcard_download",
+        "cta_click",
+        "unique_view",
+      ],
+      link_kind: [
+        "phone",
+        "sms",
+        "email",
+        "url",
+        "whatsapp",
+        "messenger",
+        "telegram",
+        "viber",
+        "facebook",
+        "instagram",
+        "tiktok",
+        "x",
+        "youtube",
+        "linkedin",
+        "custom",
+      ],
+    },
   },
 } as const

@@ -1,12 +1,103 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { CreditCard, Sparkles, TrendingUp, Users, Shield } from "lucide-react";
 
 const Index = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect to dashboard if already authenticated
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        navigate("/dashboard", { replace: true });
+      }
+    });
+  }, [navigate]);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <header className="border-b border-border/50 bg-card/30 backdrop-blur">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+              <CreditCard className="h-5 w-5 text-primary" />
+            </div>
+            <span className="text-xl font-bold">Card-Ex</span>
+          </div>
+          <Button onClick={() => navigate("/auth")} variant="default">
+            Get Started
+          </Button>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-20">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+            <Sparkles className="h-6 w-6 text-primary" />
+          </div>
+          <h1 className="mb-6 text-5xl font-bold leading-tight md:text-6xl">
+            Your Digital Business Card,
+            <br />
+            <span className="bg-gradient-to-r from-primary to-primary-subtle bg-clip-text text-transparent">
+              Elevated
+            </span>
+          </h1>
+          <p className="mb-8 text-xl text-muted-foreground">
+            Create stunning, shareable digital business cards in minutes.
+            <br />
+            Track engagement, manage contacts, and make lasting impressions.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Button size="lg" onClick={() => navigate("/auth")} className="gap-2">
+              <Sparkles className="h-5 w-5" />
+              Create Your Card
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => navigate("/c/demo")}>
+              View Demo
+            </Button>
+          </div>
+        </div>
+
+        <div className="mt-20 grid gap-8 md:grid-cols-3">
+          <div className="rounded-2xl border border-border/50 bg-card/50 p-6 text-center backdrop-blur">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <TrendingUp className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold">Track Analytics</h3>
+            <p className="text-sm text-muted-foreground">
+              See who views your card, scans your QR code, and downloads your contact.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border/50 bg-card/50 p-6 text-center backdrop-blur">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Users className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold">Team Management</h3>
+            <p className="text-sm text-muted-foreground">
+              Create organizations, manage team members, and maintain brand consistency.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border/50 bg-card/50 p-6 text-center backdrop-blur">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <Shield className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold">Secure & Private</h3>
+            <p className="text-sm text-muted-foreground">
+              Your data is encrypted and secure. Control who sees your information.
+            </p>
+          </div>
+        </div>
+      </main>
+
+      <footer className="border-t border-border/50 bg-card/30 backdrop-blur mt-20">
+        <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
+          <p>© 2025 Card-Ex. Built with React, Supabase & Tailwind CSS.</p>
+        </div>
+      </footer>
     </div>
   );
 };
