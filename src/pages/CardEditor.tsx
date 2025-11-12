@@ -445,20 +445,20 @@ export default function CardEditor() {
             <CardContent className="p-4">
               <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm">
                 {/* Cover */}
-                <div className="relative h-32 bg-gradient-to-br from-primary/20 to-primary/5">
+                <div className="relative h-48 bg-gradient-to-br from-primary/20 to-primary/5">
                   {card.cover_url && (
                     <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
                   )}
                   {card.logo_url && (
-                    <div className="absolute right-3 top-3 h-12 w-12 rounded-lg border-2 border-background bg-background p-1">
+                    <div className="absolute right-4 top-4 h-20 w-20 rounded-lg border-2 border-background bg-background p-2">
                       <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
                     </div>
                   )}
                 </div>
                 
-                {/* Avatar */}
-                <div className="relative -mt-12 px-4">
-                  <div className="mx-auto h-24 w-24 rounded-full border-4 border-background bg-muted overflow-hidden">
+                {/* Avatar - Overlapping cover */}
+                <div className="relative -mt-16 px-4">
+                  <div className="h-32 w-32 rounded-full border-4 border-background bg-muted overflow-hidden">
                     {card.avatar_url && (
                       <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
                     )}
@@ -466,42 +466,45 @@ export default function CardEditor() {
                 </div>
 
                 {/* Info */}
-                <div className="px-4 py-3 text-center">
-                  <h3 className="text-lg font-bold">{card.full_name}</h3>
-                  {card.title && <p className="text-sm text-foreground/70">{card.title}</p>}
-                  {card.company && <p className="text-xs text-muted-foreground">{card.company}</p>}
-                  {card.bio && <p className="mt-2 text-xs text-muted-foreground line-clamp-2">{card.bio}</p>}
+                <div className="px-4 py-4">
+                  <h3 className="text-xl font-bold">{card.full_name}</h3>
+                  {card.title && <p className="text-sm text-foreground/80 mt-1">{card.title}</p>}
+                  {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
+                  {card.bio && <p className="mt-3 text-sm text-muted-foreground">{card.bio}</p>}
                 </div>
 
                 {/* Contact Buttons Preview */}
-                <div className="space-y-2 px-4 pb-4">
+                <div className="space-y-3 px-4 pb-4">
                   {card.email && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500">
-                        <Mail className="h-5 w-5 text-white" />
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600">
+                        <Mail className="h-6 w-6 text-white" />
                       </div>
-                      <div className="flex-1 truncate">
-                        <p className="text-xs font-medium truncate">{card.email}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{card.email}</p>
+                        <p className="text-xs text-muted-foreground">Personal</p>
                       </div>
                     </div>
                   )}
                   {card.phone && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500">
-                        <Phone className="h-5 w-5 text-white" />
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600">
+                        <Phone className="h-6 w-6 text-white" />
                       </div>
-                      <div className="flex-1">
-                        <p className="text-xs font-medium">{card.phone}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold">{card.phone}</p>
+                        <p className="text-xs text-muted-foreground">Mobile</p>
                       </div>
                     </div>
                   )}
                   {card.website && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500">
-                        <Globe className="h-5 w-5 text-white" />
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600">
+                        <Globe className="h-6 w-6 text-white" />
                       </div>
-                      <div className="flex-1 truncate">
-                        <p className="text-xs font-medium truncate">{card.website}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{card.website}</p>
+                        <p className="text-xs text-muted-foreground">Website</p>
                       </div>
                     </div>
                   )}
