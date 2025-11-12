@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Globe, Download, Facebook, Linkedin, Instagram, Twitter, Github, MessageCircle, Music, Youtube } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { downloadVCard } from "@/utils/vcard";
+import { toast } from "sonner";
 
 type CardData = Tables<"cards">;
 
@@ -232,7 +234,13 @@ export default function PublicCard() {
 
         {/* Save Contact Button */}
         <div className="mt-6">
-          <Button className="w-full gap-2 bg-green-500 hover:bg-green-600">
+          <Button 
+            className="w-full gap-2 bg-green-500 hover:bg-green-600"
+            onClick={() => {
+              downloadVCard(card);
+              toast.success("Contact saved! Check your downloads.");
+            }}
+          >
             <Download className="h-4 w-4" />
             Save Contact
           </Button>

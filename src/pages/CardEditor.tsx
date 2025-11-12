@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download } from "lucide-react";
+import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download, BarChart3 } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { z } from "zod";
 import ImageUpload from "@/components/ImageUpload";
@@ -156,6 +156,7 @@ export default function CardEditor() {
         is_published: card.is_published,
         theme: card.theme,
         qr_code_url: qrCodeUrl,
+        slug: card.slug,
       })
       .eq("id", card.id);
 
@@ -218,6 +219,14 @@ export default function CardEditor() {
           <div className="flex gap-2">
             <Button
               variant="outline"
+              onClick={() => navigate(`/cards/${card.id}/analytics`)}
+              className="gap-2"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Analytics
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => window.open(`/c/${card.slug}`, "_blank")}
               className="gap-2"
             >
@@ -273,6 +282,30 @@ export default function CardEditor() {
           />
 
           <SocialMediaLinks cardId={card.id} />
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Custom URL</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="slug">Card URL Slug</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">/c/</span>
+                  <Input
+                    id="slug"
+                    value={card.slug}
+                    onChange={(e) => setCard({ ...card, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                    placeholder="your-name"
+                    maxLength={100}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Your card will be accessible at: {window.location.origin}/c/{card.slug}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>

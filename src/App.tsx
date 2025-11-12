@@ -9,6 +9,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import CardEditor from "./pages/CardEditor";
 import PublicCard from "./pages/PublicCard";
+import Analytics from "./pages/Analytics";
 import RequireAuth from "./components/auth/RequireAuth";
 import NotFound from "./pages/NotFound";
 
@@ -37,6 +38,14 @@ const App = () => (
             element={
               <RequireAuth>
                 <CardEditor />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/cards/:id/analytics"
+            element={
+              <RequireAuth>
+                <Analytics />
               </RequireAuth>
             }
           />
