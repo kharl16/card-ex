@@ -3,14 +3,33 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Mail, Phone, MapPin, Globe, Download } from "lucide-react";
+import { Mail, Phone, MapPin, Globe, Download, Facebook, Linkedin, Instagram, Twitter, Github, MessageCircle, Music, Youtube } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
 
+interface SocialLink {
+  id: string;
+  label: string;
+  value: string;
+  icon: string;
+}
+
+const iconMap: Record<string, any> = {
+  Facebook: Facebook,
+  Linkedin: Linkedin,
+  Instagram: Instagram,
+  Twitter: Twitter,
+  Youtube: Youtube,
+  Github: Github,
+  MessageCircle: MessageCircle,
+  Music: Music,
+};
+
 export default function PublicCard() {
   const { slug } = useParams();
   const [card, setCard] = useState<CardData | null>(null);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,6 +52,23 @@ export default function PublicCard() {
       supabase.functions.invoke('track-card-event', {
         body: { card_id: data.id, kind: 'view' }
       }).catch(err => console.error('Failed to track view:', err));
+      
+      // Load social links
+      const { data: links } = await supabase
+        .from("card_links")
+        .select("*")
+        .eq("card_id", data.id)
+        .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok"])
+        .order("sort_index");
+      
+      if (links) {
+        setSocialLinks(links.map(link => ({
+          id: link.id,
+          label: link.label,
+          value: link.value,
+          icon: link.icon || "",
+        })));
+      }
     }
     setLoading(false);
   };
@@ -148,6 +184,50 @@ export default function PublicCard() {
               </div>
             )}
           </div>
+
+          {/* Social Media Links */}
+          {socialLinks.length > 0 && (
+            <div className="space-y-2 px-6 pb-4">
+              {socialLinks.map((link) => {
+                const IconComponent = iconMap[link.icon] || Globe;
+                return (
+                  <a
+                    key={link.id}
+                    href={link.value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500">
+                      <IconComponent className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{link.label}</p>
+                    </div>
+                  </a>
+                );
+              })}
+            </div>
+          )}
+
+          {/* QR Code */}
+          {card.qr_code_url && (
+            <div className="flex flex-col items-center gap-3 p-6 bg-muted/30">
+              <img 
+                src={card.qr_code_url} 
+                alt="QR Code" 
+                className="w-48 h-48 rounded-lg border border-border"
+              />
+              <a 
+                href={card.qr_code_url} 
+                download={`${card.slug}-qr.png`}
+                className="text-sm text-primary hover:underline flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download QR Code
+              </a>
+            </div>
+          )}
         </Card>
 
         {/* Save Contact Button */}

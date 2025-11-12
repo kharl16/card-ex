@@ -7,10 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Mail, Phone, Globe } from "lucide-react";
+import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import { z } from "zod";
 import ImageUpload from "@/components/ImageUpload";
+import ThemeCustomizer from "@/components/ThemeCustomizer";
+import SocialMediaLinks from "@/components/SocialMediaLinks";
+import QRCode from "qrcode";
 
 type CardData = Tables<"cards">;
 
@@ -63,6 +66,39 @@ export default function CardEditor() {
     setLoading(false);
   };
 
+  const generateQRCode = async (cardSlug: string) => {
+    try {
+      const cardUrl = `${window.location.origin}/c/${cardSlug}`;
+      const qrDataUrl = await QRCode.toDataURL(cardUrl, {
+        width: 512,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        },
+      });
+
+      const blob = await (await fetch(qrDataUrl)).blob();
+      const fileName = `${cardSlug}-qr.png`;
+      const filePath = `${card?.user_id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("qrcodes")
+        .upload(filePath, blob, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("qrcodes")
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error("QR code generation error:", error);
+      return null;
+    }
+  };
+
   const handleSave = async () => {
     if (!card) return;
 
@@ -96,6 +132,13 @@ export default function CardEditor() {
     }
 
     setSaving(true);
+
+    // Generate QR code if published and doesn't exist
+    let qrCodeUrl = card.qr_code_url;
+    if (card.is_published && !qrCodeUrl) {
+      qrCodeUrl = await generateQRCode(card.slug);
+    }
+
     const { error } = await supabase
       .from("cards")
       .update({
@@ -111,12 +154,17 @@ export default function CardEditor() {
         cover_url: card.cover_url,
         logo_url: card.logo_url,
         is_published: card.is_published,
+        theme: card.theme,
+        qr_code_url: qrCodeUrl,
       })
       .eq("id", card.id);
 
     if (error) {
       toast.error(error.message || "Failed to save card");
     } else {
+      if (qrCodeUrl && !card.qr_code_url) {
+        setCard({ ...card, qr_code_url: qrCodeUrl });
+      }
       toast.success("Card saved!");
     }
     setSaving(false);
@@ -126,15 +174,25 @@ export default function CardEditor() {
     if (!card) return;
 
     const newStatus = !card.is_published;
+    
+    // Generate QR code when publishing
+    let qrCodeUrl = card.qr_code_url;
+    if (newStatus && !qrCodeUrl) {
+      qrCodeUrl = await generateQRCode(card.slug);
+    }
+
     const { error } = await supabase
       .from("cards")
-      .update({ is_published: newStatus })
+      .update({ 
+        is_published: newStatus,
+        qr_code_url: qrCodeUrl,
+      })
       .eq("id", card.id);
 
     if (error) {
       toast.error("Failed to update status");
     } else {
-      setCard({ ...card, is_published: newStatus });
+      setCard({ ...card, is_published: newStatus, qr_code_url: qrCodeUrl });
       toast.success(newStatus ? "Card published!" : "Card unpublished");
     }
   };
@@ -208,6 +266,13 @@ export default function CardEditor() {
               />
             </CardContent>
           </Card>
+
+          <ThemeCustomizer
+            theme={card.theme as any || { primary: "#D4AF37", background: "#0B0B0C", text: "#F8F8F8" }}
+            onChange={(theme) => setCard({ ...card, theme: theme as any })}
+          />
+
+          <SocialMediaLinks cardId={card.id} />
 
           <Card>
             <CardHeader>
