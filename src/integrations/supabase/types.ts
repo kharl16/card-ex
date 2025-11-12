@@ -55,48 +55,6 @@ export type Database = {
           },
         ]
       }
-      "Branches and IBCs": {
-        Row: {
-          Address: string | null
-          "Facebook Page": string | null
-          id: number
-          Location: string | null
-          "Maps Link": string | null
-          "Operating Hours": string | null
-          Owner: string | null
-          "Phone 1": string | null
-          "Phone 2": string | null
-          "Phone 3": string | null
-          Sites: string | null
-        }
-        Insert: {
-          Address?: string | null
-          "Facebook Page"?: string | null
-          id: number
-          Location?: string | null
-          "Maps Link"?: string | null
-          "Operating Hours"?: string | null
-          Owner?: string | null
-          "Phone 1"?: string | null
-          "Phone 2"?: string | null
-          "Phone 3"?: string | null
-          Sites?: string | null
-        }
-        Update: {
-          Address?: string | null
-          "Facebook Page"?: string | null
-          id?: number
-          Location?: string | null
-          "Maps Link"?: string | null
-          "Operating Hours"?: string | null
-          Owner?: string | null
-          "Phone 1"?: string | null
-          "Phone 2"?: string | null
-          "Phone 3"?: string | null
-          Sites?: string | null
-        }
-        Relationships: []
-      }
       card_events: {
         Row: {
           card_id: string
@@ -264,69 +222,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      Files: {
-        Row: {
-          "Check Match": string | null
-          Description: string | null
-          "Drive Link Download": string | null
-          "Drive Link share": string | null
-          "File Name": string | null
-          "Folder Name": string | null
-          "Give Me 5": string | null
-          id: number
-          Images: string | null
-          Infinity: string | null
-          "Just 4 You": string | null
-          "Package Points (SMC)": string | null
-          "Price (DP)": string | null
-          "Price (SRP)": string | null
-          RQV: string | null
-          "Unilevel Points": number | null
-          "View Video URL": string | null
-          "Wholesale Package Commission": string | null
-        }
-        Insert: {
-          "Check Match"?: string | null
-          Description?: string | null
-          "Drive Link Download"?: string | null
-          "Drive Link share"?: string | null
-          "File Name"?: string | null
-          "Folder Name"?: string | null
-          "Give Me 5"?: string | null
-          id: number
-          Images?: string | null
-          Infinity?: string | null
-          "Just 4 You"?: string | null
-          "Package Points (SMC)"?: string | null
-          "Price (DP)"?: string | null
-          "Price (SRP)"?: string | null
-          RQV?: string | null
-          "Unilevel Points"?: number | null
-          "View Video URL"?: string | null
-          "Wholesale Package Commission"?: string | null
-        }
-        Update: {
-          "Check Match"?: string | null
-          Description?: string | null
-          "Drive Link Download"?: string | null
-          "Drive Link share"?: string | null
-          "File Name"?: string | null
-          "Folder Name"?: string | null
-          "Give Me 5"?: string | null
-          id?: number
-          Images?: string | null
-          Infinity?: string | null
-          "Just 4 You"?: string | null
-          "Package Points (SMC)"?: string | null
-          "Price (DP)"?: string | null
-          "Price (SRP)"?: string | null
-          RQV?: string | null
-          "Unilevel Points"?: number | null
-          "View Video URL"?: string | null
-          "Wholesale Package Commission"?: string | null
-        }
-        Relationships: []
       }
       memberships: {
         Row: {
