@@ -505,23 +505,23 @@ export default function CardEditor() {
                     </>
                   )}
                   
-                  {/* Avatar - Bottom Left - Overlapping the cover */}
-                  <div className="absolute bottom-3 left-3 h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
+                  {/* Avatar - Bottom Left - Half overlapping the cover */}
+                  <div className="absolute -bottom-10 left-4 h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                     {card.avatar_url && (
                       <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
                     )}
                   </div>
                   
-                  {/* Logo - Bottom Right - Overlapping the cover */}
+                  {/* Logo - Bottom Right - Half overlapping the cover */}
                   {card.logo_url && (
-                    <div className="absolute bottom-3 right-3 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
+                    <div className="absolute -bottom-8 right-4 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                       <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
                     </div>
                   )}
                 </div>
 
                 {/* Info */}
-                <div className="px-4 py-4">
+                <div className="px-4 pt-14 pb-4">
                   <h3 className="text-xl font-bold">{card.full_name}</h3>
                   {card.title && <p className="text-sm text-foreground/80 mt-1">{card.title}</p>}
                   {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
