@@ -22,7 +22,7 @@ const Index = () => {
       <header className="border-b border-border/50 bg-card/30 backdrop-blur">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center overflow-hidden bg-transparent">
+            <div className="flex h-8 w-8 items-center justify-center overflow-hidden bg-transparent transition-transform duration-300 hover:rotate-12">
               <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-contain" />
             </div>
             <span className="text-xl font-bold">Card-Ex</span>

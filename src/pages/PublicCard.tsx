@@ -7,6 +7,7 @@ import { Mail, Phone, MapPin, Globe, Download, Facebook, Linkedin, Instagram, Tw
 import type { Tables } from "@/integrations/supabase/types";
 import { downloadVCard } from "@/utils/vcard";
 import { toast } from "sonner";
+import LoadingAnimation from "@/components/LoadingAnimation";
 
 type CardData = Tables<"cards">;
 
@@ -95,11 +96,7 @@ export default function PublicCard() {
   };
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
+    return <LoadingAnimation />;
   }
 
   if (!card) {
