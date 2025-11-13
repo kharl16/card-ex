@@ -111,9 +111,9 @@ export default function PublicCard() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="container mx-auto max-w-md">
-        <Card className="overflow-hidden border-border/50 shadow-lg">
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto max-w-2xl">
+        <Card className="overflow-hidden border-0 rounded-none shadow-lg">
           {/* Header with cover image */}
           <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/20 to-primary/5">
             {card.cover_url && (
@@ -124,23 +124,23 @@ export default function PublicCard() {
               </>
             )}
             
-            {/* Avatar - Bottom Left - Overlapping the cover */}
-            <div className="absolute bottom-4 left-4 h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
+            {/* Avatar - Bottom Left - Half overlapping the cover */}
+            <div className="absolute -bottom-12 left-6 h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
               {card.avatar_url && (
                 <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
               )}
             </div>
             
-            {/* Logo - Bottom Right - Overlapping the cover */}
+            {/* Logo - Bottom Right - Half overlapping the cover */}
             {card.logo_url && (
-              <div className="absolute bottom-4 right-4 h-20 w-32 sm:h-24 sm:w-36 md:h-28 md:w-40 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
+              <div className="absolute -bottom-10 right-6 h-20 w-32 sm:h-24 sm:w-36 md:h-28 md:w-40 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                 <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
               </div>
             )}
           </div>
 
           {/* Profile Info */}
-          <div className="px-6 py-4">
+          <div className="px-6 pt-16 pb-4">
             <h1 className="text-2xl font-bold">{card.full_name}</h1>
             {card.title && <p className="text-lg text-foreground/80 mt-1">{card.title}</p>}
             {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
