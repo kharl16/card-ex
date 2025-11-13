@@ -125,8 +125,8 @@ export default function Auth() {
   return <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden bg-transparent">
-            <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-contain" />
+          <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden bg-transparent animate-fade-in">
+            <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-contain animate-scale-in" />
           </div>
           <CardTitle className="text-2xl font-bold">Welcome to Card-Ex</CardTitle>
           <CardDescription>Create your digital business portfolio  </CardDescription>
