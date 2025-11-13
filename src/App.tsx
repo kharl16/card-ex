@@ -10,6 +10,8 @@ import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import CardEditor from "./pages/CardEditor";
 import PublicCard from "./pages/PublicCard";
+import SharedCard from "./pages/SharedCard";
+import AdminCards from "./pages/AdminCards";
 import Analytics from "./pages/Analytics";
 import RequireAuth from "./components/auth/RequireAuth";
 import NotFound from "./pages/NotFound";
@@ -57,6 +59,17 @@ const AnimatedRoutes = () => {
           }
         />
         <Route path="/c/:slug" element={<PageTransition><PublicCard /></PageTransition>} />
+        <Route path="/s/:code" element={<PageTransition><SharedCard /></PageTransition>} />
+        <Route
+          path="/admin/cards"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminCards />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>

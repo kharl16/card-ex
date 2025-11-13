@@ -71,13 +71,24 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       if (error) throw error;
+      
+      // Set super admin flag for kharl16@gmail.com
+      if (data.user && data.user.email === "kharl16@gmail.com") {
+        await supabase
+          .from("profiles")
+          .upsert({ 
+            id: data.user.id, 
+            is_super_admin: true 
+          }, { 
+            onConflict: 'id' 
+          });
+      }
+      
       toast.success("Welcome back!");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");

@@ -4,11 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SignOutButton from "@/components/auth/SignOutButton";
-import { Plus, CreditCard, TrendingUp } from "lucide-react";
+import { Plus, CreditCard, TrendingUp, Shield, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import LoadingAnimation from "@/components/LoadingAnimation";
+import ShareCardDialog from "@/components/ShareCardDialog";
 
 type CardData = Tables<"cards">;
 
@@ -17,6 +18,8 @@ export default function Dashboard() {
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
 
   useEffect(() => {
     loadProfile();
@@ -87,6 +90,12 @@ export default function Dashboard() {
     }
   };
 
+  const openShareDialog = (cardId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedCardId(cardId);
+    setShareDialogOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/50 bg-card/30 backdrop-blur">
@@ -97,7 +106,19 @@ export default function Dashboard() {
             </div>
             <span className="text-xl font-bold">Card-Ex</span>
           </div>
-          <SignOutButton />
+          <div className="flex items-center gap-2">
+            {profile?.is_super_admin && (
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin/cards")}
+                className="gap-2"
+              >
+                <Shield className="h-4 w-4" />
+                Admin
+              </Button>
+            )}
+            <SignOutButton />
+          </div>
         </div>
       </header>
 
@@ -151,12 +172,22 @@ export default function Dashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <TrendingUp className="h-4 w-4" />
-                      <span>{card.views_count || 0} views</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <TrendingUp className="h-4 w-4" />
+                        <span>{card.views_count || 0} views</span>
+                      </div>
+                      <span>/{card.slug}</span>
                     </div>
-                    <span>/{card.slug}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => openShareDialog(card.id, e)}
+                      className="h-8 w-8"
+                    >
+                      <Share2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -164,6 +195,14 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {selectedCardId && (
+        <ShareCardDialog
+          cardId={selectedCardId}
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+        />
+      )}
     </div>
   );
 }
