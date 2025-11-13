@@ -496,13 +496,17 @@ export default function CardEditor() {
             <CardContent className="p-4">
               <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm">
                 {/* Cover */}
-                <div className="relative h-48 bg-gradient-to-br from-primary/20 to-primary/5">
+                <div className="relative h-48 bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden">
                   {card.cover_url && (
-                    <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
+                    <>
+                      <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
+                      {/* Blur overlay for better contrast */}
+                      <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
+                    </>
                   )}
                   
                   {/* Avatar - Bottom Left */}
-                  <div className="absolute -bottom-12 left-4 h-24 w-24 rounded-full border-4 border-background bg-muted overflow-hidden">
+                  <div className="absolute -bottom-12 left-4 h-24 w-24 rounded-full border-4 border-background bg-muted overflow-hidden shadow-lg ring-2 ring-black/10">
                     {card.avatar_url && (
                       <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
                     )}
@@ -510,7 +514,7 @@ export default function CardEditor() {
                   
                   {/* Logo - Bottom Right */}
                   {card.logo_url && (
-                    <div className="absolute -bottom-9 right-4 h-18 w-18 rounded-lg bg-black/90 p-2">
+                    <div className="absolute -bottom-9 right-4 h-[72px] w-[72px] rounded-lg bg-black/90 p-2 shadow-lg ring-2 ring-black/10">
                       <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
                     </div>
                   )}
