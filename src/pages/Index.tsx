@@ -35,7 +35,7 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-20">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-6 inline-flex h-16 w-16 items-center justify-center overflow-hidden bg-transparent animate-fade-in">
+          <div className="mb-6 inline-flex h-28 w-28 items-center justify-center overflow-hidden bg-transparent animate-fade-in">
             <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-contain animate-scale-in" />
           </div>
           <h1 className="mb-6 text-5xl font-bold leading-tight md:text-6xl">
