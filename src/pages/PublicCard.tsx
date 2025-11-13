@@ -118,12 +118,12 @@ export default function PublicCard() {
       <div className="container mx-auto max-w-md">
         <Card className="overflow-hidden border-border/50 shadow-lg">
           {/* Header with cover image */}
-          <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden">
+          <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 bg-gradient-to-br from-primary/20 to-primary/5 overflow-visible">
             {card.cover_url && (
               <>
-                <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
-                {/* Blur overlay for better contrast */}
-                <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
+                <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
+                {/* Subtle bottom gradient overlay for contrast without blurring the image */}
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent"></div>
               </>
             )}
             

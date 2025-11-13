@@ -496,25 +496,25 @@ export default function CardEditor() {
             <CardContent className="p-4">
               <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm">
                 {/* Cover */}
-                <div className="relative h-48 bg-gradient-to-br from-primary/20 to-primary/5 overflow-hidden">
+                <div className="relative h-48 bg-gradient-to-br from-primary/20 to-primary/5 overflow-visible">
                   {card.cover_url && (
                     <>
-                      <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
-                      {/* Blur overlay for better contrast */}
-                      <div className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"></div>
+                      <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
+                      {/* Subtle bottom gradient overlay for contrast without blurring the image */}
+                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent"></div>
                     </>
                   )}
                   
-                  {/* Avatar - Bottom Left */}
-                  <div className="absolute -bottom-12 left-4 h-24 w-24 rounded-full border-4 border-background bg-muted overflow-hidden shadow-lg ring-2 ring-black/10">
+                  {/* Avatar - Bottom Left (responsive) */}
+                  <div className="absolute -bottom-10 sm:-bottom-12 md:-bottom-14 left-4 sm:left-5 md:left-6 h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                     {card.avatar_url && (
                       <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
                     )}
                   </div>
                   
-                  {/* Logo - Bottom Right */}
+                  {/* Logo - Bottom Right (responsive) */}
                   {card.logo_url && (
-                    <div className="absolute -bottom-9 right-4 h-[72px] w-[72px] rounded-lg bg-black/90 p-2 shadow-lg ring-2 ring-black/10">
+                    <div className="absolute -bottom-8 sm:-bottom-9 md:-bottom-10 right-4 sm:right-5 md:right-6 h-[64px] w-[64px] sm:h-[72px] sm:w-[72px] md:h-20 md:w-20 rounded-lg bg-black/90 p-2 sm:p-2.5 md:p-3 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                       <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
                     </div>
                   )}
