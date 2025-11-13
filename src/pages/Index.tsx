@@ -2,7 +2,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Sparkles, TrendingUp, Users, Shield } from "lucide-react";
+import { TrendingUp, Users, Shield } from "lucide-react";
+import CardExLogo from "@/assets/Card-Ex-Logo.png";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -21,8 +22,8 @@ const Index = () => {
       <header className="border-b border-border/50 bg-card/30 backdrop-blur">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-              <CreditCard className="h-5 w-5 text-primary" />
+            <div className="flex h-8 w-8 items-center justify-center overflow-hidden bg-transparent">
+              <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-contain" />
             </div>
             <span className="text-xl font-bold">Card-Ex</span>
           </div>
@@ -34,8 +35,8 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-20">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-            <Sparkles className="h-6 w-6 text-primary" />
+          <div className="mb-6 inline-flex h-16 w-16 items-center justify-center overflow-hidden bg-transparent animate-fade-in">
+            <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-contain animate-scale-in" />
           </div>
           <h1 className="mb-6 text-5xl font-bold leading-tight md:text-6xl">
             Your Digital Business Card,
@@ -51,7 +52,6 @@ const Index = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" onClick={() => navigate("/auth")} className="gap-2">
-              <Sparkles className="h-5 w-5" />
               Create Your Card
             </Button>
             <Button size="lg" variant="outline" onClick={() => navigate("/c/demo")}>
