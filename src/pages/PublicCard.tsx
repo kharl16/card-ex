@@ -12,6 +12,7 @@ type CardData = Tables<"cards">;
 
 interface SocialLink {
   id: string;
+  kind: string;
   label: string;
   value: string;
   icon: string;
@@ -26,6 +27,23 @@ const iconMap: Record<string, any> = {
   Github: Github,
   MessageCircle: MessageCircle,
   Music: Music,
+};
+
+const socialBrandColors: Record<string, string> = {
+  facebook: "bg-[#1877F2]",
+  linkedin: "bg-[#0A66C2]",
+  instagram: "bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#FD1D1D]",
+  x: "bg-black",
+  youtube: "bg-[#FF0000]",
+  telegram: "bg-[#26A5E4]",
+  tiktok: "bg-black",
+};
+
+const contactBrandColors: Record<string, string> = {
+  email: "bg-[#EA4335]",
+  phone: "bg-[#34A853]",
+  website: "bg-[#4285F4]",
+  location: "bg-[#FBBC04]",
 };
 
 export default function PublicCard() {
@@ -66,6 +84,7 @@ export default function PublicCard() {
       if (links) {
         setSocialLinks(links.map(link => ({
           id: link.id,
+          kind: link.kind,
           label: link.label,
           value: link.value,
           icon: link.icon || "",
@@ -98,47 +117,69 @@ export default function PublicCard() {
     <div className="min-h-screen bg-background py-8 px-4">
       <div className="container mx-auto max-w-md">
         <Card className="overflow-hidden border-border/50 shadow-lg">
-          {/* Header with cover image placeholder */}
+          {/* Header with cover image */}
           <div className="relative h-40 bg-gradient-to-br from-primary/20 to-primary/5">
             {card.cover_url && (
               <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
             )}
+          </div>
+
+          {/* Avatar and Logo - Horizontal alignment */}
+          <div className="relative -mt-16 px-6 flex gap-4 items-end">
+            <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-background bg-muted">
+              {card.avatar_url && (
+                <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
+              )}
+            </div>
             {card.logo_url && (
-              <div className="absolute right-4 top-4 h-16 w-16 rounded-lg border-2 border-background bg-background p-2">
+              <div className="h-32 w-32 rounded-lg border-4 border-background bg-background p-3">
                 <img src={card.logo_url} alt="Company Logo" className="h-full w-full object-contain" />
               </div>
             )}
           </div>
 
-          {/* Avatar */}
-          <div className="relative -mt-16 px-6">
-            <div className="mx-auto h-32 w-32 overflow-hidden rounded-full border-4 border-background bg-muted">
-              {card.avatar_url && (
-                <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
-              )}
-            </div>
-          </div>
-
           {/* Profile Info */}
-          <div className="px-6 py-4 text-center">
+          <div className="px-6 py-4">
             <h1 className="text-2xl font-bold">{card.full_name}</h1>
-            {card.title && <p className="text-lg text-foreground/80">{card.title}</p>}
+            {card.title && <p className="text-lg text-foreground/80 mt-1">{card.title}</p>}
             {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
             {card.bio && <p className="mt-3 text-sm text-muted-foreground">{card.bio}</p>}
           </div>
 
-          {/* Contact Buttons with Green Circles */}
+          {/* Social Media Links */}
+          {socialLinks.length > 0 && (
+            <div className="flex flex-wrap gap-3 justify-center px-6 pb-4">
+              {socialLinks.map((link) => {
+                const IconComponent = iconMap[link.icon] || Globe;
+                const brandColor = socialBrandColors[link.kind] || "bg-primary";
+                return (
+                  <a
+                    key={link.id}
+                    href={link.value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md`}
+                    title={link.label}
+                  >
+                    <IconComponent className="h-6 w-6 text-white" />
+                  </a>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Contact Buttons */}
           <div className="space-y-3 px-6 pb-6">
             {card.email && (
               <button
                 onClick={() => window.open(`mailto:${card.email}`)}
-                className="flex w-full items-center gap-3 text-left transition-opacity hover:opacity-80"
+                className="flex w-full items-center gap-3 text-left group"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500">
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.email} group-hover:scale-110 transition-transform duration-200 shadow-md`}>
                   <Mail className="h-6 w-6 text-white" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{card.email}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{card.email}</p>
                   <p className="text-xs text-muted-foreground">Personal</p>
                 </div>
               </button>
@@ -147,13 +188,13 @@ export default function PublicCard() {
             {card.phone && (
               <button
                 onClick={() => window.open(`tel:${card.phone}`)}
-                className="flex w-full items-center gap-3 text-left transition-opacity hover:opacity-80"
+                className="flex w-full items-center gap-3 text-left group"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500">
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.phone} group-hover:scale-110 transition-transform duration-200 shadow-md`}>
                   <Phone className="h-6 w-6 text-white" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{card.phone}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{card.phone}</p>
                   <p className="text-xs text-muted-foreground">Mobile</p>
                 </div>
               </button>
@@ -162,55 +203,30 @@ export default function PublicCard() {
             {card.website && (
               <button
                 onClick={() => window.open(card.website!, "_blank")}
-                className="flex w-full items-center gap-3 text-left transition-opacity hover:opacity-80"
+                className="flex w-full items-center gap-3 text-left group"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500">
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.website} group-hover:scale-110 transition-transform duration-200 shadow-md`}>
                   <Globe className="h-6 w-6 text-white" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">Visit Website</p>
-                  <p className="text-xs text-muted-foreground">{card.website}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{card.website}</p>
+                  <p className="text-xs text-muted-foreground">Website</p>
                 </div>
               </button>
             )}
 
             {card.location && (
               <div className="flex w-full items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500">
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.location} shadow-md`}>
                   <MapPin className="h-6 w-6 text-white" />
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{card.location}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold">{card.location}</p>
                   <p className="text-xs text-muted-foreground">Location</p>
                 </div>
               </div>
             )}
           </div>
-
-          {/* Social Media Links */}
-          {socialLinks.length > 0 && (
-            <div className="space-y-2 px-6 pb-4">
-              {socialLinks.map((link) => {
-                const IconComponent = iconMap[link.icon] || Globe;
-                return (
-                  <a
-                    key={link.id}
-                    href={link.value}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500">
-                      <IconComponent className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{link.label}</p>
-                    </div>
-                  </a>
-                );
-              })}
-            </div>
-          )}
 
           {/* QR Code */}
           {card.qr_code_url && (

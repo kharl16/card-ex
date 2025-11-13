@@ -533,7 +533,7 @@ export default function CardEditor() {
                       return (
                         <div
                           key={link.id}
-                          className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:opacity-90 transition-opacity cursor-pointer shadow-md`}
+                          className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md`}
                           title={link.label}
                         >
                           {IconComponent && <IconComponent className="h-6 w-6 text-white" />}
@@ -546,8 +546,8 @@ export default function CardEditor() {
                 {/* Contact Buttons Preview */}
                 <div className="space-y-3 px-4 pb-4">
                   {card.email && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600">
+                    <div className="flex items-center gap-3 group">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#EA4335] group-hover:scale-110 transition-transform duration-200 shadow-md">
                         <Mail className="h-6 w-6 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -557,8 +557,8 @@ export default function CardEditor() {
                     </div>
                   )}
                   {card.phone && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600">
+                    <div className="flex items-center gap-3 group">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#34A853] group-hover:scale-110 transition-transform duration-200 shadow-md">
                         <Phone className="h-6 w-6 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -568,8 +568,8 @@ export default function CardEditor() {
                     </div>
                   )}
                   {card.website && (
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600">
+                    <div className="flex items-center gap-3 group">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#4285F4] group-hover:scale-110 transition-transform duration-200 shadow-md">
                         <Globe className="h-6 w-6 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
