@@ -1,8 +1,45 @@
-# Welcome to your Lovable project
+# Card-Ex - Digital Business Card Platform
+
+A modern digital business card platform built with React, TypeScript, and Supabase.
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/2a58b559-54a3-426e-a0f2-d506f6b7f46b
+
+## Features
+
+### Core Features
+- Create and manage digital business cards
+- Customize card themes and layouts
+- Share cards via unique URLs and QR codes
+- Track card analytics (views, scans, downloads)
+- Multiple contact methods (email, phone, website, location)
+- Social media integration
+- Organization management
+
+### Super Admin
+- Email: **kharl16@gmail.com** has super admin privileges
+- Full CRUD access to all cards, organizations, and analytics
+- Access admin dashboard at `/admin/cards`
+- View, edit, and delete any user's cards
+- Super admin flag automatically set on sign-in
+
+### Share Card Feature
+- Generate unique shareable URLs separate from main card URL
+- Format: `/s/[code]` (different from `/c/[slug]`)
+- Toggle share links on/off without affecting main card
+- Label links for tracking (e.g., "Facebook Ads", "QR Poster")
+- Download QR codes for share links
+- Track analytics per share link with share_code tracking
+- Regenerate share codes when needed
+- Share links can be disabled while main card remains active
+
+## Tech Stack
+- **Frontend**: React 18, TypeScript, Tailwind CSS, Vite
+- **UI**: shadcn-ui components
+- **Backend**: Supabase (PostgreSQL, Edge Functions, Storage)
+- **Authentication**: Supabase Auth (Email/Password, Magic Link, OAuth)
+- **Analytics**: Custom event tracking with rate limiting
 
 ## How can I edit this code?
 

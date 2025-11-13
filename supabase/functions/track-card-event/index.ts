@@ -47,7 +47,7 @@ serve(async (req) => {
   }
 
   try {
-    const { card_id, kind } = await req.json();
+    const { card_id, kind, share_code } = await req.json();
 
     if (!card_id || !kind) {
       return new Response(
@@ -109,6 +109,7 @@ serve(async (req) => {
         ip_hash: ipHash,
         user_agent: req.headers.get('user-agent') || null,
         referrer: req.headers.get('referer') || null,
+        share_code: share_code || null,
       });
 
     if (insertError) {
@@ -119,7 +120,10 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Event tracked: ${kind} for card ${card_id} from IP hash ${ipHash}`);
+    const logMsg = share_code 
+      ? `Event tracked: ${kind} for card ${card_id} from IP hash ${ipHash} via share code ${share_code}`
+      : `Event tracked: ${kind} for card ${card_id} from IP hash ${ipHash}`;
+    console.log(logMsg);
 
     return new Response(
       JSON.stringify({ success: true }),
