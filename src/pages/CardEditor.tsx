@@ -496,7 +496,7 @@ export default function CardEditor() {
             <CardContent className="p-4">
               <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm">
                 {/* Cover */}
-                <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 bg-gradient-to-br from-primary/20 to-primary/5 overflow-visible">
+                <div className="relative h-40 sm:h-48 bg-gradient-to-br from-primary/20 to-primary/5">
                   {card.cover_url && (
                     <>
                       <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
@@ -505,23 +505,20 @@ export default function CardEditor() {
                     </>
                   )}
                   
-                  {/* Avatar - Bottom Left - Responsive sizing */}
-                  <div className="absolute -bottom-12 sm:-bottom-14 md:-bottom-16 lg:-bottom-16 left-4 sm:left-5 md:left-6 h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
+                  {/* Avatar - Bottom Left - Overlapping the cover */}
+                  <div className="absolute bottom-3 left-3 h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                     {card.avatar_url && (
                       <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
                     )}
                   </div>
                   
-                  {/* Logo - Bottom Right - Responsive sizing */}
+                  {/* Logo - Bottom Right - Overlapping the cover */}
                   {card.logo_url && (
-                    <div className="absolute -bottom-9 sm:-bottom-10 md:-bottom-12 lg:-bottom-12 right-4 sm:right-5 md:right-6 h-[72px] w-[72px] sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-lg bg-black/90 p-2 sm:p-2.5 md:p-3 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
+                    <div className="absolute bottom-3 right-3 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                       <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
                     </div>
                   )}
                 </div>
-                
-                {/* Spacer for overlapping elements - Responsive */}
-                <div className="h-12 sm:h-14 md:h-16 lg:h-16"></div>
 
                 {/* Info */}
                 <div className="px-4 py-4">

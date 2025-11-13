@@ -115,7 +115,7 @@ export default function PublicCard() {
       <div className="container mx-auto max-w-md">
         <Card className="overflow-hidden border-border/50 shadow-lg">
           {/* Header with cover image */}
-          <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 bg-gradient-to-br from-primary/20 to-primary/5 overflow-visible">
+          <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/20 to-primary/5">
             {card.cover_url && (
               <>
                 <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
@@ -124,23 +124,20 @@ export default function PublicCard() {
               </>
             )}
             
-            {/* Avatar - Bottom Left - Responsive sizing */}
-            <div className="absolute -bottom-12 sm:-bottom-14 md:-bottom-16 lg:-bottom-16 left-4 sm:left-5 md:left-6 h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
+            {/* Avatar - Bottom Left - Overlapping the cover */}
+            <div className="absolute bottom-4 left-4 h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
               {card.avatar_url && (
                 <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
               )}
             </div>
             
-            {/* Logo - Bottom Right - Responsive sizing */}
+            {/* Logo - Bottom Right - Overlapping the cover */}
             {card.logo_url && (
-              <div className="absolute -bottom-9 sm:-bottom-10 md:-bottom-12 lg:-bottom-12 right-4 sm:right-5 md:right-6 h-[72px] w-[72px] sm:h-20 sm:w-20 md:h-24 md:w-24 rounded-lg bg-black/90 p-2 sm:p-2.5 md:p-3 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
+              <div className="absolute bottom-4 right-4 h-20 w-32 sm:h-24 sm:w-36 md:h-28 md:w-40 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                 <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
               </div>
             )}
           </div>
-          
-          {/* Spacer for overlapping elements - Responsive */}
-          <div className="h-12 sm:h-14 md:h-16 lg:h-16"></div>
 
           {/* Profile Info */}
           <div className="px-6 py-4">
