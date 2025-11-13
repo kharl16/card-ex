@@ -9,50 +9,57 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Mail, Chrome } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex.jpg";
-
 export default function Auth() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-
   useEffect(() => {
     // Check if already authenticated
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (session) {
-        navigate("/dashboard", { replace: true });
+        navigate("/dashboard", {
+          replace: true
+        });
       }
     });
 
     // Listen for auth state changes
     const {
-      data: { subscription },
+      data: {
+        subscription
+      }
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/dashboard", { replace: true });
+        navigate("/dashboard", {
+          replace: true
+        });
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signUp({
+      const {
+        error
+      } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+          data: {
+            full_name: fullName
+          },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
       });
-
       if (error) throw error;
-
       toast.success("Account created! Check your email to verify.");
     } catch (error: any) {
       toast.error(error.message || "Failed to create account");
@@ -60,19 +67,17 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const {
+        error
+      } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
-
       if (error) throw error;
-
       toast.success("Welcome back!");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");
@@ -80,21 +85,19 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const {
+        error
+      } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
       });
-
       if (error) throw error;
-
       toast.success("Magic link sent! Check your email.");
     } catch (error: any) {
       toast.error(error.message || "Failed to send magic link");
@@ -102,33 +105,31 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const {
+        error
+      } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
       });
-
       if (error) throw error;
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in with Google");
       setLoading(false);
     }
   };
-
-  return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+  return <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-2xl overflow-hidden">
             <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-cover" />
           </div>
           <CardTitle className="text-2xl font-bold">Welcome to Card-Ex</CardTitle>
-          <CardDescription>Create your digital business card</CardDescription>
+          <CardDescription>Create your digital business portfolio  </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
@@ -141,24 +142,11 @@ export default function Auth() {
               <form onSubmit={handleEmailSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
-                  <Input
-                    id="signin-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Input id="signin-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signin-password">Password</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <Input id="signin-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
@@ -175,24 +163,13 @@ export default function Auth() {
               </div>
 
               <div className="space-y-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full gap-2"
-                  onClick={handleGoogleSignIn}
-                  disabled={loading}
-                >
+                <Button type="button" variant="outline" className="w-full gap-2" onClick={handleGoogleSignIn} disabled={loading}>
                   <Chrome className="h-4 w-4" />
                   Google
                 </Button>
 
                 <form onSubmit={handleMagicLink} className="space-y-2">
-                  <Button
-                    type="submit"
-                    variant="outline"
-                    className="w-full gap-2"
-                    disabled={loading}
-                  >
+                  <Button type="submit" variant="outline" className="w-full gap-2" disabled={loading}>
                     <Mail className="h-4 w-4" />
                     Magic Link
                   </Button>
@@ -204,37 +181,15 @@ export default function Auth() {
               <form onSubmit={handleEmailSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                  />
+                  <Input id="signup-name" type="text" placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Input id="signup-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="Minimum 6 characters"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
+                  <Input id="signup-password" type="password" placeholder="Minimum 6 characters" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating account..." : "Create Account"}
@@ -250,13 +205,7 @@ export default function Auth() {
                 </div>
               </div>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full gap-2"
-                onClick={handleGoogleSignIn}
-                disabled={loading}
-              >
+              <Button type="button" variant="outline" className="w-full gap-2" onClick={handleGoogleSignIn} disabled={loading}>
                 <Chrome className="h-4 w-4" />
                 Google
               </Button>
@@ -264,6 +213,5 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 }
