@@ -118,25 +118,28 @@ export default function PublicCard() {
       <div className="container mx-auto max-w-md">
         <Card className="overflow-hidden border-border/50 shadow-lg">
           {/* Header with cover image */}
-          <div className="relative h-40 bg-gradient-to-br from-primary/20 to-primary/5">
+          <div className="relative h-64 bg-gradient-to-br from-primary/20 to-primary/5">
             {card.cover_url && (
               <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
             )}
-          </div>
-
-          {/* Avatar and Logo - Horizontal alignment */}
-          <div className="relative -mt-16 px-6 flex gap-4 items-end">
-            <div className="h-32 w-32 overflow-hidden rounded-full border-4 border-background bg-muted">
+            
+            {/* Avatar - Bottom Left */}
+            <div className="absolute -bottom-20 left-6 h-40 w-40 rounded-full border-4 border-background bg-muted overflow-hidden shadow-lg">
               {card.avatar_url && (
                 <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
               )}
             </div>
+            
+            {/* Logo - Bottom Right */}
             {card.logo_url && (
-              <div className="h-32 w-32 rounded-lg border-4 border-background bg-background p-3">
-                <img src={card.logo_url} alt="Company Logo" className="h-full w-full object-contain" />
+              <div className="absolute -bottom-16 right-6 h-32 w-32 rounded-lg bg-black/90 p-4 shadow-lg">
+                <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
               </div>
             )}
           </div>
+          
+          {/* Spacer for overlapping elements */}
+          <div className="h-20"></div>
 
           {/* Profile Info */}
           <div className="px-6 py-4">
