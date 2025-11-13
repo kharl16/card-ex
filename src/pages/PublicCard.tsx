@@ -120,11 +120,11 @@ export default function PublicCard() {
           {/* Header with cover image */}
           <div className="relative h-64 bg-gradient-to-br from-primary/20 to-primary/5">
             {card.cover_url && (
-              <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
+              <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
             )}
             
             {/* Avatar - Bottom Left */}
-            <div className="absolute -bottom-20 left-6 h-40 w-40 rounded-full border-4 border-background bg-muted overflow-hidden shadow-lg">
+            <div className="absolute -bottom-15 left-6 h-30 w-30 rounded-full border-4 border-background bg-muted overflow-hidden shadow-lg">
               {card.avatar_url && (
                 <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
               )}
@@ -132,14 +132,14 @@ export default function PublicCard() {
             
             {/* Logo - Bottom Right */}
             {card.logo_url && (
-              <div className="absolute -bottom-16 right-6 h-32 w-32 rounded-lg bg-black/90 p-4 shadow-lg">
+              <div className="absolute -bottom-12 right-6 h-24 w-24 rounded-lg bg-black/90 p-3 shadow-lg">
                 <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
               </div>
             )}
           </div>
           
           {/* Spacer for overlapping elements */}
-          <div className="h-20"></div>
+          <div className="h-15"></div>
 
           {/* Profile Info */}
           <div className="px-6 py-4">
