@@ -49,12 +49,12 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
 
   const loadShareLink = async () => {
     const { data, error } = await supabase
-      .from("share_links")
+      .from("share_links" as any)
       .select("*")
       .eq("card_id", cardId)
       .order("created_at", { ascending: false })
       .limit(1)
-      .maybeSingle();
+      .maybeSingle() as { data: ShareLink | null; error: any };
 
     if (!error && data) {
       setShareLink(data);
@@ -72,7 +72,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
     const { data: { user } } = await supabase.auth.getUser();
 
     const { data, error } = await supabase
-      .from("share_links")
+      .from("share_links" as any)
       .insert({
         card_id: cardId,
         code,
@@ -81,7 +81,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
         is_active: true,
       })
       .select()
-      .single();
+      .single() as { data: ShareLink | null; error: any };
 
     if (error) {
       toast.error("Failed to create share link");
@@ -98,7 +98,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
     setLoading(true);
     // Disable old link
     await supabase
-      .from("share_links")
+      .from("share_links" as any)
       .update({ is_active: false })
       .eq("id", shareLink.id);
 
@@ -111,7 +111,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
     if (!shareLink) return;
 
     const { error } = await supabase
-      .from("share_links")
+      .from("share_links" as any)
       .update({ is_active: !shareLink.is_active })
       .eq("id", shareLink.id);
 
@@ -127,7 +127,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
     if (!shareLink) return;
 
     const { error } = await supabase
-      .from("share_links")
+      .from("share_links" as any)
       .update({ label })
       .eq("id", shareLink.id);
 

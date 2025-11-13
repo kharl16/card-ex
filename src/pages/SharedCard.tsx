@@ -19,6 +19,11 @@ interface SocialLink {
   icon: string;
 }
 
+interface ShareLinkData {
+  card_id: string;
+  is_active: boolean;
+}
+
 const iconMap: Record<string, any> = {
   Facebook: Facebook,
   Linkedin: Linkedin,
@@ -62,10 +67,10 @@ export default function SharedCard() {
 
     // Get share link
     const { data: shareLink, error: shareLinkError } = await supabase
-      .from("share_links")
+      .from("share_links" as any)
       .select("card_id, is_active")
       .eq("code", code)
-      .single();
+      .single() as { data: ShareLinkData | null; error: any };
 
     if (shareLinkError || !shareLink || !shareLink.is_active) {
       setLoading(false);
