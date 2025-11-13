@@ -500,20 +500,20 @@ export default function CardEditor() {
                   {card.cover_url && (
                     <img src={card.cover_url} alt="Cover" className="h-full w-full object-cover" />
                   )}
-                  {card.logo_url && (
-                    <div className="absolute right-4 top-4 h-20 w-20 rounded-lg border-2 border-background bg-background p-2">
-                      <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
-                    </div>
-                  )}
                 </div>
                 
-                {/* Avatar - Overlapping cover */}
-                <div className="relative -mt-16 px-4">
+                {/* Avatar and Logo - Overlapping cover */}
+                <div className="relative -mt-16 px-4 flex gap-4 items-end">
                   <div className="h-32 w-32 rounded-full border-4 border-background bg-muted overflow-hidden">
                     {card.avatar_url && (
                       <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
                     )}
                   </div>
+                  {card.logo_url && (
+                    <div className="h-32 w-32 rounded-lg border-4 border-background bg-background p-3">
+                      <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Info */}
