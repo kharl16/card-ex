@@ -117,10 +117,9 @@ export default function CardEditor() {
     }
   };
 
-  const generateQRCode = async (cardSlug: string) => {
+  const generateQRCode = async (shareUrl: string, cardSlug: string) => {
     try {
-      const cardUrl = `${window.location.origin}/c/${cardSlug}`;
-      const qrDataUrl = await QRCode.toDataURL(cardUrl, {
+      const qrDataUrl = await QRCode.toDataURL(shareUrl, {
         width: 512,
         margin: 2,
         color: {
@@ -186,8 +185,8 @@ export default function CardEditor() {
 
     // Generate QR code if published and doesn't exist
     let qrCodeUrl = card.qr_code_url;
-    if (card.is_published && !qrCodeUrl) {
-      qrCodeUrl = await generateQRCode(card.slug);
+    if (card.is_published && !qrCodeUrl && card.share_url) {
+      qrCodeUrl = await generateQRCode(card.share_url, card.slug);
     }
 
     const { error } = await supabase
@@ -229,8 +228,8 @@ export default function CardEditor() {
     
     // Generate QR code when publishing
     let qrCodeUrl = card.qr_code_url;
-    if (newStatus && !qrCodeUrl) {
-      qrCodeUrl = await generateQRCode(card.slug);
+    if (newStatus && !qrCodeUrl && card.share_url) {
+      qrCodeUrl = await generateQRCode(card.share_url, card.slug);
     }
 
     const { error } = await supabase
