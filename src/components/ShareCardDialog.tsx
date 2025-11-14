@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Copy, Download, RefreshCw, Share2 } from "lucide-react";
+import { Copy, Download, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import QRCode from "qrcode";
 
@@ -21,135 +20,54 @@ interface ShareCardDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-interface ShareLink {
-  id: string;
-  code: string;
-  is_active: boolean;
-  label: string | null;
-  created_at: string;
+interface CardData {
+  slug: string;
+  share_url: string;
 }
 
 export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCardDialogProps) {
-  const [shareLink, setShareLink] = useState<ShareLink | null>(null);
-  const [label, setLabel] = useState("");
+  const [card, setCard] = useState<CardData | null>(null);
   const [loading, setLoading] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
 
   useEffect(() => {
     if (open) {
-      loadShareLink();
+      loadCard();
     }
   }, [open, cardId]);
 
   useEffect(() => {
-    if (shareLink && shareLink.is_active) {
+    if (card?.share_url) {
       generateQR();
     }
-  }, [shareLink]);
+  }, [card]);
 
-  const loadShareLink = async () => {
-    const { data, error } = await supabase
-      .from("share_links" as any)
-      .select("*")
-      .eq("card_id", cardId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle() as { data: ShareLink | null; error: any };
-
-    if (!error && data) {
-      setShareLink(data);
-      setLabel(data.label || "");
-    }
-  };
-
-  const generateShareCode = () => {
-    return Math.random().toString(36).substring(2, 10);
-  };
-
-  const createShareLink = async () => {
+  const loadCard = async () => {
     setLoading(true);
-    const code = generateShareCode();
-    const { data: { user } } = await supabase.auth.getUser();
-
     const { data, error } = await supabase
-      .from("share_links" as any)
-      .insert({
-        card_id: cardId,
-        code,
-        label: label || null,
-        created_by: user?.id,
-        is_active: true,
-      })
-      .select()
-      .single() as { data: ShareLink | null; error: any };
+      .from("cards")
+      .select("slug, share_url")
+      .eq("id", cardId)
+      .single();
 
     if (error) {
-      toast.error("Failed to create share link");
+      toast.error("Failed to load card");
     } else {
-      setShareLink(data);
-      toast.success("Share link created!");
+      setCard(data);
     }
     setLoading(false);
-  };
-
-  const regenerateLink = async () => {
-    if (!shareLink) return;
-    
-    setLoading(true);
-    // Disable old link
-    await supabase
-      .from("share_links" as any)
-      .update({ is_active: false })
-      .eq("id", shareLink.id);
-
-    // Create new link
-    await createShareLink();
-    setLoading(false);
-  };
-
-  const toggleActive = async () => {
-    if (!shareLink) return;
-
-    const { error } = await supabase
-      .from("share_links" as any)
-      .update({ is_active: !shareLink.is_active })
-      .eq("id", shareLink.id);
-
-    if (error) {
-      toast.error("Failed to update share link");
-    } else {
-      setShareLink({ ...shareLink, is_active: !shareLink.is_active });
-      toast.success(shareLink.is_active ? "Link disabled" : "Link enabled");
-    }
-  };
-
-  const updateLabel = async () => {
-    if (!shareLink) return;
-
-    const { error } = await supabase
-      .from("share_links" as any)
-      .update({ label })
-      .eq("id", shareLink.id);
-
-    if (error) {
-      toast.error("Failed to update label");
-    } else {
-      toast.success("Label updated");
-    }
   };
 
   const copyToClipboard = () => {
-    if (!shareLink) return;
-    const url = `${window.location.origin}/s/${shareLink.code}`;
-    navigator.clipboard.writeText(url);
-    toast.success("Link copied to clipboard!");
+    if (!card?.share_url) return;
+    navigator.clipboard.writeText(card.share_url);
+    toast.success(`✅ Share link copied: ${card.share_url}`);
   };
 
   const generateQR = async () => {
-    if (!shareLink) return;
-    const url = `${window.location.origin}/s/${shareLink.code}`;
+    if (!card?.share_url) return;
     try {
-      const dataUrl = await QRCode.toDataURL(url, {
+      const dataUrl = await QRCode.toDataURL(card.share_url, {
         width: 512,
         margin: 2,
         color: {
@@ -164,16 +82,14 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
   };
 
   const downloadQR = async () => {
-    if (!qrDataUrl) return;
+    if (!qrDataUrl || !card) return;
 
     const link = document.createElement("a");
     link.href = qrDataUrl;
-    link.download = `card-share-qr-${shareLink?.code}.png`;
+    link.download = `card-ex-${card.slug}.png`;
     link.click();
     toast.success("QR code downloaded!");
   };
-
-  const shareUrl = shareLink ? `${window.location.origin}/s/${shareLink.code}` : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -184,108 +100,61 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
             Share Card
           </DialogTitle>
           <DialogDescription>
-            Generate a unique shareable link with QR code for tracking.
+            Share your digital business card with a unique URL and QR code.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {!shareLink ? (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="label">Label (optional)</Label>
+        {loading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+          </div>
+        ) : card ? (
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="share-url">Share URL</Label>
+              <div className="flex gap-2">
                 <Input
-                  id="label"
-                  placeholder="e.g., Facebook Ads, QR Poster"
-                  value={label}
-                  onChange={(e) => setLabel(e.target.value)}
+                  id="share-url"
+                  value={card.share_url}
+                  readOnly
+                  className="flex-1 font-mono text-sm"
                 />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={copyToClipboard}
+                  title="Copy link"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
               </div>
-              <Button onClick={createShareLink} disabled={loading} className="w-full">
-                Create Share Link
-              </Button>
-            </>
-          ) : (
-            <>
+              <p className="text-xs text-muted-foreground">
+                This is your permanent shareable link
+              </p>
+            </div>
+
+            {qrDataUrl && (
               <div className="space-y-2">
-                <Label htmlFor="share-url">Share URL</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="share-url"
-                    value={shareUrl}
-                    readOnly
-                    className="flex-1"
-                  />
+                <Label>QR Code</Label>
+                <div className="flex flex-col items-center gap-2 rounded-lg border p-4 bg-card">
+                  <img src={qrDataUrl} alt="QR Code" className="h-48 w-48" />
                   <Button
                     variant="outline"
-                    size="icon"
-                    onClick={copyToClipboard}
+                    onClick={downloadQR}
+                    className="gap-2"
                   >
-                    <Copy className="h-4 w-4" />
+                    <Download className="h-4 w-4" />
+                    Download QR Code
                   </Button>
                 </div>
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="label-edit">Label</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="label-edit"
-                    placeholder="e.g., Facebook Ads"
-                    value={label}
-                    onChange={(e) => setLabel(e.target.value)}
-                  />
-                  <Button variant="outline" onClick={updateLabel}>
-                    Update
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <Label>Active Status</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {shareLink.is_active ? "Link is active" : "Link is disabled"}
-                  </p>
-                </div>
-                <Switch
-                  checked={shareLink.is_active}
-                  onCheckedChange={toggleActive}
-                />
-              </div>
-
-              {qrDataUrl && shareLink.is_active && (
-                <div className="space-y-2">
-                  <Label>QR Code</Label>
-                  <div className="flex flex-col items-center gap-2 rounded-lg border p-4">
-                    <img src={qrDataUrl} alt="QR Code" className="h-48 w-48" />
-                    <Button
-                      variant="outline"
-                      onClick={downloadQR}
-                      className="gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Download QR Code
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              <Button
-                variant="outline"
-                onClick={regenerateLink}
-                disabled={loading}
-                className="w-full gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Generate New Link
-              </Button>
-
-              <p className="text-xs text-muted-foreground text-center">
-                Created {new Date(shareLink.created_at).toLocaleDateString()}
-              </p>
-            </>
-          )}
-        </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            Failed to load card
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
