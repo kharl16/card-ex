@@ -13,6 +13,7 @@ import { z } from "zod";
 import ImageUpload from "@/components/ImageUpload";
 import ThemeCustomizer from "@/components/ThemeCustomizer";
 import SocialMediaLinks from "@/components/SocialMediaLinks";
+import QRCodeCustomizer from "@/components/QRCodeCustomizer";
 import QRCode from "qrcode";
 
 type CardData = Tables<"cards">;
@@ -72,6 +73,7 @@ export default function CardEditor() {
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [regeneratingQR, setRegeneratingQR] = useState(false);
 
   useEffect(() => {
     loadCard();
@@ -117,19 +119,22 @@ export default function CardEditor() {
     }
   };
 
-  const generateQRCode = async (shareUrl: string, cardSlug: string) => {
+  const generateQRCode = async (shareUrl: string, cardSlug: string, customSettings?: any) => {
     try {
+      const theme = card?.theme as any;
+      const qrSettings = customSettings || theme?.qr || {};
+      
       const qrDataUrl = await QRCode.toDataURL(shareUrl, {
-        width: 512,
+        width: qrSettings.size || 512,
         margin: 2,
         color: {
-          dark: '#000000',
-          light: '#FFFFFF',
+          dark: qrSettings.darkColor || '#000000',
+          light: qrSettings.lightColor || '#FFFFFF',
         },
       });
 
       const blob = await (await fetch(qrDataUrl)).blob();
-      const fileName = `${cardSlug}-qr.png`;
+      const fileName = `${cardSlug}-qr-${Date.now()}.png`;
       const filePath = `${card?.user_id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -146,6 +151,39 @@ export default function CardEditor() {
     } catch (error) {
       console.error("QR code generation error:", error);
       return null;
+    }
+  };
+
+  const handleRegenerateQR = async () => {
+    if (!card || !card.share_url) {
+      toast.error("Card must have a share URL to generate QR code");
+      return;
+    }
+
+    setRegeneratingQR(true);
+    try {
+      const theme = card.theme as any;
+      const qrSettings = theme?.qr || {};
+      const newQRUrl = await generateQRCode(card.share_url, card.slug, qrSettings);
+      
+      if (newQRUrl) {
+        const { error } = await supabase
+          .from("cards")
+          .update({ qr_code_url: newQRUrl })
+          .eq("id", card.id);
+
+        if (error) throw error;
+
+        setCard({ ...card, qr_code_url: newQRUrl });
+        toast.success("QR code regenerated successfully!");
+      } else {
+        toast.error("Failed to generate QR code");
+      }
+    } catch (error) {
+      console.error("Error regenerating QR:", error);
+      toast.error("Failed to regenerate QR code");
+    } finally {
+      setRegeneratingQR(false);
     }
   };
 
@@ -336,6 +374,17 @@ export default function CardEditor() {
           />
 
           <SocialMediaLinks cardId={card.id} />
+
+          <QRCodeCustomizer
+            settings={(card.theme as any)?.qr || {}}
+            onChange={(qrSettings) => {
+              const currentTheme = (card.theme as any) || {};
+              const updatedTheme = { ...currentTheme, qr: qrSettings };
+              setCard({ ...card, theme: updatedTheme as any });
+            }}
+            onRegenerate={handleRegenerateQR}
+            isRegenerating={regeneratingQR}
+          />
 
           <Card>
             <CardHeader>
