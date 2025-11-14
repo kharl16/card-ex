@@ -63,6 +63,7 @@ export type Database = {
           ip_hash: string | null
           kind: Database["public"]["Enums"]["event_kind"]
           referrer: string | null
+          share_code: string | null
           user_agent: string | null
         }
         Insert: {
@@ -72,6 +73,7 @@ export type Database = {
           ip_hash?: string | null
           kind: Database["public"]["Enums"]["event_kind"]
           referrer?: string | null
+          share_code?: string | null
           user_agent?: string | null
         }
         Update: {
@@ -81,6 +83,7 @@ export type Database = {
           ip_hash?: string | null
           kind?: Database["public"]["Enums"]["event_kind"]
           referrer?: string | null
+          share_code?: string | null
           user_agent?: string | null
         }
         Relationships: [
@@ -150,6 +153,7 @@ export type Database = {
           organization_id: string | null
           phone: string | null
           qr_code_url: string | null
+          share_url: string | null
           slug: string
           theme: Json | null
           title: string | null
@@ -176,6 +180,7 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           qr_code_url?: string | null
+          share_url?: string | null
           slug: string
           theme?: Json | null
           title?: string | null
@@ -202,6 +207,7 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           qr_code_url?: string | null
+          share_url?: string | null
           slug?: string
           theme?: Json | null
           title?: string | null
@@ -363,6 +369,44 @@ export type Database = {
         }
         Relationships: []
       }
+      share_links: {
+        Row: {
+          card_id: string
+          code: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          label: string | null
+        }
+        Insert: {
+          card_id: string
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+        }
+        Update: {
+          card_id?: string
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "share_links_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -372,6 +416,7 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_super_admin: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
