@@ -183,9 +183,10 @@ export default function CardEditor() {
 
     setSaving(true);
 
-    // Generate QR code if published and doesn't exist
+    // Generate QR code if published and doesn't exist OR has old URL format
     let qrCodeUrl = card.qr_code_url;
-    if (card.is_published && !qrCodeUrl && card.share_url) {
+    const hasOldQRFormat = qrCodeUrl && !qrCodeUrl.includes('card-ex.lovable.app');
+    if (card.is_published && card.share_url && (!qrCodeUrl || hasOldQRFormat)) {
       qrCodeUrl = await generateQRCode(card.share_url, card.slug);
     }
 
@@ -226,9 +227,10 @@ export default function CardEditor() {
 
     const newStatus = !card.is_published;
     
-    // Generate QR code when publishing
+    // Generate QR code when publishing OR regenerate if old format
     let qrCodeUrl = card.qr_code_url;
-    if (newStatus && !qrCodeUrl && card.share_url) {
+    const hasOldQRFormat = qrCodeUrl && !qrCodeUrl.includes('card-ex.lovable.app');
+    if (newStatus && card.share_url && (!qrCodeUrl || hasOldQRFormat)) {
       qrCodeUrl = await generateQRCode(card.share_url, card.slug);
     }
 
