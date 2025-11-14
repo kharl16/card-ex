@@ -246,6 +246,25 @@ export default function SharedCard() {
             </div>
           )}
 
+          {/* QR Code */}
+          {card.qr_code_url && (
+            <div className="flex flex-col items-center gap-3 p-6 bg-muted/30">
+              <img 
+                src={card.qr_code_url} 
+                alt="QR Code" 
+                className="w-48 h-48 rounded-lg border border-border"
+              />
+              <a 
+                href={card.qr_code_url} 
+                download={`${card.slug}-qr.png`}
+                className="text-sm text-primary hover:underline flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download QR Code
+              </a>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="px-6 py-4">
             <Button
