@@ -1,10 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const eventSchema = z.object({
+  card_id: z.string().uuid(),
+  kind: z.enum(['view', 'qr_scan', 'vcard_download', 'cta_click']),
+  share_code: z.string().max(50).regex(/^[a-zA-Z0-9_-]*$/).optional().nullable(),
+});
 
 // In-memory rate limiting cache (resets when function cold-starts)
 const rateLimitCache = new Map<string, { count: number; timestamp: number }>();
@@ -47,33 +55,33 @@ serve(async (req) => {
   }
 
   try {
-    const { card_id, kind, share_code } = await req.json();
-
-    if (!card_id || !kind) {
+    const body = await req.json();
+    
+    // Validate input with Zod
+    const validation = eventSchema.safeParse(body);
+    if (!validation.success) {
       return new Response(
-        JSON.stringify({ error: 'card_id and kind are required' }),
+        JSON.stringify({ error: 'Invalid input' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Validate event kind
-    const validKinds = ['view', 'qr_scan', 'vcard_download', 'cta_click'];
-    if (!validKinds.includes(kind)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid event kind' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { card_id, kind, share_code } = validation.data;
 
-    // Get client IP
+    // Get client IP and validate inputs
     const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0] || 
                      req.headers.get('x-real-ip') || 
                      'unknown';
     const ipHash = hashIP(clientIP);
+    
+    // Validate and truncate user agent
+    const userAgent = req.headers.get('user-agent')?.substring(0, 500) || null;
+    
+    // Validate and truncate referrer
+    const referrer = req.headers.get('referer')?.substring(0, 500) || null;
 
     // Check rate limit
     if (!checkRateLimit(ipHash, card_id)) {
-      console.log(`Rate limit exceeded for IP ${ipHash} on card ${card_id}`);
       return new Response(
         JSON.stringify({ error: 'Rate limit exceeded' }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -107,23 +115,18 @@ serve(async (req) => {
         card_id,
         kind,
         ip_hash: ipHash,
-        user_agent: req.headers.get('user-agent') || null,
-        referrer: req.headers.get('referer') || null,
+        user_agent: userAgent,
+        referrer: referrer,
         share_code: share_code || null,
       });
 
     if (insertError) {
-      console.error('Error inserting event:', insertError);
+      console.error('Failed to insert event', { kind, error_code: insertError.code });
       return new Response(
         JSON.stringify({ error: 'Failed to track event' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const logMsg = share_code 
-      ? `Event tracked: ${kind} for card ${card_id} from IP hash ${ipHash} via share code ${share_code}`
-      : `Event tracked: ${kind} for card ${card_id} from IP hash ${ipHash}`;
-    console.log(logMsg);
 
     return new Response(
       JSON.stringify({ success: true }),
@@ -131,7 +134,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error in track-card-event function:', error);
+    console.error('Request processing failed');
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
