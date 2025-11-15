@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Mail, Phone, MapPin, Globe, Download, Facebook, Linkedin, Instagram, Twitter, Github, MessageCircle, Music, Youtube } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import { downloadVCard } from "@/utils/vcard";
 import { toast } from "sonner";
 import LoadingAnimation from "@/components/LoadingAnimation";
 
@@ -266,14 +265,93 @@ export default function SharedCard() {
           )}
 
           {/* Actions */}
-          <div className="px-6 py-4">
+          <div className="px-6 py-4 space-y-3">
             <Button
               className="w-full gap-2"
-              onClick={() => downloadVCard(card)}
+              onClick={async () => {
+                try {
+                  const response = await fetch(
+                    `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/generate-vcard`,
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        card_id: card.id,
+                        include_photo: true,
+                      }),
+                    }
+                  );
+
+                  if (!response.ok) throw new Error('Failed to generate vCard');
+
+                  const blob = await response.blob();
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `${card.full_name.replace(/\s+/g, '-')}.vcf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                  
+                  toast.success("Contact saved with photo!");
+                } catch (error) {
+                  console.error('Error downloading vCard:', error);
+                  toast.error("Failed to save contact");
+                }
+              }}
             >
               <Download className="h-4 w-4" />
-              Save Contact
+              Download vCard (.vcf)
             </Button>
+            
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={async () => {
+                try {
+                  const response = await fetch(
+                    `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/generate-vcard`,
+                    {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        card_id: card.id,
+                        include_photo: false,
+                      }),
+                    }
+                  );
+
+                  if (!response.ok) throw new Error('Failed to generate vCard');
+
+                  const blob = await response.blob();
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = `${card.full_name.replace(/\s+/g, '-')}.vcf`;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  URL.revokeObjectURL(url);
+                  
+                  toast.success("Contact saved without photo");
+                } catch (error) {
+                  console.error('Error downloading vCard:', error);
+                  toast.error("Failed to save contact");
+                }
+              }}
+            >
+              <Download className="h-4 w-4" />
+              Download vCard (no photo)
+            </Button>
+            
+            <p className="text-xs text-muted-foreground text-center">
+              If your phone doesn't import, try the 'no photo' option.
+            </p>
           </div>
         </Card>
       </div>
