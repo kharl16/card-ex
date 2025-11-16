@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download, BarChart3, Facebook, Linkedin, Instagram, Twitter, Youtube, MessageCircle, Music, Check, ChevronsUpDown } from "lucide-react";
+import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download, BarChart3, Facebook, Linkedin, Instagram, Twitter, Youtube, MessageCircle, Music, Check, ChevronsUpDown, FileText } from "lucide-react";
+import VCardPreviewDialog from "@/components/VCardPreviewDialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
@@ -95,6 +96,17 @@ export default function CardEditor() {
   ];
 
   const suffixOptions = ["Jr.", "Sr.", "II", "III", "IV", "V", "VI", "PhD", "MD", "Esq."];
+
+  // Sanitize prefix/suffix to prevent vCard-breaking characters
+  const sanitizeNameField = (value: string): string => {
+    // Remove or replace characters that could break vCard formatting
+    return value
+      .replace(/[;\n\r]/g, ' ')  // Replace semicolons and newlines with spaces
+      .replace(/[\\,]/g, '')      // Remove backslashes and commas
+      .replace(/\s+/g, ' ')       // Normalize multiple spaces
+      .trim()
+      .slice(0, 20);              // Enforce max length
+  };
 
   useEffect(() => {
     loadCard();
@@ -352,6 +364,7 @@ export default function CardEditor() {
               <Eye className="h-4 w-4" />
               Preview
             </Button>
+            <VCardPreviewDialog card={card} />
             <Button onClick={togglePublish} variant={card.is_published ? "secondary" : "default"}>
               {card.is_published ? "Unpublish" : "Publish"}
             </Button>
@@ -467,7 +480,8 @@ export default function CardEditor() {
                           <CommandInput 
                             placeholder="Type or select..." 
                             onValueChange={(value) => {
-                              setCard({ ...card, prefix: value });
+                              const sanitized = sanitizeNameField(value);
+                              setCard({ ...card, prefix: sanitized });
                             }}
                           />
                           <CommandList>
@@ -546,7 +560,8 @@ export default function CardEditor() {
                           <CommandInput 
                             placeholder="Type or select..." 
                             onValueChange={(value) => {
-                              setCard({ ...card, suffix: value });
+                              const sanitized = sanitizeNameField(value);
+                              setCard({ ...card, suffix: sanitized });
                             }}
                           />
                           <CommandList>
