@@ -143,15 +143,26 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
 
   // Phones (stable order by TYPE)
   const phoneOrder = ['CELL', 'WORK', 'HOME', 'MAIN', 'FAX', 'OTHER'];
+  const phoneTypeMap: Record<string, string> = {
+    'CELL': 'CELL,VOICE,PREF',
+    'WORK': 'WORK,VOICE',
+    'HOME': 'HOME,VOICE',
+    'MAIN': 'MAIN,VOICE',
+    'FAX': 'FAX',
+    'OTHER': 'VOICE'
+  };
   (p.phones || [])
     .slice()
     .sort((a, b) => phoneOrder.indexOf(a.type) - phoneOrder.indexOf(b.type))
     .forEach((ph) => {
-      if (ph?.value) lines.push(`TEL;TYPE=${ph.type}:${esc(ph.value)}`);
+      if (ph?.value) {
+        const typeStr = phoneTypeMap[ph.type] || 'VOICE';
+        lines.push(`TEL;TYPE=${typeStr}:${esc(ph.value)}`);
+      }
     });
 
   // Email
-  if (p.email) lines.push(`EMAIL;TYPE=INTERNET:${esc(p.email.toLowerCase())}`);
+  if (p.email) lines.push(`EMAIL;TYPE=INTERNET,PREF:${esc(p.email.toLowerCase())}`);
 
   // Website
   if (p.website) lines.push(`URL:${esc(p.website)}`);
@@ -185,7 +196,7 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
     lines.push(`PHOTO;VALUE=URI:${esc(p.photo_url)}`);
   }
 
-  // Socials: Apple item.URL + X-ABLabel AND X-SOCIALPROFILE
+  // Socials: Both URL;TYPE= for Android and itemN.URL for iOS
   const socialMap: [keyof NonNullable<Profile['socials']>, string][] = [
     ['facebook', 'Facebook'],
     ['instagram', 'Instagram'],
@@ -201,8 +212,12 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
       const url = p.socials[key];
       if (!url) continue;
       itemI++;
+      // Android-friendly URL with type
+      lines.push(`URL;TYPE=${label}:${esc(url)}`);
+      // iOS-friendly item format
       lines.push(`item${itemI}.URL;type=pref:${esc(url)}`);
       lines.push(`item${itemI}.X-ABLabel:${label}`);
+      // X-SOCIALPROFILE for additional compatibility
       lines.push(`X-SOCIALPROFILE;type=${key}:${esc(url)}`);
     }
   }
