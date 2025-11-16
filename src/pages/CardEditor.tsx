@@ -34,6 +34,7 @@ const socialIconMap: Record<string, any> = {
   Youtube,
   MessageCircle,
   Music,
+  Globe,
 };
 
 const socialBrandColors: Record<string, string> = {
@@ -44,11 +45,16 @@ const socialBrandColors: Record<string, string> = {
   youtube: "bg-[#FF0000]",
   telegram: "bg-[#26A5E4]",
   tiktok: "bg-black",
+  url: "bg-[#4285F4]",
 };
 
 // Validation schema for card data
 const cardSchema = z.object({
-  full_name: z.string().trim().min(1, "Full name is required").max(100, "Full name must be 100 characters or less"),
+  first_name: z.string().trim().min(1, "First name is required").max(50, "First name must be 50 characters or less"),
+  last_name: z.string().trim().min(1, "Last name is required").max(50, "Last name must be 50 characters or less"),
+  prefix: z.string().trim().max(20, "Prefix must be 20 characters or less").optional().or(z.literal("")),
+  middle_name: z.string().trim().max(50, "Middle name must be 50 characters or less").optional().or(z.literal("")),
+  suffix: z.string().trim().max(20, "Suffix must be 20 characters or less").optional().or(z.literal("")),
   title: z.string().trim().max(100, "Title must be 100 characters or less").optional().or(z.literal("")),
   company: z.string().trim().max(100, "Company must be 100 characters or less").optional().or(z.literal("")),
   bio: z.string().trim().max(500, "Bio must be 500 characters or less").optional().or(z.literal("")),
@@ -105,7 +111,7 @@ export default function CardEditor() {
       .from("card_links")
       .select("*")
       .eq("card_id", id)
-      .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok"])
+      .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok", "url"])
       .order("sort_index");
 
     if (data) {
@@ -193,7 +199,11 @@ export default function CardEditor() {
     // Validate data before saving
     try {
       const validationData = {
-        full_name: card.full_name,
+        first_name: card.first_name || "",
+        last_name: card.last_name || "",
+        prefix: card.prefix || "",
+        middle_name: card.middle_name || "",
+        suffix: card.suffix || "",
         title: card.title || "",
         company: card.company || "",
         bio: card.bio || "",
@@ -231,7 +241,11 @@ export default function CardEditor() {
     const { error } = await supabase
       .from("cards")
       .update({
-        full_name: card.full_name,
+        prefix: card.prefix,
+        first_name: card.first_name,
+        middle_name: card.middle_name,
+        last_name: card.last_name,
+        suffix: card.suffix,
         title: card.title,
         company: card.company,
         bio: card.bio,
@@ -416,44 +430,106 @@ export default function CardEditor() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="full_name">Full Name *</Label>
-                <Input
-                  id="full_name"
-                  value={card.full_name}
-                  onChange={(e) => setCard({ ...card, full_name: e.target.value })}
-                  className={validationErrors.full_name ? "border-destructive" : ""}
-                />
-                {validationErrors.full_name && (
-                  <p className="text-sm text-destructive">{validationErrors.full_name}</p>
+                <Label>Name *</Label>
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
+                  <div className="md:col-span-2">
+                    <select
+                      id="prefix"
+                      value={card.prefix || ""}
+                      onChange={(e) => setCard({ ...card, prefix: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      <option value="">None</option>
+                      <option value="Mr.">Mr.</option>
+                      <option value="Ms.">Ms.</option>
+                      <option value="Mrs.">Mrs.</option>
+                      <option value="Mx.">Mx.</option>
+                      <option value="Dr.">Dr.</option>
+                      <option value="Engr.">Engr.</option>
+                    </select>
+                  </div>
+                  <div className="md:col-span-3">
+                    <Input
+                      id="first_name"
+                      value={card.first_name || ""}
+                      onChange={(e) => setCard({ ...card, first_name: e.target.value })}
+                      placeholder="First"
+                      maxLength={50}
+                      className={validationErrors.first_name ? "border-destructive" : ""}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Input
+                      id="middle_name"
+                      value={card.middle_name || ""}
+                      onChange={(e) => setCard({ ...card, middle_name: e.target.value })}
+                      placeholder="Middle"
+                      maxLength={50}
+                    />
+                  </div>
+                  <div className="md:col-span-3">
+                    <Input
+                      id="last_name"
+                      value={card.last_name || ""}
+                      onChange={(e) => setCard({ ...card, last_name: e.target.value })}
+                      placeholder="Last"
+                      maxLength={50}
+                      className={validationErrors.last_name ? "border-destructive" : ""}
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <select
+                      id="suffix"
+                      value={card.suffix || ""}
+                      onChange={(e) => setCard({ ...card, suffix: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    >
+                      <option value="">None</option>
+                      <option value="Jr.">Jr.</option>
+                      <option value="Sr.">Sr.</option>
+                      <option value="II">II</option>
+                      <option value="III">III</option>
+                      <option value="IV">IV</option>
+                    </select>
+                  </div>
+                </div>
+                {(validationErrors.first_name || validationErrors.last_name) && (
+                  <p className="text-sm text-destructive">
+                    {validationErrors.first_name || validationErrors.last_name}
+                  </p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={card.title || ""}
-                  onChange={(e) => setCard({ ...card, title: e.target.value })}
-                  placeholder="e.g. CEO, Designer"
-                  maxLength={100}
-                  className={validationErrors.title ? "border-destructive" : ""}
-                />
-                {validationErrors.title && (
-                  <p className="text-sm text-destructive">{validationErrors.title}</p>
-                )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={card.title || ""}
+                    onChange={(e) => setCard({ ...card, title: e.target.value })}
+                    placeholder="e.g. CEO, Designer"
+                    maxLength={100}
+                    className={validationErrors.title ? "border-destructive" : ""}
+                  />
+                  {validationErrors.title && (
+                    <p className="text-sm text-destructive">{validationErrors.title}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company">Company</Label>
+                  <Input
+                    id="company"
+                    value={card.company || ""}
+                    onChange={(e) => setCard({ ...card, company: e.target.value })}
+                    maxLength={100}
+                    className={validationErrors.company ? "border-destructive" : ""}
+                  />
+                  {validationErrors.company && (
+                    <p className="text-sm text-destructive">{validationErrors.company}</p>
+                  )}
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="company">Company</Label>
-                <Input
-                  id="company"
-                  value={card.company || ""}
-                  onChange={(e) => setCard({ ...card, company: e.target.value })}
-                  maxLength={100}
-                  className={validationErrors.company ? "border-destructive" : ""}
-                />
-                {validationErrors.company && (
-                  <p className="text-sm text-destructive">{validationErrors.company}</p>
-                )}
-              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="bio">Bio</Label>
                 <Textarea
@@ -475,63 +551,65 @@ export default function CardEditor() {
             <CardHeader>
               <CardTitle>Contact Information</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={card.email || ""}
-                  onChange={(e) => setCard({ ...card, email: e.target.value })}
-                  maxLength={255}
-                  className={validationErrors.email ? "border-destructive" : ""}
-                />
-                {validationErrors.email && (
-                  <p className="text-sm text-destructive">{validationErrors.email}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={card.phone || ""}
-                  onChange={(e) => setCard({ ...card, phone: e.target.value })}
-                  maxLength={30}
-                  className={validationErrors.phone ? "border-destructive" : ""}
-                />
-                {validationErrors.phone && (
-                  <p className="text-sm text-destructive">{validationErrors.phone}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
-                <Input
-                  id="website"
-                  type="url"
-                  value={card.website || ""}
-                  onChange={(e) => setCard({ ...card, website: e.target.value })}
-                  placeholder="https://"
-                  maxLength={255}
-                  className={validationErrors.website ? "border-destructive" : ""}
-                />
-                {validationErrors.website && (
-                  <p className="text-sm text-destructive">{validationErrors.website}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={card.location || ""}
-                  onChange={(e) => setCard({ ...card, location: e.target.value })}
-                  placeholder="City, Country"
-                  maxLength={200}
-                  className={validationErrors.location ? "border-destructive" : ""}
-                />
-                {validationErrors.location && (
-                  <p className="text-sm text-destructive">{validationErrors.location}</p>
-                )}
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={card.email || ""}
+                    onChange={(e) => setCard({ ...card, email: e.target.value })}
+                    maxLength={255}
+                    className={validationErrors.email ? "border-destructive" : ""}
+                  />
+                  {validationErrors.email && (
+                    <p className="text-sm text-destructive">{validationErrors.email}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    value={card.phone || ""}
+                    onChange={(e) => setCard({ ...card, phone: e.target.value })}
+                    maxLength={30}
+                    className={validationErrors.phone ? "border-destructive" : ""}
+                  />
+                  {validationErrors.phone && (
+                    <p className="text-sm text-destructive">{validationErrors.phone}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    type="url"
+                    value={card.website || ""}
+                    onChange={(e) => setCard({ ...card, website: e.target.value })}
+                    placeholder="https://"
+                    maxLength={255}
+                    className={validationErrors.website ? "border-destructive" : ""}
+                  />
+                  {validationErrors.website && (
+                    <p className="text-sm text-destructive">{validationErrors.website}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={card.location || ""}
+                    onChange={(e) => setCard({ ...card, location: e.target.value })}
+                    placeholder="City, Country"
+                    maxLength={200}
+                    className={validationErrors.location ? "border-destructive" : ""}
+                  />
+                  {validationErrors.location && (
+                    <p className="text-sm text-destructive">{validationErrors.location}</p>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
