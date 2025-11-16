@@ -145,16 +145,21 @@ export type Database = {
           cover_url: string | null
           created_at: string
           email: string | null
+          first_name: string | null
           full_name: string
           id: string
           is_published: boolean | null
+          last_name: string | null
           location: string | null
           logo_url: string | null
+          middle_name: string | null
           organization_id: string | null
           phone: string | null
+          prefix: string | null
           qr_code_url: string | null
           share_url: string | null
           slug: string
+          suffix: string | null
           theme: Json | null
           title: string | null
           unique_views: number | null
@@ -172,16 +177,21 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           email?: string | null
+          first_name?: string | null
           full_name: string
           id?: string
           is_published?: boolean | null
+          last_name?: string | null
           location?: string | null
           logo_url?: string | null
+          middle_name?: string | null
           organization_id?: string | null
           phone?: string | null
+          prefix?: string | null
           qr_code_url?: string | null
           share_url?: string | null
           slug: string
+          suffix?: string | null
           theme?: Json | null
           title?: string | null
           unique_views?: number | null
@@ -199,16 +209,21 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           email?: string | null
+          first_name?: string | null
           full_name?: string
           id?: string
           is_published?: boolean | null
+          last_name?: string | null
           location?: string | null
           logo_url?: string | null
+          middle_name?: string | null
           organization_id?: string | null
           phone?: string | null
+          prefix?: string | null
           qr_code_url?: string | null
           share_url?: string | null
           slug?: string
+          suffix?: string | null
           theme?: Json | null
           title?: string | null
           unique_views?: number | null
@@ -412,6 +427,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assemble_display_name: {
+        Args: {
+          p_first_name: string
+          p_last_name: string
+          p_middle_name: string
+          p_prefix: string
+          p_suffix: string
+        }
+        Returns: string
+      }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean

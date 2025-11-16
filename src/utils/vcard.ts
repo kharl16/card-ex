@@ -5,11 +5,17 @@ type CardData = Tables<"cards">;
 // Ensure proper type inference for vCard generation
 
 export function generateVCard(card: CardData): string {
+  const lastName = card.last_name || '';
+  const firstName = card.first_name || '';
+  const middleName = card.middle_name || '';
+  const prefix = card.prefix || '';
+  const suffix = card.suffix || '';
+  
   const lines: string[] = [
     'BEGIN:VCARD',
     'VERSION:3.0',
     `FN:${card.full_name}`,
-    `N:${card.full_name.split(' ').reverse().join(';')};;;`,
+    `N:${lastName};${firstName};${middleName};${prefix};${suffix}`,
   ];
 
   if (card.title) {

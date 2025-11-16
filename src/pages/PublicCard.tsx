@@ -27,6 +27,7 @@ const iconMap: Record<string, any> = {
   Github: Github,
   MessageCircle: MessageCircle,
   Music: Music,
+  Globe: Globe,
 };
 
 const socialBrandColors: Record<string, string> = {
@@ -37,6 +38,7 @@ const socialBrandColors: Record<string, string> = {
   youtube: "bg-[#FF0000]",
   telegram: "bg-[#26A5E4]",
   tiktok: "bg-black",
+  url: "bg-[#4285F4]",
 };
 
 const contactBrandColors: Record<string, string> = {
@@ -78,7 +80,7 @@ export default function PublicCard() {
         .from("card_links")
         .select("*")
         .eq("card_id", data.id)
-        .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok"])
+        .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok", "url"])
         .order("sort_index");
       
       if (links) {

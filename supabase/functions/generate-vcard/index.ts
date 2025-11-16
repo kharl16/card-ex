@@ -82,14 +82,16 @@ serve(async (req) => {
       'VERSION:3.0',
     ];
 
-    // N field (Last;First;Middle;Honorific;Suffix)
-    const nameParts = card.full_name.split(' ');
-    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
-    const firstName = nameParts.length > 0 ? nameParts[0] : '';
-    const middleName = nameParts.length > 2 ? nameParts.slice(1, -1).join(' ') : '';
-    vcardLines.push(`N:${escapeVCardValue(lastName)};${escapeVCardValue(firstName)};${escapeVCardValue(middleName)};;`);
+    // N field (Last;First;Middle;Prefix;Suffix) - structured name components
+    const lastName = card.last_name || '';
+    const firstName = card.first_name || '';
+    const middleName = card.middle_name || '';
+    const prefix = card.prefix || '';
+    const suffix = card.suffix || '';
+    
+    vcardLines.push(`N:${escapeVCardValue(lastName)};${escapeVCardValue(firstName)};${escapeVCardValue(middleName)};${escapeVCardValue(prefix)};${escapeVCardValue(suffix)}`);
 
-    // FN field (Full Name)
+    // FN field (Full Name) - formatted display name
     vcardLines.push(`FN:${escapeVCardValue(card.full_name)}`);
 
     // ORG field

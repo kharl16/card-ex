@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trash2, GripVertical } from "lucide-react";
+import { Plus, Trash2, GripVertical, Globe } from "lucide-react";
 import { z } from "zod";
 import {
   DndContext,
@@ -46,6 +46,7 @@ const socialPlatforms = [
   { value: "youtube", label: "YouTube", icon: "Youtube" },
   { value: "telegram", label: "Telegram", icon: "MessageCircle" },
   { value: "tiktok", label: "TikTok", icon: "Music" },
+  { value: "url", label: "Website", icon: "Globe" },
 ];
 
 const linkSchema = z.object({
