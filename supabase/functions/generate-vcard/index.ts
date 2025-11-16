@@ -48,12 +48,28 @@ serve(async (req) => {
       .order('sort_index', { ascending: true });
 
     // Helper function to escape vCard values
-    const escapeVCardValue = (value: string): string => {
+    const escapeVCardValue = (value: string = ""): string => {
       return value
         .replace(/\\/g, '\\\\')
-        .replace(/;/g, '\\;')
+        .replace(/\n/g, '\\n')
         .replace(/,/g, '\\,')
-        .replace(/\n/g, '\\n');
+        .replace(/;/g, '\\;');
+    };
+
+    // Helper function to assemble FN (formatted name)
+    const assembleFN = (card: any): string => {
+      const base = [card.prefix, card.first_name, card.middle_name, card.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      
+      if (!card.suffix) return base;
+      
+      // Use comma for generational suffixes (Jr., Sr., II, III, IV)
+      const isGenerational = /^(Jr\.?|Sr\.?|II|III|IV)$/i.test(card.suffix);
+      const separator = isGenerational ? ", " : " ";
+      
+      return `${base}${separator}${card.suffix}`.trim();
     };
 
     // Helper function to fold long lines to 75 characters
@@ -82,17 +98,23 @@ serve(async (req) => {
       'VERSION:3.0',
     ];
 
-    // N field (Last;First;Middle;Prefix;Suffix) - structured name components
+    // vCard 3.0 spec: N = Family(Last); Given(First); Additional(Middle); Honorific Prefix; Honorific Suffix
     const lastName = card.last_name || '';
     const firstName = card.first_name || '';
     const middleName = card.middle_name || '';
     const prefix = card.prefix || '';
     const suffix = card.suffix || '';
     
-    vcardLines.push(`N:${escapeVCardValue(lastName)};${escapeVCardValue(firstName)};${escapeVCardValue(middleName)};${escapeVCardValue(prefix)};${escapeVCardValue(suffix)}`);
-
-    // FN field (Full Name) - formatted display name
-    vcardLines.push(`FN:${escapeVCardValue(card.full_name)}`);
+    const N = [
+      escapeVCardValue(lastName),    // Family name
+      escapeVCardValue(firstName),   // Given name
+      escapeVCardValue(middleName),  // Additional names
+      escapeVCardValue(prefix),      // Honorific prefix
+      escapeVCardValue(suffix)       // Honorific suffix
+    ].join(';');
+    
+    vcardLines.push(`N:${N}`);
+    vcardLines.push(`FN:${escapeVCardValue(assembleFN(card))}`);
 
     // ORG field
     if (card.company) {

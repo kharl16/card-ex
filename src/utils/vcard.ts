@@ -4,6 +4,31 @@ type CardData = Tables<"cards">;
 
 // Ensure proper type inference for vCard generation
 
+// Helper function to escape vCard values
+function escapeVCardValue(value: string = ""): string {
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/,/g, "\\,")
+    .replace(/;/g, "\\;");
+}
+
+// Helper function to assemble FN (formatted name)
+function assembleFN(card: CardData): string {
+  const base = [card.prefix, card.first_name, card.middle_name, card.last_name]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  
+  if (!card.suffix) return base;
+  
+  // Use comma for generational suffixes (Jr., Sr., II, III, IV)
+  const isGenerational = /^(Jr\.?|Sr\.?|II|III|IV)$/i.test(card.suffix);
+  const separator = isGenerational ? ", " : " ";
+  
+  return `${base}${separator}${card.suffix}`.trim();
+}
+
 export function generateVCard(card: CardData): string {
   const lastName = card.last_name || '';
   const firstName = card.first_name || '';
@@ -11,11 +36,20 @@ export function generateVCard(card: CardData): string {
   const prefix = card.prefix || '';
   const suffix = card.suffix || '';
   
+  // vCard 3.0 spec: N = Family(Last); Given(First); Additional(Middle); Honorific Prefix; Honorific Suffix
+  const N = [
+    escapeVCardValue(lastName),    // Family name
+    escapeVCardValue(firstName),   // Given name
+    escapeVCardValue(middleName),  // Additional names
+    escapeVCardValue(prefix),      // Honorific prefix
+    escapeVCardValue(suffix)       // Honorific suffix
+  ].join(';');
+  
   const lines: string[] = [
     'BEGIN:VCARD',
     'VERSION:3.0',
-    `FN:${card.full_name}`,
-    `N:${lastName};${firstName};${middleName};${prefix};${suffix}`,
+    `N:${N}`,
+    `FN:${escapeVCardValue(assembleFN(card))}`,
   ];
 
   if (card.title) {
