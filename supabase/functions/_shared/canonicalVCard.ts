@@ -143,7 +143,7 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
     });
 
   if (p.email) lines.push(`EMAIL;TYPE=INTERNET,PREF:${esc(p.email.toLowerCase())}`);
-  if (p.website) lines.push(`URL:${esc(p.website)}`);
+  if (p.website) lines.push(`URL;TYPE=Homepage:${esc(p.website)}`);
 
   if (
     p.address &&
@@ -169,7 +169,6 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
       const b64 = await toBase64FromUrl(p.photo_url);
       if (b64) lines.push(`PHOTO;ENCODING=b;TYPE=${imgType}:${b64}`);
     } catch {}
-    lines.push(`PHOTO;VALUE=URI:${esc(p.photo_url)}`);
   }
 
   const socialMap: [keyof NonNullable<Profile['socials']>, string][] = [
