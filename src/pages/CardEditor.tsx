@@ -7,7 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download, BarChart3, Facebook, Linkedin, Instagram, Twitter, Youtube, MessageCircle, Music } from "lucide-react";
+import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download, BarChart3, Facebook, Linkedin, Instagram, Twitter, Youtube, MessageCircle, Music, Check, ChevronsUpDown } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import type { Tables } from "@/integrations/supabase/types";
 import { z } from "zod";
 import ImageUpload from "@/components/ImageUpload";
@@ -80,6 +83,18 @@ export default function CardEditor() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [regeneratingQR, setRegeneratingQR] = useState(false);
+  const [prefixOpen, setPrefixOpen] = useState(false);
+  const [suffixOpen, setSuffixOpen] = useState(false);
+
+  const prefixOptions = [
+    "Mr.", "Ms.", "Mrs.", "Miss", "Mx.", "Dr.", "Prof.", "Engr.", "Atty.",
+    "Rev.", "Fr.", "Sr.", "Br.", "Pastor", "Elder", "Rabbi", "Imam",
+    "Hon.", "Judge", "Amb.", "Sen.", "Rep.", "Gov.", "Mayor",
+    "Capt.", "Col.", "Gen.", "Lt.", "Maj.", "Sgt.", "Adm.", "Cmdr.",
+    "Sir", "Dame", "Lord", "Lady"
+  ];
+
+  const suffixOptions = ["Jr.", "Sr.", "II", "III", "IV", "V", "VI", "PhD", "MD", "Esq."];
 
   useEffect(() => {
     loadCard();
@@ -433,50 +448,54 @@ export default function CardEditor() {
                 <Label>Name *</Label>
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
                   <div className="md:col-span-2">
-                    <select
-                      id="prefix"
-                      value={card.prefix || ""}
-                      onChange={(e) => setCard({ ...card, prefix: e.target.value })}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    >
-                      <option value="">Prefix</option>
-                      <option value="Mr.">Mr.</option>
-                      <option value="Ms.">Ms.</option>
-                      <option value="Mrs.">Mrs.</option>
-                      <option value="Miss">Miss</option>
-                      <option value="Mx.">Mx.</option>
-                      <option value="Dr.">Dr.</option>
-                      <option value="Prof.">Prof.</option>
-                      <option value="Engr.">Engr.</option>
-                      <option value="Atty.">Atty.</option>
-                      <option value="Rev.">Rev.</option>
-                      <option value="Fr.">Fr.</option>
-                      <option value="Sr.">Sr.</option>
-                      <option value="Br.">Br.</option>
-                      <option value="Pastor">Pastor</option>
-                      <option value="Elder">Elder</option>
-                      <option value="Rabbi">Rabbi</option>
-                      <option value="Imam">Imam</option>
-                      <option value="Hon.">Hon.</option>
-                      <option value="Judge">Judge</option>
-                      <option value="Amb.">Amb.</option>
-                      <option value="Sen.">Sen.</option>
-                      <option value="Rep.">Rep.</option>
-                      <option value="Gov.">Gov.</option>
-                      <option value="Mayor">Mayor</option>
-                      <option value="Capt.">Capt.</option>
-                      <option value="Col.">Col.</option>
-                      <option value="Gen.">Gen.</option>
-                      <option value="Lt.">Lt.</option>
-                      <option value="Maj.">Maj.</option>
-                      <option value="Sgt.">Sgt.</option>
-                      <option value="Adm.">Adm.</option>
-                      <option value="Cmdr.">Cmdr.</option>
-                      <option value="Sir">Sir</option>
-                      <option value="Dame">Dame</option>
-                      <option value="Lord">Lord</option>
-                      <option value="Lady">Lady</option>
-                    </select>
+                    <Popover open={prefixOpen} onOpenChange={setPrefixOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={prefixOpen}
+                          className="w-full justify-between h-10 font-normal"
+                        >
+                          <span className={!card.prefix ? "text-muted-foreground" : ""}>
+                            {card.prefix || "Prefix"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Type or select..." 
+                            onValueChange={(value) => {
+                              setCard({ ...card, prefix: value });
+                            }}
+                          />
+                          <CommandList>
+                            <CommandEmpty>Press Enter to use custom value</CommandEmpty>
+                            <CommandGroup>
+                              {prefixOptions.map((option) => (
+                                <CommandItem
+                                  key={option}
+                                  value={option}
+                                  onSelect={() => {
+                                    setCard({ ...card, prefix: option });
+                                    setPrefixOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      card.prefix === option ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {option}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div className="md:col-span-3">
                     <Input
@@ -508,19 +527,54 @@ export default function CardEditor() {
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <select
-                      id="suffix"
-                      value={card.suffix || ""}
-                      onChange={(e) => setCard({ ...card, suffix: e.target.value })}
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                    >
-                      <option value="">Suffix</option>
-                      <option value="Jr.">Jr.</option>
-                      <option value="Sr.">Sr.</option>
-                      <option value="II">II</option>
-                      <option value="III">III</option>
-                      <option value="IV">IV</option>
-                    </select>
+                    <Popover open={suffixOpen} onOpenChange={setSuffixOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={suffixOpen}
+                          className="w-full justify-between h-10 font-normal"
+                        >
+                          <span className={!card.suffix ? "text-muted-foreground" : ""}>
+                            {card.suffix || "Suffix"}
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[200px] p-0" align="start">
+                        <Command>
+                          <CommandInput 
+                            placeholder="Type or select..." 
+                            onValueChange={(value) => {
+                              setCard({ ...card, suffix: value });
+                            }}
+                          />
+                          <CommandList>
+                            <CommandEmpty>Press Enter to use custom value</CommandEmpty>
+                            <CommandGroup>
+                              {suffixOptions.map((option) => (
+                                <CommandItem
+                                  key={option}
+                                  value={option}
+                                  onSelect={() => {
+                                    setCard({ ...card, suffix: option });
+                                    setSuffixOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      card.suffix === option ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  {option}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
                 {(validationErrors.first_name || validationErrors.last_name) && (
