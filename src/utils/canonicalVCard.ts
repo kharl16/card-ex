@@ -165,7 +165,7 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
   if (p.email) lines.push(`EMAIL;TYPE=INTERNET,PREF:${esc(p.email.toLowerCase())}`);
 
   // Website
-  if (p.website) lines.push(`URL:${esc(p.website)}`);
+  if (p.website) lines.push(`URL;TYPE=Homepage:${esc(p.website)}`);
 
   // Address
   if (
@@ -185,7 +185,7 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
     lines.push(`ADR;TYPE=${t}:;;${street};${city};${region};${post};${country}`);
   }
 
-  // Photo (embed base64 + keep URI)
+  // Photo (embed base64 only for maximum compatibility)
   if (p.photo_url) {
     const imgType =
       p.photo_type || (p.photo_url.toLowerCase().endsWith('.png') ? 'PNG' : 'JPEG');
@@ -193,7 +193,6 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
       const b64 = await toBase64FromUrl(p.photo_url);
       if (b64) lines.push(`PHOTO;ENCODING=b;TYPE=${imgType}:${b64}`);
     } catch {}
-    lines.push(`PHOTO;VALUE=URI:${esc(p.photo_url)}`);
   }
 
   // Socials: Both URL;TYPE= for Android and itemN.URL for iOS
