@@ -439,7 +439,7 @@ export default function CardEditor() {
                       onChange={(e) => setCard({ ...card, prefix: e.target.value })}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
-                      <option value="">None</option>
+                      <option value="">Prefix</option>
                       <option value="Mr.">Mr.</option>
                       <option value="Ms.">Ms.</option>
                       <option value="Mrs.">Mrs.</option>
@@ -484,7 +484,7 @@ export default function CardEditor() {
                       onChange={(e) => setCard({ ...card, suffix: e.target.value })}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
-                      <option value="">None</option>
+                      <option value="">Suffix</option>
                       <option value="Jr.">Jr.</option>
                       <option value="Sr.">Sr.</option>
                       <option value="II">II</option>
