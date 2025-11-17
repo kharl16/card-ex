@@ -45,13 +45,10 @@ export default function AdminCards() {
       return;
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_super_admin")
-      .eq("id", user.id)
-      .single();
+    const { data: isAdmin, error } = await supabase
+      .rpc("is_super_admin", { _user_id: user.id });
 
-    if (!profile?.is_super_admin) {
+    if (error || !isAdmin) {
       toast.error("Access denied: Super admin only");
       navigate("/dashboard");
       return;
