@@ -99,4 +99,30 @@ All colors MUST be HSL.
       transform: translateY(0);
     }
   }
+
+  /* 3D Carousel utilities */
+  .shadow-cardex {
+    box-shadow: 0 14px 40px rgba(16, 185, 129, 0.35), 
+                0 0 0 2px rgba(234, 179, 8, 0.5) inset;
+  }
+
+  .ring-cardex {
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.55), 
+                0 0 42px rgba(16, 185, 129, 0.35);
+  }
+
+  .gold-gradient {
+    background: radial-gradient(60% 60% at 50% 0%, 
+                  rgba(234, 179, 8, 0.28) 0%, 
+                  rgba(16, 185, 129, 0.18) 45%, 
+                  transparent 70%);
+  }
+
+  .perspective-1200 {
+    perspective: 1200px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
 }
