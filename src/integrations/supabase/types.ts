@@ -356,6 +356,7 @@ export type Database = {
           alt_text: string | null
           card_id: string
           created_at: string | null
+          description: string | null
           id: string
           image_url: string
           owner: string
@@ -365,6 +366,7 @@ export type Database = {
           alt_text?: string | null
           card_id: string
           created_at?: string | null
+          description?: string | null
           id?: string
           image_url: string
           owner: string
@@ -374,6 +376,7 @@ export type Database = {
           alt_text?: string | null
           card_id?: string
           created_at?: string | null
+          description?: string | null
           id?: string
           image_url?: string
           owner?: string

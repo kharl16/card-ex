@@ -5,6 +5,7 @@ interface ProductImage {
   id: string;
   image_url: string;
   alt_text?: string | null;
+  description?: string | null;
   sort_order: number;
 }
 
@@ -24,6 +25,7 @@ export default function ProductCarousel({ images, className = '' }: ProductCarou
   }, [images]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [hoveredSlide, setHoveredSlide] = useState<number | null>(null);
   const hoverRef = useRef(false);
 
   // Wrap index to stay within bounds
@@ -99,6 +101,8 @@ export default function ProductCarousel({ images, className = '' }: ProductCarou
                     damping: 26,
                   }}
                   onClick={() => setCurrentIndex(i)}
+                  onMouseEnter={() => setHoveredSlide(i)}
+                  onMouseLeave={() => setHoveredSlide(null)}
                 >
                   <div
                     className={`relative rounded-2xl overflow-hidden transition-all duration-300 ${
@@ -114,6 +118,20 @@ export default function ProductCarousel({ images, className = '' }: ProductCarou
                     />
                     {/* Shine overlay */}
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent mix-blend-overlay" />
+                    
+                    {/* Description overlay on hover/click */}
+                    {slide.description && (hoveredSlide === i || currentIndex === i) && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/70 to-transparent p-6 pointer-events-none"
+                      >
+                        <p className="text-white text-sm md:text-base leading-relaxed">
+                          {slide.description}
+                        </p>
+                      </motion.div>
+                    )}
                   </div>
                 </motion.figure>
               );

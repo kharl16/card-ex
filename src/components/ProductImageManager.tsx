@@ -9,6 +9,7 @@ interface ProductImage {
   id: string;
   image_url: string;
   alt_text?: string | null;
+  description?: string | null;
   sort_order: number;
 }
 
@@ -26,7 +27,7 @@ export default function ProductImageManager({ cardId, ownerId }: ProductImageMan
     try {
       const { data, error } = await supabase
         .from('product_images')
-        .select('id, image_url, alt_text, sort_order')
+        .select('id, image_url, alt_text, description, sort_order')
         .eq('card_id', cardId)
         .order('sort_order', { ascending: true });
 
