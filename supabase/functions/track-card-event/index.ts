@@ -14,10 +14,7 @@ const eventSchema = z.object({
   share_code: z.string().max(50).regex(/^[a-zA-Z0-9_-]*$/).optional().nullable(),
 });
 
-// In-memory rate limiting cache (resets when function cold-starts)
-const rateLimitCache = new Map<string, { count: number; timestamp: number }>();
-
-const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const MAX_EVENTS_PER_WINDOW = 10;
 
 function hashIP(ip: string): string {
@@ -31,21 +28,63 @@ function hashIP(ip: string): string {
   return Math.abs(hash).toString(36);
 }
 
-function checkRateLimit(ipHash: string, cardId: string): boolean {
-  const key = `${ipHash}:${cardId}`;
-  const now = Date.now();
-  const cached = rateLimitCache.get(key);
+async function checkRateLimit(supabase: any, ipHash: string, cardId: string): Promise<boolean> {
+  const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_MS);
 
-  if (!cached || now - cached.timestamp > RATE_LIMIT_WINDOW) {
-    rateLimitCache.set(key, { count: 1, timestamp: now });
+  // Try to get existing rate limit record
+  const { data: existing, error: selectError } = await supabase
+    .from('rate_limits')
+    .select('event_count, window_start')
+    .eq('ip_hash', ipHash)
+    .eq('card_id', cardId)
+    .single();
+
+  if (selectError && selectError.code !== 'PGRST116') {
+    console.error('Rate limit check failed', { error_code: selectError.code });
+    return true; // Allow on error to prevent false blocks
+  }
+
+  // If no record exists or window expired, create new record
+  if (!existing || new Date(existing.window_start) < windowStart) {
+    const { error: upsertError } = await supabase
+      .from('rate_limits')
+      .upsert({
+        ip_hash: ipHash,
+        card_id: cardId,
+        event_count: 1,
+        window_start: new Date(),
+        updated_at: new Date(),
+      }, {
+        onConflict: 'ip_hash,card_id'
+      });
+
+    if (upsertError) {
+      console.error('Rate limit upsert failed', { error_code: upsertError.code });
+      return true; // Allow on error
+    }
     return true;
   }
 
-  if (cached.count >= MAX_EVENTS_PER_WINDOW) {
+  // Check if limit exceeded
+  if (existing.event_count >= MAX_EVENTS_PER_WINDOW) {
     return false;
   }
 
-  cached.count++;
+  // Increment counter
+  const { error: updateError } = await supabase
+    .from('rate_limits')
+    .update({
+      event_count: existing.event_count + 1,
+      updated_at: new Date(),
+    })
+    .eq('ip_hash', ipHash)
+    .eq('card_id', cardId);
+
+  if (updateError) {
+    console.error('Rate limit update failed', { error_code: updateError.code });
+    return true; // Allow on error
+  }
+
   return true;
 }
 
@@ -80,19 +119,20 @@ serve(async (req) => {
     // Validate and truncate referrer
     const referrer = req.headers.get('referer')?.substring(0, 500) || null;
 
-    // Check rate limit
-    if (!checkRateLimit(ipHash, card_id)) {
-      return new Response(
-        JSON.stringify({ error: 'Rate limit exceeded' }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     // Create Supabase client with service role to bypass RLS
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    // Check rate limit (server-side, persists across cold starts)
+    const rateLimitOk = await checkRateLimit(supabase, ipHash, card_id);
+    if (!rateLimitOk) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Verify card exists and is published
     const { data: card, error: cardError } = await supabase

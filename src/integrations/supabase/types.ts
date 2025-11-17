@@ -384,6 +384,36 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          card_id: string
+          created_at: string
+          event_count: number
+          id: string
+          ip_hash: string
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          event_count?: number
+          id?: string
+          ip_hash: string
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          event_count?: number
+          id?: string
+          ip_hash?: string
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       share_links: {
         Row: {
           card_id: string
@@ -437,6 +467,7 @@ export type Database = {
         }
         Returns: string
       }
+      cleanup_old_rate_limits: { Args: never; Returns: undefined }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
