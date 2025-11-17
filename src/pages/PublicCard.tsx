@@ -7,6 +7,7 @@ import { Mail, Phone, MapPin, Globe, Download, Facebook, Linkedin, Instagram, Tw
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import LoadingAnimation from "@/components/LoadingAnimation";
+import ProductCarousel from "@/components/ProductCarousel";
 
 type CardData = Tables<"cards">;
 
@@ -52,6 +53,7 @@ export default function PublicCard() {
   const { slug } = useParams();
   const [card, setCard] = useState<CardData | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [productImages, setProductImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -91,6 +93,17 @@ export default function PublicCard() {
           value: link.value,
           icon: link.icon || "",
         })));
+      }
+
+      // Load product images
+      const { data: images } = await supabase
+        .from("product_images")
+        .select("id, image_url, alt_text, sort_order")
+        .eq("card_id", data.id)
+        .order("sort_order", { ascending: true });
+      
+      if (images) {
+        setProductImages(images);
       }
     }
     setLoading(false);
@@ -147,6 +160,11 @@ export default function PublicCard() {
             {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
             {card.bio && <p className="mt-3 text-sm text-muted-foreground">{card.bio}</p>}
           </div>
+
+          {/* Product Carousel */}
+          {productImages.length > 0 && (
+            <ProductCarousel images={productImages} className="my-6" />
+          )}
 
           {/* Social Media Links */}
           {socialLinks.length > 0 && (

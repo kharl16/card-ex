@@ -19,6 +19,7 @@ import ThemeCustomizer from "@/components/ThemeCustomizer";
 import SocialMediaLinks from "@/components/SocialMediaLinks";
 import QRCodeCustomizer from "@/components/QRCodeCustomizer";
 import QRCode from "qrcode";
+import ProductImageManager from "@/components/ProductImageManager";
 
 type CardData = Tables<"cards">;
 
@@ -429,6 +430,15 @@ export default function CardEditor() {
           />
 
           <SocialMediaLinks cardId={card.id} />
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Images</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ProductImageManager cardId={card.id} ownerId={card.user_id} />
+            </CardContent>
+          </Card>
 
           <QRCodeCustomizer
             settings={(card.theme as any)?.qr || {}}

@@ -351,6 +351,44 @@ export type Database = {
         }
         Relationships: []
       }
+      product_images: {
+        Row: {
+          alt_text: string | null
+          card_id: string
+          created_at: string | null
+          id: string
+          image_url: string
+          owner: string
+          sort_order: number | null
+        }
+        Insert: {
+          alt_text?: string | null
+          card_id: string
+          created_at?: string | null
+          id?: string
+          image_url: string
+          owner: string
+          sort_order?: number | null
+        }
+        Update: {
+          alt_text?: string | null
+          card_id?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string
+          owner?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_images_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
