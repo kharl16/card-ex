@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SignOutButton from "@/components/auth/SignOutButton";
-import { Plus, CreditCard, TrendingUp, Shield, Share2 } from "lucide-react";
+import AdminButton from "@/components/AdminButton";
+import { Plus, CreditCard, TrendingUp, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -107,16 +108,7 @@ export default function Dashboard() {
             <span className="text-xl font-bold">Card-Ex</span>
           </div>
           <div className="flex items-center gap-2">
-            {profile?.is_super_admin && (
-              <Button
-                variant="outline"
-                onClick={() => navigate("/admin/cards")}
-                className="gap-2"
-              >
-                <Shield className="h-4 w-4" />
-                Admin
-              </Button>
-            )}
+            <AdminButton userId={profile?.id} />
             <SignOutButton />
           </div>
         </div>
