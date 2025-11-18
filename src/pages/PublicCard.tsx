@@ -7,7 +7,7 @@ import { Mail, Phone, MapPin, Globe, Download, Facebook, Linkedin, Instagram, Tw
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import LoadingAnimation from "@/components/LoadingAnimation";
-import ProductCarousel from "@/components/ProductCarousel";
+import Carousel3DRing from "@/components/Carousel3DRing";
 
 type CardData = Tables<"cards">;
 
@@ -98,7 +98,7 @@ export default function PublicCard() {
       // Load product images
       const { data: images } = await supabase
         .from("product_images")
-        .select("id, image_url, alt_text, sort_order")
+        .select("id, image_url, alt_text, description, sort_order")
         .eq("card_id", data.id)
         .order("sort_order", { ascending: true });
       
@@ -162,8 +162,16 @@ export default function PublicCard() {
           </div>
 
           {/* Product Carousel */}
-          {productImages.length > 0 && (
-            <ProductCarousel images={productImages} className="my-6" />
+          {(card.carousel_enabled !== false) && (
+            <div className="my-6">
+              <Carousel3DRing 
+                items={productImages.map(img => ({
+                  url: img.image_url,
+                  alt: img.alt_text || undefined,
+                  description: img.description || undefined
+                }))} 
+              />
+            </div>
           )}
 
           {/* Social Media Links */}

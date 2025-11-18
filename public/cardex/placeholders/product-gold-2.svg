@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 560">
+  <defs>
+    <linearGradient id="g2" x1="0" x2="1">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#92400e"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="560" fill="url(#g2)"/>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#ffffffcc" font-size="48" font-family="Inter, system-ui">Showcase Item</text>
+</svg>
