@@ -141,6 +141,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          carousel_enabled: boolean
           company: string | null
           cover_url: string | null
           created_at: string
@@ -173,6 +174,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          carousel_enabled?: boolean
           company?: string | null
           cover_url?: string | null
           created_at?: string
@@ -205,6 +207,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          carousel_enabled?: boolean
           company?: string | null
           cover_url?: string | null
           created_at?: string
