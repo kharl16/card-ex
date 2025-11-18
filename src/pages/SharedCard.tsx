@@ -194,11 +194,13 @@ export default function SharedCard() {
           {(card.carousel_enabled !== false) && (
             <div className="my-6">
               <Carousel3DRing 
-                items={productImages.map(img => ({
-                  url: img.image_url,
-                  alt: img.alt_text || undefined,
-                  description: img.description || undefined
-                }))} 
+                images={productImages.map(img => img.image_url).filter(Boolean)}
+                height={380}
+                gapDeg={52}
+                activeScale={1.26}
+                tilt={5}
+                autoplay
+                speedDeg={0.22}
               />
             </div>
           )}
