@@ -109,6 +109,9 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <AdminButton userId={profile?.id} />
+            <Button onClick={() => navigate("/gallery")} variant="outline" size="sm">
+              Gallery
+            </Button>
             <SignOutButton />
           </div>
         </div>
