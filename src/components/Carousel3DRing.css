@@ -1,0 +1,100 @@
+/* === Tunables (Card-Ex palette + sizing) ======================= */
+.cardex-carousel {
+  /* Color palette */
+  --emerald: #00a86b;
+  --emerald-600: #00965f;
+  --gold: #d4af37;
+  --ink-900: #0b0f12;
+
+  /* Sizing (explicit card height = 280px) */
+  --card-h: 280px;
+  --card-aspect: 3/4;
+  --card-w: calc(var(--card-h) * var(--card-aspect));
+  --host-h: calc(var(--card-h) + 80px);
+
+  /* 3D ring geometry */
+  --ring-radius: 560px;
+  --cam-distance: 520px;
+  --persp: 1400px;
+
+  /* Center emphasis */
+  --front-scale: 1.22;
+  --front-elev: 56px;
+  --front-shadow: 0 28px 50px rgba(0,0,0,0.45), 0 0 0 2px rgba(212,175,55,0.55);
+  --rim: linear-gradient(180deg, rgba(212,175,55,0.9), rgba(0,168,107,0.9));
+
+  /* Motion */
+  --tiltX: 0deg;
+  --tiltY: 0deg;
+}
+
+/* === Host and track =========================================== */
+.cardex-carousel {
+  position: relative;
+  height: var(--host-h);
+  width: 100%;
+  perspective: var(--persp);
+  perspective-origin: 50% 40%;
+  overflow: visible;
+  outline: none;
+  touch-action: pan-y;
+}
+
+.cardex-track {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* === Items ===================================================== */
+.cardex-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--card-w);
+  height: var(--card-h);
+  transform-style: preserve-3d;
+  border-radius: 16px;
+  overflow: hidden;
+  backface-visibility: hidden;
+  transition: transform 280ms ease, filter 280ms ease, box-shadow 280ms ease;
+  filter: saturate(0.92) brightness(0.98);
+}
+
+.cardex-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: translateZ(0);
+}
+
+/* Center/front card emphasis */
+.cardex-item.is-active {
+  transform: translate3d(-50%, -50%, var(--front-elev))
+             scale(var(--front-scale))
+             rotateX(var(--tiltX)) rotateY(var(--tiltY));
+  filter: saturate(1.08) brightness(1.02);
+  box-shadow: var(--front-shadow);
+  position: relative;
+}
+
+.cardex-item.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 16px;
+  background: linear-gradient(to bottom, rgba(212,175,55,0.20), rgba(0,168,107,0.18));
+  box-shadow: inset 0 0 0 2px rgba(212,175,55,0.55);
+}
+
+/* Accessibility: reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .cardex-item,
+  .cardex-item.is-active {
+    transition: none !important;
+  }
+}
