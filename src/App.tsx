@@ -12,6 +12,8 @@ import CardEditor from "./pages/CardEditor";
 import PublicCard from "./pages/PublicCard";
 import SharedCard from "./pages/SharedCard";
 import AdminCards from "./pages/AdminCards";
+import AdminDataTools from "./pages/AdminDataTools";
+import Gallery from "./pages/Gallery";
 import Analytics from "./pages/Analytics";
 import RequireAuth from "./components/auth/RequireAuth";
 import NotFound from "./pages/NotFound";
@@ -66,6 +68,26 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <AdminCards />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/data-tools"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminDataTools />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/gallery"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <Gallery />
               </RequireAuth>
             </PageTransition>
           }

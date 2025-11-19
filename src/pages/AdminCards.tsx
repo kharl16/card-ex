@@ -124,6 +124,11 @@ export default function AdminCards() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        <div className="mb-4">
+          <Button onClick={() => navigate("/admin/data-tools")} variant="outline">
+            Data Tools & Migration
+          </Button>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">

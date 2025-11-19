@@ -7,7 +7,7 @@ import { Mail, Phone, MapPin, Globe, Download, Facebook, Linkedin, Instagram, Tw
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import LoadingAnimation from "@/components/LoadingAnimation";
-import Carousel3DRing from "@/components/Carousel3DRing";
+import ProductRingCarousel from "@/components/ProductRingCarousel";
 
 type CardData = Tables<"cards">;
 
@@ -162,17 +162,9 @@ export default function PublicCard() {
           </div>
 
           {/* Product Carousel */}
-          {(card.carousel_enabled !== false) && (
+          {(card.carousel_enabled !== false) && productImages.length > 0 && (
             <div className="my-6">
-              <Carousel3DRing 
-                images={productImages.map(img => img.image_url).filter(Boolean)}
-                height={380}
-                gapDeg={52}
-                activeScale={1.26}
-                tilt={5}
-                autoplay
-                speedDeg={0.22}
-              />
+              <ProductRingCarousel cardId={card.id} />
             </div>
           )}
 
