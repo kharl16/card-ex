@@ -3,9 +3,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import ProductRingCarousel from './ProductRingCarousel';
 
 type ImgRow = { id: string; url: string; sort_index: number };
+
+// Validation schema for image URLs
+const imageUrlSchema = z.string()
+  .trim()
+  .min(1, 'URL cannot be empty')
+  .max(2048, 'URL too long')
+  .url('Invalid URL format')
+  .refine(
+    (url) => url.startsWith('http://') || url.startsWith('https://'),
+    'Only HTTP(S) URLs are allowed'
+  )
+  .refine(
+    (url) => !/^(javascript|data|vbscript):/i.test(url),
+    'Invalid URL scheme detected'
+  );
+
+// Allowed image MIME types for file uploads
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
 export default function GalleryManager({ cardId }: { cardId: string }) {
   const [rows, setRows] = useState<ImgRow[]>([]);
@@ -39,8 +58,26 @@ export default function GalleryManager({ cardId }: { cardId: string }) {
       toast.error('Limit is 20 images per card');
       return;
     }
+
+    // Validate all URLs before insertion
+    const validatedUrls: string[] = [];
+    for (const url of slice) {
+      try {
+        const validated = imageUrlSchema.parse(url);
+        validatedUrls.push(validated);
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          const errorMsg = error.errors[0]?.message || 'Invalid URL';
+          toast.error(`URL validation failed: ${errorMsg}`);
+          return;
+        }
+        toast.error('URL validation failed');
+        return;
+      }
+    }
+
     const base = rows.length;
-    const payload = slice.map((u, i) => ({ 
+    const payload = validatedUrls.map((u, i) => ({ 
       card_id: cardId, 
       url: u, 
       sort_index: base + i 
@@ -63,6 +100,21 @@ export default function GalleryManager({ cardId }: { cardId: string }) {
     const list = Array.from(files).slice(0, avail);
     if (list.length === 0) {
       toast.error('Limit is 20 images per card');
+      return;
+    }
+
+    // Validate file types
+    const invalidFiles = list.filter(f => !ALLOWED_IMAGE_TYPES.includes(f.type));
+    if (invalidFiles.length > 0) {
+      toast.error(`Invalid file type. Only JPEG, PNG, GIF, and WebP images are allowed.`);
+      return;
+    }
+
+    // Validate file sizes (10MB max per file)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const oversizedFiles = list.filter(f => f.size > MAX_FILE_SIZE);
+    if (oversizedFiles.length > 0) {
+      toast.error(`File size exceeds 10MB limit.`);
       return;
     }
 
