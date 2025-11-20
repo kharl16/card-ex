@@ -211,5 +211,3 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
 };
 
 export default ProductRingCarousel;
-
-export default ProductRingCarousel;
