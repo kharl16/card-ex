@@ -55,6 +55,21 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          key: string
+          value: string
+        }
+        Insert: {
+          key: string
+          value: string
+        }
+        Update: {
+          key?: string
+          value?: string
+        }
+        Relationships: []
+      }
       card_events: {
         Row: {
           card_id: string
@@ -189,6 +204,7 @@ export type Database = {
           organization_id: string | null
           phone: string | null
           prefix: string | null
+          public_url: string | null
           qr_code_url: string | null
           share_url: string | null
           slug: string
@@ -222,6 +238,7 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           prefix?: string | null
+          public_url?: string | null
           qr_code_url?: string | null
           share_url?: string | null
           slug: string
@@ -255,6 +272,7 @@ export type Database = {
           organization_id?: string | null
           phone?: string | null
           prefix?: string | null
+          public_url?: string | null
           qr_code_url?: string | null
           share_url?: string | null
           slug?: string
