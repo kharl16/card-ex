@@ -130,8 +130,6 @@ export default function Carousel3DRing({
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
           onPointerCancel={endDrag}
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
           aria-roledescription="3D ring carousel"
         >
           {images.length === 0 && (
