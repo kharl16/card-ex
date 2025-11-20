@@ -11,10 +11,7 @@ interface ProductRingCarouselProps {
 }
 
 const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => {
-  const visibleImages = useMemo(
-    () => (images || []).slice(0, 20),
-    [images]
-  );
+  const visibleImages = useMemo(() => (images || []).slice(0, 20), [images]);
 
   const count = visibleImages.length;
 
@@ -27,13 +24,9 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
   if (count === 1) {
     const img = visibleImages[0];
     return (
-      <div className="flex w-full items-center justify-center py-4">
-        <div className="relative h-[220px] w-[260px] overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-900/60 via-slate-900 to-black shadow-lg">
-          <img
-            src={img.url}
-            alt={img.alt ?? ""}
-            className="h-full w-full object-cover"
-          />
+      <div className="flex w-full items-center justify-center py-2">
+        <div className="relative h-[200px] w-[240px] overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-900/60 via-slate-900 to-black shadow-lg">
+          <img src={img.url} alt={img.alt ?? ""} className="h-full w-full object-cover" />
         </div>
       </div>
     );
@@ -46,7 +39,12 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
   const accumulatedDeltaX = useRef(0);
 
   const step = 360 / count;
-  const radius = 480; // Distance from ring center; controls spacing
+
+  /**
+   * Bigger radius = more spacing between cards in the ring.
+   * (We also shrink card size a bit so each photo is more readable.)
+   */
+  const radius = 540;
 
   // Auto-rotation: continuous (smooth) movement
   useEffect(() => {
@@ -57,7 +55,6 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
 
     const tickMs = 100; // 0.1s per tick
     // We want: 1 image per second, so 360/count degrees per second.
-    // Per tick we move (360 / count) * (tickMs / 1000).
     const deltaPerTick = (360 / count) * (tickMs / 1000);
 
     const id = window.setInterval(() => {
@@ -150,11 +147,12 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
   };
 
   return (
-    <div className="relative w-full py-1 mt-2 mb-6 mx-auto">
+    <div className="relative w-full py-0 mt-1 mb-4 mx-auto">
       <div className="flex w-full justify-center">
-        {/* Outer container with perspective so 3D looks right */}
+        {/* Outer container with perspective so 3D looks right.
+            Height is smaller + overflow hidden so it doesn't overlap social icons. */}
         <div
-          className="relative h-[300px] w-full max-w-[520px] overflow-visible"
+          className="relative h-[240px] w-full max-w-[520px] overflow-hidden"
           style={{ perspective: "1200px" }}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
@@ -163,7 +161,7 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
         >
           {/* Inner ring */}
           <div
-            className="absolute left-1/2 top-1/2 h-[240px] w-[280px] -translate-x-1/2 -translate-y-1/2 transform-gpu"
+            className="absolute left-1/2 top-[48%] h-[200px] w-[220px] -translate-x-1/2 -translate-y-1/2 transform-gpu"
             style={{
               transformStyle: "preserve-3d",
             }}
@@ -174,12 +172,9 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
               const normalized = normalizeAngle(currentAngle);
 
               // Use normalized angle for emphasis: 0° = front
-              const closeness = 1 - Math.min(
-                Math.abs(normalized) / 90,
-                1
-              ); // 1 at front, 0 at ±90+
+              const closeness = 1 - Math.min(Math.abs(normalized) / 90, 1); // 1 at front, 0 at ±90+
 
-              const scale = 1 + closeness * 0.12; // Front card slightly bigger
+              const scale = 1 + closeness * 0.1; // Slightly toned down so it stays inside the lane
               const zIndex = 10 + Math.round(closeness * 10);
 
               const translateZ = radius;
@@ -188,7 +183,7 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
               return (
                 <div
                   key={img.id ?? index}
-                  className="absolute left-1/2 top-1/2 h-[220px] w-[260px] -translate-x-1/2 -translate-y-1/2 transform-gpu transition-transform duration-500 ease-out"
+                  className="absolute left-1/2 top-1/2 h-[180px] w-[200px] -translate-x-1/2 -translate-y-1/2 transform-gpu transition-transform duration-500 ease-out"
                   style={{
                     transformStyle: "preserve-3d",
                     transform: `
@@ -197,22 +192,14 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
                       scale(${scale})
                     `,
                     zIndex,
-                    boxShadow:
-                      closeness > 0.7
-                        ? "0 18px 40px rgba(0,0,0,0.55)"
-                        : "0 8px 20px rgba(0,0,0,0.35)",
+                    boxShadow: closeness > 0.7 ? "0 18px 40px rgba(0,0,0,0.55)" : "0 8px 20px rgba(0,0,0,0.35)",
                     borderRadius: "1rem",
                     overflow: "hidden",
-                    background:
-                      "radial-gradient(circle at top, rgba(16,185,129,0.25), rgba(15,23,42,0.95))",
+                    background: "radial-gradient(circle at top, rgba(16,185,129,0.25), rgba(15,23,42,0.95))",
                     border: closeness > 0.6 ? "1px solid rgba(16,185,129,0.85)" : "1px solid rgba(148,163,184,0.35)",
                   }}
                 >
-                  <img
-                    src={img.url}
-                    alt={img.alt ?? ""}
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={img.url} alt={img.alt ?? ""} className="h-full w-full object-cover" />
                 </div>
               );
             })}
@@ -222,5 +209,7 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
     </div>
   );
 };
+
+export default ProductRingCarousel;
 
 export default ProductRingCarousel;
