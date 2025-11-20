@@ -46,7 +46,7 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
   const accumulatedDeltaX = useRef(0);
 
   const step = 360 / count;
-  const radius = 300; // Distance from ring center; controls spacing
+  const radius = 380; // Distance from ring center; controls spacing
 
   // Auto-rotation: continuous (smooth) movement
   useEffect(() => {
@@ -150,11 +150,11 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
   };
 
   return (
-    <div className="relative w-full py-4">
+    <div className="relative w-full py-2 mb-4">
       <div className="flex w-full items-center justify-center">
         {/* Outer container with perspective so 3D looks right */}
         <div
-          className="relative h-[270px] w-full max-w-[520px] overflow-visible"
+          className="relative h-[260px] w-full max-w-[520px] overflow-visible"
           style={{ perspective: "1200px" }}
           onMouseDown={handleMouseDown}
           onTouchStart={handleTouchStart}
@@ -163,7 +163,7 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => 
         >
           {/* Inner ring */}
           <div
-            className="absolute left-1/2 top-1/2 h-[220px] w-[260px] -translate-x-1/2 -translate-y-1/2 transform-gpu"
+            className="absolute left-1/2 top-1/2 h-[200px] w-[260px] -translate-x-1/2 -translate-y-1/2 transform-gpu"
             style={{
               transformStyle: "preserve-3d",
             }}
