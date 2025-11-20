@@ -199,8 +199,8 @@ export default function SharedCard() {
                 gapDeg={52}
                 activeScale={1.26}
                 tilt={5}
-                autoplay
-                speedDeg={0.22}
+                autoplay={true}
+                speedDeg={0.8}
               />
             </div>
           )}

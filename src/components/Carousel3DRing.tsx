@@ -40,10 +40,17 @@ export default function Carousel3DRing({
 
   // autoplay spin
   useEffect(() => {
-    if (!autoplay || reduceMotion) return;
+    if (!autoplay || reduceMotion) {
+      console.log('Carousel autoplay disabled:', { autoplay, reduceMotion });
+      return;
+    }
+    console.log('Carousel autoplay starting with speedDeg:', speedDeg);
     let raf = 0;
     const tick = () => {
-      setRotation((r) => (paused ? r : r - speedDeg));
+      setRotation((r) => {
+        const newRotation = paused ? r : r - speedDeg;
+        return newRotation;
+      });
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
