@@ -261,7 +261,13 @@ export default function GalleryManager({ cardId }: { cardId: string }) {
       <div className="space-y-4">
         <h3 className="text-xl font-semibold">Live Preview</h3>
         <div key={refreshKey} className="rounded-lg border border-border bg-card p-4">
-          <ProductRingCarousel cardId={cardId} />
+          <ProductRingCarousel 
+            images={rows.map(row => ({ 
+              id: row.id, 
+              url: row.url, 
+              alt: undefined 
+            }))}
+          />
         </div>
       </div>
     </div>

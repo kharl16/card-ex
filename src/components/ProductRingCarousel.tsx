@@ -1,180 +1,180 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useEffect, useState, useRef } from 'react';
 
-type Props = { cardId: string };
+interface ProductRingCarouselProps {
+  images: { id: string; url: string; alt?: string }[] | string[];
+}
 
-export default function ProductRingCarousel({ cardId }: Props) {
-  const [imgs, setImgs] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function ProductRingCarousel({ images: rawImages }: ProductRingCarouselProps) {
+  // Normalize images to object format and limit to 20
+  const images = (Array.isArray(rawImages) ? rawImages : [])
+    .slice(0, 20)
+    .map((img, idx) => 
+      typeof img === 'string' 
+        ? { id: `img-${idx}`, url: img, alt: `Product image ${idx + 1}` }
+        : img
+    )
+    .filter(img => img.url);
 
-  const angleRef = useRef(0);        // radians
-  const extraVelRef = useRef(0);     // rad/ms (inertia)
-  const lastT = useRef<number | null>(null);
-  const raf = useRef<number | null>(null);
-  const dragging = useRef(false);
-  const lastX = useRef(0);
-  const vx = useRef(0);
-  const container = useRef<HTMLDivElement>(null);
+  const [angle, setAngle] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState<number | null>(null);
+  const [deltaX, setDeltaX] = useState(0);
+  const ringRef = useRef<HTMLDivElement>(null);
 
-  // parallax tilt vars
-  const parallaxX = useRef(0);
-  const parallaxY = useRef(0);
+  const count = images.length;
+  const step = count >= 2 ? 360 / count : 0;
+  const radius = 300; // px
 
+  // Auto-rotation: 1 step per second
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      // Try card_images first, fallback to product_images
-      const { data: cardImages } = await supabase
-        .from('card_images')
-        .select('url, sort_index')
-        .eq('card_id', cardId)
-        .order('sort_index', { ascending: true });
+    if (count < 2 || isDragging) return;
 
-      if (cardImages && cardImages.length > 0) {
-        setImgs(cardImages.map(d => d.url).slice(0, 20));
+    const interval = setInterval(() => {
+      setAngle(prev => prev - step);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [count, step, isDragging]);
+
+  // Manual swipe handlers
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setIsDragging(true);
+    setStartX(e.clientX);
+    setDeltaX(0);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging || startX === null) return;
+    setDeltaX(e.clientX - startX);
+  };
+
+  const handlePointerUp = () => {
+    if (startX === null) return;
+
+    // Threshold: swipe must be > 30px to trigger navigation
+    if (Math.abs(deltaX) >= 30) {
+      if (deltaX > 0) {
+        // Swipe right → previous image
+        setAngle(prev => prev + step);
       } else {
-        // Fallback to product_images
-        const { data: productImages } = await supabase
-          .from('product_images')
-          .select('image_url, sort_order')
-          .eq('card_id', cardId)
-          .order('sort_order', { ascending: true });
-        
-        if (productImages) {
-          setImgs(productImages.map(d => d.image_url).slice(0, 20));
-        }
+        // Swipe left → next image
+        setAngle(prev => prev - step);
       }
-      setLoading(false);
-    })();
-  }, [cardId]);
-
-  const baseOmega = useMemo(() => {
-    const n = Math.max(1, imgs.length);
-    return ((2 * Math.PI) / n) / 1000; // 1 image/sec in rad/ms
-  }, [imgs.length]);
-
-  useEffect(() => {
-    function tick(t: number) {
-      if (lastT.current == null) lastT.current = t;
-      const dt = t - lastT.current!;
-      lastT.current = t;
-      extraVelRef.current *= 0.96; // roulette ease
-      if (Math.abs(extraVelRef.current) < 0.00001) extraVelRef.current = 0;
-      angleRef.current += (baseOmega + extraVelRef.current) * dt;
-      if (container.current) {
-        container.current.style.setProperty('--ring-angle', String(angleRef.current));
-        container.current.style.setProperty('--px', parallaxX.current.toFixed(3));
-        container.current.style.setProperty('--py', parallaxY.current.toFixed(3));
-      }
-      raf.current = requestAnimationFrame(tick);
     }
-    raf.current = requestAnimationFrame(tick);
-    return () => raf.current && cancelAnimationFrame(raf.current);
-  }, [baseOmega]);
 
-  const onDown = (e: React.PointerEvent) => {
-    dragging.current = true;
-    lastX.current = e.clientX;
-    vx.current = 0;
-    (e.target as Element).setPointerCapture(e.pointerId);
+    setIsDragging(false);
+    setStartX(null);
+    setDeltaX(0);
   };
 
-  const onMove = (e: React.PointerEvent) => {
-    // drag for rotation
-    if (dragging.current) {
-      const dx = e.clientX - lastX.current;
-      lastX.current = e.clientX;
-      const delta = dx * 0.004;
-      angleRef.current += delta;
-      vx.current = delta / 16.7;
-    }
-    // parallax tilt on pointer, relative to center
-    if (container.current) {
-      const rect = container.current.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      parallaxX.current = Math.max(-1, Math.min(1, (e.clientX - cx) / (rect.width / 2)));
-      parallaxY.current = Math.max(-1, Math.min(1, (e.clientY - cy) / (rect.height / 2)));
-    }
-  };
+  // No images
+  if (count === 0) {
+    return null;
+  }
 
-  const onUp = () => { 
-    dragging.current = false; 
-    extraVelRef.current += vx.current; 
-  };
-
-  if (loading || imgs.length === 0) return null;
-
-  const N = imgs.length;
-  return (
-    <div className="ring-wrap">
-      <div
-        ref={container}
-        className="ring"
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowLeft') extraVelRef.current -= 0.002;
-          if (e.key === 'ArrowRight') extraVelRef.current += 0.002;
-        }}
-        role="group"
-        aria-label="Product images carousel"
-      >
-        {imgs.map((src, i) => (
-          <figure key={i} className="panel" style={{ ['--i' as any]: i } as React.CSSProperties}>
-            <img src={src} alt={`Product image ${i + 1}`} loading="lazy" />
-          </figure>
-        ))}
+  // Single image: centered, no rotation
+  if (count === 1) {
+    const img = images[0];
+    return (
+      <div className="w-full h-[270px] flex items-center justify-center">
+        <img
+          src={img.url}
+          alt={img.alt || 'Product image'}
+          className="max-h-full max-w-full object-contain rounded-2xl shadow-lg"
+        />
       </div>
-      <style dangerouslySetInnerHTML={{__html: `
-        .ring-wrap{
-          position: relative;
-          margin: 16px 0 20px;
-          padding: 2px 0 50px;
-          isolation: isolate;
-        }
-        .ring{
-          --h: 280px;
-          --radius: 420px;
-          --ring-angle: 0;
-          --px: 0; --py: 0;
-          height: var(--h);
-          perspective: 1400px;
-          position: relative;
-          overflow: visible;
-          transform-style: preserve-3d;
-          user-select:none; touch-action: pan-y;
-        }
-        .panel{
-          position:absolute; top:0; left:50%;
-          transform-style: preserve-3d;
-          backface-visibility: hidden;
-          --theta: calc(2 * 3.14159265 * var(--i) / ${N});
-          transform:
-            rotateY(calc(var(--theta) + var(--ring-angle)))
-            translateZ(var(--radius))
-            rotateY(calc(-1 * (var(--theta) + var(--ring-angle))))
-            translateX(-50%)
-            translateZ(0);
-          transition: filter 160ms ease, box-shadow 160ms ease;
-        }
-        .panel img{
-          height: var(--h); width: auto; display:block;
-          border-radius: 14px; background:#111;
-          box-shadow: 0 4px 16px rgba(0,0,0,.35);
-        }
-        .ring{
-          transform:
-            rotateX(calc(var(--py) * 4deg))
-            rotateY(calc(var(--px) * -4deg));
-        }
-        @media (max-width: 480px){
-          .ring{ --h: 240px; --radius: 360px; }
-        }
-      `}} />
+    );
+  }
+
+  // Multiple images: 3D ring
+  return (
+    <div
+      ref={ringRef}
+      className="w-full h-[270px] relative select-none cursor-grab active:cursor-grabbing"
+      style={{
+        perspective: '1200px',
+        overflow: 'visible',
+      }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+    >
+      <div
+        className="absolute inset-0"
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: `rotateY(${angle}deg)`,
+          transition: isDragging ? 'none' : 'transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1)',
+        }}
+      >
+        {images.map((img, i) => {
+          const angleForImage = i * step + angle;
+          
+          // Normalize angle to [-180, 180] to find front card
+          const normalizedAngle = ((angleForImage % 360) + 540) % 360 - 180;
+          const isFront = Math.abs(normalizedAngle) < step / 2;
+          
+          // Closeness factor (1 = front, 0 = back)
+          const closeness = Math.max(0, 1 - Math.abs(normalizedAngle) / 180);
+          
+          const scale = isFront ? 1.05 : 0.92;
+          const opacity = 0.5 + closeness * 0.5;
+          const zIndex = Math.round(closeness * 100);
+
+          return (
+            <div
+              key={img.id}
+              className="absolute top-1/2 left-1/2 pointer-events-none"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: `
+                  translate(-50%, -50%)
+                  rotateY(${i * step}deg)
+                  translateZ(${radius}px)
+                  rotateY(${-angle}deg)
+                  scale(${scale})
+                `,
+                zIndex,
+                opacity,
+              }}
+            >
+              <img
+                src={img.url}
+                alt={img.alt || `Product ${i + 1}`}
+                className="w-[220px] h-[220px] object-cover rounded-2xl shadow-xl"
+                style={{
+                  boxShadow: isFront
+                    ? '0 8px 32px rgba(0,0,0,0.3), 0 0 16px rgba(16,185,129,0.2)'
+                    : '0 4px 16px rgba(0,0,0,0.2)',
+                }}
+                draggable={false}
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Dots indicator */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-2 z-50">
+        {images.map((_, i) => {
+          const angleForImage = i * step + angle;
+          const normalizedAngle = ((angleForImage % 360) + 540) % 360 - 180;
+          const isActive = Math.abs(normalizedAngle) < step / 2;
+
+          return (
+            <div
+              key={i}
+              className={`h-2 w-2 rounded-full transition-all ${
+                isActive
+                  ? 'bg-emerald-400 shadow-[0_0_0_3px_rgba(16,185,129,0.25)]'
+                  : 'bg-emerald-400/40'
+              }`}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

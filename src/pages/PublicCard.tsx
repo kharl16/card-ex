@@ -164,7 +164,13 @@ export default function PublicCard() {
           {/* Product Carousel */}
           {(card.carousel_enabled !== false) && productImages.length > 0 && (
             <div className="my-6">
-              <ProductRingCarousel cardId={card.id} />
+              <ProductRingCarousel 
+                images={productImages.map(img => ({ 
+                  id: img.id, 
+                  url: img.image_url, 
+                  alt: img.alt_text || undefined 
+                }))}
+              />
             </div>
           )}
 
