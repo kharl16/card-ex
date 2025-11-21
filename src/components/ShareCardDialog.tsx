@@ -23,6 +23,7 @@ interface ShareCardDialogProps {
 interface CardData {
   slug: string;
   share_url: string;
+  public_url: string;
 }
 
 export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCardDialogProps) {
@@ -37,7 +38,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
   }, [open, cardId]);
 
   useEffect(() => {
-    if (card?.share_url) {
+    if (card?.public_url || card?.share_url) {
       generateQR();
     }
   }, [card]);
@@ -46,7 +47,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
     setLoading(true);
     const { data, error } = await supabase
       .from("cards")
-      .select("slug, share_url")
+      .select("slug, share_url, public_url")
       .eq("id", cardId)
       .single();
 
@@ -59,15 +60,17 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
   };
 
   const copyToClipboard = () => {
-    if (!card?.share_url) return;
-    navigator.clipboard.writeText(card.share_url);
-    toast.success(`✅ Share link copied: ${card.share_url}`);
+    const url = card?.public_url || card?.share_url;
+    if (!url) return;
+    navigator.clipboard.writeText(url);
+    toast.success(`✅ Share link copied: ${url}`);
   };
 
   const generateQR = async () => {
-    if (!card?.share_url) return;
+    const url = card?.public_url || card?.share_url;
+    if (!url) return;
     try {
-      const dataUrl = await QRCode.toDataURL(card.share_url, {
+      const dataUrl = await QRCode.toDataURL(url, {
         width: 512,
         margin: 2,
         color: {
@@ -115,7 +118,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
               <div className="flex gap-2">
                 <Input
                   id="share-url"
-                  value={card.share_url}
+                  value={card.public_url || card.share_url}
                   readOnly
                   className="flex-1 font-mono text-sm"
                 />
