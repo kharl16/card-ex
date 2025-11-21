@@ -192,6 +192,7 @@ export type Database = {
           company: string | null
           cover_url: string | null
           created_at: string
+          custom_slug: string | null
           email: string | null
           first_name: string | null
           full_name: string
@@ -226,6 +227,7 @@ export type Database = {
           company?: string | null
           cover_url?: string | null
           created_at?: string
+          custom_slug?: string | null
           email?: string | null
           first_name?: string | null
           full_name: string
@@ -260,6 +262,7 @@ export type Database = {
           company?: string | null
           cover_url?: string | null
           created_at?: string
+          custom_slug?: string | null
           email?: string | null
           first_name?: string | null
           full_name?: string

@@ -74,6 +74,11 @@ const cardSchema = z.object({
     })
     .optional().or(z.literal("")),
   location: z.string().trim().max(200, "Location must be 200 characters or less").optional().or(z.literal("")),
+  custom_slug: z.string().trim()
+    .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, "Custom slug must be lowercase alphanumeric with hyphens, starting and ending with alphanumeric")
+    .min(3, "Custom slug must be at least 3 characters")
+    .max(50, "Custom slug must be 50 characters or less")
+    .optional().or(z.literal("")),
 });
 
 export default function CardEditor() {
@@ -240,6 +245,7 @@ export default function CardEditor() {
         phone: card.phone || "",
         website: card.website || "",
         location: card.location || "",
+        custom_slug: card.custom_slug || "",
       };
 
       cardSchema.parse(validationData);
@@ -457,7 +463,35 @@ export default function CardEditor() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="slug">Card URL Slug</Label>
+                <Label htmlFor="custom_slug">Custom Short URL (Optional)</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">tagex.app/</span>
+                  <Input
+                    id="custom_slug"
+                    value={card.custom_slug || ""}
+                    onChange={(e) => setCard({ ...card, custom_slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                    placeholder="john (3-50 chars)"
+                    maxLength={50}
+                    className={validationErrors.custom_slug ? "border-destructive" : ""}
+                  />
+                </div>
+                {validationErrors.custom_slug && (
+                  <p className="text-xs text-destructive">{validationErrors.custom_slug}</p>
+                )}
+                {card.custom_slug && (
+                  <p className="text-xs text-muted-foreground">
+                    Short URL: tagex.app/{card.custom_slug}
+                  </p>
+                )}
+                {!card.custom_slug && (
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty to use default URL with /c/ prefix
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="slug">Default URL Slug</Label>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">/c/</span>
                   <Input
@@ -466,10 +500,11 @@ export default function CardEditor() {
                     onChange={(e) => setCard({ ...card, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
                     placeholder="your-name"
                     maxLength={100}
+                    disabled
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Your card will be accessible at: {window.location.origin}/c/{card.slug}
+                  Fallback URL: {window.location.origin}/c/{card.slug}
                 </p>
               </div>
             </CardContent>
