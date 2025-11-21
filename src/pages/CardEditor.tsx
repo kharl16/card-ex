@@ -268,7 +268,7 @@ export default function CardEditor() {
 
     // Generate QR code if published and doesn't exist OR has old URL format
     let qrCodeUrl = card.qr_code_url;
-    const hasOldQRFormat = qrCodeUrl && !qrCodeUrl.includes('card-ex.lovable.app');
+    const hasOldQRFormat = qrCodeUrl && !qrCodeUrl.includes('tagex.app');
     if (card.is_published && card.share_url && (!qrCodeUrl || hasOldQRFormat)) {
       qrCodeUrl = await generateQRCode(card.share_url, card.slug);
     }
@@ -316,7 +316,7 @@ export default function CardEditor() {
     
     // Generate QR code when publishing OR regenerate if old format
     let qrCodeUrl = card.qr_code_url;
-    const hasOldQRFormat = qrCodeUrl && !qrCodeUrl.includes('card-ex.lovable.app');
+    const hasOldQRFormat = qrCodeUrl && !qrCodeUrl.includes('tagex.app');
     if (newStatus && card.share_url && (!qrCodeUrl || hasOldQRFormat)) {
       qrCodeUrl = await generateQRCode(card.share_url, card.slug);
     }
