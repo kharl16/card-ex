@@ -49,8 +49,12 @@ const contactBrandColors: Record<string, string> = {
   location: "bg-[#FBBC04]",
 };
 
-export default function PublicCard() {
-  const { slug } = useParams();
+interface PublicCardProps {
+  customSlug?: boolean;
+}
+
+export default function PublicCard({ customSlug = false }: PublicCardProps) {
+  const { slug, customSlug: customSlugParam } = useParams();
   const [card, setCard] = useState<CardData | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [productImages, setProductImages] = useState<any[]>([]);
@@ -61,14 +65,18 @@ export default function PublicCard() {
   }, [slug]);
 
   const loadCard = async () => {
-    if (!slug) return;
+    const slugValue = customSlug ? customSlugParam : slug;
+    if (!slugValue) return;
 
-    const { data, error } = await supabase
+    // Try to load by custom_slug first if customSlug route, otherwise by slug
+    const query = supabase
       .from("cards")
       .select("*")
-      .eq("slug", slug)
-      .eq("is_published", true)
-      .single();
+      .eq("is_published", true);
+    
+    const { data, error } = customSlug 
+      ? await query.eq("custom_slug", slugValue).single()
+      : await query.eq("slug", slugValue).single();
 
     if (!error && data) {
       setCard(data);

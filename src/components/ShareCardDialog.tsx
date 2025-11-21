@@ -113,28 +113,30 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
           </div>
         ) : card ? (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="share-url">Share URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="share-url"
-                  value={card.public_url || card.share_url}
-                  readOnly
-                  className="flex-1 font-mono text-sm"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={copyToClipboard}
-                  title="Copy link"
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
+              <div className="space-y-2">
+                <Label htmlFor="share-url">Share URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="share-url"
+                    value={card.public_url || card.share_url}
+                    readOnly
+                    className="flex-1 font-mono text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={copyToClipboard}
+                    title="Copy link"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {card.public_url?.includes('/c/') 
+                    ? 'This is your permanent shareable link' 
+                    : 'This is your branded short URL'}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                This is your permanent shareable link
-              </p>
-            </div>
 
             {qrDataUrl && (
               <div className="space-y-2">
