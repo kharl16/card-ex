@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
-import { toast } from 'sonner';
-import { Upload, X, Edit } from 'lucide-react';
-import ImageEditorDialog from './ImageEditorDialog';
+import React, { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
+import { Upload, X, Edit } from "lucide-react";
+import ImageEditorDialog from "./ImageEditorDialog";
 
 interface ProductImageUploaderProps {
   cardId: string;
@@ -43,7 +43,7 @@ export default function ProductImageUploader({
 
     Array.from(files).forEach((file) => {
       // Validate file type
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         toast.error(`${file.name} is not an image file`);
         return;
       }
@@ -57,18 +57,18 @@ export default function ProductImageUploader({
       newImages.push({
         file,
         preview,
-        altText: '',
-        description: '',
+        altText: "",
+        description: "",
       });
     });
 
     setPendingImages((prev) => [...prev, ...newImages]);
-    e.target.value = ''; // Reset input
+    e.target.value = ""; // Reset input
   };
 
   const handleUpload = async () => {
     if (pendingImages.length === 0) {
-      toast.error('Please select at least one image');
+      toast.error("Please select at least one image");
       return;
     }
 
@@ -84,50 +84,44 @@ export default function ProductImageUploader({
         try {
           // Use edited blob if available, otherwise original file
           const fileToUpload = pending.editedBlob || pending.file;
-          const fileExt = pending.file.name.split('.').pop();
+          const fileExt = pending.file.name.split(".").pop();
           const fileName = `${crypto.randomUUID()}.${fileExt}`;
           const filePath = `${ownerId}/${cardId}/${fileName}`;
 
           setUploadProgress((prev) => ({ ...prev, [i]: 30 }));
 
           // Upload to storage
-          const { error: uploadError } = await supabase.storage
-            .from('cardex-products')
-            .upload(filePath, fileToUpload, {
-              cacheControl: '3600',
-              upsert: false,
-            });
+          const { error: uploadError } = await supabase.storage.from("cardex-products").upload(filePath, fileToUpload, {
+            cacheControl: "3600",
+            upsert: false,
+          });
 
           if (uploadError) {
-            console.error('Upload error:', uploadError);
+            console.error("Upload error:", uploadError);
             throw new Error(`Failed to upload ${pending.file.name}`);
           }
 
           setUploadProgress((prev) => ({ ...prev, [i]: 60 }));
 
           // Get public URL
-          const { data: urlData } = supabase.storage
-            .from('cardex-products')
-            .getPublicUrl(filePath);
+          const { data: urlData } = supabase.storage.from("cardex-products").getPublicUrl(filePath);
 
           setUploadProgress((prev) => ({ ...prev, [i]: 80 }));
 
           // Insert database record
-          const { error: dbError } = await supabase
-            .from('product_images')
-            .insert({
-              card_id: cardId,
-              image_url: urlData.publicUrl,
-              alt_text: pending.altText.trim() || null,
-              description: pending.description.trim() || null,
-              sort_order: currentSort++,
-              owner: ownerId,
-            });
+          const { error: dbError } = await supabase.from("product_images").insert({
+            card_id: cardId,
+            image_url: urlData.publicUrl,
+            alt_text: pending.altText.trim() || null,
+            description: pending.description.trim() || null,
+            sort_order: currentSort++,
+            owner: ownerId,
+          });
 
           if (dbError) {
-            console.error('Database error:', dbError);
+            console.error("Database error:", dbError);
             // Clean up uploaded file
-            await supabase.storage.from('cardex-products').remove([filePath]);
+            await supabase.storage.from("cardex-products").remove([filePath]);
             throw new Error(`Failed to save ${pending.file.name}`);
           }
 
@@ -140,7 +134,7 @@ export default function ProductImageUploader({
       }
 
       if (successCount > 0) {
-        toast.success(`Successfully uploaded ${successCount} image${successCount > 1 ? 's' : ''}!`);
+        toast.success(`Successfully uploaded ${successCount} image${successCount > 1 ? "s" : ""}!`);
         // Clean up previews
         pendingImages.forEach((img) => URL.revokeObjectURL(img.preview));
         setPendingImages([]);
@@ -148,7 +142,7 @@ export default function ProductImageUploader({
         onUploadComplete();
       }
     } catch (error) {
-      console.error('Upload error:', error);
+      console.error("Upload error:", error);
     } finally {
       setUploading(false);
     }
@@ -165,17 +159,13 @@ export default function ProductImageUploader({
     });
   };
 
-  const handleUpdateImageData = (index: number, field: 'altText' | 'description', value: string) => {
-    setPendingImages((prev) =>
-      prev.map((img, i) => (i === index ? { ...img, [field]: value } : img))
-    );
+  const handleUpdateImageData = (index: number, field: "altText" | "description", value: string) => {
+    setPendingImages((prev) => prev.map((img, i) => (i === index ? { ...img, [field]: value } : img)));
   };
 
   const handleImageEdited = (blob: Blob) => {
     if (editingIndex !== null) {
-      setPendingImages((prev) =>
-        prev.map((img, i) => (i === editingIndex ? { ...img, editedBlob: blob } : img))
-      );
+      setPendingImages((prev) => prev.map((img, i) => (i === editingIndex ? { ...img, editedBlob: blob } : img)));
       setEditingIndex(null);
     }
   };
@@ -194,11 +184,9 @@ export default function ProductImageUploader({
             onChange={handleFileChange}
             disabled={uploading}
             multiple
-            className="flex items-center file:mr-3 file:px-4 file:py-2 file:rounded-md file:bg-[hsl(var(--gold))] file:text-[hsl(var(--primary-foreground))] file:font-medium file:border-0 file:cursor-pointer hover:file:bg-[hsl(var(--gold-hover))] disabled:opacity-50"
+            className="flex items-center file:mr-2 file:px-2 file:py-1 file:rounded-md file:bg-[hsl(var(--gold))] file:text-[hsl(var(--primary-foreground))] file:font-medium file:border-0 file:cursor-pointer hover:file:bg-[hsl(var(--gold-hover))] disabled:opacity-50"
           />
-          <p className="text-xs text-muted-foreground">
-            Select multiple images to upload at once. Max 5MB per image.
-          </p>
+          <p className="text-xs text-muted-foreground">Select multiple images to upload at once. Max 5MB per image.</p>
         </div>
 
         {pendingImages.length > 0 && (
@@ -206,17 +194,10 @@ export default function ProductImageUploader({
             <h4 className="font-medium text-sm">Selected Images ({pendingImages.length})</h4>
             <div className="space-y-3">
               {pendingImages.map((image, index) => (
-                <div
-                  key={index}
-                  className="p-4 border border-border rounded-lg space-y-3 bg-background"
-                >
+                <div key={index} className="p-4 border border-border rounded-lg space-y-3 bg-background">
                   <div className="flex gap-4">
                     <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                      <img
-                        src={image.preview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={image.preview} alt="Preview" className="w-full h-full object-cover" />
                       {image.editedBlob && (
                         <div className="absolute top-1 right-1 bg-emerald-500 text-white text-xs px-1.5 py-0.5 rounded">
                           Edited
@@ -256,7 +237,7 @@ export default function ProductImageUploader({
                       <Input
                         placeholder="Alt text (optional)"
                         value={image.altText}
-                        onChange={(e) => handleUpdateImageData(index, 'altText', e.target.value)}
+                        onChange={(e) => handleUpdateImageData(index, "altText", e.target.value)}
                         disabled={uploading}
                         maxLength={200}
                         className="text-sm"
@@ -264,7 +245,7 @@ export default function ProductImageUploader({
                       <Textarea
                         placeholder="Caption/description (optional, shows on hover)"
                         value={image.description}
-                        onChange={(e) => handleUpdateImageData(index, 'description', e.target.value)}
+                        onChange={(e) => handleUpdateImageData(index, "description", e.target.value)}
                         disabled={uploading}
                         maxLength={300}
                         rows={2}
@@ -273,9 +254,7 @@ export default function ProductImageUploader({
                       {uploadProgress[index] !== undefined && (
                         <div className="space-y-1">
                           <Progress value={uploadProgress[index]} className="h-2" />
-                          <p className="text-xs text-muted-foreground">
-                            {uploadProgress[index]}% uploaded
-                          </p>
+                          <p className="text-xs text-muted-foreground">{uploadProgress[index]}% uploaded</p>
                         </div>
                       )}
                     </div>
@@ -293,8 +272,8 @@ export default function ProductImageUploader({
         >
           <Upload className="mr-2 h-4 w-4" />
           {uploading
-            ? `Uploading ${pendingImages.length} image${pendingImages.length > 1 ? 's' : ''}...`
-            : `Upload ${pendingImages.length} image${pendingImages.length > 1 ? 's' : ''}`}
+            ? `Uploading ${pendingImages.length} image${pendingImages.length > 1 ? "s" : ""}...`
+            : `Upload ${pendingImages.length} image${pendingImages.length > 1 ? "s" : ""}`}
         </Button>
       </div>
 
