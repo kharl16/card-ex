@@ -103,12 +103,12 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         })));
       }
 
-      // Load product images from card_images (same as gallery manager)
+      // Load product images
       const { data: images } = await supabase
-        .from("card_images")
-        .select("id, url, sort_index")
+        .from("product_images")
+        .select("id, image_url, alt_text, description, sort_order")
         .eq("card_id", data.id)
-        .order("sort_index", { ascending: true });
+        .order("sort_order", { ascending: true });
       
       if (images) {
         setProductImages(images);
@@ -175,8 +175,8 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
               <ProductRingCarousel 
                 images={productImages.map(img => ({ 
                   id: img.id, 
-                  url: img.url, 
-                  alt: undefined 
+                  url: img.image_url, 
+                  alt: img.alt_text || undefined 
                 }))}
               />
             </div>
