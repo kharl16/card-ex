@@ -184,7 +184,7 @@ export default function ProductImageUploader({
             onChange={handleFileChange}
             disabled={uploading}
             multiple
-            className="flex items-center file:mr-4 file:px-6 file:py-2 file:rounded-md file:bg-[hsl(var(--gold))] file:text-[hsl(var(--primary-foreground))] file:font-medium file:border-0 file:cursor-pointer hover:file:bg-[hsl(var(--gold-hover))] disabled:opacity-50"
+            className="flex items-center file:mr-4 file:px-3 file:py-2 file:rounded-md file:bg-[hsl(var(--gold))] file:text-[hsl(var(--primary-foreground))] file:font-medium file:border-0 file:cursor-pointer hover:file:bg-[hsl(var(--gold-hover))] disabled:opacity-50"
           />
           <p className="text-xs text-muted-foreground">Select multiple images to upload at once. Max 5MB per image.</p>
         </div>
