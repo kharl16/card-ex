@@ -74,15 +74,16 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
 
   const computeDepthStyles = (logicalIndex: number) => {
     const dist = cyclicDistance(logicalIndex, logicalCenter); // 0..count/2
-    const maxDepth = 3;
+    const maxDepth = 2; // emphasize center + nearest neighbours
     const clamped = Math.min(dist, maxDepth);
 
-    // Strong center emphasis
-    const scale = 1.3 - clamped * 0.18; // center ≈1.3, neighbours ≈1.12
-    const translateZ = (maxDepth - clamped) * 60;
+    // Stronger 3D:
+    // center ≈ 1.40, neighbours ≈ 1.18, far slides ≈ 0.96
+    const scale = 1.4 - clamped * 0.22;
+    const translateZ = (maxDepth - clamped) * 70; // more depth
     const rotateDirection = logicalIndex < logicalCenter ? -1 : 1;
-    const rotateY = clamped === 0 ? 0 : rotateDirection * (10 + clamped * 4);
-    const opacity = 1 - clamped * 0.18;
+    const rotateY = clamped === 0 ? 0 : rotateDirection * (14 + clamped * 4);
+    const opacity = 1 - clamped * 0.2;
 
     return { scale, translateZ, rotateY, opacity };
   };
@@ -127,7 +128,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
               return (
                 <div
                   key={`${img.id}-${i}`}
-                  className="relative h-full flex-shrink-0 transform-gpu px-1 sm:px-1.5"
+                  className="relative h-full flex-shrink-0 transform-gpu px-2 sm:px-3" // MORE spacing between cards
                   style={{
                     width: `${slideWidthPercent}%`,
                     transformStyle: "preserve-3d",
@@ -137,7 +138,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
                       scale(${scale})
                     `,
                     opacity,
-                    transition: "transform 200ms linear, opacity 200ms linear",
+                    transition: "transform 220ms linear, opacity 220ms linear",
                   }}
                 >
                   <div className="h-full w-full overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center">
