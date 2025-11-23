@@ -33,6 +33,10 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   const [position, setPosition] = useState(0);
   const isHoveringRef = useRef(false);
 
+  // Touch gesture support
+  const touchStartX = useRef<number | null>(null);
+  const touchEndX = useRef<number | null>(null);
+
   const slideWidthPercent = 100 / VISIBLE_SLIDES;
 
   // Animation: continuous movement using requestAnimationFrame
@@ -91,6 +95,33 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   // Translate entire track
   const translatePercent = -(position * slideWidthPercent);
 
+  // Touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchEndX.current = null;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX.current || !touchEndX.current) return;
+
+    const distance = touchStartX.current - touchEndX.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      setPosition((prev) => (prev + 1 >= count ? 0 : prev + 1));
+    } else if (isRightSwipe) {
+      setPosition((prev) => (prev <= 0 ? count - 1 : prev - 1));
+    }
+
+    touchStartX.current = null;
+    touchEndX.current = null;
+  };
+
   return (
     <div
       className="relative w-full mx-auto mt-4 mb-6"
@@ -114,6 +145,9 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
             shadow-xl
           "
           style={{ perspective: "1200px" }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           <div
             className="flex h-full"
