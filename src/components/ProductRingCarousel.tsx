@@ -13,7 +13,8 @@ interface ProductImageCarouselProps {
   images: CarouselImage[];
   /**
    * Controls how fast the carousel moves in milliseconds.
-   * This is the time it would take to move 1 full slide.
+   * This is the time it would take to move 1 full slide
+   * from the base auto-scroll (before swipe momentum).
    *  - 6000 = slower
    *  - 4000 = default
    *  - 2500 = faster
@@ -34,9 +35,13 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   // Position in "slides" (can be fractional), always kept in [0, count)
   const [position, setPosition] = useState(0);
 
-  // Touch gesture support
+  // Momentum velocity (extra speed from swipe), slides per ms
+  const velocityRef = useRef(0);
+
+  // Touch gesture support (for momentum)
   const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
+  const touchLastX = useRef<number | null>(null);
+  const touchStartTime = useRef<number | null>(null);
 
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -49,7 +54,8 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   useEffect(() => {
     if (count === 0) return;
 
-    const speedSlidesPerMs = 1 / autoPlayMs; // 1 slide per autoPlayMs
+    // Base speed from autoPlayMs (slides per ms)
+    const baseSpeedSlidesPerMs = 1 / autoPlayMs;
     let lastTime = performance.now();
     let frameId: number;
 
@@ -58,10 +64,24 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
       lastTime = time;
 
       setPosition((prev) => {
-        let next = prev + dt * speedSlidesPerMs;
-        if (next >= count) {
-          next -= count; // wrap seamlessly
+        let v = velocityRef.current;
+
+        // Total speed = base auto speed + momentum
+        const totalSpeed = baseSpeedSlidesPerMs + v;
+        let next = prev + totalSpeed * dt;
+
+        // Wrap seamlessly
+        if (next >= count) next -= count;
+        if (next < 0) next += count;
+
+        // Apply friction to momentum only (roulette spin slowly stops)
+        if (v !== 0) {
+          const friction = Math.pow(0.94, dt / 16.67); // frame-rate independent
+          v *= friction;
+          if (Math.abs(v) < 0.00005) v = 0; // snap to stop when very small
+          velocityRef.current = v;
         }
+
         return next;
       });
 
@@ -100,31 +120,49 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   // Translate entire track
   const translatePercent = -(position * slideWidthPercent);
 
-  // Touch handlers
+  // Touch handlers with momentum
   const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchEndX.current = null;
+    const x = e.touches[0].clientX;
+    touchStartX.current = x;
+    touchLastX.current = x;
+    touchStartTime.current = performance.now();
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
+    touchLastX.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = () => {
-    if (!touchStartX.current || !touchEndX.current) return;
-
-    const distance = touchStartX.current - touchEndX.current;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      setPosition((prev) => (prev + 1 >= count ? 0 : prev + 1));
-    } else if (isRightSwipe) {
-      setPosition((prev) => (prev <= 0 ? count - 1 : prev - 1));
+    if (touchStartX.current == null || touchLastX.current == null || touchStartTime.current == null) {
+      touchStartX.current = null;
+      touchLastX.current = null;
+      touchStartTime.current = null;
+      return;
     }
 
+    const dx = touchLastX.current - touchStartX.current; // + right, - left
+    const dt = performance.now() - touchStartTime.current;
+
     touchStartX.current = null;
-    touchEndX.current = null;
+    touchLastX.current = null;
+    touchStartTime.current = null;
+
+    if (dt < 30 || Math.abs(dx) < 10) {
+      // Tiny gesture – ignore
+      return;
+    }
+
+    // Convert swipe into extra velocity (slides per ms)
+    // Negative dx (swipe left) → positive velocity (move forward)
+    const pixelsPerSlideApprox = 120; // tuned constant; adjust if needed
+    const slidesMovedGuess = dx / pixelsPerSlideApprox;
+    const swipeSpeedSlidesPerMs = slidesMovedGuess / dt;
+
+    // We invert because left swipe (negative dx) should move carousel forward
+    const momentum = -swipeSpeedSlidesPerMs * 1.0; // scale factor for feel
+
+    // Add to current velocity
+    velocityRef.current += momentum;
   };
 
   // Lightbox handlers
@@ -219,7 +257,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
             })}
           </div>
 
-          {/* arrows (jump one full slide left/right) */}
+          {/* arrows (jump one full slide left/right by tweaking position directly) */}
           <button
             type="button"
             onClick={() => setPosition((prev) => (prev <= 0 ? count - 1 : prev - 1))}
