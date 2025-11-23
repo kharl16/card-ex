@@ -1,67 +1,48 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 type CarouselImage = {
   id: string;
   url: string;
   alt?: string;
-  description?: string;
 };
 
-interface ProductRingCarouselProps {
+interface ProductImageCarouselProps {
   images: CarouselImage[];
   autoPlayMs?: number;
 }
 
-const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({
+const VISIBLE_SLIDES = 5;
+
+const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({
   images,
   autoPlayMs = 4000,
 }) => {
-  const visibleImages = (images || []).slice(0, 20);
-  const count = visibleImages.length;
+  const baseImages = (images || []).slice(0, 20);
+  const count = baseImages.length;
+  if (!count) return null;
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  // Clone first + last for seamless infinite loop
+  const extended = [baseImages[count - 1], ...baseImages, baseImages[0]];
+
+  // Start at first real slide (index 1 in extended)
+  const [index, setIndex] = useState(1);
+  const [isAnimating, setIsAnimating] = useState(true);
   const [isHovering, setIsHovering] = useState(false);
 
-  const touchStartX = useRef<number | null>(null);
-  const touchDeltaX = useRef(0);
+  const slideWidthPercent = 100 / VISIBLE_SLIDES;
+  const translatePercent = -index * slideWidthPercent;
 
-  if (count === 0) return null;
-
-  // Single image layout
-  if (count === 1) {
-    const img = visibleImages[0];
-    return (
-      <div className="flex w-full items-center justify-center py-3">
-        <div className="relative h-[160px] w-full overflow-hidden rounded-2xl border border-emerald-500/30 bg-slate-900/60 shadow-lg group">
-          <img
-            src={img.url}
-            alt={img.alt ?? ""}
-            loading="lazy"
-            className="h-full w-full object-cover animate-fade-in"
-          />
-          {(img.description || img.alt) && (
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <p className="text-sm text-white/95 line-clamp-2">
-                {img.description || img.alt}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  const goTo = (index: number) => {
-    if (!count) return;
-    setActiveIndex((index + count) % count);
+  const goTo = (nextIndex: number) => {
+    setIndex(nextIndex);
+    setIsAnimating(true);
   };
 
-  const next = () => goTo(activeIndex + 1);
-  const prev = () => goTo(activeIndex - 1);
+  const next = () => goTo(index + 1);
+  const prev = () => goTo(index - 1);
 
-  // Auto-play
+  // Autoplay with pause on hover and reduced-motion respect
   useEffect(() => {
-    if (count <= 1 || isHovering) return;
+    if (isHovering) return;
 
     const prefersReducedMotion =
       typeof window !== "undefined" &&
@@ -71,40 +52,47 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({
 
     const id = window.setInterval(next, autoPlayMs);
     return () => window.clearInterval(id);
-  }, [count, activeIndex, isHovering, autoPlayMs]);
+  }, [index, isHovering, autoPlayMs]);
 
-  // Touch swipe
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const t = e.touches[0];
-    touchStartX.current = t.clientX;
-    touchDeltaX.current = 0;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (touchStartX.current == null) return;
-    const t = e.touches[0];
-    touchDeltaX.current = t.clientX - touchStartX.current;
-  };
-
-  const handleTouchEnd = () => {
-    const dx = touchDeltaX.current;
-    touchStartX.current = null;
-    touchDeltaX.current = 0;
-
-    if (Math.abs(dx) < 40) return;
-    if (dx < 0) next();
-    else prev();
-  };
-
-  // Keyboard arrows
-  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (e) => {
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      next();
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      prev();
+  // Handle seamless jump when we hit a clone
+  const handleTransitionEnd = () => {
+    if (index === extended.length - 1) {
+      // moved past last real → jump to first real
+      setIsAnimating(false);
+      setIndex(1);
+    } else if (index === 0) {
+      // moved before first real → jump to last real
+      setIsAnimating(false);
+      setIndex(extended.length - 2);
     }
+  };
+
+  // Re-enable animation after the teleport frame
+  useEffect(() => {
+    if (!isAnimating) {
+      const id = window.setTimeout(() => setIsAnimating(true), 20);
+      return () => window.clearTimeout(id);
+    }
+  }, [isAnimating]);
+
+  // 3D / center emphasis styles
+  const centerOffset = Math.floor(VISIBLE_SLIDES / 2); // 2
+  const visualCenterIndex = index + centerOffset;
+
+  const computeDepthStyles = (i: number) => {
+    const dist = Math.abs(i - visualCenterIndex); // 0,1,2,...
+    const maxDepth = 3;
+    const clamped = Math.min(dist, maxDepth);
+
+    // Center bigger, sides smaller
+    const scale = 1.12 - clamped * 0.06; // 1.12, 1.06, 1.00, ...
+    const translateZ = (maxDepth - clamped) * 40; // center closest
+    const rotateDirection = i < visualCenterIndex ? -1 : 1;
+    const rotateY =
+      dist === 0 ? 0 : rotateDirection * (8 + clamped * 2);
+    const opacity = 1 - clamped * 0.12;
+
+    return { scale, translateZ, rotateY, opacity };
   };
 
   return (
@@ -117,7 +105,7 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({
         <div
           className="
             relative
-            h-[150px] sm:h-[170px]
+            h-[200px] sm:h-[220px]
             w-full
             overflow-hidden
             rounded-2xl
@@ -125,38 +113,51 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({
             bg-gradient-to-br from-slate-900 via-slate-950 to-black
             shadow-xl
           "
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          style={{ perspective: "1200px" }}
         >
-          {/* Slider track */}
           <div
-            className="flex h-full w-full transition-transform duration-500 ease-out"
-            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            className={`flex h-full transition-transform ${
+              isAnimating ? "duration-500 ease-out" : ""
+            }`}
+            style={{
+              transform: `translateX(${translatePercent}%)`,
+            }}
+            onTransitionEnd={handleTransitionEnd}
           >
-            {visibleImages.map((img) => (
-              <div key={img.id} className="relative h-full w-full flex-shrink-0 group">
-                <img
-                  src={img.url}
-                  alt={img.alt ?? ""}
-                  loading="lazy"
-                  className="h-full w-full object-cover animate-fade-in"
-                />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
-                {(img.description || img.alt) && (
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                    <p className="text-sm text-white/95 line-clamp-2">
-                      {img.description || img.alt}
-                    </p>
+            {extended.map((img, i) => {
+              const { scale, translateZ, rotateY, opacity } =
+                computeDepthStyles(i);
+
+              return (
+                <div
+                  key={`${img.id}-${i}`}
+                  className="relative h-full flex-shrink-0 transform-gpu"
+                  style={{
+                    width: `${slideWidthPercent}%`,
+                    transformStyle: "preserve-3d",
+                    transform: `
+                      translateZ(${translateZ}px)
+                      rotateY(${rotateY}deg)
+                      scale(${scale})
+                    `,
+                    opacity,
+                    transition:
+                      "transform 0.5s ease-out, opacity 0.5s ease-out",
+                  }}
+                >
+                  <div className="h-full w-full overflow-hidden rounded-2xl border border-emerald-500/40 bg-black/40 flex items-center justify-center">
+                    <img
+                      src={img.url}
+                      alt={img.alt ?? ""}
+                      className="h-full w-full object-contain"
+                    />
                   </div>
-                )}
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
 
-          {/* Arrows */}
+          {/* arrows */}
           <button
             type="button"
             onClick={prev}
@@ -171,26 +172,10 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({
           >
             ›
           </button>
-
-          {/* Dots */}
-          <div className="pointer-events-none absolute bottom-2 left-0 right-0 flex items-center justify-center gap-1.5">
-            {visibleImages.map((img, index) => (
-              <button
-                key={img.id + "-dot"}
-                type="button"
-                onClick={() => goTo(index)}
-                className={`pointer-events-auto h-1.5 rounded-full transition-all duration-300 ${
-                  index === activeIndex
-                    ? "w-5 bg-emerald-400"
-                    : "w-2 bg-slate-500/60"
-                }`}
-              />
-            ))}
-          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default ProductRingCarousel;
+export default ProductImageCarousel;
