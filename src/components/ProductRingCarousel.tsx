@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ZoomIn, ZoomOut, X } from "lucide-react";
+import { ZoomIn, ZoomOut, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type CarouselImage = {
@@ -66,6 +66,13 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
       setPosition((prev) => {
         let v = velocityRef.current;
 
+        // Cap max momentum so it doesn't go crazy
+        const maxAbsVelocity = 0.004; // slides per ms
+        if (Math.abs(v) > maxAbsVelocity) {
+          v = maxAbsVelocity * Math.sign(v);
+          velocityRef.current = v;
+        }
+
         // Total speed = base auto speed + momentum
         const totalSpeed = baseSpeedSlidesPerMs + v;
         let next = prev + totalSpeed * dt;
@@ -74,11 +81,12 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
         if (next >= count) next -= count;
         if (next < 0) next += count;
 
-        // Apply friction to momentum only (roulette spin slowly stops)
+        // More roulette-like friction: longer spin, smooth fade out
         if (v !== 0) {
-          const friction = Math.pow(0.94, dt / 16.67); // frame-rate independent
+          const frictionBase = 0.985; // closer to 1 = longer spin
+          const friction = Math.pow(frictionBase, dt / 16.67);
           v *= friction;
-          if (Math.abs(v) < 0.00005) v = 0; // snap to stop when very small
+          if (Math.abs(v) < 0.00003) v = 0;
           velocityRef.current = v;
         }
 
@@ -106,10 +114,10 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
     const maxDepth = 2; // emphasize center + nearest neighbours
     const clamped = Math.min(dist, maxDepth);
 
-    // Stronger 3D:
+    // Strong 3D, but smooth:
     // center ≈ 1.40, neighbours ≈ 1.18, far slides ≈ 0.96
     const scale = 1.4 - clamped * 0.22;
-    const translateZ = (maxDepth - clamped) * 70; // more depth
+    const translateZ = (maxDepth - clamped) * 70;
     const rotateDirection = logicalIndex < logicalCenter ? -1 : 1;
     const rotateY = clamped === 0 ? 0 : rotateDirection * (14 + clamped * 4);
     const opacity = 1 - clamped * 0.2;
@@ -126,6 +134,9 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
     touchStartX.current = x;
     touchLastX.current = x;
     touchStartTime.current = performance.now();
+
+    // When user starts a swipe, slightly dampen current momentum
+    velocityRef.current *= 0.4;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -154,12 +165,12 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
 
     // Convert swipe into extra velocity (slides per ms)
     // Negative dx (swipe left) → positive velocity (move forward)
-    const pixelsPerSlideApprox = 120; // tuned constant; adjust if needed
+    const pixelsPerSlideApprox = 100; // more responsive "roulette" feel
     const slidesMovedGuess = dx / pixelsPerSlideApprox;
     const swipeSpeedSlidesPerMs = slidesMovedGuess / dt;
 
     // We invert because left swipe (negative dx) should move carousel forward
-    const momentum = -swipeSpeedSlidesPerMs * 1.0; // scale factor for feel
+    const momentum = -swipeSpeedSlidesPerMs * 1.6; // more casino-style spin
 
     // Add to current velocity
     velocityRef.current += momentum;
@@ -184,6 +195,21 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   const nextImage = () => setLightboxIndex((prev) => (prev + 1) % count);
   const prevImage = () => setLightboxIndex((prev) => (prev - 1 + count) % count);
 
+  // Download current lightbox image
+  const handleDownload = () => {
+    const current = baseImages[lightboxIndex];
+    if (!current?.url) return;
+
+    const link = document.createElement("a");
+    link.href = current.url;
+    // leave download empty so browser uses the filename from URL
+    link.download = "";
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Keyboard navigation for lightbox
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -195,6 +221,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
       if (e.key === "+" || e.key === "=") zoomIn();
       if (e.key === "-") zoomOut();
       if (e.key === "0") resetZoom();
+      if (e.key.toLowerCase() === "s") handleDownload(); // optional: "S" to save
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -247,7 +274,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
                   }}
                 >
                   <div
-                    className="h-full w-full overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
+                    className="h-full w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
                     onClick={() => openLightbox(logicalIndex)}
                   >
                     <img src={img.url} alt={img.alt ?? ""} className="h-full w-full object-contain" />
@@ -289,7 +316,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
               <X className="h-5 w-5" />
             </Button>
 
-            {/* Zoom controls */}
+            {/* Zoom + Download controls */}
             <div className="absolute top-4 left-4 z-20 flex gap-2">
               <Button
                 variant="ghost"
@@ -316,6 +343,15 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
                 className="bg-black/60 hover:bg-black/80 text-white rounded-full"
               >
                 <ZoomIn className="h-5 w-5" />
+              </Button>
+              {/* Download button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDownload}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
+              >
+                <Download className="h-5 w-5" />
               </Button>
             </div>
 
