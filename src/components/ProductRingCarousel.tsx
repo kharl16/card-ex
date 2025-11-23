@@ -4,6 +4,7 @@ type CarouselImage = {
   id: string;
   url: string;
   alt?: string;
+  description?: string;
 };
 
 interface ProductRingCarouselProps {
@@ -31,12 +32,20 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({
     const img = visibleImages[0];
     return (
       <div className="flex w-full items-center justify-center py-3">
-        <div className="relative h-[160px] w-full overflow-hidden rounded-2xl border border-emerald-500/30 bg-slate-900/60 shadow-lg">
+        <div className="relative h-[160px] w-full overflow-hidden rounded-2xl border border-emerald-500/30 bg-slate-900/60 shadow-lg group">
           <img
             src={img.url}
             alt={img.alt ?? ""}
-            className="h-full w-full object-cover"
+            loading="lazy"
+            className="h-full w-full object-cover animate-fade-in"
           />
+          {(img.description || img.alt) && (
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <p className="text-sm text-white/95 line-clamp-2">
+                {img.description || img.alt}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -128,13 +137,21 @@ const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({
             style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
             {visibleImages.map((img) => (
-              <div key={img.id} className="relative h-full w-full flex-shrink-0">
+              <div key={img.id} className="relative h-full w-full flex-shrink-0 group">
                 <img
                   src={img.url}
                   alt={img.alt ?? ""}
-                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  className="h-full w-full object-cover animate-fade-in"
                 />
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
+                {(img.description || img.alt) && (
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <p className="text-sm text-white/95 line-clamp-2">
+                      {img.description || img.alt}
+                    </p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
