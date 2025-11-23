@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type CarouselImage = {
   id: string;
@@ -10,7 +10,7 @@ interface ProductImageCarouselProps {
   images: CarouselImage[];
   /**
    * Controls how fast the carousel moves in milliseconds.
-   * Example:
+   * This is the time it would take to move 1 full slide.
    *  - 6000 = slower
    *  - 4000 = default
    *  - 2500 = faster
@@ -25,88 +25,80 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   const count = baseImages.length;
   if (!count) return null;
 
-  // Clone first + last for seamless infinite loop
-  const extended = [baseImages[count - 1], ...baseImages, baseImages[0]];
+  // Duplicate images once for looping track
+  const loopImages = [...baseImages, ...baseImages];
+  const totalSlides = loopImages.length;
 
-  // Start at first real slide (index 1 in extended)
-  const [index, setIndex] = useState(1);
-  const [isAnimating, setIsAnimating] = useState(true);
-  const [isHovering, setIsHovering] = useState(false);
+  // Position in "slides" (can be fractional), always kept in [0, count)
+  const [position, setPosition] = useState(0);
+  const isHoveringRef = useRef(false);
 
   const slideWidthPercent = 100 / VISIBLE_SLIDES;
-  const translatePercent = -index * slideWidthPercent;
 
-  // Smoothness: tie transition duration to autoplay speed
-  // (clamped so it never gets too short or too long)
-  const transitionMs = Math.max(250, Math.min(Math.round(autoPlayMs * 0.45), 900));
-
-  const goTo = (nextIndex: number) => {
-    setIndex(nextIndex);
-    setIsAnimating(true);
-  };
-
-  const next = () => goTo(index + 1);
-  const prev = () => goTo(index - 1);
-
-  // Autoplay with pause on hover and reduced-motion respect
+  // Animation: continuous movement using requestAnimationFrame
   useEffect(() => {
-    if (isHovering) return;
+    if (count === 0) return;
 
-    const prefersReducedMotion =
-      typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const speedSlidesPerMs = 1 / autoPlayMs; // 1 slide per autoPlayMs
+    let lastTime = performance.now();
+    let frameId: number;
 
-    if (prefersReducedMotion) return;
+    const tick = (time: number) => {
+      const dt = time - lastTime;
+      lastTime = time;
 
-    const id = window.setInterval(next, autoPlayMs);
-    return () => window.clearInterval(id);
-  }, [index, isHovering, autoPlayMs]);
+      setPosition((prev) => {
+        if (isHoveringRef.current) return prev; // pause on hover
+        let next = prev + dt * speedSlidesPerMs;
+        if (next >= count) {
+          next -= count; // wrap seamlessly
+        }
+        return next;
+      });
 
-  // Handle seamless jump when we hit a clone
-  const handleTransitionEnd = () => {
-    if (index === extended.length - 1) {
-      // moved past last real → jump to first real
-      setIsAnimating(false);
-      setIndex(1);
-    } else if (index === 0) {
-      // moved before first real → jump to last real
-      setIsAnimating(false);
-      setIndex(extended.length - 2);
-    }
-  };
+      frameId = requestAnimationFrame(tick);
+    };
 
-  // Re-enable animation after the teleport frame
-  useEffect(() => {
-    if (!isAnimating) {
-      const id = window.setTimeout(() => setIsAnimating(true), 20);
-      return () => window.clearTimeout(id);
-    }
-  }, [isAnimating]);
+    frameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameId);
+  }, [count, autoPlayMs]);
 
-  // 3D / center emphasis styles
+  // 3D / center emphasis based on float position
   const centerOffset = Math.floor(VISIBLE_SLIDES / 2); // 2
-  const visualCenterIndex = index + centerOffset;
+  const logicalCenter = (position + centerOffset) % count;
 
-  const computeDepthStyles = (i: number) => {
-    const dist = Math.abs(i - visualCenterIndex); // 0,1,2,...
+  const cyclicDistance = (a: number, b: number) => {
+    const diff = Math.abs(a - b);
+    return Math.min(diff, count - diff);
+  };
+
+  const computeDepthStyles = (logicalIndex: number) => {
+    const dist = cyclicDistance(logicalIndex, logicalCenter); // 0..count/2
     const maxDepth = 3;
     const clamped = Math.min(dist, maxDepth);
 
-    // Center clearly bigger, sides smaller
-    // center ≈ 1.30, neighbours ≈ 1.12, edges ≈ 0.94
-    const scale = 1.3 - clamped * 0.18;
-    const translateZ = (maxDepth - clamped) * 60; // more depth
-    const rotateDirection = i < visualCenterIndex ? -1 : 1;
-    const rotateY = dist === 0 ? 0 : rotateDirection * (10 + clamped * 4);
+    // Strong center emphasis
+    const scale = 1.3 - clamped * 0.18; // center ≈1.3, neighbours ≈1.12
+    const translateZ = (maxDepth - clamped) * 60;
+    const rotateDirection = logicalIndex < logicalCenter ? -1 : 1;
+    const rotateY = clamped === 0 ? 0 : rotateDirection * (10 + clamped * 4);
     const opacity = 1 - clamped * 0.18;
 
     return { scale, translateZ, rotateY, opacity };
   };
 
+  // Translate entire track
+  const translatePercent = -(position * slideWidthPercent);
+
   return (
     <div
       className="relative w-full mx-auto mt-4 mb-6"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
+      onMouseEnter={() => {
+        isHoveringRef.current = true;
+      }}
+      onMouseLeave={() => {
+        isHoveringRef.current = false;
+      }}
     >
       <div className="flex w-full justify-center">
         <div
@@ -126,17 +118,16 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
             className="flex h-full"
             style={{
               transform: `translateX(${translatePercent}%)`,
-              transition: isAnimating ? `transform ${transitionMs}ms ease-out` : "none",
             }}
-            onTransitionEnd={handleTransitionEnd}
           >
-            {extended.map((img, i) => {
-              const { scale, translateZ, rotateY, opacity } = computeDepthStyles(i);
+            {loopImages.map((img, i) => {
+              const logicalIndex = i % count;
+              const { scale, translateZ, rotateY, opacity } = computeDepthStyles(logicalIndex);
 
               return (
                 <div
                   key={`${img.id}-${i}`}
-                  className="relative h-full flex-shrink-0 transform-gpu px-1 sm:px-1.5" // spacing between cards
+                  className="relative h-full flex-shrink-0 transform-gpu px-1 sm:px-1.5"
                   style={{
                     width: `${slideWidthPercent}%`,
                     transformStyle: "preserve-3d",
@@ -146,12 +137,10 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
                       scale(${scale})
                     `,
                     opacity,
-                    transition: isAnimating
-                      ? `transform ${transitionMs}ms ease-out, opacity ${transitionMs}ms ease-out`
-                      : "none",
+                    transition: "transform 200ms linear, opacity 200ms linear",
                   }}
                 >
-                  <div className="h-full w-full overflow-hidden rounded-2xl border border-emerald-500/40 bg-black/40 flex items-center justify-center">
+                  <div className="h-full w-full overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center">
                     <img src={img.url} alt={img.alt ?? ""} className="h-full w-full object-contain" />
                   </div>
                 </div>
@@ -159,17 +148,17 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
             })}
           </div>
 
-          {/* arrows */}
+          {/* arrows (jump one full slide left/right) */}
           <button
             type="button"
-            onClick={prev}
+            onClick={() => setPosition((prev) => (prev <= 0 ? count - 1 : prev - 1))}
             className="absolute left-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-slate-100 text-sm shadow-lg ring-1 ring-emerald-500/40 backdrop-blur hover:bg-black/80 active:scale-95"
           >
             ‹
           </button>
           <button
             type="button"
-            onClick={next}
+            onClick={() => setPosition((prev) => (prev + 1 >= count ? 0 : prev + 1))}
             className="absolute right-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-slate-100 text-sm shadow-lg ring-1 ring-emerald-500/40 backdrop-blur hover:bg-black/80 active:scale-95"
           >
             ›
