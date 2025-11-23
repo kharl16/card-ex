@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 type CarouselImage = {
   id: string;
@@ -8,201 +8,167 @@ type CarouselImage = {
 
 interface ProductRingCarouselProps {
   images: CarouselImage[];
+  autoPlayMs?: number;
 }
 
-const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({ images }) => {
-  const visibleImages = useMemo(() => (images || []).slice(0, 20), [images]);
-
+const ProductRingCarousel: React.FC<ProductRingCarouselProps> = ({
+  images,
+  autoPlayMs = 4000,
+}) => {
+  const visibleImages = (images || []).slice(0, 20);
   const count = visibleImages.length;
 
-  // Nothing: no images
-  if (count === 0) {
-    return null;
-  }
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isHovering, setIsHovering] = useState(false);
 
-  // Simple non-3D layout for a single image
+  const touchStartX = useRef<number | null>(null);
+  const touchDeltaX = useRef(0);
+
+  if (count === 0) return null;
+
+  // Single image layout
   if (count === 1) {
     const img = visibleImages[0];
     return (
-      <div className="flex w-full items-center justify-center py-2">
-        <div className="relative h-[200px] w-[240px] overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-900/60 via-slate-900 to-black shadow-lg">
-          <img src={img.url} alt={img.alt ?? ""} className="h-full w-full object-cover" />
+      <div className="flex w-full items-center justify-center py-3">
+        <div className="relative h-[160px] w-full overflow-hidden rounded-2xl border border-emerald-500/30 bg-slate-900/60 shadow-lg">
+          <img
+            src={img.url}
+            alt={img.alt ?? ""}
+            className="h-full w-full object-cover"
+          />
         </div>
       </div>
     );
   }
 
-  // 3D ring for 2+ images
-  const [angle, setAngle] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartX = useRef<number | null>(null);
-  const accumulatedDeltaX = useRef(0);
+  const goTo = (index: number) => {
+    if (!count) return;
+    setActiveIndex((index + count) % count);
+  };
 
-  const step = 360 / count;
+  const next = () => goTo(activeIndex + 1);
+  const prev = () => goTo(activeIndex - 1);
 
-  /**
-   * Bigger radius = more spacing between cards in the ring.
-   * (We also shrink card size a bit so each photo is more readable.)
-   */
-  const radius = 540;
-
-  // Auto-rotation: continuous (smooth) movement
+  // Auto-play
   useEffect(() => {
-    if (count < 2) return;
+    if (count <= 1 || isHovering) return;
 
-    const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
     if (prefersReducedMotion) return;
 
-    const tickMs = 100; // 0.1s per tick
-    // We want: 1 image per second, so 360/count degrees per second.
-    const deltaPerTick = (360 / count) * (tickMs / 1000);
-
-    const id = window.setInterval(() => {
-      // Pause during drag
-      if (!isDragging) {
-        setAngle((prev) => prev - deltaPerTick);
-      }
-    }, tickMs);
-
+    const id = window.setInterval(next, autoPlayMs);
     return () => window.clearInterval(id);
-  }, [count, isDragging]);
+  }, [count, activeIndex, isHovering, autoPlayMs]);
 
-  // Normalize angle to [-180, 180] for "front" computation
-  const normalizeAngle = (deg: number) => {
-    let a = deg % 360;
-    if (a > 180) a -= 360;
-    if (a < -180) a += 360;
-    return a;
-  };
-
-  // Pointer handlers (mouse + touch) for roulette-style swipe
-  const handlePointerDown = (clientX: number) => {
-    setIsDragging(true);
-    dragStartX.current = clientX;
-    accumulatedDeltaX.current = 0;
-  };
-
-  const handlePointerMove = (clientX: number) => {
-    if (!isDragging || dragStartX.current == null) return;
-    const dx = clientX - dragStartX.current;
-    accumulatedDeltaX.current = dx;
-  };
-
-  const handlePointerUp = () => {
-    if (!isDragging) return;
-
-    setIsDragging(false);
-
-    const dx = accumulatedDeltaX.current;
-    dragStartX.current = null;
-    accumulatedDeltaX.current = 0;
-
-    if (Math.abs(dx) < 30) {
-      // Tiny swipe - ignore
-      return;
-    }
-
-    // Decide how many steps to move based on swipe distance
-    const stepWidthPx = 80; // pixels per image
-    let steps = Math.round(dx / stepWidthPx);
-
-    // Clamp to avoid jumping too far in one swipe
-    const maxSteps = 3;
-    if (steps > maxSteps) steps = maxSteps;
-    if (steps < -maxSteps) steps = -maxSteps;
-
-    // Positive dx means swipe right -> previous image
-    setAngle((prev) => prev + steps * step);
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    handlePointerDown(e.clientX);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    handlePointerMove(e.clientX);
-  };
-
-  const handleMouseUp = () => {
-    handlePointerUp();
-    window.removeEventListener("mousemove", handleMouseMove);
-    window.removeEventListener("mouseup", handleMouseUp);
-  };
-
+  // Touch swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];
-    handlePointerDown(t.clientX);
+    touchStartX.current = t.clientX;
+    touchDeltaX.current = 0;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current == null) return;
     const t = e.touches[0];
-    handlePointerMove(t.clientX);
+    touchDeltaX.current = t.clientX - touchStartX.current;
   };
 
   const handleTouchEnd = () => {
-    handlePointerUp();
+    const dx = touchDeltaX.current;
+    touchStartX.current = null;
+    touchDeltaX.current = 0;
+
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0) next();
+    else prev();
+  };
+
+  // Keyboard arrows
+  const handleKeyDown: React.KeyboardEventHandler<HTMLDivElement> = (e) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      next();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      prev();
+    }
   };
 
   return (
-    <div className="relative w-full py-0 mt-1 mb-4 mx-auto">
+    <div
+      className="relative w-full mx-auto mt-4 mb-6"
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
       <div className="flex w-full justify-center">
-        {/* Outer container with perspective so 3D looks right.
-            Height is smaller + overflow hidden so it doesn't overlap social icons. */}
         <div
-          className="relative h-[240px] w-full max-w-[520px] overflow-hidden"
-          style={{ perspective: "1200px" }}
-          onMouseDown={handleMouseDown}
+          className="
+            relative
+            h-[150px] sm:h-[170px]
+            w-full
+            overflow-hidden
+            rounded-2xl
+            border border-emerald-500/30
+            bg-gradient-to-br from-slate-900 via-slate-950 to-black
+            shadow-xl
+          "
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
         >
-          {/* Inner ring */}
+          {/* Slider track */}
           <div
-            className="absolute left-1/2 top-[48%] h-[200px] w-[220px] -translate-x-1/2 -translate-y-1/2 transform-gpu"
-            style={{
-              transformStyle: "preserve-3d",
-            }}
+            className="flex h-full w-full transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${activeIndex * 100}%)` }}
           >
-            {visibleImages.map((img, index) => {
-              const baseAngle = index * step;
-              const currentAngle = baseAngle + angle;
-              const normalized = normalizeAngle(currentAngle);
+            {visibleImages.map((img) => (
+              <div key={img.id} className="relative h-full w-full flex-shrink-0">
+                <img
+                  src={img.url}
+                  alt={img.alt ?? ""}
+                  className="h-full w-full object-cover"
+                />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-black/5 to-transparent" />
+              </div>
+            ))}
+          </div>
 
-              // Use normalized angle for emphasis: 0° = front
-              const closeness = 1 - Math.min(Math.abs(normalized) / 90, 1); // 1 at front, 0 at ±90+
+          {/* Arrows */}
+          <button
+            type="button"
+            onClick={prev}
+            className="absolute left-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-slate-100 text-sm shadow-lg ring-1 ring-emerald-500/40 backdrop-blur hover:bg-black/80 active:scale-95"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={next}
+            className="absolute right-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-slate-100 text-sm shadow-lg ring-1 ring-emerald-500/40 backdrop-blur hover:bg-black/80 active:scale-95"
+          >
+            ›
+          </button>
 
-              const scale = 1 + closeness * 0.1; // Slightly toned down so it stays inside the lane
-              const zIndex = 10 + Math.round(closeness * 10);
-
-              const translateZ = radius;
-              const rotateY = currentAngle;
-
-              return (
-                <div
-                  key={img.id ?? index}
-                  className="absolute left-1/2 top-1/2 h-[180px] w-[200px] -translate-x-1/2 -translate-y-1/2 transform-gpu transition-transform duration-500 ease-out"
-                  style={{
-                    transformStyle: "preserve-3d",
-                    transform: `
-                      rotateY(${rotateY}deg)
-                      translateZ(${translateZ}px)
-                      scale(${scale})
-                    `,
-                    zIndex,
-                    boxShadow: closeness > 0.7 ? "0 18px 40px rgba(0,0,0,0.55)" : "0 8px 20px rgba(0,0,0,0.35)",
-                    borderRadius: "1rem",
-                    overflow: "hidden",
-                    background: "radial-gradient(circle at top, rgba(16,185,129,0.25), rgba(15,23,42,0.95))",
-                    border: closeness > 0.6 ? "1px solid rgba(16,185,129,0.85)" : "1px solid rgba(148,163,184,0.35)",
-                  }}
-                >
-                  <img src={img.url} alt={img.alt ?? ""} className="h-full w-full object-cover" />
-                </div>
-              );
-            })}
+          {/* Dots */}
+          <div className="pointer-events-none absolute bottom-2 left-0 right-0 flex items-center justify-center gap-1.5">
+            {visibleImages.map((img, index) => (
+              <button
+                key={img.id + "-dot"}
+                type="button"
+                onClick={() => goTo(index)}
+                className={`pointer-events-auto h-1.5 rounded-full transition-all duration-300 ${
+                  index === activeIndex
+                    ? "w-5 bg-emerald-400"
+                    : "w-2 bg-slate-500/60"
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
