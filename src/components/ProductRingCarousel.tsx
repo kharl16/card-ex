@@ -1,4 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ZoomIn, ZoomOut, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type CarouselImage = {
   id: string;
@@ -36,6 +39,11 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   // Touch gesture support
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
+
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const slideWidthPercent = 100 / VISIBLE_SLIDES;
 
@@ -122,6 +130,42 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
     touchEndX.current = null;
   };
 
+  // Lightbox handlers
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+    setZoomLevel(1);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+    setZoomLevel(1);
+  };
+
+  const zoomIn = () => setZoomLevel((prev) => Math.min(prev + 0.5, 3));
+  const zoomOut = () => setZoomLevel((prev) => Math.max(prev - 0.5, 0.5));
+  const resetZoom = () => setZoomLevel(1);
+
+  const nextImage = () => setLightboxIndex((prev) => (prev + 1) % count);
+  const prevImage = () => setLightboxIndex((prev) => (prev - 1 + count) % count);
+
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowRight") nextImage();
+      if (e.key === "ArrowLeft") prevImage();
+      if (e.key === "+" || e.key === "=") zoomIn();
+      if (e.key === "-") zoomOut();
+      if (e.key === "0") resetZoom();
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxOpen, lightboxIndex, count]);
+
   return (
     <div
       className="relative w-full mx-auto mt-4 mb-6"
@@ -175,7 +219,10 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
                     transition: "transform 220ms linear, opacity 220ms linear",
                   }}
                 >
-                  <div className="h-full w-full overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center">
+                  <div 
+                    className="h-full w-full overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
+                    onClick={() => openLightbox(logicalIndex)}
+                  >
                     <img src={img.url} alt={img.alt ?? ""} className="h-full w-full object-contain" />
                   </div>
                 </div>
@@ -200,6 +247,90 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
           </button>
         </div>
       </div>
+
+      {/* Lightbox Dialog */}
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-emerald-500/30">
+          <div className="relative w-full h-full flex items-center justify-center">
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={closeLightbox}
+              className="absolute top-4 right-4 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+
+            {/* Zoom controls */}
+            <div className="absolute top-4 left-4 z-20 flex gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={zoomOut}
+                disabled={zoomLevel <= 0.5}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
+              >
+                <ZoomOut className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={resetZoom}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
+              >
+                1:1
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={zoomIn}
+                disabled={zoomLevel >= 3}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
+              >
+                <ZoomIn className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Navigation arrows */}
+            {count > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={prevImage}
+                  className="absolute left-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white text-2xl shadow-lg hover:bg-black/80 active:scale-95"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  onClick={nextImage}
+                  className="absolute right-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white text-2xl shadow-lg hover:bg-black/80 active:scale-95"
+                >
+                  ›
+                </button>
+              </>
+            )}
+
+            {/* Image */}
+            <div className="w-full h-full overflow-auto flex items-center justify-center p-8">
+              <img
+                src={baseImages[lightboxIndex]?.url}
+                alt={baseImages[lightboxIndex]?.alt ?? ""}
+                className="max-w-full max-h-full object-contain transition-transform duration-200"
+                style={{ transform: `scale(${zoomLevel})` }}
+              />
+            </div>
+
+            {/* Image counter */}
+            {count > 1 && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm">
+                {lightboxIndex + 1} / {count}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
