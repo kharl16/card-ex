@@ -30,11 +30,9 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
 
   // Duplicate images once for looping track
   const loopImages = [...baseImages, ...baseImages];
-  const totalSlides = loopImages.length;
 
   // Position in "slides" (can be fractional), always kept in [0, count)
   const [position, setPosition] = useState(0);
-  const isHoveringRef = useRef(false);
 
   // Touch gesture support
   const touchStartX = useRef<number | null>(null);
@@ -60,7 +58,6 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
       lastTime = time;
 
       setPosition((prev) => {
-        if (isHoveringRef.current) return prev; // pause on hover
         let next = prev + dt * speedSlidesPerMs;
         if (next >= count) {
           next -= count; // wrap seamlessly
@@ -167,15 +164,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   }, [lightboxOpen, lightboxIndex, count]);
 
   return (
-    <div
-      className="relative w-full mx-auto mt-4 mb-6"
-      onMouseEnter={() => {
-        isHoveringRef.current = true;
-      }}
-      onMouseLeave={() => {
-        isHoveringRef.current = false;
-      }}
-    >
+    <div className="relative w-full mx-auto mt-4 mb-6">
       <div className="flex w-full justify-center">
         <div
           className="
@@ -206,7 +195,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
               return (
                 <div
                   key={`${img.id}-${i}`}
-                  className="relative h-full flex-shrink-0 transform-gpu px-2 sm:px-3" // MORE spacing between cards
+                  className="relative h-full flex-shrink-0 transform-gpu px-2 sm:px-3"
                   style={{
                     width: `${slideWidthPercent}%`,
                     transformStyle: "preserve-3d",
@@ -219,7 +208,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
                     transition: "transform 220ms linear, opacity 220ms linear",
                   }}
                 >
-                  <div 
+                  <div
                     className="h-full w-full overflow-hidden rounded-2xl bg-black/40 flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
                     onClick={() => openLightbox(logicalIndex)}
                   >
@@ -292,7 +281,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
               </Button>
             </div>
 
-            {/* Navigation arrows */}
+            {/* Navigation arrows in lightbox */}
             {count > 1 && (
               <>
                 <button
