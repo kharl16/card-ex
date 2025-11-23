@@ -197,8 +197,10 @@ export default function SharedCard() {
                 images={productImages.map(img => ({ 
                   id: img.id, 
                   url: img.image_url, 
-                  alt: img.alt_text || undefined 
+                  alt: img.alt_text || undefined,
+                  description: img.description || undefined
                 }))}
+                autoPlayMs={(card.theme as any)?.carouselSpeed || 4000}
               />
             </div>
           )}

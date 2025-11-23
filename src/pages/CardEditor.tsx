@@ -459,6 +459,34 @@ export default function CardEditor() {
 
           <Card>
             <CardHeader>
+              <CardTitle>Carousel Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="carouselSpeed">Auto-play Speed (ms)</Label>
+                <Input
+                  id="carouselSpeed"
+                  type="number"
+                  min="1000"
+                  max="10000"
+                  step="500"
+                  value={(card.theme as any)?.carouselSpeed || 4000}
+                  onChange={(e) => {
+                    const currentTheme = (card.theme as any) || {};
+                    const updatedTheme = { ...currentTheme, carouselSpeed: parseInt(e.target.value) || 4000 };
+                    setCard({ ...card, theme: updatedTheme as any });
+                  }}
+                  placeholder="4000"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Time between slides (1000 = 1 second). Default: 4000ms
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Custom URL</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
