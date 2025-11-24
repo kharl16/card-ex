@@ -90,19 +90,7 @@ export default function CardEditor() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [regeneratingQR, setRegeneratingQR] = useState(false);
-  const [prefixOpen, setPrefixOpen] = useState(false);
-  const [suffixOpen, setSuffixOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-
-  const prefixOptions = [
-    "Mr.", "Ms.", "Mrs.", "Miss", "Mx.", "Dr.", "Prof.", "Engr.", "Atty.",
-    "Rev.", "Fr.", "Sr.", "Br.", "Pastor", "Elder", "Rabbi", "Imam",
-    "Hon.", "Judge", "Amb.", "Sen.", "Rep.", "Gov.", "Mayor",
-    "Capt.", "Col.", "Gen.", "Lt.", "Maj.", "Sgt.", "Adm.", "Cmdr.",
-    "Sir", "Dame", "Lord", "Lady"
-  ];
-
-  const suffixOptions = ["Jr.", "Sr.", "II", "III", "IV", "V", "VI", "PhD", "MD", "Esq."];
 
   // Sanitize prefix/suffix to prevent vCard-breaking characters
   const sanitizeNameField = (value: string): string => {
@@ -544,60 +532,19 @@ export default function CardEditor() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Name *</Label>
+                <Label>Name * (Left to Right)</Label>
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-                  <div className="md:col-span-2">
-                    <Popover open={prefixOpen} onOpenChange={setPrefixOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={prefixOpen}
-                          className="w-full justify-between h-10 font-normal"
-                        >
-                          <span className={!card.prefix ? "text-muted-foreground" : ""}>
-                            {card.prefix || "Prefix"}
-                          </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[200px] p-0" align="start">
-                        <Command>
-                          <CommandInput 
-                            placeholder="Type or select..." 
-                            onValueChange={(value) => {
-                              const sanitized = sanitizeNameField(value);
-                              setCard({ ...card, prefix: sanitized });
-                            }}
-                          />
-                          <CommandList>
-                            <CommandEmpty>Press Enter to use custom value</CommandEmpty>
-                            <CommandGroup>
-                              {prefixOptions.map((option) => (
-                                <CommandItem
-                                  key={option}
-                                  value={option}
-                                  onSelect={() => {
-                                    setCard({ ...card, prefix: option });
-                                    setPrefixOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      card.prefix === option ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {option}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                  <div className="md:col-span-2 space-y-1">
+                    <Input
+                      id="prefix"
+                      value={card.prefix || ""}
+                      onChange={(e) => setCard({ ...card, prefix: sanitizeNameField(e.target.value) })}
+                      placeholder="Prefix"
+                      maxLength={20}
+                    />
+                    <Label htmlFor="prefix" className="text-xs text-muted-foreground">Prefix</Label>
                   </div>
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-3 space-y-1">
                     <Input
                       id="first_name"
                       value={card.first_name || ""}
@@ -606,8 +553,9 @@ export default function CardEditor() {
                       maxLength={50}
                       className={validationErrors.first_name ? "border-destructive" : ""}
                     />
+                    <Label htmlFor="first_name" className="text-xs text-muted-foreground">First Name</Label>
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="md:col-span-2 space-y-1">
                     <Input
                       id="middle_name"
                       value={card.middle_name || ""}
@@ -615,8 +563,9 @@ export default function CardEditor() {
                       placeholder="Middle"
                       maxLength={50}
                     />
+                    <Label htmlFor="middle_name" className="text-xs text-muted-foreground">Middle Name</Label>
                   </div>
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-3 space-y-1">
                     <Input
                       id="last_name"
                       value={card.last_name || ""}
@@ -625,57 +574,17 @@ export default function CardEditor() {
                       maxLength={50}
                       className={validationErrors.last_name ? "border-destructive" : ""}
                     />
+                    <Label htmlFor="last_name" className="text-xs text-muted-foreground">Last Name</Label>
                   </div>
-                  <div className="md:col-span-2">
-                    <Popover open={suffixOpen} onOpenChange={setSuffixOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={suffixOpen}
-                          className="w-full justify-between h-10 font-normal"
-                        >
-                          <span className={!card.suffix ? "text-muted-foreground" : ""}>
-                            {card.suffix || "Suffix"}
-                          </span>
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[200px] p-0" align="start">
-                        <Command>
-                          <CommandInput 
-                            placeholder="Type or select..." 
-                            onValueChange={(value) => {
-                              const sanitized = sanitizeNameField(value);
-                              setCard({ ...card, suffix: sanitized });
-                            }}
-                          />
-                          <CommandList>
-                            <CommandEmpty>Press Enter to use custom value</CommandEmpty>
-                            <CommandGroup>
-                              {suffixOptions.map((option) => (
-                                <CommandItem
-                                  key={option}
-                                  value={option}
-                                  onSelect={() => {
-                                    setCard({ ...card, suffix: option });
-                                    setSuffixOpen(false);
-                                  }}
-                                >
-                                  <Check
-                                    className={cn(
-                                      "mr-2 h-4 w-4",
-                                      card.suffix === option ? "opacity-100" : "opacity-0"
-                                    )}
-                                  />
-                                  {option}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                  <div className="md:col-span-2 space-y-1">
+                    <Input
+                      id="suffix"
+                      value={card.suffix || ""}
+                      onChange={(e) => setCard({ ...card, suffix: sanitizeNameField(e.target.value) })}
+                      placeholder="Suffix"
+                      maxLength={20}
+                    />
+                    <Label htmlFor="suffix" className="text-xs text-muted-foreground">Suffix</Label>
                   </div>
                 </div>
                 {(validationErrors.first_name || validationErrors.last_name) && (
