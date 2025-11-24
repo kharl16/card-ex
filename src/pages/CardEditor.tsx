@@ -92,6 +92,15 @@ export default function CardEditor() {
   const [regeneratingQR, setRegeneratingQR] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
+  // Validate name fields for special characters
+  const validateNameField = (value: string, fieldName: string): string | null => {
+    const specialChars = /[^a-zA-Z\s\-'\.]/;
+    if (specialChars.test(value)) {
+      return `${fieldName} can only contain letters, spaces, hyphens, apostrophes, and periods`;
+    }
+    return null;
+  };
+
   // Sanitize prefix/suffix to prevent vCard-breaking characters
   const sanitizeNameField = (value: string): string => {
     // Remove or replace characters that could break vCard formatting
@@ -101,6 +110,20 @@ export default function CardEditor() {
       .replace(/\s+/g, ' ')       // Normalize multiple spaces
       .trim()
       .slice(0, 20);              // Enforce max length
+  };
+
+  // Generate formatted full name preview
+  const getFormattedName = (): string => {
+    if (!card) return "";
+    const parts = [
+      card.prefix,
+      card.first_name,
+      card.middle_name,
+      card.last_name,
+      card.suffix ? `, ${card.suffix}` : ""
+    ].filter(part => part && part.trim());
+    
+    return parts.join(" ").trim() || "Enter your name above";
   };
 
   useEffect(() => {
@@ -538,9 +561,18 @@ export default function CardEditor() {
                     <Input
                       id="prefix"
                       value={card.prefix || ""}
-                      onChange={(e) => setCard({ ...card, prefix: sanitizeNameField(e.target.value) })}
+                      onChange={(e) => {
+                        const value = sanitizeNameField(e.target.value);
+                        const error = validateNameField(value, "Prefix");
+                        setValidationErrors(prev => ({
+                          ...prev,
+                          prefix: error || ""
+                        }));
+                        setCard({ ...card, prefix: value });
+                      }}
                       placeholder="Prefix"
                       maxLength={20}
+                      className={validationErrors.prefix ? "border-destructive" : ""}
                     />
                     <Label htmlFor="prefix" className="text-xs text-muted-foreground">Prefix</Label>
                   </div>
@@ -548,7 +580,15 @@ export default function CardEditor() {
                     <Input
                       id="first_name"
                       value={card.first_name || ""}
-                      onChange={(e) => setCard({ ...card, first_name: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const error = validateNameField(value, "First name");
+                        setValidationErrors(prev => ({
+                          ...prev,
+                          first_name: error || ""
+                        }));
+                        setCard({ ...card, first_name: value });
+                      }}
                       placeholder="First"
                       maxLength={50}
                       className={validationErrors.first_name ? "border-destructive" : ""}
@@ -559,9 +599,18 @@ export default function CardEditor() {
                     <Input
                       id="middle_name"
                       value={card.middle_name || ""}
-                      onChange={(e) => setCard({ ...card, middle_name: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const error = validateNameField(value, "Middle name");
+                        setValidationErrors(prev => ({
+                          ...prev,
+                          middle_name: error || ""
+                        }));
+                        setCard({ ...card, middle_name: value });
+                      }}
                       placeholder="Middle"
                       maxLength={50}
+                      className={validationErrors.middle_name ? "border-destructive" : ""}
                     />
                     <Label htmlFor="middle_name" className="text-xs text-muted-foreground">Middle Name</Label>
                   </div>
@@ -569,7 +618,15 @@ export default function CardEditor() {
                     <Input
                       id="last_name"
                       value={card.last_name || ""}
-                      onChange={(e) => setCard({ ...card, last_name: e.target.value })}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const error = validateNameField(value, "Last name");
+                        setValidationErrors(prev => ({
+                          ...prev,
+                          last_name: error || ""
+                        }));
+                        setCard({ ...card, last_name: value });
+                      }}
                       placeholder="Last"
                       maxLength={50}
                       className={validationErrors.last_name ? "border-destructive" : ""}
@@ -580,18 +637,51 @@ export default function CardEditor() {
                     <Input
                       id="suffix"
                       value={card.suffix || ""}
-                      onChange={(e) => setCard({ ...card, suffix: sanitizeNameField(e.target.value) })}
+                      onChange={(e) => {
+                        const value = sanitizeNameField(e.target.value);
+                        const error = validateNameField(value, "Suffix");
+                        setValidationErrors(prev => ({
+                          ...prev,
+                          suffix: error || ""
+                        }));
+                        setCard({ ...card, suffix: value });
+                      }}
                       placeholder="Suffix"
                       maxLength={20}
+                      className={validationErrors.suffix ? "border-destructive" : ""}
                     />
                     <Label htmlFor="suffix" className="text-xs text-muted-foreground">Suffix</Label>
                   </div>
                 </div>
-                {(validationErrors.first_name || validationErrors.last_name) && (
-                  <p className="text-sm text-destructive">
-                    {validationErrors.first_name || validationErrors.last_name}
-                  </p>
+                
+                {/* Name validation errors */}
+                {(validationErrors.prefix || validationErrors.first_name || validationErrors.middle_name || validationErrors.last_name || validationErrors.suffix) && (
+                  <div className="space-y-1">
+                    {validationErrors.prefix && (
+                      <p className="text-sm text-destructive">{validationErrors.prefix}</p>
+                    )}
+                    {validationErrors.first_name && (
+                      <p className="text-sm text-destructive">{validationErrors.first_name}</p>
+                    )}
+                    {validationErrors.middle_name && (
+                      <p className="text-sm text-destructive">{validationErrors.middle_name}</p>
+                    )}
+                    {validationErrors.last_name && (
+                      <p className="text-sm text-destructive">{validationErrors.last_name}</p>
+                    )}
+                    {validationErrors.suffix && (
+                      <p className="text-sm text-destructive">{validationErrors.suffix}</p>
+                    )}
+                  </div>
                 )}
+
+                {/* Live name preview */}
+                <div className="rounded-lg bg-muted/50 p-4 border border-border">
+                  <Label className="text-xs text-muted-foreground mb-2 block">Preview</Label>
+                  <p className="text-lg font-medium text-foreground">
+                    {getFormattedName()}
+                  </p>
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
