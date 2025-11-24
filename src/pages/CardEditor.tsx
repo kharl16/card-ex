@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download, BarChart3, Facebook, Linkedin, Instagram, Twitter, Youtube, MessageCircle, Music, Check, ChevronsUpDown, FileText, Share2 } from "lucide-react";
+import { ArrowLeft, Save, Eye, Mail, Phone, Globe, Download, BarChart3, Facebook, Linkedin, Instagram, Twitter, Youtube, MessageCircle, Music, Check, ChevronsUpDown, FileText, Share2, X } from "lucide-react";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -555,7 +555,37 @@ export default function CardEditor() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Name * (Left to Right)</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Name * (Left to Right)</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setCard({ ...card, prefix: '', first_name: '', middle_name: '', last_name: '', suffix: '' });
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        prefix: '',
+                        first_name: '',
+                        middle_name: '',
+                        last_name: '',
+                        suffix: ''
+                      }));
+                    }}
+                    className="h-8 text-xs"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Clear All
+                  </Button>
+                </div>
+                <div className="text-sm text-muted-foreground mb-2 p-2 bg-muted/50 rounded-md">
+                  <span className="font-medium">Preview: </span>
+                  {card.prefix && `${card.prefix} `}
+                  {card.first_name || 'First'} 
+                  {card.middle_name && ` ${card.middle_name}`} 
+                  {card.last_name || 'Last'}
+                  {card.suffix && `, ${card.suffix}`}
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
                   <div className="md:col-span-2 space-y-1">
                     <Input
@@ -563,18 +593,19 @@ export default function CardEditor() {
                       value={card.prefix || ""}
                       onChange={(e) => {
                         const value = sanitizeNameField(e.target.value);
-                        const error = validateNameField(value, "Prefix");
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "Prefix");
                         setValidationErrors(prev => ({
                           ...prev,
                           prefix: error || ""
                         }));
-                        setCard({ ...card, prefix: value });
+                        setCard({ ...card, prefix: capitalized });
                       }}
                       placeholder="Prefix"
                       maxLength={20}
                       className={validationErrors.prefix ? "border-destructive" : ""}
                     />
-                    <Label htmlFor="prefix" className="text-xs text-muted-foreground">Prefix</Label>
+                    <Label htmlFor="prefix" className="text-xs text-muted-foreground text-center block">Prefix</Label>
                   </div>
                   <div className="md:col-span-3 space-y-1">
                     <Input
@@ -582,18 +613,19 @@ export default function CardEditor() {
                       value={card.first_name || ""}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const error = validateNameField(value, "First name");
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "First name");
                         setValidationErrors(prev => ({
                           ...prev,
                           first_name: error || ""
                         }));
-                        setCard({ ...card, first_name: value });
+                        setCard({ ...card, first_name: capitalized });
                       }}
                       placeholder="First"
                       maxLength={50}
                       className={validationErrors.first_name ? "border-destructive" : ""}
                     />
-                    <Label htmlFor="first_name" className="text-xs text-muted-foreground">First Name</Label>
+                    <Label htmlFor="first_name" className="text-xs text-muted-foreground text-center block">First Name</Label>
                   </div>
                   <div className="md:col-span-2 space-y-1">
                     <Input
@@ -601,18 +633,19 @@ export default function CardEditor() {
                       value={card.middle_name || ""}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const error = validateNameField(value, "Middle name");
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "Middle name");
                         setValidationErrors(prev => ({
                           ...prev,
                           middle_name: error || ""
                         }));
-                        setCard({ ...card, middle_name: value });
+                        setCard({ ...card, middle_name: capitalized });
                       }}
                       placeholder="Middle"
                       maxLength={50}
                       className={validationErrors.middle_name ? "border-destructive" : ""}
                     />
-                    <Label htmlFor="middle_name" className="text-xs text-muted-foreground">Middle Name</Label>
+                    <Label htmlFor="middle_name" className="text-xs text-muted-foreground text-center block">Middle Name</Label>
                   </div>
                   <div className="md:col-span-3 space-y-1">
                     <Input
@@ -620,18 +653,19 @@ export default function CardEditor() {
                       value={card.last_name || ""}
                       onChange={(e) => {
                         const value = e.target.value;
-                        const error = validateNameField(value, "Last name");
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "Last name");
                         setValidationErrors(prev => ({
                           ...prev,
                           last_name: error || ""
                         }));
-                        setCard({ ...card, last_name: value });
+                        setCard({ ...card, last_name: capitalized });
                       }}
                       placeholder="Last"
                       maxLength={50}
                       className={validationErrors.last_name ? "border-destructive" : ""}
                     />
-                    <Label htmlFor="last_name" className="text-xs text-muted-foreground">Last Name</Label>
+                    <Label htmlFor="last_name" className="text-xs text-muted-foreground text-center block">Last Name</Label>
                   </div>
                   <div className="md:col-span-2 space-y-1">
                     <Input
@@ -639,18 +673,19 @@ export default function CardEditor() {
                       value={card.suffix || ""}
                       onChange={(e) => {
                         const value = sanitizeNameField(e.target.value);
-                        const error = validateNameField(value, "Suffix");
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "Suffix");
                         setValidationErrors(prev => ({
                           ...prev,
                           suffix: error || ""
                         }));
-                        setCard({ ...card, suffix: value });
+                        setCard({ ...card, suffix: capitalized });
                       }}
                       placeholder="Suffix"
                       maxLength={20}
                       className={validationErrors.suffix ? "border-destructive" : ""}
                     />
-                    <Label htmlFor="suffix" className="text-xs text-muted-foreground">Suffix</Label>
+                    <Label htmlFor="suffix" className="text-xs text-muted-foreground text-center block">Suffix</Label>
                   </div>
                 </div>
                 
