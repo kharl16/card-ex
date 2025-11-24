@@ -195,19 +195,45 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
   const nextImage = () => setLightboxIndex((prev) => (prev + 1) % count);
   const prevImage = () => setLightboxIndex((prev) => (prev - 1 + count) % count);
 
-  // Download current lightbox image
-  const handleDownload = () => {
+  // Download current lightbox image (fetch as blob → force download)
+  const handleDownload = async () => {
     const current = baseImages[lightboxIndex];
     if (!current?.url) return;
 
-    const link = document.createElement("a");
-    link.href = current.url;
-    // leave download empty so browser uses the filename from URL
-    link.download = "";
-    link.target = "_blank";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const response = await fetch(current.url, { mode: "cors" });
+      if (!response.ok) {
+        console.error("Failed to fetch image for download", response.status);
+        window.open(current.url, "_blank");
+        return;
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      // Try to infer filename & extension from the URL
+      let filename = "cardex-image";
+      try {
+        const urlObj = new URL(current.url);
+        const pathParts = urlObj.pathname.split("/");
+        const lastPart = pathParts[pathParts.length - 1] || "";
+        filename = lastPart || filename;
+      } catch {
+        // fallback keeps "cardex-image"
+      }
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      // As a fallback, at least open the image in a new tab
+      window.open(current.url, "_blank");
+    }
   };
 
   // Keyboard navigation for lightbox
@@ -221,7 +247,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
       if (e.key === "+" || e.key === "=") zoomIn();
       if (e.key === "-") zoomOut();
       if (e.key === "0") resetZoom();
-      if (e.key.toLowerCase() === "s") handleDownload(); // optional: "S" to save
+      if (e.key.toLowerCase() === "s") handleDownload(); // "S" to save
     };
 
     window.addEventListener("keydown", handleKeyDown);
