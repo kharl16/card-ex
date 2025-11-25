@@ -65,7 +65,7 @@ const THEME_PRESETS = {
     name: "Elegant",
     primary: "#D4AF37",
     background: "#0B0B0C",
-    text: "#F8F8F8",
+    text: "#D4AF37",
     accent: "#E6C85C",
     buttonColor: "#D4AF37",
     mode: 'dark' as const,
