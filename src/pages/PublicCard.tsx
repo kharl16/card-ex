@@ -77,7 +77,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         document.documentElement.style.setProperty('--accent', theme.accent);
       }
       if (theme.font) {
-        document.documentElement.style.setProperty('font-family', theme.font);
+        document.documentElement.style.fontFamily = `"${theme.font}", sans-serif`;
       }
     }
     return () => {
@@ -86,7 +86,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       document.documentElement.style.removeProperty('--background');
       document.documentElement.style.removeProperty('--foreground');
       document.documentElement.style.removeProperty('--accent');
-      document.documentElement.style.removeProperty('font-family');
+      document.documentElement.style.fontFamily = '';
     };
   }, [card?.theme]);
 
@@ -167,7 +167,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       className="min-h-screen bg-background" 
       style={{ 
         backgroundColor: (card.theme as any)?.background || undefined,
-        fontFamily: (card.theme as any)?.font || undefined,
+        fontFamily: (card.theme as any)?.font ? `"${(card.theme as any).font}", sans-serif` : undefined,
       }}
     >
       <div className="mx-auto max-w-2xl">

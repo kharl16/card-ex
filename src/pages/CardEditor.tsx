@@ -867,7 +867,7 @@ export default function CardEditor() {
                 style={{
                   backgroundColor: (card.theme as any)?.background || undefined,
                   color: (card.theme as any)?.text || undefined,
-                  fontFamily: (card.theme as any)?.font || undefined,
+                  fontFamily: (card.theme as any)?.font ? `"${(card.theme as any).font}", sans-serif` : undefined,
                 }}
               >
                 {/* Cover */}
