@@ -74,6 +74,11 @@ const FONT_OPTIONS = [
   { value: "Playfair Display", label: "Playfair Display" },
   { value: "Montserrat", label: "Montserrat" },
   { value: "Open Sans", label: "Open Sans" },
+  { value: "Poppins", label: "Poppins" },
+  { value: "Lato", label: "Lato" },
+  { value: "Raleway", label: "Raleway" },
+  { value: "Oswald", label: "Oswald" },
+  { value: "Merriweather", label: "Merriweather" },
 ];
 
 export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProps) {
