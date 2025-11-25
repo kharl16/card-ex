@@ -8,6 +8,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import ProductRingCarousel from "@/components/ProductRingCarousel";
+import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 
 type CardData = Tables<"cards">;
 
@@ -162,12 +163,28 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
     );
   }
 
+  const theme = card.theme as any;
+  const getBackgroundStyle = () => {
+    if (!theme) return {};
+    if (theme.backgroundType === 'gradient') {
+      return { background: getGradientCSS(theme) };
+    }
+    if (theme.backgroundType === 'pattern') {
+      return { 
+        backgroundColor: theme.background,
+        backgroundImage: getPatternCSS(theme),
+        backgroundSize: getPatternSize(theme.patternType),
+      };
+    }
+    return { backgroundColor: theme.background };
+  };
+
   return (
     <div 
       className="min-h-screen bg-background" 
       style={{ 
-        backgroundColor: (card.theme as any)?.background || undefined,
-        fontFamily: (card.theme as any)?.font ? `"${(card.theme as any).font}", sans-serif` : undefined,
+        ...getBackgroundStyle(),
+        fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
       <div className="mx-auto max-w-2xl">

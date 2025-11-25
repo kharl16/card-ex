@@ -35,6 +35,7 @@ import SocialMediaLinks from "@/components/SocialMediaLinks";
 import QRCodeCustomizer from "@/components/QRCodeCustomizer";
 import QRCode from "qrcode";
 import ProductImageManager from "@/components/ProductImageManager";
+import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 
 type CardData = Tables<"cards">;
 
@@ -862,12 +863,29 @@ export default function CardEditor() {
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
+              {(() => {
+                const themeData = card.theme as any;
+                const getPreviewBackgroundStyle = () => {
+                  if (!themeData) return {};
+                  if (themeData.backgroundType === 'gradient') {
+                    return { background: getGradientCSS(themeData) };
+                  }
+                  if (themeData.backgroundType === 'pattern') {
+                    return { 
+                      backgroundColor: themeData.background,
+                      backgroundImage: getPatternCSS(themeData),
+                      backgroundSize: getPatternSize(themeData.patternType),
+                    };
+                  }
+                  return { backgroundColor: themeData.background };
+                };
+                return (
               <div 
                 className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm"
                 style={{
-                  backgroundColor: (card.theme as any)?.background || undefined,
-                  color: (card.theme as any)?.text || undefined,
-                  fontFamily: (card.theme as any)?.font ? `"${(card.theme as any).font}", sans-serif` : undefined,
+                  ...getPreviewBackgroundStyle(),
+                  color: themeData?.text || undefined,
+                  fontFamily: themeData?.font ? `"${themeData.font}", sans-serif` : undefined,
                 }}
               >
                 {/* Cover */}
@@ -972,6 +990,8 @@ export default function CardEditor() {
                   </button>
                 </div>
               </div>
+                );
+              })()}
             </CardContent>
           </Card>
         </div>
