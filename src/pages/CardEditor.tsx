@@ -10,18 +10,8 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   Save,
-  Mail,
-  Phone,
-  Globe,
   Share2,
   BarChart3,
-  Facebook,
-  Linkedin,
-  Instagram,
-  Twitter,
-  Youtube,
-  MessageCircle,
-  Music,
   X,
 } from "lucide-react";
 import ShareCardDialog from "@/components/ShareCardDialog";
@@ -34,40 +24,9 @@ import SocialMediaLinks from "@/components/SocialMediaLinks";
 import QRCodeCustomizer from "@/components/QRCodeCustomizer";
 import QRCode from "qrcode";
 import ProductImageManager from "@/components/ProductImageManager";
-import ProductRingCarousel from "@/components/ProductRingCarousel";
-import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
+import CardView, { SocialLink, ProductImage } from "@/components/CardView";
 
 type CardData = Tables<"cards">;
-
-interface SocialLink {
-  id: string;
-  kind: string;
-  label: string;
-  value: string;
-  icon: string;
-}
-
-const socialIconMap: Record<string, any> = {
-  Facebook,
-  Linkedin,
-  Instagram,
-  Twitter,
-  Youtube,
-  MessageCircle,
-  Music,
-  Globe,
-};
-
-const socialBrandColors: Record<string, string> = {
-  facebook: "bg-[#1877F2]",
-  linkedin: "bg-[#0A66C2]",
-  instagram: "bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#FD1D1D]",
-  x: "bg-black",
-  youtube: "bg-[#FF0000]",
-  telegram: "bg-[#26A5E4]",
-  tiktok: "bg-black",
-  url: "bg-[#4285F4]",
-};
 
 // Validation schema for card data
 const cardSchema = z.object({
@@ -121,7 +80,7 @@ export default function CardEditor() {
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
-  const [productImages, setProductImages] = useState<any[]>([]);
+  const [productImages, setProductImages] = useState<ProductImage[]>([]);
   const [regeneratingQR, setRegeneratingQR] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
@@ -875,150 +834,14 @@ export default function CardEditor() {
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
-              {(() => {
-                const themeData = card.theme as any;
-                const getPreviewBackgroundStyle = () => {
-                  if (!themeData) return {};
-                  if (themeData.backgroundType === 'gradient') {
-                    return { background: getGradientCSS(themeData) };
-                  }
-                  if (themeData.backgroundType === 'pattern') {
-                    return { 
-                      backgroundColor: themeData.background,
-                      backgroundImage: getPatternCSS(themeData),
-                      backgroundSize: getPatternSize(themeData.patternType),
-                    };
-                  }
-                  return { backgroundColor: themeData.background };
-                };
-                return (
-              <div 
-                className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm"
-                style={{
-                  ...getPreviewBackgroundStyle(),
-                  color: themeData?.text || undefined,
-                  fontFamily: themeData?.font ? `"${themeData.font}", sans-serif` : undefined,
-                }}
-              >
-                {/* Cover */}
-                <div 
-                  className="relative h-40 sm:h-48 bg-gradient-to-br from-primary/20 to-primary/5"
-                  style={{
-                    backgroundImage: (card.theme as any)?.primary 
-                      ? `linear-gradient(to bottom right, ${(card.theme as any).primary}33, ${(card.theme as any).primary}0D)`
-                      : undefined
-                  }}
-                >
-                  {card.cover_url && (
-                    <>
-                      <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
-                      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent"></div>
-                    </>
-                  )}
-
-                  {/* Avatar */}
-                  <div className="absolute -bottom-10 left-4 h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
-                    {card.avatar_url && (
-                      <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
-                    )}
-                  </div>
-
-                  {/* Logo */}
-                  {card.logo_url && (
-                    <div className="absolute -bottom-8 right-4 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
-                      <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Info */}
-                <div className="px-4 pt-14 pb-4">
-                  <h3 className="text-xl font-bold">{card.full_name}</h3>
-                  {card.title && <p className="text-sm text-foreground/80 mt-1">{card.title}</p>}
-                  {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
-                  {card.bio && <p className="mt-3 text-sm text-muted-foreground">{card.bio}</p>}
-                </div>
-
-                {/* Product Carousel */}
-                {(card.carousel_enabled !== false) && productImages.length > 0 && (
-                  <div className="my-4">
-                    <ProductRingCarousel 
-                      images={productImages.map(img => ({ 
-                        id: img.id, 
-                        url: img.image_url, 
-                        alt: img.alt_text || undefined,
-                        description: img.description || undefined
-                      }))}
-                      autoPlayMs={(card.theme as any)?.carouselSpeed || 4000}
-                    />
-                  </div>
-                )}
-
-                {/* Social Media Links */}
-                {socialLinks.length > 0 && (
-                  <div className="flex flex-wrap gap-3 justify-center px-4 pb-4">
-                    {socialLinks.map((link) => {
-                      const IconComponent = socialIconMap[link.icon];
-                      const brandColor = socialBrandColors[link.kind] || "bg-green-600";
-                      return (
-                        <div
-                          key={link.id}
-                          className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md`}
-                          title={link.label}
-                        >
-                          {IconComponent && <IconComponent className="h-6 w-6 text-white" />}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {/* Contact Buttons Preview */}
-                <div className="space-y-3 px-4 pb-4">
-                  {card.email && (
-                    <div className="flex items-center gap-3 group">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#EA4335] group-hover:scale-110 transition-transform duration-200 shadow-md">
-                        <Mail className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate">{card.email}</p>
-                        <p className="text-xs text-muted-foreground">Personal</p>
-                      </div>
-                    </div>
-                  )}
-                  {card.phone && (
-                    <div className="flex items-center gap-3 group">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#34A853] group-hover:scale-110 transition-transform duration-200 shadow-md">
-                        <Phone className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold">{card.phone}</p>
-                        <p className="text-xs text-muted-foreground">Mobile</p>
-                      </div>
-                    </div>
-                  )}
-                  {card.website && (
-                    <div className="flex items-center gap-3 group">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#4285F4] group-hover:scale-110 transition-transform duration-200 shadow-md">
-                        <Globe className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate">{card.website}</p>
-                        <p className="text-xs text-muted-foreground">Website</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Save Contact Button */}
-                <div className="px-4 pb-4">
-                  <button className="w-full h-14 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-full transition-colors">
-                    Save Contact
-                  </button>
-                </div>
-              </div>
-                );
-              })()}
+              <CardView
+                card={card}
+                socialLinks={socialLinks}
+                productImages={productImages}
+                isInteractive={false}
+                showQRCode={false}
+                showVCardButtons={false}
+              />
             </CardContent>
           </Card>
         </div>
