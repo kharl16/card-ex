@@ -207,7 +207,11 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
             </SelectTrigger>
             <SelectContent>
               {FONT_OPTIONS.map((font) => (
-                <SelectItem key={font.value} value={font.value}>
+                <SelectItem 
+                  key={font.value} 
+                  value={font.value}
+                  style={{ fontFamily: `"${font.value}", sans-serif` }}
+                >
                   {font.label}
                 </SelectItem>
               ))}
