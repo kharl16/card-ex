@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   Save,
-  Eye,
   Mail,
   Phone,
   Globe,
@@ -35,6 +34,7 @@ import SocialMediaLinks from "@/components/SocialMediaLinks";
 import QRCodeCustomizer from "@/components/QRCodeCustomizer";
 import QRCode from "qrcode";
 import ProductImageManager from "@/components/ProductImageManager";
+import ProductRingCarousel from "@/components/ProductRingCarousel";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 
 type CardData = Tables<"cards">;
@@ -121,6 +121,7 @@ export default function CardEditor() {
   const [loading, setLoading] = useState(true);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
+  const [productImages, setProductImages] = useState<any[]>([]);
   const [regeneratingQR, setRegeneratingQR] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
@@ -165,6 +166,7 @@ export default function CardEditor() {
   useEffect(() => {
     loadCard();
     loadSocialLinks();
+    loadProductImages();
   }, [id]);
 
   const loadCard = async () => {
@@ -201,6 +203,20 @@ export default function CardEditor() {
           icon: link.icon || "",
         })),
       );
+    }
+  };
+
+  const loadProductImages = async () => {
+    if (!id) return;
+
+    const { data } = await supabase
+      .from("product_images")
+      .select("id, image_url, alt_text, description, sort_order")
+      .eq("card_id", id)
+      .order("sort_order", { ascending: true });
+
+    if (data) {
+      setProductImages(data);
     }
   };
 
@@ -397,10 +413,6 @@ export default function CardEditor() {
               <BarChart3 className="h-4 w-4" />
               Analytics
             </Button>
-            <Button variant="outline" onClick={() => window.open(`/c/${card.slug}`, "_blank")} className="gap-2">
-              <Eye className="h-4 w-4" />
-              Preview
-            </Button>
             <Button variant="outline" onClick={() => setShareDialogOpen(true)} className="gap-2">
               <Share2 className="h-4 w-4" />
               Generate Card
@@ -463,7 +475,7 @@ export default function CardEditor() {
               <CardTitle>Product Images</CardTitle>
             </CardHeader>
             <CardContent>
-              <ProductImageManager cardId={card.id} ownerId={card.user_id} />
+              <ProductImageManager cardId={card.id} ownerId={card.user_id} onImagesChange={loadProductImages} />
             </CardContent>
           </Card>
 
@@ -926,6 +938,21 @@ export default function CardEditor() {
                   {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
                   {card.bio && <p className="mt-3 text-sm text-muted-foreground">{card.bio}</p>}
                 </div>
+
+                {/* Product Carousel */}
+                {(card.carousel_enabled !== false) && productImages.length > 0 && (
+                  <div className="my-4">
+                    <ProductRingCarousel 
+                      images={productImages.map(img => ({ 
+                        id: img.id, 
+                        url: img.image_url, 
+                        alt: img.alt_text || undefined,
+                        description: img.description || undefined
+                      }))}
+                      autoPlayMs={(card.theme as any)?.carouselSpeed || 4000}
+                    />
+                  </div>
+                )}
 
                 {/* Social Media Links */}
                 {socialLinks.length > 0 && (
