@@ -16,9 +16,10 @@ interface ProductImage {
 interface ProductImageManagerProps {
   cardId: string;
   ownerId: string;
+  onImagesChange?: () => void;
 }
 
-export default function ProductImageManager({ cardId, ownerId }: ProductImageManagerProps) {
+export default function ProductImageManager({ cardId, ownerId, onImagesChange }: ProductImageManagerProps) {
   const [images, setImages] = useState<ProductImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -73,6 +74,7 @@ export default function ProductImageManager({ cardId, ownerId }: ProductImageMan
 
       toast.success('Product image deleted successfully');
       await loadImages();
+      onImagesChange?.();
     } catch (error) {
       console.error('Error deleting image:', error);
       toast.error('Failed to delete product image');
@@ -147,7 +149,10 @@ export default function ProductImageManager({ cardId, ownerId }: ProductImageMan
         cardId={cardId}
         ownerId={ownerId}
         nextSortOrder={images.length}
-        onUploadComplete={loadImages}
+        onUploadComplete={() => {
+          loadImages();
+          onImagesChange?.();
+        }}
       />
     </div>
   );
