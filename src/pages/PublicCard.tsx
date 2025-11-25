@@ -73,12 +73,20 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       if (theme.text) {
         document.documentElement.style.setProperty('--foreground', theme.text);
       }
+      if (theme.accent) {
+        document.documentElement.style.setProperty('--accent', theme.accent);
+      }
+      if (theme.font) {
+        document.documentElement.style.setProperty('font-family', theme.font);
+      }
     }
     return () => {
       // Reset to default on unmount
       document.documentElement.style.removeProperty('--primary');
       document.documentElement.style.removeProperty('--background');
       document.documentElement.style.removeProperty('--foreground');
+      document.documentElement.style.removeProperty('--accent');
+      document.documentElement.style.removeProperty('font-family');
     };
   }, [card?.theme]);
 
@@ -155,9 +163,21 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background" style={{ backgroundColor: (card.theme as any)?.background || undefined }}>
+    <div 
+      className="min-h-screen bg-background" 
+      style={{ 
+        backgroundColor: (card.theme as any)?.background || undefined,
+        fontFamily: (card.theme as any)?.font || undefined,
+      }}
+    >
       <div className="mx-auto max-w-2xl">
-        <Card className="overflow-hidden border-0 rounded-none shadow-lg" style={{ backgroundColor: (card.theme as any)?.background || undefined, color: (card.theme as any)?.text || undefined }}>
+        <Card 
+          className="overflow-hidden border-0 rounded-none shadow-lg" 
+          style={{ 
+            backgroundColor: (card.theme as any)?.background || undefined, 
+            color: (card.theme as any)?.text || undefined,
+          }}
+        >
           {/* Header with cover image */}
           <div 
             className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/20 to-primary/5"
