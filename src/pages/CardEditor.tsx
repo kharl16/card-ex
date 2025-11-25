@@ -609,143 +609,126 @@ export default function CardEditor() {
                   {getFormattedName()}
                 </div>
 
-                {/* COMPACT HORIZONTAL NAME FIELDS */}
-                <div className="overflow-x-auto">
-                  <div className="flex min-w-[640px] gap-3">
-                    {/* Prefix */}
-                    <div className="flex-1">
-                      <Label htmlFor="prefix" className="mb-1 block text-xs text-muted-foreground text-center">
-                        Prefix
-                      </Label>
-                      <Input
-                        id="prefix"
-                        value={card.prefix || ""}
-                        onChange={(e) => {
-                          const value = sanitizeNameField(e.target.value);
-                          const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                          const error = validateNameField(capitalized, "Prefix");
-                          setValidationErrors((prev) => ({
-                            ...prev,
-                            prefix: error || "",
-                          }));
-                          setCard({ ...card, prefix: capitalized });
-                        }}
-                        placeholder="Mr."
-                        maxLength={20}
-                        className={cn(
-                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
-                          validationErrors.prefix && "border-destructive",
-                        )}
-                      />
-                    </div>
+                {/* COMPACT HORIZONTAL NAME FIELDS – now same layout style as Title/Company */}
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                  {/* Prefix */}
+                  <div className="space-y-1">
+                    <Label htmlFor="prefix" className="text-xs text-muted-foreground text-center md:text-left">
+                      Prefix
+                    </Label>
+                    <Input
+                      id="prefix"
+                      value={card.prefix || ""}
+                      onChange={(e) => {
+                        const value = sanitizeNameField(e.target.value);
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "Prefix");
+                        setValidationErrors((prev) => ({
+                          ...prev,
+                          prefix: error || "",
+                        }));
+                        setCard({ ...card, prefix: capitalized });
+                      }}
+                      placeholder="Engr."
+                      maxLength={20}
+                      className={cn("text-sm text-center", validationErrors.prefix && "border-destructive")}
+                    />
+                  </div>
 
-                    {/* First Name */}
-                    <div className="flex-1">
-                      <Label htmlFor="first_name" className="mb-1 block text-xs text-muted-foreground text-center">
-                        First Name *
-                      </Label>
-                      <Input
-                        id="first_name"
-                        value={card.first_name || ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                          const error = validateNameField(capitalized, "First name");
-                          setValidationErrors((prev) => ({
-                            ...prev,
-                            first_name: error || "",
-                          }));
-                          setCard({ ...card, first_name: capitalized });
-                        }}
-                        placeholder="Juan"
-                        maxLength={50}
-                        className={cn(
-                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
-                          validationErrors.first_name && "border-destructive",
-                        )}
-                      />
-                    </div>
+                  {/* First Name */}
+                  <div className="space-y-1">
+                    <Label htmlFor="first_name" className="text-xs text-muted-foreground text-center md:text-left">
+                      First Name *
+                    </Label>
+                    <Input
+                      id="first_name"
+                      value={card.first_name || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "First name");
+                        setValidationErrors((prev) => ({
+                          ...prev,
+                          first_name: error || "",
+                        }));
+                        setCard({ ...card, first_name: capitalized });
+                      }}
+                      placeholder="Carlomagno"
+                      maxLength={50}
+                      className={cn("text-sm text-center", validationErrors.first_name && "border-destructive")}
+                    />
+                  </div>
 
-                    {/* Middle Name */}
-                    <div className="flex-1">
-                      <Label htmlFor="middle_name" className="mb-1 block text-xs text-muted-foreground text-center">
-                        Middle Name
-                      </Label>
-                      <Input
-                        id="middle_name"
-                        value={card.middle_name || ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                          const error = validateNameField(capitalized, "Middle name");
-                          setValidationErrors((prev) => ({
-                            ...prev,
-                            middle_name: error || "",
-                          }));
-                          setCard({ ...card, middle_name: capitalized });
-                        }}
-                        placeholder="Angeles"
-                        maxLength={50}
-                        className={cn(
-                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
-                          validationErrors.middle_name && "border-destructive",
-                        )}
-                      />
-                    </div>
+                  {/* Middle Name */}
+                  <div className="space-y-1">
+                    <Label htmlFor="middle_name" className="text-xs text-muted-foreground text-center md:text-left">
+                      Middle Name
+                    </Label>
+                    <Input
+                      id="middle_name"
+                      value={card.middle_name || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "Middle name");
+                        setValidationErrors((prev) => ({
+                          ...prev,
+                          middle_name: error || "",
+                        }));
+                        setCard({ ...card, middle_name: capitalized });
+                      }}
+                      placeholder="Angeles"
+                      maxLength={50}
+                      className={cn("text-sm text-center", validationErrors.middle_name && "border-destructive")}
+                    />
+                  </div>
 
-                    {/* Last Name */}
-                    <div className="flex-1">
-                      <Label htmlFor="last_name" className="mb-1 block text-xs text-muted-foreground text-center">
-                        Last Name *
-                      </Label>
-                      <Input
-                        id="last_name"
-                        value={card.last_name || ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                          const error = validateNameField(capitalized, "Last name");
-                          setValidationErrors((prev) => ({
-                            ...prev,
-                            last_name: error || "",
-                          }));
-                          setCard({ ...card, last_name: capitalized });
-                        }}
-                        placeholder="Tamayao"
-                        maxLength={50}
-                        className={cn(
-                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
-                          validationErrors.last_name && "border-destructive",
-                        )}
-                      />
-                    </div>
+                  {/* Last Name */}
+                  <div className="space-y-1">
+                    <Label htmlFor="last_name" className="text-xs text-muted-foreground text-center md:text-left">
+                      Last Name *
+                    </Label>
+                    <Input
+                      id="last_name"
+                      value={card.last_name || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "Last name");
+                        setValidationErrors((prev) => ({
+                          ...prev,
+                          last_name: error || "",
+                        }));
+                        setCard({ ...card, last_name: capitalized });
+                      }}
+                      placeholder="Tamayao"
+                      maxLength={50}
+                      className={cn("text-sm text-center", validationErrors.last_name && "border-destructive")}
+                    />
+                  </div>
 
-                    {/* Suffix */}
-                    <div className="flex-1">
-                      <Label htmlFor="suffix" className="mb-1 block text-xs text-muted-foreground text-center">
-                        Suffix
-                      </Label>
-                      <Input
-                        id="suffix"
-                        value={card.suffix || ""}
-                        onChange={(e) => {
-                          const value = sanitizeNameField(e.target.value);
-                          const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                          const error = validateNameField(capitalized, "Suffix");
-                          setValidationErrors((prev) => ({
-                            ...prev,
-                            suffix: error || "",
-                          }));
-                          setCard({ ...card, suffix: capitalized });
-                        }}
-                        placeholder="Jr."
-                        maxLength={20}
-                        className={cn(
-                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
-                          validationErrors.suffix && "border-destructive",
-                        )}
-                      />
-                    </div>
+                  {/* Suffix */}
+                  <div className="space-y-1">
+                    <Label htmlFor="suffix" className="text-xs text-muted-foreground text-center md:text-left">
+                      Suffix
+                    </Label>
+                    <Input
+                      id="suffix"
+                      value={card.suffix || ""}
+                      onChange={(e) => {
+                        const value = sanitizeNameField(e.target.value);
+                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
+                        const error = validateNameField(capitalized, "Suffix");
+                        setValidationErrors((prev) => ({
+                          ...prev,
+                          suffix: error || "",
+                        }));
+                        setCard({ ...card, suffix: capitalized });
+                      }}
+                      placeholder="Jr."
+                      maxLength={20}
+                      className={cn("text-sm text-center", validationErrors.suffix && "border-destructive")}
+                    />
                   </div>
                 </div>
 
