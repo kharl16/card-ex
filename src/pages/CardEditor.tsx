@@ -286,6 +286,9 @@ export default function CardEditor() {
       qrCodeUrl = await generateQRCode(card.share_url, card.slug);
     }
 
+    // Compute live full_name to keep DB in sync
+    const liveFullName = getFormattedName();
+
     const { error } = await supabase
       .from("cards")
       .update({
@@ -294,6 +297,7 @@ export default function CardEditor() {
         middle_name: card.middle_name,
         last_name: card.last_name,
         suffix: card.suffix,
+        full_name: liveFullName,
         title: card.title,
         company: card.company,
         bio: card.bio,
@@ -427,7 +431,7 @@ export default function CardEditor() {
             onChange={(theme) => setCard({ ...card, theme: theme as any })}
           />
 
-          <SocialMediaLinks cardId={card.id} />
+          <SocialMediaLinks cardId={card.id} onLinksChange={setSocialLinks} />
 
           <Card>
             <CardHeader>

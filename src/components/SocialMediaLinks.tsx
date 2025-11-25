@@ -26,7 +26,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-interface SocialLink {
+export interface SocialLink {
   id: string;
   kind: string;
   label: string;
@@ -36,6 +36,7 @@ interface SocialLink {
 
 interface SocialMediaLinksProps {
   cardId: string;
+  onLinksChange?: (links: SocialLink[]) => void;
 }
 
 const socialPlatforms = [
@@ -102,7 +103,7 @@ function SortableLink({ link, onDelete }: { link: SocialLink; onDelete: (id: str
   );
 }
 
-export default function SocialMediaLinks({ cardId }: SocialMediaLinksProps) {
+export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaLinksProps) {
   const [links, setLinks] = useState<SocialLink[]>([]);
   const [newLink, setNewLink] = useState({ platform: "", url: "" });
   const [loading, setLoading] = useState(false);
@@ -114,6 +115,12 @@ export default function SocialMediaLinks({ cardId }: SocialMediaLinksProps) {
     })
   );
 
+  // Helper to update links and notify parent
+  const updateLinksState = (newLinks: SocialLink[]) => {
+    setLinks(newLinks);
+    onLinksChange?.(newLinks);
+  };
+
   useEffect(() => {
     loadLinks();
   }, [cardId]);
@@ -123,17 +130,18 @@ export default function SocialMediaLinks({ cardId }: SocialMediaLinksProps) {
       .from("card_links")
       .select("*")
       .eq("card_id", cardId)
-      .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok"])
+      .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok", "url"])
       .order("sort_index");
 
     if (!error && data) {
-      setLinks(data.map(link => ({
+      const mappedLinks = data.map(link => ({
         id: link.id,
         kind: link.kind,
         label: link.label,
         value: link.value,
         icon: link.icon || "",
-      })));
+      }));
+      updateLinksState(mappedLinks);
     }
   };
 
@@ -202,7 +210,7 @@ export default function SocialMediaLinks({ cardId }: SocialMediaLinksProps) {
     const newIndex = links.findIndex((link) => link.id === over.id);
 
     const newLinks = arrayMove(links, oldIndex, newIndex);
-    setLinks(newLinks);
+    updateLinksState(newLinks);
 
     // Update sort_index in database
     const updates = newLinks.map((link, index) => ({
