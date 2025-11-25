@@ -653,7 +653,7 @@ export default function CardEditor() {
                         }));
                         setCard({ ...card, first_name: capitalized });
                       }}
-                      placeholder="Carlomagno"
+                      placeholder="Carl"
                       maxLength={50}
                       className={cn("text-sm text-center", validationErrors.first_name && "border-destructive")}
                     />
@@ -677,7 +677,7 @@ export default function CardEditor() {
                         }));
                         setCard({ ...card, middle_name: capitalized });
                       }}
-                      placeholder="Angeles"
+                      placeholder="Ayala"
                       maxLength={50}
                       className={cn("text-sm text-center", validationErrors.middle_name && "border-destructive")}
                     />
@@ -725,7 +725,7 @@ export default function CardEditor() {
                         }));
                         setCard({ ...card, suffix: capitalized });
                       }}
-                      placeholder="Jr."
+                      placeholder="V"
                       maxLength={20}
                       className={cn("text-sm text-center", validationErrors.suffix && "border-destructive")}
                     />
