@@ -60,6 +60,28 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   const [productImages, setProductImages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Apply custom theme colors
+  useEffect(() => {
+    if (card?.theme) {
+      const theme = card.theme as any;
+      if (theme.primary) {
+        document.documentElement.style.setProperty('--primary', theme.primary);
+      }
+      if (theme.background) {
+        document.documentElement.style.setProperty('--background', theme.background);
+      }
+      if (theme.text) {
+        document.documentElement.style.setProperty('--foreground', theme.text);
+      }
+    }
+    return () => {
+      // Reset to default on unmount
+      document.documentElement.style.removeProperty('--primary');
+      document.documentElement.style.removeProperty('--background');
+      document.documentElement.style.removeProperty('--foreground');
+    };
+  }, [card?.theme]);
+
   useEffect(() => {
     loadCard();
   }, [slug]);
@@ -133,11 +155,18 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" style={{ backgroundColor: (card.theme as any)?.background || undefined }}>
       <div className="mx-auto max-w-2xl">
-        <Card className="overflow-hidden border-0 rounded-none shadow-lg">
+        <Card className="overflow-hidden border-0 rounded-none shadow-lg" style={{ backgroundColor: (card.theme as any)?.background || undefined, color: (card.theme as any)?.text || undefined }}>
           {/* Header with cover image */}
-          <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/20 to-primary/5">
+          <div 
+            className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/20 to-primary/5"
+            style={{
+              backgroundImage: (card.theme as any)?.primary 
+                ? `linear-gradient(to bottom right, ${(card.theme as any).primary}33, ${(card.theme as any).primary}0D)`
+                : undefined
+            }}
+          >
             {card.cover_url && (
               <>
                 <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />

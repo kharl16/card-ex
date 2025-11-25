@@ -862,9 +862,22 @@ export default function CardEditor() {
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm">
+              <div 
+                className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-sm"
+                style={{
+                  backgroundColor: (card.theme as any)?.background || undefined,
+                  color: (card.theme as any)?.text || undefined,
+                }}
+              >
                 {/* Cover */}
-                <div className="relative h-40 sm:h-48 bg-gradient-to-br from-primary/20 to-primary/5">
+                <div 
+                  className="relative h-40 sm:h-48 bg-gradient-to-br from-primary/20 to-primary/5"
+                  style={{
+                    backgroundImage: (card.theme as any)?.primary 
+                      ? `linear-gradient(to bottom right, ${(card.theme as any).primary}33, ${(card.theme as any).primary}0D)`
+                      : undefined
+                  }}
+                >
                   {card.cover_url && (
                     <>
                       <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
