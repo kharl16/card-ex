@@ -23,6 +23,29 @@ import { toast } from "sonner";
 
 type CardData = Tables<"cards">;
 
+// Build live name from individual fields so it updates in real-time
+const getLiveNameFromCard = (card: CardData | null): string => {
+  if (!card) return "";
+
+  const prefix = card.prefix?.trim();
+  const first = card.first_name?.trim();
+  const middle = card.middle_name?.trim();
+  const last = card.last_name?.trim();
+  const suffix = card.suffix?.trim();
+
+  const mainParts = [prefix, first, middle, last].filter(
+    (part) => part && part.length > 0
+  ) as string[];
+
+  let name = mainParts.join(" ");
+
+  if (suffix) {
+    name = `${name}, ${suffix}`;
+  }
+
+  return name || "Enter your name above";
+};
+
 export interface SocialLink {
   id: string;
   kind: string;
@@ -181,10 +204,10 @@ export default function CardView({
             boxShadow: `0 0 0 4px rgba(0, 0, 0, 0.3), 0 25px 50px -12px rgba(0, 0, 0, 0.25)`,
           }}
         >
-          {card.avatar_url && (
+        {card.avatar_url && (
             <img
               src={card.avatar_url}
-              alt={card.full_name}
+              alt={getLiveNameFromCard(card)}
               className="h-full w-full object-cover"
             />
           )}
@@ -200,7 +223,7 @@ export default function CardView({
 
       {/* Profile Info */}
       <div className="px-4 pt-14 pb-4">
-        <h1 className="text-xl sm:text-2xl font-bold">{card.full_name}</h1>
+        <h1 className="text-xl sm:text-2xl font-bold">{getLiveNameFromCard(card)}</h1>
         {card.title && <p className="text-sm sm:text-lg text-foreground/80 mt-1">{card.title}</p>}
         {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
         {card.bio && <p className="mt-3 text-sm text-muted-foreground">{card.bio}</p>}
