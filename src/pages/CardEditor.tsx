@@ -134,27 +134,31 @@ export default function CardEditor() {
 
   // Sanitize prefix/suffix to prevent vCard-breaking characters
   const sanitizeNameField = (value: string): string => {
-    // Remove or replace characters that could break vCard formatting
     return value
-      .replace(/[;\n\r]/g, " ") // Replace semicolons and newlines with spaces
-      .replace(/[\\,]/g, "") // Remove backslashes and commas
-      .replace(/\s+/g, " ") // Normalize multiple spaces
+      .replace(/[;\n\r]/g, " ")
+      .replace(/[\\,]/g, "")
+      .replace(/\s+/g, " ")
       .trim()
-      .slice(0, 20); // Enforce max length
+      .slice(0, 20);
   };
 
-  // Generate formatted full name preview
+  // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
     if (!card) return "";
-    const parts = [
-      card.prefix,
-      card.first_name,
-      card.middle_name,
-      card.last_name,
-      card.suffix ? `, ${card.suffix}` : "",
-    ].filter((part) => part && part.trim());
+    const mainParts = [
+      card.prefix?.trim(),
+      card.first_name?.trim(),
+      card.middle_name?.trim(),
+      card.last_name?.trim(),
+    ].filter((part) => part && part.length > 0) as string[];
 
-    return parts.join(" ").trim() || "Enter your name above";
+    let name = mainParts.join(" ");
+
+    if (card.suffix && card.suffix.trim()) {
+      name = `${name}, ${card.suffix.trim()}`;
+    }
+
+    return name || "Enter your name above";
   };
 
   useEffect(() => {
@@ -265,7 +269,6 @@ export default function CardEditor() {
   const handleSave = async () => {
     if (!card) return;
 
-    // Validate data before saving
     try {
       const validationData = {
         first_name: card.first_name || "",
@@ -301,7 +304,6 @@ export default function CardEditor() {
 
     setSaving(true);
 
-    // Generate QR code if published and doesn't exist OR has old URL format
     let qrCodeUrl = card.qr_code_url;
     const hasOldQRFormat = qrCodeUrl && !qrCodeUrl.includes("tagex.app");
     if (card.is_published && card.share_url && (!qrCodeUrl || hasOldQRFormat)) {
@@ -349,7 +351,6 @@ export default function CardEditor() {
 
     const newStatus = !card.is_published;
 
-    // Generate QR code when publishing OR regenerate if old format
     let qrCodeUrl = card.qr_code_url;
     const hasOldQRFormat = qrCodeUrl && !qrCodeUrl.includes("tagex.app");
     if (newStatus && card.share_url && (!qrCodeUrl || hasOldQRFormat)) {
@@ -564,6 +565,7 @@ export default function CardEditor() {
             </CardContent>
           </Card>
 
+          {/* BASIC INFORMATION */}
           <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
@@ -601,14 +603,10 @@ export default function CardEditor() {
                   </Button>
                 </div>
 
-                {/* Preview line */}
+                {/* Single top preview bar (uses getFormattedName) */}
                 <div className="text-sm text-muted-foreground mb-2 p-2 bg-muted/50 rounded-md">
                   <span className="font-medium">Preview: </span>
-                  {card.prefix && `${card.prefix} `}
-                  {card.first_name || "First"}
-                  {card.middle_name && ` ${card.middle_name}`}
-                  {card.last_name || "Last"}
-                  {card.suffix && `, ${card.suffix}`}
+                  {getFormattedName()}
                 </div>
 
                 {/* COMPACT HORIZONTAL NAME FIELDS */}
@@ -756,12 +754,6 @@ export default function CardEditor() {
                     {validationErrors.suffix && <p className="text-sm text-destructive">{validationErrors.suffix}</p>}
                   </div>
                 )}
-
-                {/* Live name preview */}
-                <div className="rounded-lg bg-muted/50 p-4 border border-border">
-                  <Label className="text-xs text-muted-foreground mb-2 block">Preview</Label>
-                  <p className="text-lg font-medium text-foreground">{getFormattedName()}</p>
-                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -878,19 +870,18 @@ export default function CardEditor() {
                   {card.cover_url && (
                     <>
                       <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
-                      {/* Subtle bottom gradient overlay for contrast without blurring the image */}
                       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent"></div>
                     </>
                   )}
 
-                  {/* Avatar - Bottom Left - Half overlapping the cover */}
+                  {/* Avatar */}
                   <div className="absolute -bottom-10 left-4 h-20 w-20 sm:h-24 sm:w-24 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                     {card.avatar_url && (
                       <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
                     )}
                   </div>
 
-                  {/* Logo - Bottom Right - Half overlapping the cover */}
+                  {/* Logo */}
                   {card.logo_url && (
                     <div className="absolute -bottom-8 right-4 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
                       <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
