@@ -632,7 +632,10 @@ export default function CardEditor() {
                         }}
                         placeholder="Mr."
                         maxLength={20}
-                        className={cn("h-9 text-sm text-center", validationErrors.prefix && "border-destructive")}
+                        className={cn(
+                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
+                          validationErrors.prefix && "border-destructive",
+                        )}
                       />
                     </div>
 
@@ -656,7 +659,10 @@ export default function CardEditor() {
                         }}
                         placeholder="Juan"
                         maxLength={50}
-                        className={cn("h-9 text-sm text-center", validationErrors.first_name && "border-destructive")}
+                        className={cn(
+                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
+                          validationErrors.first_name && "border-destructive",
+                        )}
                       />
                     </div>
 
@@ -678,9 +684,12 @@ export default function CardEditor() {
                           }));
                           setCard({ ...card, middle_name: capitalized });
                         }}
-                        placeholder="Santos"
+                        placeholder="Angeles"
                         maxLength={50}
-                        className={cn("h-9 text-sm text-center", validationErrors.middle_name && "border-destructive")}
+                        className={cn(
+                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
+                          validationErrors.middle_name && "border-destructive",
+                        )}
                       />
                     </div>
 
@@ -702,9 +711,12 @@ export default function CardEditor() {
                           }));
                           setCard({ ...card, last_name: capitalized });
                         }}
-                        placeholder="Dela Cruz"
+                        placeholder="Tamayao"
                         maxLength={50}
-                        className={cn("h-9 text-sm text-center", validationErrors.last_name && "border-destructive")}
+                        className={cn(
+                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
+                          validationErrors.last_name && "border-destructive",
+                        )}
                       />
                     </div>
 
@@ -728,7 +740,10 @@ export default function CardEditor() {
                         }}
                         placeholder="Jr."
                         maxLength={20}
-                        className={cn("h-9 text-sm text-center", validationErrors.suffix && "border-destructive")}
+                        className={cn(
+                          "h-9 text-sm text-center focus-visible:border-[#D4AF37] focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-0",
+                          validationErrors.suffix && "border-destructive",
+                        )}
                       />
                     </div>
                   </div>
