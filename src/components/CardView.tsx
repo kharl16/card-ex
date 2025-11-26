@@ -165,6 +165,9 @@ export default function CardView({
     }
   };
 
+  const primaryColor = theme.primary || "#D4AF37";
+  const accentColor = theme.accent || "#FACC15";
+
   return (
     <Card
       className="overflow-hidden border-0 rounded-xl shadow-lg transition-all duration-500 ease-out"
@@ -197,19 +200,25 @@ export default function CardView({
           </>
         )}
 
-        {/* Avatar - Bottom Left - Half overlapping the cover with theme.primary border */}
-        <div
-          className="absolute -bottom-10 left-4 h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-muted overflow-hidden shadow-2xl hover:scale-105 transition-all duration-300 z-10"
-          style={{
-            borderWidth: 4,
-            borderStyle: "solid",
-            borderColor: theme.primary || "#D4AF37",
-            boxShadow: "0 0 0 4px rgba(0, 0, 0, 0.3), 0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-          }}
-        >
-          {card.avatar_url && (
-            <img src={card.avatar_url} alt={getLiveNameFromCard(card)} className="h-full w-full object-cover" />
-          )}
+        {/* Avatar – upgraded elegant frame */}
+        <div className="absolute -bottom-12 left-4 z-10">
+          <div
+            className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-2xl transition-transform duration-300 hover:scale-105"
+            style={{
+              background: `conic-gradient(from 180deg at 50% 50%, ${primaryColor} 0deg, ${accentColor} 120deg, ${primaryColor} 240deg, ${accentColor} 360deg)`,
+              boxShadow: "0 18px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.5)",
+            }}
+          >
+            {/* Inner dark plate */}
+            <div className="absolute inset-[4px] rounded-full bg-background/95 flex items-center justify-center">
+              {/* Soft inner white edge + photo */}
+              <div className="h-[92%] w-[92%] rounded-full overflow-hidden border border-white/80 bg-black/40">
+                {card.avatar_url && (
+                  <img src={card.avatar_url} alt={getLiveNameFromCard(card)} className="h-full w-full object-cover" />
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Logo - Bottom Right - Half overlapping the cover */}
@@ -221,7 +230,7 @@ export default function CardView({
       </div>
 
       {/* Profile Info */}
-      <div className="px-4 pt-14 pb-4 transition-colors duration-500">
+      <div className="px-4 pt-16 pb-4 transition-colors duration-500">
         <h1 className="text-xl sm:text-2xl font-bold transition-colors duration-500">{getLiveNameFromCard(card)}</h1>
         {card.title && (
           <p className="text-sm sm:text-lg opacity-80 mt-1 transition-colors duration-500">{card.title}</p>
