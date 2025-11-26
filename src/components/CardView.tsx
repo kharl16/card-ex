@@ -174,16 +174,15 @@ export default function CardView({
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      {/* Header with full-bleed cover image */}
+      {/* Header with full-bleed cover image (no overflow-hidden here so avatar/logo can hang over) */}
       <div
-        className="relative w-full h-40 sm:h-48 md:h-56 overflow-hidden transition-all duration-500 ease-out"
+        className="relative w-full h-40 sm:h-48 md:h-56 transition-all duration-500 ease-out"
         style={{
           backgroundImage:
             !card.cover_url && theme?.primary
               ? `linear-gradient(to bottom right, ${theme.primary}33, ${theme.primary}0D)`
               : undefined,
-          backgroundColor:
-            !card.cover_url && theme?.primary ? undefined : !card.cover_url ? "hsl(var(--primary) / 0.2)" : undefined,
+          backgroundColor: !card.cover_url && !theme?.primary ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
         {card.cover_url && (
@@ -200,7 +199,7 @@ export default function CardView({
 
         {/* Avatar - Bottom Left - Half overlapping the cover with theme.primary border */}
         <div
-          className="absolute -bottom-10 left-4 h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-muted overflow-hidden shadow-2xl hover:scale-105 transition-all duration-300"
+          className="absolute -bottom-10 left-4 h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-muted overflow-hidden shadow-2xl hover:scale-105 transition-all duration-300 z-10"
           style={{
             borderWidth: 4,
             borderStyle: "solid",
@@ -215,7 +214,7 @@ export default function CardView({
 
         {/* Logo - Bottom Right - Half overlapping the cover */}
         {card.logo_url && (
-          <div className="absolute -bottom-8 right-4 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
+          <div className="absolute -bottom-8 right-4 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300 z-10">
             <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
           </div>
         )}
