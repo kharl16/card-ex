@@ -822,19 +822,21 @@ export default function CardEditor() {
 
         {/* Live Preview */}
         <div className="lg:sticky lg:top-24 lg:h-fit">
-          <Card className="overflow-hidden border-border/50">
+          <Card className="overflow-hidden border-border/50 transition-all duration-300">
             <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3">
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
-              <CardView
-                card={card}
-                socialLinks={socialLinks}
-                productImages={productImages}
-                isInteractive={false}
-                showQRCode={false}
-                showVCardButtons={false}
-              />
+              <div className="transition-all duration-500 ease-out">
+                <CardView
+                  card={card}
+                  socialLinks={socialLinks}
+                  productImages={productImages}
+                  isInteractive={false}
+                  showQRCode={false}
+                  showVCardButtons={false}
+                />
+              </div>
             </CardContent>
           </Card>
         </div>
