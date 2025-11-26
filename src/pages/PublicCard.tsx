@@ -5,6 +5,9 @@ import type { Tables } from "@/integrations/supabase/types";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import CardView, { SocialLink, ProductImage } from "@/components/CardView";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
+import { getActiveTheme, CardTheme } from "@/lib/theme";
+import { Button } from "@/components/ui/button";
+import { Sun, Moon } from "lucide-react";
 
 type CardData = Tables<"cards">;
 
@@ -18,11 +21,49 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [viewerMode, setViewerMode] = useState<"light" | "dark" | null>(null);
+
+  // Get the effective theme (with A/B variant support)
+  const rawTheme = card?.theme as CardTheme | undefined;
+  const hasVariants = rawTheme?.variants !== undefined;
+  
+  // If viewer has selected a mode override, apply it
+  const getEffectiveTheme = () => {
+    const activeTheme = getActiveTheme(rawTheme);
+    
+    if (viewerMode && hasVariants) {
+      // Find a variant that matches the viewer's preference, or adjust current theme
+      const variants = rawTheme?.variants;
+      if (variants) {
+        // Check if either variant matches the desired mode
+        const variantA = variants.A;
+        const variantB = variants.B;
+        
+        const isALight = variantA?.background === "#F8F8F8" || variantA?.text === "#111111";
+        const isBLight = variantB?.background === "#F8F8F8" || variantB?.text === "#111111";
+        
+        if (viewerMode === "light") {
+          if (isALight) return { ...activeTheme, ...variantA };
+          if (isBLight) return { ...activeTheme, ...variantB };
+          // Fallback: just lighten the current theme
+          return { ...activeTheme, background: "#F8F8F8", text: "#111111" };
+        } else {
+          if (!isALight && variantA) return { ...activeTheme, ...variantA };
+          if (!isBLight && variantB) return { ...activeTheme, ...variantB };
+          // Fallback: darken the current theme
+          return { ...activeTheme, background: "#0B0B0C", text: "#F8F8F8" };
+        }
+      }
+    }
+    
+    return activeTheme;
+  };
+  
+  const theme = getEffectiveTheme();
 
   // Apply custom theme colors to document
   useEffect(() => {
-    if (card?.theme) {
-      const theme = card.theme as any;
+    if (theme) {
       if (theme.primary) {
         document.documentElement.style.setProperty("--primary", theme.primary);
       }
@@ -47,7 +88,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       document.documentElement.style.removeProperty("--accent");
       document.documentElement.style.fontFamily = "";
     };
-  }, [card?.theme]);
+  }, [theme]);
 
   useEffect(() => {
     loadCard();
@@ -122,7 +163,6 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
     );
   }
 
-  const theme = card.theme as any;
   const getBackgroundStyle = () => {
     if (!theme) return {};
     if (theme.backgroundType === "gradient") {
@@ -138,17 +178,49 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
     return { backgroundColor: theme.background };
   };
 
+  // Create a modified card object with the effective theme for CardView
+  const cardWithEffectiveTheme = {
+    ...card,
+    theme: theme as any,
+  };
+
   return (
     <div
-      className="min-h-screen bg-background"
+      className="min-h-screen bg-background transition-all duration-500"
       style={{
         ...getBackgroundStyle(),
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      <div className="mx-auto max-w-2xl">
+      {/* Viewer mode toggle (only if card has variants) */}
+      {hasVariants && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="flex gap-1 bg-background/80 backdrop-blur-sm rounded-full p-1 border border-border/50 shadow-lg">
+            <Button
+              variant={viewerMode === "light" ? "default" : "ghost"}
+              size="sm"
+              className="rounded-full h-8 w-8 p-0 transition-all duration-300"
+              onClick={() => setViewerMode(viewerMode === "light" ? null : "light")}
+              title="Light mode"
+            >
+              <Sun className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewerMode === "dark" ? "default" : "ghost"}
+              size="sm"
+              className="rounded-full h-8 w-8 p-0 transition-all duration-300"
+              onClick={() => setViewerMode(viewerMode === "dark" ? null : "dark")}
+              title="Dark mode"
+            >
+              <Moon className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      <div className="mx-auto max-w-2xl transition-all duration-500">
         <CardView
-          card={card}
+          card={cardWithEffectiveTheme}
           socialLinks={socialLinks}
           productImages={productImages}
           isInteractive={true}

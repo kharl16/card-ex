@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ProductRingCarousel from "@/components/ProductRingCarousel";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
+import { getActiveTheme } from "@/lib/theme";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
@@ -112,7 +113,8 @@ export default function CardView({
   showQRCode = false,
   showVCardButtons = false,
 }: CardViewProps) {
-  const theme = (card.theme as any) || {
+  // Use getActiveTheme for A/B variant support
+  const theme = getActiveTheme(card.theme) || {
     primary: "#D4AF37",
     background: "#0B0B0C",
     text: "#F8F8F8",
@@ -170,7 +172,7 @@ export default function CardView({
 
   return (
     <Card
-      className="overflow-hidden border-0 rounded-xl shadow-lg"
+      className="overflow-hidden border-0 rounded-xl shadow-lg transition-all duration-500 ease-out"
       style={{
         ...getBackgroundStyle(),
         color: theme?.text || undefined,
@@ -179,16 +181,17 @@ export default function CardView({
     >
       {/* Header with cover image */}
       <div
-        className="relative h-40 sm:h-48 md:h-56 bg-gradient-to-br from-primary/20 to-primary/5"
+        className="relative h-40 sm:h-48 md:h-56 transition-all duration-500 ease-out"
         style={{
           backgroundImage: theme?.primary
             ? `linear-gradient(to bottom right, ${theme.primary}33, ${theme.primary}0D)`
             : undefined,
+          backgroundColor: theme?.primary ? undefined : "hsl(var(--primary) / 0.2)",
         }}
       >
         {card.cover_url && (
           <>
-            <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
+            <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain transition-opacity duration-300" />
             {/* Subtle bottom gradient overlay for contrast without blurring the image */}
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent"></div>
           </>
@@ -196,7 +199,7 @@ export default function CardView({
 
         {/* Avatar - Bottom Left - Half overlapping the cover with theme.primary border */}
         <div
-          className="absolute -bottom-10 left-4 h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-muted overflow-hidden shadow-2xl hover:scale-105 transition-transform duration-300"
+          className="absolute -bottom-10 left-4 h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-muted overflow-hidden shadow-2xl hover:scale-105 transition-all duration-300"
           style={{
             borderWidth: 4,
             borderStyle: "solid",
@@ -204,7 +207,7 @@ export default function CardView({
             boxShadow: `0 0 0 4px rgba(0, 0, 0, 0.3), 0 25px 50px -12px rgba(0, 0, 0, 0.25)`,
           }}
         >
-        {card.avatar_url && (
+          {card.avatar_url && (
             <img
               src={card.avatar_url}
               alt={getLiveNameFromCard(card)}
@@ -222,16 +225,16 @@ export default function CardView({
       </div>
 
       {/* Profile Info */}
-      <div className="px-4 pt-14 pb-4">
-        <h1 className="text-xl sm:text-2xl font-bold">{getLiveNameFromCard(card)}</h1>
-        {card.title && <p className="text-sm sm:text-lg text-foreground/80 mt-1">{card.title}</p>}
-        {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
-        {card.bio && <p className="mt-3 text-sm text-muted-foreground">{card.bio}</p>}
+      <div className="px-4 pt-14 pb-4 transition-colors duration-500">
+        <h1 className="text-xl sm:text-2xl font-bold transition-colors duration-500">{getLiveNameFromCard(card)}</h1>
+        {card.title && <p className="text-sm sm:text-lg opacity-80 mt-1 transition-colors duration-500">{card.title}</p>}
+        {card.company && <p className="text-sm text-muted-foreground transition-colors duration-500">{card.company}</p>}
+        {card.bio && <p className="mt-3 text-sm text-muted-foreground transition-colors duration-500">{card.bio}</p>}
       </div>
 
       {/* Product Carousel */}
       {card.carousel_enabled !== false && productImages.length > 0 && (
-        <div className="my-4">
+        <div className="my-4 transition-opacity duration-500">
           <ProductRingCarousel
             images={productImages.map((img) => ({
               id: img.id,
@@ -250,7 +253,7 @@ export default function CardView({
           {socialLinks.map((link) => {
             const IconComponent = iconMap[link.icon] || Globe;
             const brandColor = socialBrandColors[link.kind] || "bg-primary";
-            
+
             if (isInteractive) {
               return (
                 <a
@@ -258,18 +261,18 @@ export default function CardView({
                   href={link.value}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md`}
                   title={link.label}
                 >
                   <IconComponent className="h-6 w-6 text-white" />
                 </a>
               );
             }
-            
+
             return (
               <div
                 key={link.id}
-                className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-200 cursor-pointer shadow-md`}
+                className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md`}
                 title={link.label}
               >
                 <IconComponent className="h-6 w-6 text-white" />
@@ -315,9 +318,9 @@ export default function CardView({
         )}
 
         {card.location && (
-          <div className="flex w-full items-center gap-3">
+          <div className="flex w-full items-center gap-3 transition-colors duration-500">
             <div
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.location} shadow-md`}
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.location} shadow-md transition-transform duration-300`}
             >
               <MapPin className="h-6 w-6 text-white" />
             </div>
@@ -331,16 +334,16 @@ export default function CardView({
 
       {/* QR Code */}
       {showQRCode && card.qr_code_url && (
-        <div className="flex flex-col items-center gap-3 p-6 bg-muted/30">
+        <div className="flex flex-col items-center gap-3 p-6 bg-muted/30 transition-colors duration-500">
           <img
             src={card.qr_code_url}
             alt="QR Code"
-            className="w-48 h-48 rounded-lg border border-border"
+            className="w-48 h-48 rounded-lg border border-border transition-all duration-300"
           />
           <a
             href={card.qr_code_url}
             download={`${card.slug}-qr.png`}
-            className="text-sm text-primary hover:underline flex items-center gap-2"
+            className="text-sm text-primary hover:underline flex items-center gap-2 transition-colors duration-300"
           >
             <Download className="h-4 w-4" />
             Download QR Code
@@ -353,7 +356,7 @@ export default function CardView({
         {isInteractive && showVCardButtons ? (
           <div className="space-y-3">
             <Button
-              className="w-full gap-2 bg-green-500 hover:bg-green-600"
+              className="w-full gap-2 bg-green-500 hover:bg-green-600 transition-colors duration-300"
               onClick={() => handleDownloadVCard(true)}
             >
               <Download className="h-4 w-4" />
@@ -361,7 +364,7 @@ export default function CardView({
             </Button>
             <Button
               variant="outline"
-              className="w-full gap-2"
+              className="w-full gap-2 transition-colors duration-300"
               onClick={() => handleDownloadVCard(false)}
             >
               <Download className="h-4 w-4" />
@@ -372,7 +375,12 @@ export default function CardView({
             </p>
           </div>
         ) : (
-          <button className="w-full h-14 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-full transition-colors">
+          <button
+            className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500"
+            style={{
+              backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
+            }}
+          >
             Save Contact
           </button>
         )}
@@ -401,7 +409,7 @@ function ContactButton({
   const content = (
     <>
       <div
-        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${colorClass} group-hover:scale-110 transition-transform duration-200 shadow-md`}
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${colorClass} group-hover:scale-110 transition-all duration-300 shadow-md`}
       >
         {icon}
       </div>
@@ -416,12 +424,12 @@ function ContactButton({
     return (
       <button
         onClick={onClick}
-        className="flex w-full items-center gap-3 text-left group"
+        className="flex w-full items-center gap-3 text-left group transition-colors duration-500"
       >
         {content}
       </button>
     );
   }
 
-  return <div className="flex w-full items-center gap-3 group">{content}</div>;
+  return <div className="flex w-full items-center gap-3 group transition-colors duration-500">{content}</div>;
 }

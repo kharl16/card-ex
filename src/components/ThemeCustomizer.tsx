@@ -1,30 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Palette, Sun, Moon } from "lucide-react";
-
-interface ThemeProps {
-  primary: string;
-  background: string;
-  text: string;
-  accent?: string;
-  buttonColor?: string;
-  font?: string;
-  mode?: 'light' | 'dark';
-  backgroundType?: 'solid' | 'gradient' | 'pattern';
-  gradientStart?: string;
-  gradientEnd?: string;
-  gradientDirection?: string;
-  patternType?: string;
-  patternColor?: string;
-  patternOpacity?: number;
-}
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Palette, Sun, Moon, Sparkles } from "lucide-react";
+import {
+  CardTheme,
+  ThemeVariant,
+  DEFAULT_THEME,
+  LIGHT_MODE_DEFAULTS,
+  DARK_MODE_DEFAULTS,
+  initializeVariants,
+  updateVariant,
+  switchVariant,
+} from "@/lib/theme";
 
 interface ThemeCustomizerProps {
-  theme: ThemeProps;
-  onChange: (theme: ThemeProps) => void;
+  theme: CardTheme;
+  onChange: (theme: CardTheme) => void;
 }
 
 const THEME_PRESETS = {
@@ -35,8 +29,8 @@ const THEME_PRESETS = {
     text: "#1f2937",
     accent: "#3b82f6",
     buttonColor: "#2563eb",
-    mode: 'light' as const,
-    backgroundType: 'solid' as const,
+    mode: "light" as const,
+    backgroundType: "solid" as const,
   },
   creative: {
     name: "Creative",
@@ -45,8 +39,8 @@ const THEME_PRESETS = {
     text: "#831843",
     accent: "#f472b6",
     buttonColor: "#ec4899",
-    mode: 'light' as const,
-    backgroundType: 'solid' as const,
+    mode: "light" as const,
+    backgroundType: "solid" as const,
   },
   modern: {
     name: "Modern",
@@ -55,8 +49,8 @@ const THEME_PRESETS = {
     text: "#f1f5f9",
     accent: "#a78bfa",
     buttonColor: "#8b5cf6",
-    mode: 'dark' as const,
-    backgroundType: 'gradient' as const,
+    mode: "dark" as const,
+    backgroundType: "gradient" as const,
     gradientStart: "#0f172a",
     gradientEnd: "#1e1b4b",
     gradientDirection: "to-br",
@@ -68,8 +62,8 @@ const THEME_PRESETS = {
     text: "#D4AF37",
     accent: "#E6C85C",
     buttonColor: "#D4AF37",
-    mode: 'dark' as const,
-    backgroundType: 'solid' as const,
+    mode: "dark" as const,
+    backgroundType: "solid" as const,
   },
   nature: {
     name: "Nature",
@@ -78,9 +72,9 @@ const THEME_PRESETS = {
     text: "#14532d",
     accent: "#10b981",
     buttonColor: "#059669",
-    mode: 'light' as const,
-    backgroundType: 'pattern' as const,
-    patternType: 'dots',
+    mode: "light" as const,
+    backgroundType: "pattern" as const,
+    patternType: "dots",
     patternColor: "#059669",
     patternOpacity: 0.05,
   },
@@ -118,39 +112,127 @@ const PATTERN_TYPES = [
   { value: "waves", label: "Waves" },
 ];
 
-export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProps) {
+export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCustomizerProps) {
+  // Initialize variants if needed
+  const [theme, setTheme] = useState<CardTheme>(() => initializeVariants(rawTheme || DEFAULT_THEME));
+  const [activeVariant, setActiveVariant] = useState<"A" | "B">(theme.activeVariant || "A");
+
+  // Sync with parent when rawTheme changes externally
+  useEffect(() => {
+    const initialized = initializeVariants(rawTheme || DEFAULT_THEME);
+    setTheme(initialized);
+    setActiveVariant(initialized.activeVariant || "A");
+  }, [rawTheme]);
+
+  // Get current variant's values
+  const currentVariant = theme.variants?.[activeVariant] || theme;
+  const baseMode = theme.baseMode || (currentVariant.background === DARK_MODE_DEFAULTS.background ? "dark" : "light");
+
+  const handleVariantChange = (updates: Partial<ThemeVariant>) => {
+    const updated = updateVariant(theme, activeVariant, updates);
+    setTheme(updated);
+    onChange(updated);
+  };
+
+  const handleSwitchVariant = (variantKey: "A" | "B") => {
+    setActiveVariant(variantKey);
+    const updated = switchVariant(theme, variantKey);
+    setTheme(updated);
+    onChange(updated);
+  };
+
+  const handleBaseModeChange = (mode: "light" | "dark") => {
+    const defaults = mode === "dark" ? DARK_MODE_DEFAULTS : LIGHT_MODE_DEFAULTS;
+    const updated = updateVariant(theme, activeVariant, {
+      ...defaults,
+    });
+    const withBaseMode = { ...updated, baseMode: mode };
+    setTheme(withBaseMode);
+    onChange(withBaseMode);
+  };
+
   const applyPreset = (presetKey: keyof typeof THEME_PRESETS) => {
-    const preset = THEME_PRESETS[presetKey] as any;
-    onChange({
-      ...theme,
+    const preset = THEME_PRESETS[presetKey];
+    handleVariantChange({
       primary: preset.primary,
       background: preset.background,
       text: preset.text,
       accent: preset.accent,
       buttonColor: preset.buttonColor,
-      mode: preset.mode,
       backgroundType: preset.backgroundType,
-      gradientStart: preset.gradientStart || undefined,
-      gradientEnd: preset.gradientEnd || undefined,
-      gradientDirection: preset.gradientDirection || undefined,
-      patternType: preset.patternType || undefined,
-      patternColor: preset.patternColor || undefined,
-      patternOpacity: preset.patternOpacity ?? undefined,
+      gradientStart: (preset as any).gradientStart,
+      gradientEnd: (preset as any).gradientEnd,
+      gradientDirection: (preset as any).gradientDirection,
+      patternType: (preset as any).patternType,
+      patternColor: (preset as any).patternColor,
+      patternOpacity: (preset as any).patternOpacity,
     });
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Palette className="h-5 w-5" />
+    <Card className="border-border/50">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Palette className="h-5 w-5 text-primary" />
           Theme Customization
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* A/B Theme Variant Tabs */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Theme Variant</Label>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Sparkles className="h-3 w-3" />
+              Save two looks
+            </div>
+          </div>
+          <Tabs value={activeVariant} onValueChange={(v) => handleSwitchVariant(v as "A" | "B")}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger 
+                value="A" 
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Theme A
+              </TabsTrigger>
+              <TabsTrigger 
+                value="B"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Theme B
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        {/* Light / Dark Base Mode Toggle */}
+        <div className="space-y-2">
+          <Label>Base Mode</Label>
+          <div className="flex gap-2">
+            <Button
+              variant={baseMode === "light" ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleBaseModeChange("light")}
+              className="flex-1 transition-all duration-300"
+            >
+              <Sun className="h-4 w-4 mr-2" />
+              Light
+            </Button>
+            <Button
+              variant={baseMode === "dark" ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleBaseModeChange("dark")}
+              className="flex-1 transition-all duration-300"
+            >
+              <Moon className="h-4 w-4 mr-2" />
+              Dark
+            </Button>
+          </div>
+        </div>
+
         {/* Theme Presets */}
         <div className="space-y-2">
-          <Label>Theme Presets</Label>
+          <Label>Quick Presets</Label>
           <div className="grid grid-cols-2 gap-2">
             {Object.entries(THEME_PRESETS).map(([key, preset]) => (
               <Button
@@ -158,10 +240,10 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
                 variant="outline"
                 size="sm"
                 onClick={() => applyPreset(key as keyof typeof THEME_PRESETS)}
-                className="justify-start"
+                className="justify-start hover:border-primary/50 transition-colors"
               >
-                <div 
-                  className="w-4 h-4 rounded-full mr-2" 
+                <div
+                  className="w-4 h-4 rounded-full mr-2 ring-1 ring-border"
                   style={{ backgroundColor: preset.primary }}
                 />
                 {preset.name}
@@ -170,45 +252,20 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
           </div>
         </div>
 
-        {/* Mode Toggle */}
-        <div className="space-y-2">
-          <Label>Preview Mode</Label>
-          <div className="flex gap-2">
-            <Button
-              variant={theme.mode === 'light' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onChange({ ...theme, mode: 'light' })}
-              className="flex-1"
-            >
-              <Sun className="h-4 w-4 mr-2" />
-              Light
-            </Button>
-            <Button
-              variant={theme.mode === 'dark' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => onChange({ ...theme, mode: 'dark' })}
-              className="flex-1"
-            >
-              <Moon className="h-4 w-4 mr-2" />
-              Dark
-            </Button>
-          </div>
-        </div>
-
         {/* Font Selection */}
         <div className="space-y-2">
           <Label htmlFor="font-select">Font Family</Label>
           <Select
-            value={theme.font || "Inter"}
-            onValueChange={(value) => onChange({ ...theme, font: value })}
+            value={currentVariant.font || "Inter"}
+            onValueChange={(value) => handleVariantChange({ font: value })}
           >
             <SelectTrigger id="font-select">
               <SelectValue placeholder="Select font" />
             </SelectTrigger>
             <SelectContent>
               {FONT_OPTIONS.map((font) => (
-                <SelectItem 
-                  key={font.value} 
+                <SelectItem
+                  key={font.value}
                   value={font.value}
                   style={{ fontFamily: `"${font.value}", sans-serif` }}
                 >
@@ -226,14 +283,14 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
             <input
               id="primary-color"
               type="color"
-              value={theme.primary}
-              onChange={(e) => onChange({ ...theme, primary: e.target.value })}
+              value={currentVariant.primary || DEFAULT_THEME.primary}
+              onChange={(e) => handleVariantChange({ primary: e.target.value })}
               className="h-10 w-20 rounded border border-border cursor-pointer"
             />
             <input
               type="text"
-              value={theme.primary}
-              onChange={(e) => onChange({ ...theme, primary: e.target.value })}
+              value={currentVariant.primary || DEFAULT_THEME.primary}
+              onChange={(e) => handleVariantChange({ primary: e.target.value })}
               className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="#D4AF37"
             />
@@ -247,14 +304,14 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
             <input
               id="accent-color"
               type="color"
-              value={theme.accent || theme.primary}
-              onChange={(e) => onChange({ ...theme, accent: e.target.value })}
+              value={currentVariant.accent || currentVariant.primary || DEFAULT_THEME.primary}
+              onChange={(e) => handleVariantChange({ accent: e.target.value })}
               className="h-10 w-20 rounded border border-border cursor-pointer"
             />
             <input
               type="text"
-              value={theme.accent || theme.primary}
-              onChange={(e) => onChange({ ...theme, accent: e.target.value })}
+              value={currentVariant.accent || currentVariant.primary || DEFAULT_THEME.primary}
+              onChange={(e) => handleVariantChange({ accent: e.target.value })}
               className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="#E6C85C"
             />
@@ -268,14 +325,14 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
             <input
               id="button-color"
               type="color"
-              value={theme.buttonColor || theme.primary}
-              onChange={(e) => onChange({ ...theme, buttonColor: e.target.value })}
+              value={currentVariant.buttonColor || currentVariant.primary || DEFAULT_THEME.primary}
+              onChange={(e) => handleVariantChange({ buttonColor: e.target.value })}
               className="h-10 w-20 rounded border border-border cursor-pointer"
             />
             <input
               type="text"
-              value={theme.buttonColor || theme.primary}
-              onChange={(e) => onChange({ ...theme, buttonColor: e.target.value })}
+              value={currentVariant.buttonColor || currentVariant.primary || DEFAULT_THEME.primary}
+              onChange={(e) => handleVariantChange({ buttonColor: e.target.value })}
               className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="#D4AF37"
             />
@@ -287,26 +344,39 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
           <Label>Background Type</Label>
           <div className="flex gap-2">
             <Button
-              variant={(!theme.backgroundType || theme.backgroundType === 'solid') ? 'default' : 'outline'}
+              variant={(!currentVariant.backgroundType || currentVariant.backgroundType === "solid") ? "default" : "outline"}
               size="sm"
-              onClick={() => onChange({ ...theme, backgroundType: 'solid' })}
-              className="flex-1"
+              onClick={() => handleVariantChange({ backgroundType: "solid" })}
+              className="flex-1 transition-all duration-300"
             >
               Solid
             </Button>
             <Button
-              variant={theme.backgroundType === 'gradient' ? 'default' : 'outline'}
+              variant={currentVariant.backgroundType === "gradient" ? "default" : "outline"}
               size="sm"
-              onClick={() => onChange({ ...theme, backgroundType: 'gradient', gradientStart: theme.gradientStart || theme.background, gradientEnd: theme.gradientEnd || theme.primary })}
-              className="flex-1"
+              onClick={() =>
+                handleVariantChange({
+                  backgroundType: "gradient",
+                  gradientStart: currentVariant.gradientStart || currentVariant.background,
+                  gradientEnd: currentVariant.gradientEnd || currentVariant.primary,
+                })
+              }
+              className="flex-1 transition-all duration-300"
             >
               Gradient
             </Button>
             <Button
-              variant={theme.backgroundType === 'pattern' ? 'default' : 'outline'}
+              variant={currentVariant.backgroundType === "pattern" ? "default" : "outline"}
               size="sm"
-              onClick={() => onChange({ ...theme, backgroundType: 'pattern', patternType: theme.patternType || 'dots', patternColor: theme.patternColor || theme.primary, patternOpacity: theme.patternOpacity ?? 0.1 })}
-              className="flex-1"
+              onClick={() =>
+                handleVariantChange({
+                  backgroundType: "pattern",
+                  patternType: currentVariant.patternType || "dots",
+                  patternColor: currentVariant.patternColor || currentVariant.primary,
+                  patternOpacity: currentVariant.patternOpacity ?? 0.1,
+                })
+              }
+              className="flex-1 transition-all duration-300"
             >
               Pattern
             </Button>
@@ -314,21 +384,21 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
         </div>
 
         {/* Solid Background Color */}
-        {(!theme.backgroundType || theme.backgroundType === 'solid') && (
-          <div className="space-y-2">
+        {(!currentVariant.backgroundType || currentVariant.backgroundType === "solid") && (
+          <div className="space-y-2 animate-fade-in">
             <Label htmlFor="background-color">Background Color</Label>
             <div className="flex gap-2 items-center">
               <input
                 id="background-color"
                 type="color"
-                value={theme.background}
-                onChange={(e) => onChange({ ...theme, background: e.target.value })}
+                value={currentVariant.background || DEFAULT_THEME.background}
+                onChange={(e) => handleVariantChange({ background: e.target.value })}
                 className="h-10 w-20 rounded border border-border cursor-pointer"
               />
               <input
                 type="text"
-                value={theme.background}
-                onChange={(e) => onChange({ ...theme, background: e.target.value })}
+                value={currentVariant.background || DEFAULT_THEME.background}
+                onChange={(e) => handleVariantChange({ background: e.target.value })}
                 className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
                 placeholder="#0B0B0C"
               />
@@ -337,13 +407,13 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
         )}
 
         {/* Gradient Options */}
-        {theme.backgroundType === 'gradient' && (
-          <div className="space-y-4 p-4 border border-border rounded-lg">
+        {currentVariant.backgroundType === "gradient" && (
+          <div className="space-y-4 p-4 border border-border rounded-lg animate-fade-in">
             <div className="space-y-2">
               <Label>Gradient Direction</Label>
               <Select
-                value={theme.gradientDirection || "to-br"}
-                onValueChange={(value) => onChange({ ...theme, gradientDirection: value })}
+                value={currentVariant.gradientDirection || "to-br"}
+                onValueChange={(value) => handleVariantChange({ gradientDirection: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select direction" />
@@ -364,14 +434,14 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
                   <input
                     id="gradient-start"
                     type="color"
-                    value={theme.gradientStart || theme.background}
-                    onChange={(e) => onChange({ ...theme, gradientStart: e.target.value })}
+                    value={currentVariant.gradientStart || currentVariant.background || DEFAULT_THEME.background}
+                    onChange={(e) => handleVariantChange({ gradientStart: e.target.value })}
                     className="h-10 w-14 rounded border border-border cursor-pointer"
                   />
                   <input
                     type="text"
-                    value={theme.gradientStart || theme.background}
-                    onChange={(e) => onChange({ ...theme, gradientStart: e.target.value })}
+                    value={currentVariant.gradientStart || currentVariant.background || DEFAULT_THEME.background}
+                    onChange={(e) => handleVariantChange({ gradientStart: e.target.value })}
                     className="flex-1 h-10 rounded-md border border-input bg-background px-2 text-xs"
                   />
                 </div>
@@ -382,44 +452,44 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
                   <input
                     id="gradient-end"
                     type="color"
-                    value={theme.gradientEnd || theme.primary}
-                    onChange={(e) => onChange({ ...theme, gradientEnd: e.target.value })}
+                    value={currentVariant.gradientEnd || currentVariant.primary || DEFAULT_THEME.primary}
+                    onChange={(e) => handleVariantChange({ gradientEnd: e.target.value })}
                     className="h-10 w-14 rounded border border-border cursor-pointer"
                   />
                   <input
                     type="text"
-                    value={theme.gradientEnd || theme.primary}
-                    onChange={(e) => onChange({ ...theme, gradientEnd: e.target.value })}
+                    value={currentVariant.gradientEnd || currentVariant.primary || DEFAULT_THEME.primary}
+                    onChange={(e) => handleVariantChange({ gradientEnd: e.target.value })}
                     className="flex-1 h-10 rounded-md border border-input bg-background px-2 text-xs"
                   />
                 </div>
               </div>
             </div>
             {/* Gradient Preview */}
-            <div 
-              className="h-12 rounded-lg border border-border"
-              style={{ background: getGradientCSS(theme) }}
+            <div
+              className="h-12 rounded-lg border border-border transition-all duration-500"
+              style={{ background: getGradientCSS(currentVariant) }}
             />
           </div>
         )}
 
         {/* Pattern Options */}
-        {theme.backgroundType === 'pattern' && (
-          <div className="space-y-4 p-4 border border-border rounded-lg">
+        {currentVariant.backgroundType === "pattern" && (
+          <div className="space-y-4 p-4 border border-border rounded-lg animate-fade-in">
             <div className="space-y-2">
               <Label htmlFor="background-color-pattern">Base Color</Label>
               <div className="flex gap-2 items-center">
                 <input
                   id="background-color-pattern"
                   type="color"
-                  value={theme.background}
-                  onChange={(e) => onChange({ ...theme, background: e.target.value })}
+                  value={currentVariant.background || DEFAULT_THEME.background}
+                  onChange={(e) => handleVariantChange({ background: e.target.value })}
                   className="h-10 w-20 rounded border border-border cursor-pointer"
                 />
                 <input
                   type="text"
-                  value={theme.background}
-                  onChange={(e) => onChange({ ...theme, background: e.target.value })}
+                  value={currentVariant.background || DEFAULT_THEME.background}
+                  onChange={(e) => handleVariantChange({ background: e.target.value })}
                   className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
                 />
               </div>
@@ -427,8 +497,8 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
             <div className="space-y-2">
               <Label>Pattern Type</Label>
               <Select
-                value={theme.patternType || "dots"}
-                onValueChange={(value) => onChange({ ...theme, patternType: value })}
+                value={currentVariant.patternType || "dots"}
+                onValueChange={(value) => handleVariantChange({ patternType: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select pattern" />
@@ -448,31 +518,34 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
                 <input
                   id="pattern-color"
                   type="color"
-                  value={theme.patternColor || theme.primary}
-                  onChange={(e) => onChange({ ...theme, patternColor: e.target.value })}
+                  value={currentVariant.patternColor || currentVariant.primary || DEFAULT_THEME.primary}
+                  onChange={(e) => handleVariantChange({ patternColor: e.target.value })}
                   className="h-10 w-full rounded border border-border cursor-pointer"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pattern-opacity">Opacity: {Math.round((theme.patternOpacity ?? 0.1) * 100)}%</Label>
+                <Label htmlFor="pattern-opacity">
+                  Opacity: {Math.round((currentVariant.patternOpacity ?? 0.1) * 100)}%
+                </Label>
                 <input
                   id="pattern-opacity"
                   type="range"
                   min="0.01"
                   max="0.5"
                   step="0.01"
-                  value={theme.patternOpacity ?? 0.1}
-                  onChange={(e) => onChange({ ...theme, patternOpacity: parseFloat(e.target.value) })}
+                  value={currentVariant.patternOpacity ?? 0.1}
+                  onChange={(e) => handleVariantChange({ patternOpacity: parseFloat(e.target.value) })}
                   className="w-full h-10"
                 />
               </div>
             </div>
             {/* Pattern Preview */}
-            <div 
-              className="h-12 rounded-lg border border-border"
-              style={{ 
-                backgroundColor: theme.background,
-                backgroundImage: getPatternCSS(theme),
+            <div
+              className="h-12 rounded-lg border border-border transition-all duration-500"
+              style={{
+                backgroundColor: currentVariant.background || DEFAULT_THEME.background,
+                backgroundImage: getPatternCSS(currentVariant),
+                backgroundSize: getPatternSize(currentVariant.patternType),
               }}
             />
           </div>
@@ -485,38 +558,40 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
             <input
               id="text-color"
               type="color"
-              value={theme.text}
-              onChange={(e) => onChange({ ...theme, text: e.target.value })}
+              value={currentVariant.text || DEFAULT_THEME.text}
+              onChange={(e) => handleVariantChange({ text: e.target.value })}
               className="h-10 w-20 rounded border border-border cursor-pointer"
             />
             <input
               type="text"
-              value={theme.text}
-              onChange={(e) => onChange({ ...theme, text: e.target.value })}
+              value={currentVariant.text || DEFAULT_THEME.text}
+              onChange={(e) => handleVariantChange({ text: e.target.value })}
               className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
               placeholder="#F8F8F8"
             />
           </div>
         </div>
 
-        {/* Text Color */}
+        {/* Live Preview Swatch */}
         <div className="space-y-2">
-          <Label htmlFor="text-color">Text Color</Label>
-          <div className="flex gap-2 items-center">
-            <input
-              id="text-color"
-              type="color"
-              value={theme.text}
-              onChange={(e) => onChange({ ...theme, text: e.target.value })}
-              className="h-10 w-20 rounded border border-border cursor-pointer"
-            />
-            <input
-              type="text"
-              value={theme.text}
-              onChange={(e) => onChange({ ...theme, text: e.target.value })}
-              className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
-              placeholder="#F8F8F8"
-            />
+          <Label>Live Preview</Label>
+          <div
+            className="h-20 rounded-lg border border-border flex items-center justify-center transition-all duration-500"
+            style={{
+              backgroundColor: currentVariant.background || DEFAULT_THEME.background,
+              color: currentVariant.text || DEFAULT_THEME.text,
+              fontFamily: currentVariant.font ? `"${currentVariant.font}", sans-serif` : undefined,
+            }}
+          >
+            <div className="text-center">
+              <div className="text-sm font-semibold">Preview Text</div>
+              <div
+                className="text-xs mt-1 px-3 py-1 rounded-full transition-all duration-500"
+                style={{ backgroundColor: currentVariant.primary || DEFAULT_THEME.primary }}
+              >
+                Button
+              </div>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -524,63 +599,69 @@ export default function ThemeCustomizer({ theme, onChange }: ThemeCustomizerProp
   );
 }
 
-// Helper functions for generating CSS
-export function getGradientCSS(theme: ThemeProps): string {
-  if (theme.backgroundType !== 'gradient') return theme.background;
-  
-  const direction = theme.gradientDirection || 'to-br';
+// CSS helper functions (exported for use in other components)
+export function getGradientCSS(theme: any): string {
+  const direction = theme?.gradientDirection || "to-br";
+  const start = theme?.gradientStart || theme?.background || "#0B0B0C";
+  const end = theme?.gradientEnd || theme?.primary || "#D4AF37";
+
   const directionMap: Record<string, string> = {
-    'to-r': 'to right',
-    'to-l': 'to left',
-    'to-t': 'to top',
-    'to-b': 'to bottom',
-    'to-br': 'to bottom right',
-    'to-bl': 'to bottom left',
-    'to-tr': 'to top right',
-    'to-tl': 'to top left',
+    "to-r": "to right",
+    "to-l": "to left",
+    "to-t": "to top",
+    "to-b": "to bottom",
+    "to-br": "to bottom right",
+    "to-bl": "to bottom left",
+    "to-tr": "to top right",
+    "to-tl": "to top left",
   };
-  
-  return `linear-gradient(${directionMap[direction] || 'to bottom right'}, ${theme.gradientStart || theme.background}, ${theme.gradientEnd || theme.primary})`;
+
+  return `linear-gradient(${directionMap[direction] || "to bottom right"}, ${start}, ${end})`;
 }
 
-export function getPatternCSS(theme: ThemeProps): string {
-  if (theme.backgroundType !== 'pattern') return 'none';
-  
-  const color = theme.patternColor || theme.primary;
-  const opacity = theme.patternOpacity ?? 0.1;
+export function getPatternCSS(theme: any): string {
+  const patternType = theme?.patternType || "dots";
+  const patternColor = theme?.patternColor || theme?.primary || "#D4AF37";
+  const opacity = theme?.patternOpacity ?? 0.1;
+
   const hexToRgba = (hex: string, alpha: number) => {
     const r = parseInt(hex.slice(1, 3), 16);
     const g = parseInt(hex.slice(3, 5), 16);
     const b = parseInt(hex.slice(5, 7), 16);
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   };
-  const patternColor = hexToRgba(color, opacity);
-  
-  switch (theme.patternType) {
-    case 'dots':
-      return `radial-gradient(circle, ${patternColor} 1px, transparent 1px)`;
-    case 'stripes':
-      return `repeating-linear-gradient(90deg, ${patternColor} 0px, ${patternColor} 1px, transparent 1px, transparent 20px)`;
-    case 'grid':
-      return `linear-gradient(${patternColor} 1px, transparent 1px), linear-gradient(90deg, ${patternColor} 1px, transparent 1px)`;
-    case 'diagonal':
-      return `repeating-linear-gradient(45deg, ${patternColor} 0px, ${patternColor} 1px, transparent 1px, transparent 15px)`;
-    case 'waves':
-      return `repeating-radial-gradient(circle at 0 0, transparent 0, ${patternColor} 10px), repeating-linear-gradient(${patternColor}, ${hexToRgba(color, opacity * 0.5)})`;
+
+  const color = hexToRgba(patternColor, opacity);
+
+  switch (patternType) {
+    case "dots":
+      return `radial-gradient(${color} 1px, transparent 1px)`;
+    case "stripes":
+      return `repeating-linear-gradient(90deg, ${color}, ${color} 1px, transparent 1px, transparent 10px)`;
+    case "grid":
+      return `linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`;
+    case "diagonal":
+      return `repeating-linear-gradient(45deg, ${color}, ${color} 1px, transparent 1px, transparent 10px)`;
+    case "waves":
+      return `repeating-radial-gradient(circle at 0 0, transparent 0, transparent 10px, ${color} 10px, ${color} 11px)`;
     default:
-      return 'none';
+      return `radial-gradient(${color} 1px, transparent 1px)`;
   }
 }
 
-export function getPatternSize(patternType: string | undefined): string {
+export function getPatternSize(patternType?: string): string {
   switch (patternType) {
-    case 'dots':
-      return '20px 20px';
-    case 'grid':
-      return '20px 20px';
-    case 'waves':
-      return '40px 40px';
+    case "dots":
+      return "20px 20px";
+    case "stripes":
+      return "10px 10px";
+    case "grid":
+      return "20px 20px";
+    case "diagonal":
+      return "14px 14px";
+    case "waves":
+      return "20px 20px";
     default:
-      return 'auto';
+      return "20px 20px";
   }
 }
