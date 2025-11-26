@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,9 @@ import {
   Link,
   ListOrdered,
   Layers,
+  Cloud,
+  CloudOff,
+  Loader2,
 } from "lucide-react";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import type { Tables } from "@/integrations/supabase/types";
@@ -45,6 +48,7 @@ import { CustomUrlSection } from "@/components/editor/sections/CustomUrlSection"
 type CardData = Tables<"cards">;
 
 const STORAGE_KEY = "cardex_editor_section_order";
+const AUTOSAVE_DELAY = 2000; // 2 seconds of inactivity
 
 // Validation schema for card data
 const cardSchema = z.object({
@@ -102,6 +106,8 @@ const DEFAULT_SECTION_ORDER = [
   "custom-url",
 ];
 
+type AutosaveStatus = "saved" | "saving" | "unsaved" | "error";
+
 export default function CardEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -124,6 +130,12 @@ export default function CardEditor() {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved ? JSON.parse(saved) : DEFAULT_SECTION_ORDER;
   });
+
+  // Autosave state
+  const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>("saved");
+  const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const initialLoadRef = useRef(true);
+  const lastSavedCardRef = useRef<string>("");
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
@@ -160,9 +172,108 @@ export default function CardEditor() {
       navigate("/dashboard");
     } else {
       setCard(data);
+      // Store initial card state for comparison
+      lastSavedCardRef.current = JSON.stringify(data);
+      initialLoadRef.current = false;
     }
     setLoading(false);
   };
+
+  // Autosave effect - triggers after AUTOSAVE_DELAY ms of inactivity
+  useEffect(() => {
+    // Skip on initial load or if card isn't loaded
+    if (initialLoadRef.current || !card) return;
+
+    // Check if card has changed from last saved state
+    const currentCardString = JSON.stringify(card);
+    if (currentCardString === lastSavedCardRef.current) return;
+
+    // Mark as unsaved
+    setAutosaveStatus("unsaved");
+
+    // Clear existing timer
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+
+    // Set new timer for autosave
+    autosaveTimerRef.current = setTimeout(() => {
+      performAutosave();
+    }, AUTOSAVE_DELAY);
+
+    // Cleanup
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+    };
+  }, [card]);
+
+  const performAutosave = useCallback(async () => {
+    if (!card) return;
+
+    // Validate before saving
+    try {
+      const validationData = {
+        first_name: card.first_name || "",
+        last_name: card.last_name || "",
+        prefix: card.prefix || "",
+        middle_name: card.middle_name || "",
+        suffix: card.suffix || "",
+        title: card.title || "",
+        company: card.company || "",
+        bio: card.bio || "",
+        email: card.email || "",
+        phone: card.phone || "",
+        website: card.website || "",
+        location: card.location || "",
+        custom_slug: card.custom_slug || "",
+      };
+      cardSchema.parse(validationData);
+    } catch (error) {
+      // Don't autosave if validation fails
+      setAutosaveStatus("error");
+      return;
+    }
+
+    setAutosaveStatus("saving");
+
+    // Compute live full_name to keep DB in sync
+    const liveFullName = getFormattedName();
+
+    const { error } = await supabase
+      .from("cards")
+      .update({
+        prefix: card.prefix,
+        first_name: card.first_name,
+        middle_name: card.middle_name,
+        last_name: card.last_name,
+        suffix: card.suffix,
+        full_name: liveFullName,
+        title: card.title,
+        company: card.company,
+        bio: card.bio,
+        email: card.email,
+        phone: card.phone,
+        website: card.website,
+        location: card.location,
+        avatar_url: card.avatar_url,
+        cover_url: card.cover_url,
+        logo_url: card.logo_url,
+        is_published: card.is_published,
+        theme: card.theme,
+        slug: card.slug,
+        custom_slug: card.custom_slug,
+      })
+      .eq("id", card.id);
+
+    if (error) {
+      setAutosaveStatus("error");
+    } else {
+      lastSavedCardRef.current = JSON.stringify(card);
+      setAutosaveStatus("saved");
+    }
+  }, [card]);
 
   const loadSocialLinks = async () => {
     if (!id) return;
@@ -340,10 +451,13 @@ export default function CardEditor() {
 
     if (error) {
       toast.error(error.message || "Failed to save card");
+      setAutosaveStatus("error");
     } else {
       if (qrCodeUrl && !card.qr_code_url) {
         setCard({ ...card, qr_code_url: qrCodeUrl });
       }
+      lastSavedCardRef.current = JSON.stringify(card);
+      setAutosaveStatus("saved");
       toast.success("Card saved!");
     }
     setSaving(false);
@@ -584,14 +698,52 @@ export default function CardEditor() {
 
   if (!card) return null;
 
+  // Autosave status indicator component
+  const AutosaveIndicator = () => {
+    const statusConfig = {
+      saved: {
+        icon: <Cloud className="h-4 w-4 text-green-500" />,
+        text: "Saved",
+        className: "text-green-500",
+      },
+      saving: {
+        icon: <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />,
+        text: "Saving...",
+        className: "text-muted-foreground",
+      },
+      unsaved: {
+        icon: <Cloud className="h-4 w-4 text-amber-500" />,
+        text: "Unsaved",
+        className: "text-amber-500",
+      },
+      error: {
+        icon: <CloudOff className="h-4 w-4 text-destructive" />,
+        text: "Error",
+        className: "text-destructive",
+      },
+    };
+
+    const config = statusConfig[autosaveStatus];
+
+    return (
+      <div className={`flex items-center gap-1.5 text-xs ${config.className}`}>
+        {config.icon}
+        <span className="hidden sm:inline">{config.text}</span>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/50 bg-card/30 backdrop-blur sticky top-0 z-50">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <AutosaveIndicator />
+          </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate(`/cards/${card.id}/analytics`)} className="gap-2">
               <BarChart3 className="h-4 w-4" />
