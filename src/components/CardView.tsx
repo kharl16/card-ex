@@ -103,6 +103,29 @@ const contactBrandColors: Record<string, string> = {
   location: "bg-[#FBBC04]",
 };
 
+// Helper: adjust a hex color lighter/darker
+function adjustHexColor(hex: string, amount: number): string {
+  if (!hex || !hex.startsWith("#") || (hex.length !== 7 && hex.length !== 4)) {
+    return hex;
+  }
+
+  // Normalize #RGB to #RRGGBB
+  let normalized = hex;
+  if (hex.length === 4) {
+    const r = hex[1];
+    const g = hex[2];
+    const b = hex[3];
+    normalized = `#${r}${r}${g}${g}${b}${b}`;
+  }
+
+  const r = Math.min(255, Math.max(0, parseInt(normalized.slice(1, 3), 16) + amount));
+  const g = Math.min(255, Math.max(0, parseInt(normalized.slice(3, 5), 16) + amount));
+  const b = Math.min(255, Math.max(0, parseInt(normalized.slice(5, 7), 16) + amount));
+
+  const toHex = (v: number) => v.toString(16).padStart(2, "0");
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
 export default function CardView({
   card,
   socialLinks,
@@ -165,8 +188,10 @@ export default function CardView({
     }
   };
 
-  const primaryColor = theme.primary || "#D4AF37";
-  const accentColor = theme.accent || "#FACC15";
+  // Avatar ring gradient derived from ONE editable primary color
+  const basePrimary = theme.primary || "#D4AF37";
+  const lighterPrimary = adjustHexColor(basePrimary, 30); // +30 brightness
+  const darkerPrimary = adjustHexColor(basePrimary, -40); // -40 brightness
 
   return (
     <Card
@@ -200,12 +225,12 @@ export default function CardView({
           </>
         )}
 
-        {/* Avatar – upgraded elegant frame */}
+        {/* Avatar – gradient ring derived from theme.primary */}
         <div className="absolute -bottom-12 left-4 z-10">
           <div
             className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-2xl transition-transform duration-300 hover:scale-105"
             style={{
-              background: `conic-gradient(from 180deg at 50% 50%, ${primaryColor} 0deg, ${accentColor} 120deg, ${primaryColor} 240deg, ${accentColor} 360deg)`,
+              background: `conic-gradient(from 180deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 120deg, ${darkerPrimary} 240deg, ${lighterPrimary} 360deg)`,
               boxShadow: "0 18px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.5)",
             }}
           >
