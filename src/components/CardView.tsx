@@ -34,9 +34,7 @@ const getLiveNameFromCard = (card: CardData | null): string => {
   const last = card.last_name?.trim();
   const suffix = card.suffix?.trim();
 
-  const mainParts = [prefix, first, middle, last].filter(
-    (part) => part && part.length > 0
-  ) as string[];
+  const mainParts = [prefix, first, middle, last].filter((part) => part && part.length > 0) as string[];
 
   let name = mainParts.join(" ");
 
@@ -137,19 +135,16 @@ export default function CardView({
 
   const handleDownloadVCard = async (includePhoto: boolean) => {
     try {
-      const response = await fetch(
-        `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/generate-vcard`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            card_id: card.id,
-            include_photo: includePhoto,
-          }),
-        }
-      );
+      const response = await fetch(`https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/generate-vcard`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          card_id: card.id,
+          include_photo: includePhoto,
+        }),
+      });
 
       if (!response.ok) throw new Error("Failed to generate vCard");
 
@@ -179,21 +174,27 @@ export default function CardView({
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      {/* Header with cover image */}
+      {/* Header with full-bleed cover image */}
       <div
-        className="relative h-40 sm:h-48 md:h-56 transition-all duration-500 ease-out"
+        className="relative w-full h-40 sm:h-48 md:h-56 overflow-hidden transition-all duration-500 ease-out"
         style={{
-          backgroundImage: theme?.primary
-            ? `linear-gradient(to bottom right, ${theme.primary}33, ${theme.primary}0D)`
-            : undefined,
-          backgroundColor: theme?.primary ? undefined : "hsl(var(--primary) / 0.2)",
+          backgroundImage:
+            !card.cover_url && theme?.primary
+              ? `linear-gradient(to bottom right, ${theme.primary}33, ${theme.primary}0D)`
+              : undefined,
+          backgroundColor:
+            !card.cover_url && theme?.primary ? undefined : !card.cover_url ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
         {card.cover_url && (
           <>
-            <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain transition-opacity duration-300" />
-            {/* Subtle bottom gradient overlay for contrast without blurring the image */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent"></div>
+            <img
+              src={card.cover_url}
+              alt="Cover"
+              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
+            />
+            {/* Subtle bottom gradient overlay for contrast */}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
           </>
         )}
 
@@ -204,15 +205,11 @@ export default function CardView({
             borderWidth: 4,
             borderStyle: "solid",
             borderColor: theme.primary || "#D4AF37",
-            boxShadow: `0 0 0 4px rgba(0, 0, 0, 0.3), 0 25px 50px -12px rgba(0, 0, 0, 0.25)`,
+            boxShadow: "0 0 0 4px rgba(0, 0, 0, 0.3), 0 25px 50px -12px rgba(0, 0, 0, 0.25)",
           }}
         >
           {card.avatar_url && (
-            <img
-              src={card.avatar_url}
-              alt={getLiveNameFromCard(card)}
-              className="h-full w-full object-cover"
-            />
+            <img src={card.avatar_url} alt={getLiveNameFromCard(card)} className="h-full w-full object-cover" />
           )}
         </div>
 
@@ -227,7 +224,9 @@ export default function CardView({
       {/* Profile Info */}
       <div className="px-4 pt-14 pb-4 transition-colors duration-500">
         <h1 className="text-xl sm:text-2xl font-bold transition-colors duration-500">{getLiveNameFromCard(card)}</h1>
-        {card.title && <p className="text-sm sm:text-lg opacity-80 mt-1 transition-colors duration-500">{card.title}</p>}
+        {card.title && (
+          <p className="text-sm sm:text-lg opacity-80 mt-1 transition-colors duration-500">{card.title}</p>
+        )}
         {card.company && <p className="text-sm text-muted-foreground transition-colors duration-500">{card.company}</p>}
         {card.bio && <p className="mt-3 text-sm text-muted-foreground transition-colors duration-500">{card.bio}</p>}
       </div>
@@ -371,7 +370,7 @@ export default function CardView({
               Download vCard (no photo)
             </Button>
             <p className="text-xs text-muted-foreground text-center">
-              If your phone doesn't import, try the 'no photo' option.
+              If your phone doesn't import, try the &quot;no photo&quot; option.
             </p>
           </div>
         ) : (
@@ -398,14 +397,7 @@ interface ContactButtonProps {
   isInteractive?: boolean;
 }
 
-function ContactButton({
-  icon,
-  label,
-  sublabel,
-  colorClass,
-  onClick,
-  isInteractive,
-}: ContactButtonProps) {
+function ContactButton({ icon, label, sublabel, colorClass, onClick, isInteractive }: ContactButtonProps) {
   const content = (
     <>
       <div
