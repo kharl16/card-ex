@@ -26,26 +26,73 @@ export interface CardTheme extends ThemeVariant {
   };
   baseMode?: "light" | "dark";
   mode?: "light" | "dark";
+  // Team / Leader preset metadata
+  teamPresetName?: string;
+  teamLocked?: boolean;
 }
 
-// Default theme values
-export const DEFAULT_THEME: ThemeVariant = {
-  primary: "#D4AF37",
-  background: "#0B0B0C",
-  text: "#F8F8F8",
-  accent: "#E6C85C",
-  buttonColor: "#D4AF37",
+// Light mode defaults
+export const LIGHT_MODE_DEFAULTS: ThemeVariant = {
+  primary: "#2563EB",
+  background: "#FFFFFF",
+  text: "#111827",
+  accent: "#3B82F6",
+  buttonColor: "#2563EB",
   backgroundType: "solid",
 };
 
-export const LIGHT_MODE_DEFAULTS = {
-  background: "#F8F8F8",
-  text: "#111111",
+// Dark mode defaults
+export const DARK_MODE_DEFAULTS: ThemeVariant = {
+  primary: "#D4AF37",
+  background: "#050509",
+  text: "#F9FAFB",
+  accent: "#FACC15",
+  buttonColor: "#D4AF37",
+  backgroundType: "gradient",
+  gradientStart: "#050509",
+  gradientEnd: "#1F2937",
+  gradientDirection: "to-tr",
 };
 
-export const DARK_MODE_DEFAULTS = {
-  background: "#0B0B0C",
-  text: "#F8F8F8",
+// Card-Ex MLM Gold default theme
+export const DEFAULT_THEME: CardTheme = {
+  primary: "#D4AF37",
+  background: "#050509",
+  text: "#F9FAFB",
+  accent: "#FACC15",
+  buttonColor: "#D4AF37",
+  backgroundType: "gradient",
+  gradientStart: "#050509",
+  gradientEnd: "#1F2937",
+  gradientDirection: "to-tr",
+  baseMode: "dark",
+  activeVariant: "A",
+  variants: {
+    A: {
+      primary: "#D4AF37",
+      background: "#050509",
+      text: "#F9FAFB",
+      accent: "#FACC15",
+      buttonColor: "#D4AF37",
+      backgroundType: "gradient",
+      gradientStart: "#050509",
+      gradientEnd: "#1F2937",
+      gradientDirection: "to-tr",
+      font: "Inter",
+    },
+    B: {
+      primary: "#D4AF37",
+      background: "#050509",
+      text: "#F9FAFB",
+      accent: "#FACC15",
+      buttonColor: "#D4AF37",
+      backgroundType: "gradient",
+      gradientStart: "#050509",
+      gradientEnd: "#1F2937",
+      gradientDirection: "to-tr",
+      font: "Inter",
+    },
+  },
 };
 
 /**
@@ -75,43 +122,41 @@ export const getActiveTheme = (rawTheme: any): CardTheme => {
  * Used when first opening ThemeCustomizer on an old card.
  */
 export const initializeVariants = (theme: CardTheme): CardTheme => {
-  if (theme.variants) {
-    return theme; // Already has variants
+  if (theme.variants && theme.activeVariant) {
+    return theme;
   }
+
+  // Merge with DEFAULT_THEME for missing fields
+  const base: CardTheme = {
+    ...DEFAULT_THEME,
+    ...theme,
+  };
 
   // Extract current theme values as Variant A
   const currentVariant: ThemeVariant = {
-    primary: theme.primary,
-    background: theme.background,
-    text: theme.text,
-    accent: theme.accent,
-    buttonColor: theme.buttonColor,
-    font: theme.font,
-    backgroundType: theme.backgroundType,
-    gradientStart: theme.gradientStart,
-    gradientEnd: theme.gradientEnd,
-    gradientDirection: theme.gradientDirection,
-    patternType: theme.patternType,
-    patternColor: theme.patternColor,
-    patternOpacity: theme.patternOpacity,
-    carouselSpeed: theme.carouselSpeed,
-    qr: theme.qr,
-  };
-
-  // Create a light variant as B (or alternate)
-  const alternateVariant: ThemeVariant = {
-    ...currentVariant,
-    background: LIGHT_MODE_DEFAULTS.background,
-    text: LIGHT_MODE_DEFAULTS.text,
+    primary: base.primary,
+    background: base.background,
+    text: base.text,
+    accent: base.accent,
+    buttonColor: base.buttonColor,
+    font: base.font,
+    backgroundType: base.backgroundType,
+    gradientStart: base.gradientStart,
+    gradientEnd: base.gradientEnd,
+    gradientDirection: base.gradientDirection,
+    patternType: base.patternType,
+    patternColor: base.patternColor,
+    patternOpacity: base.patternOpacity,
+    carouselSpeed: base.carouselSpeed,
+    qr: base.qr,
   };
 
   return {
-    ...theme,
-    activeVariant: "A",
-    baseMode: theme.mode || "dark",
+    ...base,
+    activeVariant: base.activeVariant || "A",
     variants: {
-      A: currentVariant,
-      B: alternateVariant,
+      A: base.variants?.A || currentVariant,
+      B: base.variants?.B || { ...currentVariant },
     },
   };
 };
@@ -124,7 +169,7 @@ export const updateVariant = (
   variantKey: "A" | "B",
   updates: Partial<ThemeVariant>
 ): CardTheme => {
-  const variants = theme.variants || {};
+  const variants = theme.variants || { A: {}, B: {} };
   const currentVariant = variants[variantKey] || {};
 
   const updatedVariant: ThemeVariant = {
