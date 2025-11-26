@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 
@@ -12,6 +13,7 @@ export interface WizardStep {
   isPremium?: boolean;
   content: React.ReactNode;
   icon?: React.ReactNode;
+  progress?: number; // 0-100 completion percentage
 }
 
 interface EditorWizardProps {
@@ -22,10 +24,14 @@ interface EditorWizardProps {
 export function EditorWizard({ steps, onComplete }: EditorWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
 
+  // Calculate overall progress
+  const overallProgress = Math.round(
+    steps.reduce((acc, step) => acc + (step.progress || 0), 0) / steps.length
+  );
+
   const goNext = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
-      // Scroll to top of section
       document.querySelector('.wizard-content')?.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       onComplete?.();
@@ -48,13 +54,29 @@ export function EditorWizard({ steps, onComplete }: EditorWizardProps) {
 
   return (
     <div className="flex flex-col h-full">
+      {/* Overall Progress */}
+      <div className="mb-4 p-3 rounded-lg bg-muted/30 border border-border/50">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium">Overall Completion</span>
+          <span className={cn(
+            "text-sm font-semibold",
+            overallProgress === 100 ? "text-green-500" : "text-[#D4AF37]"
+          )}>
+            {overallProgress}%
+          </span>
+        </div>
+        <Progress 
+          value={overallProgress} 
+          className="h-2"
+        />
+      </div>
+
       {/* Step Indicator */}
       <div className="mb-4 overflow-x-auto pb-2">
         <div className="flex items-center gap-1 min-w-max px-1">
           {steps.map((step, index) => {
-            const isCompleted = index < currentStep;
             const isCurrent = index === currentStep;
-            const isUpcoming = index > currentStep;
+            const isComplete = step.progress === 100;
 
             return (
               <button
@@ -64,19 +86,19 @@ export function EditorWizard({ steps, onComplete }: EditorWizardProps) {
                   "flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs transition-all",
                   "hover:bg-muted/60",
                   isCurrent && "bg-[#D4AF37]/10 text-[#D4AF37] font-medium",
-                  isCompleted && "text-[#D4AF37]",
-                  isUpcoming && "text-muted-foreground"
+                  !isCurrent && isComplete && "text-green-500",
+                  !isCurrent && !isComplete && "text-muted-foreground"
                 )}
               >
                 <span
                   className={cn(
                     "flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-medium",
                     isCurrent && "bg-[#D4AF37] text-[#0B0B0C]",
-                    isCompleted && "bg-[#D4AF37]/20 text-[#D4AF37]",
-                    isUpcoming && "bg-muted text-muted-foreground"
+                    !isCurrent && isComplete && "bg-green-500/20 text-green-500",
+                    !isCurrent && !isComplete && "bg-muted text-muted-foreground"
                   )}
                 >
-                  {isCompleted ? <Check className="h-3 w-3" /> : index + 1}
+                  {isComplete ? <Check className="h-3 w-3" /> : index + 1}
                 </span>
                 <span className="hidden sm:inline whitespace-nowrap">
                   {step.shortTitle || step.title}
@@ -97,23 +119,44 @@ export function EditorWizard({ steps, onComplete }: EditorWizardProps) {
 
       {/* Current Step Header */}
       <div className="mb-4 pb-3 border-b border-border/50">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold text-foreground">
-            {currentStepData.title}
-          </h3>
-          {currentStepData.isPremium && (
-            <Badge
-              variant="outline"
-              className="text-[10px] uppercase tracking-wide px-2 py-0.5 bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/40"
-            >
-              Premium
-            </Badge>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground">
+              {currentStepData.title}
+            </h3>
+            {currentStepData.isPremium && (
+              <Badge
+                variant="outline"
+                className="text-[10px] uppercase tracking-wide px-2 py-0.5 bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/40"
+              >
+                Premium
+              </Badge>
+            )}
+            {currentStepData.progress === 100 && (
+              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 text-green-500">
+                <Check className="h-3 w-3" />
+              </span>
+            )}
+          </div>
+          {currentStepData.progress !== undefined && (
+            <span className={cn(
+              "text-sm font-medium",
+              currentStepData.progress === 100 ? "text-green-500" : "text-muted-foreground"
+            )}>
+              {currentStepData.progress}% complete
+            </span>
           )}
         </div>
         {currentStepData.description && (
           <p className="text-sm text-muted-foreground mt-1">
             {currentStepData.description}
           </p>
+        )}
+        {currentStepData.progress !== undefined && (
+          <Progress 
+            value={currentStepData.progress} 
+            className="h-1 mt-3"
+          />
         )}
       </div>
 

@@ -386,6 +386,67 @@ export default function CardEditor() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newOrder));
   };
 
+  // Calculate section progress based on filled fields
+  const calculateProgress = (sectionId: string): number => {
+    if (!card) return 0;
+
+    switch (sectionId) {
+      case "basic": {
+        const fields = [
+          card.first_name,
+          card.last_name,
+          card.title,
+          card.company,
+          card.bio,
+        ];
+        const filled = fields.filter((f) => f && f.trim().length > 0).length;
+        return Math.round((filled / fields.length) * 100);
+      }
+      case "contact": {
+        const fields = [card.email, card.phone, card.website, card.location];
+        const filled = fields.filter((f) => f && f.trim().length > 0).length;
+        return Math.round((filled / fields.length) * 100);
+      }
+      case "social": {
+        return socialLinks.length > 0 ? 100 : 0;
+      }
+      case "products": {
+        // Check avatar, logo, cover + product images
+        const imageFields = [card.avatar_url, card.logo_url, card.cover_url];
+        const filledImages = imageFields.filter((f) => f && f.trim().length > 0).length;
+        const hasProductImages = productImages.length > 0;
+        const score = (filledImages / 3) * 50 + (hasProductImages ? 50 : 0);
+        return Math.round(score);
+      }
+      case "carousel": {
+        const theme = card.theme as any;
+        return theme?.carouselSpeed ? 100 : 50; // Default settings count as 50%
+      }
+      case "qr": {
+        const theme = card.theme as any;
+        const qr = theme?.qr;
+        if (qr && (qr.darkColor || qr.lightColor)) return 100;
+        return 50; // Default QR counts as 50%
+      }
+      case "theme": {
+        const theme = card.theme as any;
+        if (!theme) return 0;
+        const hasCustomColors = theme.primary || theme.background || theme.text;
+        const hasFont = theme.font;
+        const hasBackground = theme.backgroundType && theme.backgroundType !== "solid";
+        let score = hasCustomColors ? 50 : 0;
+        score += hasFont ? 25 : 0;
+        score += hasBackground ? 25 : 0;
+        return Math.min(100, score || 50); // Default theme counts as 50%
+      }
+      case "custom-url": {
+        return card.custom_slug && card.custom_slug.length >= 3 ? 100 : 0;
+      }
+      default:
+        return 0;
+    }
+  };
+
   // Build sections configuration
   const buildSections = (): EditorSection[] => {
     if (!card) return [];
@@ -396,6 +457,7 @@ export default function CardEditor() {
         title: "Basic Information",
         description: "Name, title, company, and bio",
         icon: <User className="h-4 w-4" />,
+        progress: calculateProgress("basic"),
         content: (
           <BasicInformationSection
             card={card}
@@ -410,6 +472,7 @@ export default function CardEditor() {
         title: "Contact Information",
         description: "Email, phone, website, and location",
         icon: <Phone className="h-4 w-4" />,
+        progress: calculateProgress("contact"),
         content: (
           <ContactInformationSection
             card={card}
@@ -423,6 +486,7 @@ export default function CardEditor() {
         title: "Social Media Links",
         description: "Add your social profiles",
         icon: <Share className="h-4 w-4" />,
+        progress: calculateProgress("social"),
         content: <SocialMediaLinks cardId={card.id} onLinksChange={setSocialLinks} />,
       },
       products: {
@@ -430,6 +494,7 @@ export default function CardEditor() {
         title: "Product Images",
         description: "Showcase your products or services",
         icon: <Image className="h-4 w-4" />,
+        progress: calculateProgress("products"),
         content: (
           <div className="space-y-4">
             <ImagesSection card={card} onCardChange={handleCardChange} />
@@ -444,6 +509,7 @@ export default function CardEditor() {
         title: "Carousel Settings",
         description: "Configure image carousel behavior",
         icon: <Settings className="h-4 w-4" />,
+        progress: calculateProgress("carousel"),
         content: <CarouselSettingsSection card={card} onCardChange={handleCardChange} />,
       },
       qr: {
@@ -451,6 +517,7 @@ export default function CardEditor() {
         title: "QR Code Customization",
         description: "Customize your QR code appearance",
         icon: <QrCode className="h-4 w-4" />,
+        progress: calculateProgress("qr"),
         content: (
           <QRCodeCustomizer
             settings={(card.theme as any)?.qr || {}}
@@ -469,6 +536,7 @@ export default function CardEditor() {
         title: "Theme Customization",
         description: "Colors, fonts, and visual style",
         icon: <Palette className="h-4 w-4" />,
+        progress: calculateProgress("theme"),
         content: (
           <ThemeCustomizer
             theme={(card.theme as any) || { primary: "#D4AF37", background: "#0B0B0C", text: "#F8F8F8" }}
@@ -482,6 +550,7 @@ export default function CardEditor() {
         description: "Personalize your short link",
         isPremium: true,
         icon: <Link className="h-4 w-4" />,
+        progress: calculateProgress("custom-url"),
         content: (
           <CustomUrlSection
             card={card}

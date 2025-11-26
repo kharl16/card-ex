@@ -6,7 +6,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -33,6 +35,7 @@ export interface EditorSection {
   isPremium?: boolean;
   content: React.ReactNode;
   icon?: React.ReactNode;
+  progress?: number; // 0-100 completion percentage
 }
 
 interface SmartAccordionProps {
@@ -97,7 +100,7 @@ function SortableAccordionItem({ section, isOpen, enableDragDrop }: SortableAcco
             {section.icon && (
               <span className="text-muted-foreground">{section.icon}</span>
             )}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className={cn("font-medium", isOpen && "text-foreground font-semibold")}>
                   {section.title}
@@ -110,9 +113,33 @@ function SortableAccordionItem({ section, isOpen, enableDragDrop }: SortableAcco
                     Premium
                   </Badge>
                 )}
+                {section.progress === 100 && (
+                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 text-green-500">
+                    <Check className="h-3 w-3" />
+                  </span>
+                )}
               </div>
-              {section.description && (
-                <p className="text-xs text-muted-foreground mt-0.5">{section.description}</p>
+              <div className="flex items-center gap-2 mt-1">
+                {section.description && (
+                  <p className="text-xs text-muted-foreground truncate">{section.description}</p>
+                )}
+                {section.progress !== undefined && section.progress < 100 && (
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                    {section.progress}%
+                  </span>
+                )}
+              </div>
+              {section.progress !== undefined && (
+                <Progress 
+                  value={section.progress} 
+                  className="h-1 mt-2 bg-muted/50"
+                  style={{
+                    // @ts-ignore - custom property for indicator color
+                    '--progress-background': section.progress === 100 
+                      ? 'rgb(34 197 94 / 0.8)' 
+                      : 'hsl(var(--primary))'
+                  } as React.CSSProperties}
+                />
               )}
             </div>
           </div>
