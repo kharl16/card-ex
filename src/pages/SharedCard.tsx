@@ -1,65 +1,58 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Mail, Phone, MapPin, Globe, Download, Facebook, Linkedin, Instagram, Twitter, Github, MessageCircle, Music, Youtube } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
-import { toast } from "sonner";
 import LoadingAnimation from "@/components/LoadingAnimation";
-import ProductRingCarousel from "@/components/ProductRingCarousel";
+import CardView, { SocialLink, ProductImage } from "@/components/CardView";
+import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
+import { getActiveTheme, CardTheme } from "@/lib/theme";
 
 type CardData = Tables<"cards">;
-
-interface SocialLink {
-  id: string;
-  kind: string;
-  label: string;
-  value: string;
-  icon: string;
-}
 
 interface ShareLinkData {
   card_id: string;
   is_active: boolean;
 }
 
-const iconMap: Record<string, any> = {
-  Facebook: Facebook,
-  Linkedin: Linkedin,
-  Instagram: Instagram,
-  Twitter: Twitter,
-  Youtube: Youtube,
-  Github: Github,
-  MessageCircle: MessageCircle,
-  Music: Music,
-  Globe: Globe,
-};
-
-const socialBrandColors: Record<string, string> = {
-  facebook: "bg-[#1877F2]",
-  linkedin: "bg-[#0A66C2]",
-  instagram: "bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#FD1D1D]",
-  x: "bg-black",
-  youtube: "bg-[#FF0000]",
-  telegram: "bg-[#26A5E4]",
-  tiktok: "bg-black",
-  url: "bg-[#4285F4]",
-};
-
-const contactBrandColors: Record<string, string> = {
-  email: "bg-[#EA4335]",
-  phone: "bg-[#34A853]",
-  website: "bg-[#4285F4]",
-  location: "bg-[#FBBC04]",
-};
-
 export default function SharedCard() {
   const { code } = useParams();
   const [card, setCard] = useState<CardData | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
-  const [productImages, setProductImages] = useState<any[]>([]);
+  const [productImages, setProductImages] = useState<ProductImage[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Get the effective theme (with A/B variant support)
+  const rawTheme = card?.theme as CardTheme | undefined;
+  const theme = getActiveTheme(rawTheme);
+
+  // Apply custom theme colors to document
+  useEffect(() => {
+    if (theme) {
+      if (theme.primary) {
+        document.documentElement.style.setProperty("--primary", theme.primary);
+      }
+      if (theme.background) {
+        document.documentElement.style.setProperty("--background", theme.background);
+      }
+      if (theme.text) {
+        document.documentElement.style.setProperty("--foreground", theme.text);
+      }
+      if (theme.accent) {
+        document.documentElement.style.setProperty("--accent", theme.accent);
+      }
+      if (theme.font) {
+        document.documentElement.style.fontFamily = `"${theme.font}", sans-serif`;
+      }
+    }
+    return () => {
+      // Reset to default on unmount
+      document.documentElement.style.removeProperty("--primary");
+      document.documentElement.style.removeProperty("--background");
+      document.documentElement.style.removeProperty("--foreground");
+      document.documentElement.style.removeProperty("--accent");
+      document.documentElement.style.fontFamily = "";
+    };
+  }, [theme]);
 
   useEffect(() => {
     loadSharedCard();
@@ -147,243 +140,44 @@ export default function SharedCard() {
     );
   }
 
+  const getBackgroundStyle = () => {
+    if (!theme) return {};
+    if (theme.backgroundType === "gradient") {
+      return { background: getGradientCSS(theme) };
+    }
+    if (theme.backgroundType === "pattern") {
+      return {
+        backgroundColor: theme.background,
+        backgroundImage: getPatternCSS(theme),
+        backgroundSize: getPatternSize(theme.patternType),
+      };
+    }
+    return { backgroundColor: theme.background };
+  };
+
+  // Create a modified card object with the effective theme for CardView
+  const cardWithEffectiveTheme = {
+    ...card,
+    theme: theme as any,
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-2xl">
-        <Card className="overflow-hidden border-0 rounded-none shadow-lg">
-          {/* Header with cover image */}
-          <div className="relative h-48 sm:h-56 md:h-64 bg-gradient-to-br from-primary/20 to-primary/5">
-            {card.cover_url && (
-              <>
-                <img src={card.cover_url} alt="Cover" className="h-full w-full object-contain" />
-                {/* Subtle bottom gradient overlay for contrast */}
-                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/50 to-transparent" />
-              </>
-            )}
-            
-            {/* Avatar - Bottom Left - Half overlapping the cover */}
-            <div className="absolute -bottom-12 left-6 h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32 rounded-full border-4 border-background bg-muted overflow-hidden shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
-              {card.avatar_url && (
-                <img src={card.avatar_url} alt={card.full_name} className="h-full w-full object-cover" />
-              )}
-            </div>
-            
-            {/* Logo - Bottom Right - Half overlapping the cover */}
-            {card.logo_url && (
-              <div className="absolute -bottom-10 right-6 h-20 w-32 sm:h-24 sm:w-36 md:h-28 md:w-40 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300">
-                <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
-              </div>
-            )}
-          </div>
-
-          {/* Profile Info */}
-          <div className="px-6 pt-16 pb-4">
-            <h1 className="text-2xl font-bold">{card.full_name}</h1>
-            {card.title && <p className="text-lg text-foreground/80 mt-1">{card.title}</p>}
-            {card.company && <p className="text-sm text-muted-foreground">{card.company}</p>}
-          </div>
-
-          {/* Bio */}
-          {card.bio && (
-            <div className="px-6 py-3">
-              <p className="text-sm leading-relaxed text-foreground/90">{card.bio}</p>
-            </div>
-          )}
-
-          {/* Product Carousel */}
-          {(card.carousel_enabled !== false) && productImages.length > 0 && (
-            <div className="my-6">
-              <ProductRingCarousel 
-                images={productImages.map(img => ({ 
-                  id: img.id, 
-                  url: img.image_url, 
-                  alt: img.alt_text || undefined,
-                  description: img.description || undefined
-                }))}
-                autoPlayMs={(card.theme as any)?.carouselSpeed || 4000}
-              />
-            </div>
-          )}
-
-          {/* Contact Info */}
-          <div className="space-y-2 px-6 py-4">
-            {card.email && (
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3"
-                onClick={() => window.location.href = `mailto:${card.email}`}
-              >
-                <Mail className="h-4 w-4" />
-                <span className="truncate">{card.email}</span>
-              </Button>
-            )}
-            {card.phone && (
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3"
-                onClick={() => window.location.href = `tel:${card.phone}`}
-              >
-                <Phone className="h-4 w-4" />
-                {card.phone}
-              </Button>
-            )}
-            {card.website && (
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3"
-                onClick={() => window.open(card.website, '_blank')}
-              >
-                <Globe className="h-4 w-4" />
-                <span className="truncate">{card.website}</span>
-              </Button>
-            )}
-            {card.location && (
-              <Button
-                variant="outline"
-                className="w-full justify-start gap-3"
-              >
-                <MapPin className="h-4 w-4" />
-                <span className="truncate">{card.location}</span>
-              </Button>
-            )}
-          </div>
-
-          {/* Social Links */}
-          {socialLinks.length > 0 && (
-            <div className="px-6 py-4">
-              <h3 className="mb-3 text-sm font-semibold">Connect</h3>
-              <div className="grid grid-cols-2 gap-2">
-                {socialLinks.map((link) => {
-                  const IconComponent = iconMap[link.icon] || MessageCircle;
-                  const brandColor = socialBrandColors[link.kind.toLowerCase()] || "bg-primary";
-                  
-                  return (
-                    <Button
-                      key={link.id}
-                      variant="outline"
-                      className="justify-start gap-3"
-                      onClick={() => window.open(link.value, '_blank')}
-                    >
-                      <div className={`flex h-8 w-8 items-center justify-center rounded-full ${brandColor}`}>
-                        <IconComponent className="h-4 w-4 text-white" />
-                      </div>
-                      <span className="truncate text-sm">{link.label}</span>
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* QR Code */}
-          {card.qr_code_url && (
-            <div className="flex flex-col items-center gap-3 p-6 bg-muted/30">
-              <img 
-                src={card.qr_code_url} 
-                alt="QR Code" 
-                className="w-48 h-48 rounded-lg border border-border"
-              />
-              <a 
-                href={card.qr_code_url} 
-                download={`${card.slug}-qr.png`}
-                className="text-sm text-primary hover:underline flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download QR Code
-              </a>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="px-6 py-4 space-y-3">
-            <Button
-              className="w-full gap-2"
-              onClick={async () => {
-                try {
-                  const response = await fetch(
-                    `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/generate-vcard`,
-                    {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        card_id: card.id,
-                        include_photo: true,
-                      }),
-                    }
-                  );
-
-                  if (!response.ok) throw new Error('Failed to generate vCard');
-
-                  const blob = await response.blob();
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.download = `${card.full_name.replace(/\s+/g, '-')}.vcf`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(url);
-                  
-                  toast.success("Contact saved with photo!");
-                } catch (error) {
-                  console.error('Error downloading vCard:', error);
-                  toast.error("Failed to save contact");
-                }
-              }}
-            >
-              <Download className="h-4 w-4" />
-              Download vCard (.vcf)
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={async () => {
-                try {
-                  const response = await fetch(
-                    `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/generate-vcard`,
-                    {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        card_id: card.id,
-                        include_photo: false,
-                      }),
-                    }
-                  );
-
-                  if (!response.ok) throw new Error('Failed to generate vCard');
-
-                  const blob = await response.blob();
-                  const url = URL.createObjectURL(blob);
-                  const link = document.createElement('a');
-                  link.href = url;
-                  link.download = `${card.full_name.replace(/\s+/g, '-')}.vcf`;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
-                  URL.revokeObjectURL(url);
-                  
-                  toast.success("Contact saved without photo");
-                } catch (error) {
-                  console.error('Error downloading vCard:', error);
-                  toast.error("Failed to save contact");
-                }
-              }}
-            >
-              <Download className="h-4 w-4" />
-              Download vCard (no photo)
-            </Button>
-            
-            <p className="text-xs text-muted-foreground text-center">
-              If your phone doesn't import, try the 'no photo' option.
-            </p>
-          </div>
-        </Card>
+    <div
+      className="min-h-screen bg-background transition-all duration-500"
+      style={{
+        ...getBackgroundStyle(),
+        fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
+      }}
+    >
+      <div className="mx-auto max-w-2xl transition-all duration-500">
+        <CardView
+          card={cardWithEffectiveTheme}
+          socialLinks={socialLinks}
+          productImages={productImages}
+          isInteractive={true}
+          showQRCode={true}
+          showVCardButtons={true}
+        />
       </div>
     </div>
   );
