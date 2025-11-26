@@ -3,8 +3,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Palette, Sun, Moon, Sparkles } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Palette, Sun, Moon, Sparkles, Copy, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   CardTheme,
   ThemeVariant,
@@ -21,9 +22,12 @@ interface ThemeCustomizerProps {
   onChange: (theme: CardTheme) => void;
 }
 
+// Theme preset categories
 const THEME_PRESETS = {
+  // Classic presets
   professional: {
     name: "Professional",
+    category: "classic",
     primary: "#2563eb",
     background: "#ffffff",
     text: "#1f2937",
@@ -34,6 +38,7 @@ const THEME_PRESETS = {
   },
   creative: {
     name: "Creative",
+    category: "classic",
     primary: "#ec4899",
     background: "#fdf2f8",
     text: "#831843",
@@ -44,6 +49,7 @@ const THEME_PRESETS = {
   },
   modern: {
     name: "Modern",
+    category: "classic",
     primary: "#8b5cf6",
     background: "#0f172a",
     text: "#f1f5f9",
@@ -57,6 +63,7 @@ const THEME_PRESETS = {
   },
   elegant: {
     name: "Elegant",
+    category: "classic",
     primary: "#D4AF37",
     background: "#0B0B0C",
     text: "#D4AF37",
@@ -67,6 +74,7 @@ const THEME_PRESETS = {
   },
   nature: {
     name: "Nature",
+    category: "classic",
     primary: "#059669",
     background: "#f0fdf4",
     text: "#14532d",
@@ -78,7 +86,181 @@ const THEME_PRESETS = {
     patternColor: "#059669",
     patternOpacity: 0.05,
   },
+
+  // Seasonal themes
+  holiday: {
+    name: "Holiday",
+    category: "seasonal",
+    primary: "#dc2626",
+    background: "#1a1a1a",
+    text: "#fef2f2",
+    accent: "#22c55e",
+    buttonColor: "#dc2626",
+    mode: "dark" as const,
+    backgroundType: "pattern" as const,
+    patternType: "dots",
+    patternColor: "#dc2626",
+    patternOpacity: 0.08,
+  },
+  summer: {
+    name: "Summer",
+    category: "seasonal",
+    primary: "#f97316",
+    background: "#fffbeb",
+    text: "#78350f",
+    accent: "#fbbf24",
+    buttonColor: "#f97316",
+    mode: "light" as const,
+    backgroundType: "gradient" as const,
+    gradientStart: "#fffbeb",
+    gradientEnd: "#fef3c7",
+    gradientDirection: "to-b",
+  },
+  autumn: {
+    name: "Autumn",
+    category: "seasonal",
+    primary: "#b45309",
+    background: "#292524",
+    text: "#fef3c7",
+    accent: "#d97706",
+    buttonColor: "#b45309",
+    mode: "dark" as const,
+    backgroundType: "solid" as const,
+  },
+  spring: {
+    name: "Spring",
+    category: "seasonal",
+    primary: "#84cc16",
+    background: "#f0fdf4",
+    text: "#365314",
+    accent: "#a3e635",
+    buttonColor: "#84cc16",
+    mode: "light" as const,
+    backgroundType: "pattern" as const,
+    patternType: "dots",
+    patternColor: "#84cc16",
+    patternOpacity: 0.06,
+  },
+  winter: {
+    name: "Winter",
+    category: "seasonal",
+    primary: "#0ea5e9",
+    background: "#0c4a6e",
+    text: "#e0f2fe",
+    accent: "#38bdf8",
+    buttonColor: "#0ea5e9",
+    mode: "dark" as const,
+    backgroundType: "gradient" as const,
+    gradientStart: "#0c4a6e",
+    gradientEnd: "#1e3a5f",
+    gradientDirection: "to-br",
+  },
+
+  // Industry-specific themes
+  realEstate: {
+    name: "Real Estate",
+    category: "industry",
+    primary: "#0f766e",
+    background: "#f8fafc",
+    text: "#134e4a",
+    accent: "#14b8a6",
+    buttonColor: "#0f766e",
+    mode: "light" as const,
+    backgroundType: "solid" as const,
+  },
+  tech: {
+    name: "Tech",
+    category: "industry",
+    primary: "#06b6d4",
+    background: "#0f172a",
+    text: "#e2e8f0",
+    accent: "#22d3ee",
+    buttonColor: "#06b6d4",
+    mode: "dark" as const,
+    backgroundType: "gradient" as const,
+    gradientStart: "#0f172a",
+    gradientEnd: "#1e293b",
+    gradientDirection: "to-br",
+  },
+  finance: {
+    name: "Finance",
+    category: "industry",
+    primary: "#1e40af",
+    background: "#ffffff",
+    text: "#1e3a8a",
+    accent: "#3b82f6",
+    buttonColor: "#1e40af",
+    mode: "light" as const,
+    backgroundType: "solid" as const,
+  },
+  healthcare: {
+    name: "Healthcare",
+    category: "industry",
+    primary: "#0891b2",
+    background: "#ecfeff",
+    text: "#164e63",
+    accent: "#22d3ee",
+    buttonColor: "#0891b2",
+    mode: "light" as const,
+    backgroundType: "solid" as const,
+  },
+  fitness: {
+    name: "Fitness",
+    category: "industry",
+    primary: "#ea580c",
+    background: "#18181b",
+    text: "#fafafa",
+    accent: "#fb923c",
+    buttonColor: "#ea580c",
+    mode: "dark" as const,
+    backgroundType: "gradient" as const,
+    gradientStart: "#18181b",
+    gradientEnd: "#27272a",
+    gradientDirection: "to-br",
+  },
+  beauty: {
+    name: "Beauty",
+    category: "industry",
+    primary: "#db2777",
+    background: "#fdf2f8",
+    text: "#831843",
+    accent: "#f472b6",
+    buttonColor: "#db2777",
+    mode: "light" as const,
+    backgroundType: "gradient" as const,
+    gradientStart: "#fdf2f8",
+    gradientEnd: "#fce7f3",
+    gradientDirection: "to-b",
+  },
+  legal: {
+    name: "Legal",
+    category: "industry",
+    primary: "#4338ca",
+    background: "#f5f3ff",
+    text: "#3730a3",
+    accent: "#6366f1",
+    buttonColor: "#4338ca",
+    mode: "light" as const,
+    backgroundType: "solid" as const,
+  },
+  restaurant: {
+    name: "Restaurant",
+    category: "industry",
+    primary: "#b91c1c",
+    background: "#fffbeb",
+    text: "#7f1d1d",
+    accent: "#f59e0b",
+    buttonColor: "#b91c1c",
+    mode: "light" as const,
+    backgroundType: "solid" as const,
+  },
 };
+
+const PRESET_CATEGORIES = [
+  { id: "classic", name: "Classic" },
+  { id: "seasonal", name: "Seasonal" },
+  { id: "industry", name: "Industry" },
+];
 
 const FONT_OPTIONS = [
   { value: "Inter", label: "Inter (Default)" },
@@ -169,6 +351,30 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
     });
   };
 
+  // Copy current variant to the other one
+  const handleCopyVariant = () => {
+    const sourceVariant = theme.variants?.[activeVariant] || currentVariant;
+    const targetKey: "A" | "B" = activeVariant === "A" ? "B" : "A";
+    
+    const updatedTheme: CardTheme = {
+      ...theme,
+      variants: {
+        ...theme.variants,
+        [targetKey]: { ...sourceVariant },
+      },
+    };
+    
+    setTheme(updatedTheme);
+    onChange(updatedTheme);
+  };
+
+  // Get presets by category
+  const getPresetsByCategory = (categoryId: string) => {
+    return Object.entries(THEME_PRESETS).filter(
+      ([_, preset]) => (preset as any).category === categoryId
+    );
+  };
+
   return (
     <Card className="border-border/50">
       <CardHeader className="pb-4">
@@ -203,6 +409,17 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
               </TabsTrigger>
             </TabsList>
           </Tabs>
+          
+          {/* Copy Variant Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleCopyVariant}
+            className="w-full gap-2 text-muted-foreground hover:text-foreground"
+          >
+            <Copy className="h-4 w-4" />
+            Copy Theme {activeVariant} to Theme {activeVariant === "A" ? "B" : "A"}
+          </Button>
         </div>
 
         {/* Light / Dark Base Mode Toggle */}
@@ -230,26 +447,42 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
           </div>
         </div>
 
-        {/* Theme Presets */}
-        <div className="space-y-2">
-          <Label>Quick Presets</Label>
-          <div className="grid grid-cols-2 gap-2">
-            {Object.entries(THEME_PRESETS).map(([key, preset]) => (
-              <Button
-                key={key}
-                variant="outline"
-                size="sm"
-                onClick={() => applyPreset(key as keyof typeof THEME_PRESETS)}
-                className="justify-start hover:border-primary/50 transition-colors"
-              >
-                <div
-                  className="w-4 h-4 rounded-full mr-2 ring-1 ring-border"
-                  style={{ backgroundColor: preset.primary }}
-                />
-                {preset.name}
-              </Button>
-            ))}
-          </div>
+        {/* Theme Presets by Category */}
+        <div className="space-y-3">
+          <Label>Theme Presets</Label>
+          {PRESET_CATEGORIES.map((category) => (
+            <Collapsible key={category.id} defaultOpen={category.id === "classic"}>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-between px-2 py-1.5 h-auto font-medium text-sm hover:bg-muted/50"
+                >
+                  {category.name}
+                  <ChevronDown className="h-4 w-4 transition-transform duration-200 [&[data-state=open]>svg]:rotate-180" />
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-2">
+                <div className="grid grid-cols-2 gap-2">
+                  {getPresetsByCategory(category.id).map(([key, preset]) => (
+                    <Button
+                      key={key}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => applyPreset(key as keyof typeof THEME_PRESETS)}
+                      className="justify-start hover:border-primary/50 transition-colors text-xs"
+                    >
+                      <div
+                        className="w-3 h-3 rounded-full mr-2 ring-1 ring-border flex-shrink-0"
+                        style={{ backgroundColor: preset.primary }}
+                      />
+                      <span className="truncate">{preset.name}</span>
+                    </Button>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          ))}
         </div>
 
         {/* Font Selection */}
