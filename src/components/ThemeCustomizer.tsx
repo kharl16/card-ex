@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Palette, Sun, Moon, Sparkles, Copy, ChevronDown } from "lucide-react";
+import { Palette, Sun, Moon, Sparkles, Copy, ChevronDown, ShieldCheck, Lock, Unlock, Shuffle, Users, RotateCcw } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Switch } from "@/components/ui/switch";
 import {
   CardTheme,
   ThemeVariant,
@@ -22,8 +24,79 @@ interface ThemeCustomizerProps {
   onChange: (theme: CardTheme) => void;
 }
 
+// Brand colors (Card-Ex official)
+const BRAND_PRIMARY = "#D4AF37";
+const BRAND_ACCENT = "#FACC15";
+const BRAND_BUTTON = "#D4AF37";
+
 // Theme preset categories
 const THEME_PRESETS = {
+  // Brand presets (Card-Ex)
+  cardexGold: {
+    name: "Card-Ex Gold (Default)",
+    category: "brand",
+    primary: "#D4AF37",
+    background: "#050509",
+    text: "#F9FAFB",
+    accent: "#FACC15",
+    buttonColor: "#D4AF37",
+    mode: "dark" as const,
+    backgroundType: "gradient" as const,
+    gradientStart: "#050509",
+    gradientEnd: "#1F2937",
+    gradientDirection: "to-tr",
+  },
+  cardexDarkLuxe: {
+    name: "Card-Ex Dark Luxe",
+    category: "brand",
+    primary: "#D4AF37",
+    background: "#0A0A0A",
+    text: "#FAFAFA",
+    accent: "#E6C85C",
+    buttonColor: "#D4AF37",
+    mode: "dark" as const,
+    backgroundType: "solid" as const,
+  },
+  cardexAINeon: {
+    name: "Card-Ex AI Neon",
+    category: "brand",
+    primary: "#D4AF37",
+    background: "#0F0F23",
+    text: "#E0E0FF",
+    accent: "#00D4FF",
+    buttonColor: "#D4AF37",
+    mode: "dark" as const,
+    backgroundType: "gradient" as const,
+    gradientStart: "#0F0F23",
+    gradientEnd: "#1A1A3E",
+    gradientDirection: "to-br",
+  },
+  cardexPresentation: {
+    name: "Card-Ex Presentation",
+    category: "brand",
+    primary: "#D4AF37",
+    background: "#FFFFFF",
+    text: "#1F2937",
+    accent: "#FACC15",
+    buttonColor: "#D4AF37",
+    mode: "light" as const,
+    backgroundType: "solid" as const,
+  },
+  mlmNetwork: {
+    name: "MLM / Network Marketing",
+    category: "brand",
+    primary: "#D4AF37",
+    background: "#050509",
+    text: "#F9FAFB",
+    accent: "#22C55E",
+    buttonColor: "#D4AF37",
+    mode: "dark" as const,
+    backgroundType: "gradient" as const,
+    gradientStart: "#050509",
+    gradientEnd: "#0F2417",
+    gradientDirection: "to-br",
+  },
+
   // Classic presets
   professional: {
     name: "Professional",
@@ -257,6 +330,7 @@ const THEME_PRESETS = {
 };
 
 const PRESET_CATEGORIES = [
+  { id: "brand", name: "Card-Ex Brand" },
   { id: "classic", name: "Classic" },
   { id: "seasonal", name: "Seasonal" },
   { id: "industry", name: "Industry" },
@@ -294,10 +368,15 @@ const PATTERN_TYPES = [
   { value: "waves", label: "Waves" },
 ];
 
+// Random color generators for Surprise Me
+const randomHex = () => "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
+const randomFromArray = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+
 export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCustomizerProps) {
   // Initialize variants if needed
   const [theme, setTheme] = useState<CardTheme>(() => initializeVariants(rawTheme || DEFAULT_THEME));
   const [activeVariant, setActiveVariant] = useState<"A" | "B">(theme.activeVariant || "A");
+  const [brandLock, setBrandLock] = useState(false);
 
   // Sync with parent when rawTheme changes externally
   useEffect(() => {
@@ -311,6 +390,12 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
   const baseMode = theme.baseMode || (currentVariant.background === DARK_MODE_DEFAULTS.background ? "dark" : "light");
 
   const handleVariantChange = (updates: Partial<ThemeVariant>) => {
+    // If brand lock is ON, prevent changing brand colors
+    if (brandLock) {
+      delete updates.primary;
+      delete updates.accent;
+      delete updates.buttonColor;
+    }
     const updated = updateVariant(theme, activeVariant, updates);
     setTheme(updated);
     onChange(updated);
@@ -325,8 +410,10 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
 
   const handleBaseModeChange = (mode: "light" | "dark") => {
     const defaults = mode === "dark" ? DARK_MODE_DEFAULTS : LIGHT_MODE_DEFAULTS;
+    const brandColors = brandLock ? { primary: BRAND_PRIMARY, accent: BRAND_ACCENT, buttonColor: BRAND_BUTTON } : {};
     const updated = updateVariant(theme, activeVariant, {
       ...defaults,
+      ...brandColors,
     });
     const withBaseMode = { ...updated, baseMode: mode };
     setTheme(withBaseMode);
@@ -335,12 +422,9 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
 
   const applyPreset = (presetKey: keyof typeof THEME_PRESETS) => {
     const preset = THEME_PRESETS[presetKey];
-    handleVariantChange({
-      primary: preset.primary,
+    const updates: Partial<ThemeVariant> = {
       background: preset.background,
       text: preset.text,
-      accent: preset.accent,
-      buttonColor: preset.buttonColor,
       backgroundType: preset.backgroundType,
       gradientStart: (preset as any).gradientStart,
       gradientEnd: (preset as any).gradientEnd,
@@ -348,7 +432,16 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
       patternType: (preset as any).patternType,
       patternColor: (preset as any).patternColor,
       patternOpacity: (preset as any).patternOpacity,
-    });
+    };
+    
+    // Only apply brand colors if brand lock is OFF
+    if (!brandLock) {
+      updates.primary = preset.primary;
+      updates.accent = preset.accent;
+      updates.buttonColor = preset.buttonColor;
+    }
+    
+    handleVariantChange(updates);
   };
 
   // Copy current variant to the other one
@@ -366,6 +459,91 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
     
     setTheme(updatedTheme);
     onChange(updatedTheme);
+  };
+
+  // Brand Lock toggle handler
+  const handleBrandLockToggle = (locked: boolean) => {
+    setBrandLock(locked);
+    if (locked) {
+      // Snap to Card-Ex brand colors
+      handleVariantChange({
+        primary: BRAND_PRIMARY,
+        accent: BRAND_ACCENT,
+        buttonColor: BRAND_BUTTON,
+      });
+    }
+  };
+
+  // Surprise Me - safe random theme generation
+  const handleSurpriseMe = () => {
+    const backgroundTypes: Array<"solid" | "gradient" | "pattern"> = ["solid", "gradient", "pattern"];
+    const bgType = randomFromArray(backgroundTypes);
+    
+    const updates: Partial<ThemeVariant> = {
+      backgroundType: bgType,
+    };
+
+    // Generate colors (but respect brand lock)
+    if (!brandLock) {
+      updates.primary = randomHex();
+      updates.accent = randomHex();
+      updates.buttonColor = updates.primary;
+    }
+
+    // Always randomize background/text
+    const isDark = Math.random() > 0.5;
+    if (isDark) {
+      updates.background = "#" + Math.floor(Math.random() * 2236962).toString(16).padStart(6, "0"); // Dark colors
+      updates.text = "#" + Math.floor(Math.random() * 4473924 + 12303291).toString(16).padStart(6, "0"); // Light colors
+    } else {
+      updates.background = "#" + Math.floor(Math.random() * 4473924 + 12303291).toString(16).padStart(6, "0"); // Light colors
+      updates.text = "#" + Math.floor(Math.random() * 2236962).toString(16).padStart(6, "0"); // Dark colors
+    }
+
+    if (bgType === "gradient") {
+      updates.gradientStart = updates.background;
+      updates.gradientEnd = randomHex();
+      updates.gradientDirection = randomFromArray(GRADIENT_DIRECTIONS).value;
+    } else if (bgType === "pattern") {
+      updates.patternType = randomFromArray(PATTERN_TYPES).value;
+      updates.patternColor = brandLock ? BRAND_PRIMARY : updates.primary;
+      updates.patternOpacity = Math.random() * 0.15 + 0.03;
+    }
+
+    handleVariantChange(updates);
+  };
+
+  // Reset current variant to MLM brand preset
+  const handleResetToBrand = () => {
+    const mlmPreset = THEME_PRESETS.cardexGold;
+    const updates: Partial<ThemeVariant> = {
+      primary: mlmPreset.primary,
+      background: mlmPreset.background,
+      text: mlmPreset.text,
+      accent: mlmPreset.accent,
+      buttonColor: mlmPreset.buttonColor,
+      backgroundType: mlmPreset.backgroundType,
+      gradientStart: mlmPreset.gradientStart,
+      gradientEnd: mlmPreset.gradientEnd,
+      gradientDirection: mlmPreset.gradientDirection,
+    };
+    
+    const updated = updateVariant(theme, activeVariant, updates);
+    setTheme(updated);
+    onChange(updated);
+  };
+
+  // Team preset handlers
+  const handleTeamPresetNameChange = (name: string) => {
+    const updated = { ...theme, teamPresetName: name };
+    setTheme(updated);
+    onChange(updated);
+  };
+
+  const handleTeamLockedToggle = () => {
+    const updated = { ...theme, teamLocked: !theme.teamLocked };
+    setTheme(updated);
+    onChange(updated);
   };
 
   // Get presets by category
@@ -422,6 +600,33 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
           </Button>
         </div>
 
+        {/* Brand Lock + Surprise Me Row */}
+        <div className="flex gap-2">
+          <Button
+            variant={brandLock ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleBrandLockToggle(!brandLock)}
+            className="flex-1 gap-2"
+          >
+            {brandLock ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+            Brand Lock {brandLock ? "ON" : "OFF"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSurpriseMe}
+            className="flex-1 gap-2"
+          >
+            <Shuffle className="h-4 w-4" />
+            Surprise Me
+          </Button>
+        </div>
+        {brandLock && (
+          <p className="text-xs text-muted-foreground -mt-2">
+            Brand colors locked to Card-Ex gold. Background and text can still change.
+          </p>
+        )}
+
         {/* Light / Dark Base Mode Toggle */}
         <div className="space-y-2">
           <Label>Base Mode</Label>
@@ -451,7 +656,7 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
         <div className="space-y-3">
           <Label>Theme Presets</Label>
           {PRESET_CATEGORIES.map((category) => (
-            <Collapsible key={category.id} defaultOpen={category.id === "classic"}>
+            <Collapsible key={category.id} defaultOpen={category.id === "brand"}>
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
@@ -484,6 +689,69 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
             </Collapsible>
           ))}
         </div>
+
+        {/* Team / Leader Theme Section */}
+        <Collapsible>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-between px-2 py-1.5 h-auto font-medium text-sm hover:bg-muted/50"
+            >
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Team / Leader Theme
+              </div>
+              <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pt-2">
+            <div className="space-y-4 p-3 border border-border rounded-lg bg-muted/20">
+              <div className="space-y-2">
+                <Label htmlFor="team-preset-name" className="text-xs">Team Preset Name</Label>
+                <Input
+                  id="team-preset-name"
+                  value={theme.teamPresetName || ""}
+                  onChange={(e) => handleTeamPresetNameChange(e.target.value)}
+                  placeholder="e.g., Team Victory Default"
+                  className="h-9 text-sm"
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-xs">Leader Locked</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Prevent team members from changing this theme
+                  </p>
+                </div>
+                <Button
+                  variant={theme.teamLocked ? "default" : "outline"}
+                  size="sm"
+                  onClick={handleTeamLockedToggle}
+                  className="gap-1"
+                >
+                  <ShieldCheck className="h-3 w-3" />
+                  {theme.teamLocked ? "Locked" : "Unlocked"}
+                </Button>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetToBrand}
+                className="w-full gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Reset Theme {activeVariant} to Brand
+              </Button>
+              
+              <p className="text-xs text-muted-foreground">
+                Use this section to create and distribute team-approved themes. When locked, team members using this card will see the theme you've configured.
+              </p>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Font Selection */}
         <div className="space-y-2">
@@ -518,13 +786,15 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
               type="color"
               value={currentVariant.primary || DEFAULT_THEME.primary}
               onChange={(e) => handleVariantChange({ primary: e.target.value })}
-              className="h-10 w-20 rounded border border-border cursor-pointer"
+              disabled={brandLock}
+              className="h-10 w-20 rounded border border-border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <input
               type="text"
               value={currentVariant.primary || DEFAULT_THEME.primary}
               onChange={(e) => handleVariantChange({ primary: e.target.value })}
-              className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
+              disabled={brandLock}
+              className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="#D4AF37"
             />
           </div>
@@ -539,13 +809,15 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
               type="color"
               value={currentVariant.accent || currentVariant.primary || DEFAULT_THEME.primary}
               onChange={(e) => handleVariantChange({ accent: e.target.value })}
-              className="h-10 w-20 rounded border border-border cursor-pointer"
+              disabled={brandLock}
+              className="h-10 w-20 rounded border border-border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <input
               type="text"
               value={currentVariant.accent || currentVariant.primary || DEFAULT_THEME.primary}
               onChange={(e) => handleVariantChange({ accent: e.target.value })}
-              className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
+              disabled={brandLock}
+              className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="#E6C85C"
             />
           </div>
@@ -560,13 +832,15 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
               type="color"
               value={currentVariant.buttonColor || currentVariant.primary || DEFAULT_THEME.primary}
               onChange={(e) => handleVariantChange({ buttonColor: e.target.value })}
-              className="h-10 w-20 rounded border border-border cursor-pointer"
+              disabled={brandLock}
+              className="h-10 w-20 rounded border border-border cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <input
               type="text"
               value={currentVariant.buttonColor || currentVariant.primary || DEFAULT_THEME.primary}
               onChange={(e) => handleVariantChange({ buttonColor: e.target.value })}
-              className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm"
+              disabled={brandLock}
+              className="flex-1 h-10 rounded-md border border-input bg-background px-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="#D4AF37"
             />
           </div>
@@ -814,6 +1088,13 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
               backgroundColor: currentVariant.background || DEFAULT_THEME.background,
               color: currentVariant.text || DEFAULT_THEME.text,
               fontFamily: currentVariant.font ? `"${currentVariant.font}", sans-serif` : undefined,
+              ...(currentVariant.backgroundType === "gradient" && {
+                background: getGradientCSS(currentVariant),
+              }),
+              ...(currentVariant.backgroundType === "pattern" && {
+                backgroundImage: getPatternCSS(currentVariant),
+                backgroundSize: getPatternSize(currentVariant.patternType),
+              }),
             }}
           >
             <div className="text-center">
@@ -835,8 +1116,8 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
 // CSS helper functions (exported for use in other components)
 export function getGradientCSS(theme: any): string {
   const direction = theme?.gradientDirection || "to-br";
-  const start = theme?.gradientStart || theme?.background || "#0B0B0C";
-  const end = theme?.gradientEnd || theme?.primary || "#D4AF37";
+  const start = theme?.gradientStart || theme?.background || "#050509";
+  const end = theme?.gradientEnd || theme?.primary || "#1F2937";
 
   const directionMap: Record<string, string> = {
     "to-r": "to right",
