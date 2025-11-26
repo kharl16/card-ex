@@ -2,23 +2,30 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   ArrowLeft,
   Save,
   Share2,
   BarChart3,
-  X,
+  User,
+  Phone,
+  Share,
+  Image,
+  Settings,
+  QrCode,
+  Palette,
+  Link,
+  ListOrdered,
+  Layers,
 } from "lucide-react";
 import ShareCardDialog from "@/components/ShareCardDialog";
-import { cn } from "@/lib/utils";
 import type { Tables } from "@/integrations/supabase/types";
 import { z } from "zod";
-import ImageUpload from "@/components/ImageUpload";
 import ThemeCustomizer from "@/components/ThemeCustomizer";
 import SocialMediaLinks from "@/components/SocialMediaLinks";
 import QRCodeCustomizer from "@/components/QRCodeCustomizer";
@@ -26,7 +33,18 @@ import QRCode from "qrcode";
 import ProductImageManager from "@/components/ProductImageManager";
 import CardView, { SocialLink, ProductImage } from "@/components/CardView";
 
+// Editor section components
+import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
+import { EditorWizard, WizardStep } from "@/components/editor/EditorWizard";
+import { BasicInformationSection } from "@/components/editor/sections/BasicInformationSection";
+import { ContactInformationSection } from "@/components/editor/sections/ContactInformationSection";
+import { ImagesSection } from "@/components/editor/sections/ImagesSection";
+import { CarouselSettingsSection } from "@/components/editor/sections/CarouselSettingsSection";
+import { CustomUrlSection } from "@/components/editor/sections/CustomUrlSection";
+
 type CardData = Tables<"cards">;
+
+const STORAGE_KEY = "cardex_editor_section_order";
 
 // Validation schema for card data
 const cardSchema = z.object({
@@ -72,6 +90,18 @@ const cardSchema = z.object({
     .or(z.literal("")),
 });
 
+// Default section order
+const DEFAULT_SECTION_ORDER = [
+  "basic",
+  "contact",
+  "social",
+  "products",
+  "carousel",
+  "qr",
+  "theme",
+  "custom-url",
+];
+
 export default function CardEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -83,25 +113,17 @@ export default function CardEditor() {
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
   const [regeneratingQR, setRegeneratingQR] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-
-  // Validate name fields for special characters
-  const validateNameField = (value: string, fieldName: string): string | null => {
-    const specialChars = /[^a-zA-Z\s\-'\.]/;
-    if (specialChars.test(value)) {
-      return `${fieldName} can only contain letters, spaces, hyphens, apostrophes, and periods`;
-    }
-    return null;
-  };
-
-  // Sanitize prefix/suffix to prevent vCard-breaking characters
-  const sanitizeNameField = (value: string): string => {
-    return value
-      .replace(/[;\n\r]/g, " ")
-      .replace(/[\\,]/g, "")
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, 20);
-  };
+  
+  // Layout mode: "accordion" or "wizard"
+  const [layoutMode, setLayoutMode] = useState<"accordion" | "wizard">("accordion");
+  
+  // Admin drag-drop mode
+  const [isAdmin] = useState(true); // TODO: Replace with actual admin check
+  const [customizeOrder, setCustomizeOrder] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState<string[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : DEFAULT_SECTION_ORDER;
+  });
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
@@ -312,6 +334,7 @@ export default function CardEditor() {
         theme: card.theme,
         qr_code_url: qrCodeUrl,
         slug: card.slug,
+        custom_slug: card.custom_slug,
       })
       .eq("id", card.id);
 
@@ -353,6 +376,135 @@ export default function CardEditor() {
     }
   };
 
+  const handleCardChange = (updates: Partial<CardData>) => {
+    if (!card) return;
+    setCard({ ...card, ...updates });
+  };
+
+  const handleSectionReorder = (newOrder: string[]) => {
+    setSectionOrder(newOrder);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(newOrder));
+  };
+
+  // Build sections configuration
+  const buildSections = (): EditorSection[] => {
+    if (!card) return [];
+
+    const sectionMap: Record<string, EditorSection> = {
+      basic: {
+        id: "basic",
+        title: "Basic Information",
+        description: "Name, title, company, and bio",
+        icon: <User className="h-4 w-4" />,
+        content: (
+          <BasicInformationSection
+            card={card}
+            validationErrors={validationErrors}
+            onCardChange={handleCardChange}
+            onValidationErrorChange={setValidationErrors}
+          />
+        ),
+      },
+      contact: {
+        id: "contact",
+        title: "Contact Information",
+        description: "Email, phone, website, and location",
+        icon: <Phone className="h-4 w-4" />,
+        content: (
+          <ContactInformationSection
+            card={card}
+            validationErrors={validationErrors}
+            onCardChange={handleCardChange}
+          />
+        ),
+      },
+      social: {
+        id: "social",
+        title: "Social Media Links",
+        description: "Add your social profiles",
+        icon: <Share className="h-4 w-4" />,
+        content: <SocialMediaLinks cardId={card.id} onLinksChange={setSocialLinks} />,
+      },
+      products: {
+        id: "products",
+        title: "Product Images",
+        description: "Showcase your products or services",
+        icon: <Image className="h-4 w-4" />,
+        content: (
+          <div className="space-y-4">
+            <ImagesSection card={card} onCardChange={handleCardChange} />
+            <div className="pt-4 border-t border-border/50">
+              <ProductImageManager cardId={card.id} ownerId={card.user_id} onImagesChange={loadProductImages} />
+            </div>
+          </div>
+        ),
+      },
+      carousel: {
+        id: "carousel",
+        title: "Carousel Settings",
+        description: "Configure image carousel behavior",
+        icon: <Settings className="h-4 w-4" />,
+        content: <CarouselSettingsSection card={card} onCardChange={handleCardChange} />,
+      },
+      qr: {
+        id: "qr",
+        title: "QR Code Customization",
+        description: "Customize your QR code appearance",
+        icon: <QrCode className="h-4 w-4" />,
+        content: (
+          <QRCodeCustomizer
+            settings={(card.theme as any)?.qr || {}}
+            onChange={(qrSettings) => {
+              const currentTheme = (card.theme as any) || {};
+              const updatedTheme = { ...currentTheme, qr: qrSettings };
+              setCard({ ...card, theme: updatedTheme as any });
+            }}
+            onRegenerate={handleRegenerateQR}
+            isRegenerating={regeneratingQR}
+          />
+        ),
+      },
+      theme: {
+        id: "theme",
+        title: "Theme Customization",
+        description: "Colors, fonts, and visual style",
+        icon: <Palette className="h-4 w-4" />,
+        content: (
+          <ThemeCustomizer
+            theme={(card.theme as any) || { primary: "#D4AF37", background: "#0B0B0C", text: "#F8F8F8" }}
+            onChange={(theme) => setCard({ ...card, theme: theme as any })}
+          />
+        ),
+      },
+      "custom-url": {
+        id: "custom-url",
+        title: "Custom URL",
+        description: "Personalize your short link",
+        isPremium: true,
+        icon: <Link className="h-4 w-4" />,
+        content: (
+          <CustomUrlSection
+            card={card}
+            validationErrors={validationErrors}
+            onCardChange={handleCardChange}
+          />
+        ),
+      },
+    };
+
+    // Return sections in the correct order
+    const orderedIds = customizeOrder ? sectionOrder : DEFAULT_SECTION_ORDER;
+    return orderedIds.map((id) => sectionMap[id]).filter(Boolean);
+  };
+
+  // Build wizard steps from sections
+  const buildWizardSteps = (): WizardStep[] => {
+    return buildSections().map((section) => ({
+      ...section,
+      shortTitle: section.title.split(" ")[0], // Use first word as short title
+    }));
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -365,7 +517,7 @@ export default function CardEditor() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border/50 bg-card/30 backdrop-blur">
+      <header className="border-b border-border/50 bg-card/30 backdrop-blur sticky top-0 z-50">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2">
             <ArrowLeft className="h-4 w-4" />
@@ -374,11 +526,11 @@ export default function CardEditor() {
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate(`/cards/${card.id}/analytics`)} className="gap-2">
               <BarChart3 className="h-4 w-4" />
-              Analytics
+              <span className="hidden sm:inline">Analytics</span>
             </Button>
             <Button variant="outline" onClick={() => setShareDialogOpen(true)} className="gap-2">
               <Share2 className="h-4 w-4" />
-              Generate Card
+              <span className="hidden sm:inline">Generate Card</span>
             </Button>
             <ShareCardDialog cardId={card.id} open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
             <Button onClick={togglePublish} variant={card.is_published ? "secondary" : "default"}>
@@ -392,449 +544,65 @@ export default function CardEditor() {
         </div>
       </header>
 
-      <main className="container mx-auto grid gap-6 px-4 py-8 lg:grid-cols-2">
-        <div className="space-y-6">
-          {/* Images Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Images</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-3 gap-4">
-                <ImageUpload
-                  value={card.avatar_url}
-                  onChange={(url) => setCard({ ...card, avatar_url: url })}
-                  label="Avatar"
-                  aspectRatio="aspect-square"
-                  maxSize={5}
+      <main className="container mx-auto grid gap-6 px-4 py-6 lg:grid-cols-2">
+        {/* Editor Column */}
+        <div className="space-y-4">
+          {/* Mode Switcher & Admin Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border/50">
+            <ToggleGroup
+              type="single"
+              value={layoutMode}
+              onValueChange={(value) => value && setLayoutMode(value as "accordion" | "wizard")}
+              className="justify-start"
+            >
+              <ToggleGroupItem value="accordion" className="gap-2">
+                <Layers className="h-4 w-4" />
+                <span className="hidden sm:inline">Accordion</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="wizard" className="gap-2">
+                <ListOrdered className="h-4 w-4" />
+                <span className="hidden sm:inline">Step-by-Step</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
+
+            {isAdmin && layoutMode === "accordion" && (
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={customizeOrder}
+                  onCheckedChange={setCustomizeOrder}
+                  id="customize-order"
                 />
-                <ImageUpload
-                  value={card.logo_url}
-                  onChange={(url) => setCard({ ...card, logo_url: url })}
-                  label="Company Logo"
-                  aspectRatio="aspect-square"
-                  maxSize={2}
-                />
-                <ImageUpload
-                  value={card.cover_url}
-                  onChange={(url) => setCard({ ...card, cover_url: url })}
-                  label="Cover Photo"
-                  aspectRatio="aspect-square"
-                  maxSize={5}
-                />
+                <Label htmlFor="customize-order" className="text-sm text-muted-foreground cursor-pointer">
+                  Reorder Sections
+                </Label>
               </div>
-            </CardContent>
-          </Card>
+            )}
+          </div>
 
-          <ThemeCustomizer
-            theme={(card.theme as any) || { primary: "#D4AF37", background: "#0B0B0C", text: "#F8F8F8" }}
-            onChange={(theme) => setCard({ ...card, theme: theme as any })}
-          />
-
-          <SocialMediaLinks cardId={card.id} onLinksChange={setSocialLinks} />
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Product Images</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProductImageManager cardId={card.id} ownerId={card.user_id} onImagesChange={loadProductImages} />
-            </CardContent>
-          </Card>
-
-          <QRCodeCustomizer
-            settings={(card.theme as any)?.qr || {}}
-            onChange={(qrSettings) => {
-              const currentTheme = (card.theme as any) || {};
-              const updatedTheme = { ...currentTheme, qr: qrSettings };
-              setCard({ ...card, theme: updatedTheme as any });
-            }}
-            onRegenerate={handleRegenerateQR}
-            isRegenerating={regeneratingQR}
-          />
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Carousel Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="carouselSpeed">Auto-play Speed (ms)</Label>
-                <Input
-                  id="carouselSpeed"
-                  type="number"
-                  min="1000"
-                  max="10000"
-                  step="500"
-                  value={(card.theme as any)?.carouselSpeed || 4000}
-                  onChange={(e) => {
-                    const currentTheme = (card.theme as any) || {};
-                    const updatedTheme = {
-                      ...currentTheme,
-                      carouselSpeed: parseInt(e.target.value) || 4000,
-                    };
-                    setCard({ ...card, theme: updatedTheme as any });
-                  }}
-                  placeholder="4000"
-                />
-                <p className="text-xs text-muted-foreground">Time between slides (1000 = 1 second). Default: 4000ms</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Custom URL</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="custom_slug">Custom Short URL (Optional)</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">tagex.app/</span>
-                  <Input
-                    id="custom_slug"
-                    value={card.custom_slug || ""}
-                    onChange={(e) =>
-                      setCard({
-                        ...card,
-                        custom_slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
-                      })
-                    }
-                    placeholder="john (3-50 chars)"
-                    maxLength={50}
-                    className={validationErrors.custom_slug ? "border-destructive" : ""}
-                  />
-                </div>
-                {validationErrors.custom_slug && (
-                  <p className="text-xs text-destructive">{validationErrors.custom_slug}</p>
-                )}
-                {card.custom_slug && (
-                  <p className="text-xs text-muted-foreground">Short URL: tagex.app/{card.custom_slug}</p>
-                )}
-                {!card.custom_slug && (
-                  <p className="text-xs text-muted-foreground">Leave empty to use default URL with /c/ prefix</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="slug">Default URL Slug</Label>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">/c/</span>
-                  <Input
-                    id="slug"
-                    value={card.slug}
-                    onChange={(e) =>
-                      setCard({
-                        ...card,
-                        slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
-                      })
-                    }
-                    placeholder="your-name"
-                    maxLength={100}
-                    disabled
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Fallback URL: {window.location.origin}/c/{card.slug}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* BASIC INFORMATION */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label>Name * (Left to Right)</Label>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setCard({
-                        ...card,
-                        prefix: "",
-                        first_name: "",
-                        middle_name: "",
-                        last_name: "",
-                        suffix: "",
-                      });
-                      setValidationErrors((prev) => ({
-                        ...prev,
-                        prefix: "",
-                        first_name: "",
-                        middle_name: "",
-                        last_name: "",
-                        suffix: "",
-                      }));
-                    }}
-                    className="h-8 text-xs"
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Clear All
-                  </Button>
-                </div>
-
-                {/* Single top preview bar (uses getFormattedName) */}
-                <div className="text-sm text-muted-foreground mb-2 p-2 bg-muted/50 rounded-md">
-                  <span className="font-medium">Preview: </span>
-                  {getFormattedName()}
-                </div>
-
-                {/* COMPACT HORIZONTAL NAME FIELDS – now same layout style as Title/Company */}
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                  {/* Prefix */}
-                  <div className="space-y-1">
-                    <Label htmlFor="prefix" className="text-xs text-muted-foreground text-center md:text-left">
-                      Prefix
-                    </Label>
-                    <Input
-                      id="prefix"
-                      value={card.prefix || ""}
-                      onChange={(e) => {
-                        const value = sanitizeNameField(e.target.value);
-                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                        const error = validateNameField(capitalized, "Prefix");
-                        setValidationErrors((prev) => ({
-                          ...prev,
-                          prefix: error || "",
-                        }));
-                        setCard({ ...card, prefix: capitalized });
-                      }}
-                      placeholder="Engr."
-                      maxLength={20}
-                      className={cn("text-sm text-center", validationErrors.prefix && "border-destructive")}
-                    />
-                  </div>
-
-                  {/* First Name */}
-                  <div className="space-y-1">
-                    <Label htmlFor="first_name" className="text-xs text-muted-foreground text-center md:text-left">
-                      First Name *
-                    </Label>
-                    <Input
-                      id="first_name"
-                      value={card.first_name || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                        const error = validateNameField(capitalized, "First name");
-                        setValidationErrors((prev) => ({
-                          ...prev,
-                          first_name: error || "",
-                        }));
-                        setCard({ ...card, first_name: capitalized });
-                      }}
-                      placeholder="Carl"
-                      maxLength={50}
-                      className={cn("text-sm text-center", validationErrors.first_name && "border-destructive")}
-                    />
-                  </div>
-
-                  {/* Middle Name */}
-                  <div className="space-y-1">
-                    <Label htmlFor="middle_name" className="text-xs text-muted-foreground text-center md:text-left">
-                      Middle Name
-                    </Label>
-                    <Input
-                      id="middle_name"
-                      value={card.middle_name || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                        const error = validateNameField(capitalized, "Middle name");
-                        setValidationErrors((prev) => ({
-                          ...prev,
-                          middle_name: error || "",
-                        }));
-                        setCard({ ...card, middle_name: capitalized });
-                      }}
-                      placeholder="Ayala"
-                      maxLength={50}
-                      className={cn("text-sm text-center", validationErrors.middle_name && "border-destructive")}
-                    />
-                  </div>
-
-                  {/* Last Name */}
-                  <div className="space-y-1">
-                    <Label htmlFor="last_name" className="text-xs text-muted-foreground text-center md:text-left">
-                      Last Name *
-                    </Label>
-                    <Input
-                      id="last_name"
-                      value={card.last_name || ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                        const error = validateNameField(capitalized, "Last name");
-                        setValidationErrors((prev) => ({
-                          ...prev,
-                          last_name: error || "",
-                        }));
-                        setCard({ ...card, last_name: capitalized });
-                      }}
-                      placeholder="Tamayao"
-                      maxLength={50}
-                      className={cn("text-sm text-center", validationErrors.last_name && "border-destructive")}
-                    />
-                  </div>
-
-                  {/* Suffix */}
-                  <div className="space-y-1">
-                    <Label htmlFor="suffix" className="text-xs text-muted-foreground text-center md:text-left">
-                      Suffix
-                    </Label>
-                    <Input
-                      id="suffix"
-                      value={card.suffix || ""}
-                      onChange={(e) => {
-                        const value = sanitizeNameField(e.target.value);
-                        const capitalized = value.charAt(0).toUpperCase() + value.slice(1);
-                        const error = validateNameField(capitalized, "Suffix");
-                        setValidationErrors((prev) => ({
-                          ...prev,
-                          suffix: error || "",
-                        }));
-                        setCard({ ...card, suffix: capitalized });
-                      }}
-                      placeholder="V"
-                      maxLength={20}
-                      className={cn("text-sm text-center", validationErrors.suffix && "border-destructive")}
-                    />
-                  </div>
-                </div>
-
-                {/* Name validation errors */}
-                {(validationErrors.prefix ||
-                  validationErrors.first_name ||
-                  validationErrors.middle_name ||
-                  validationErrors.last_name ||
-                  validationErrors.suffix) && (
-                  <div className="space-y-1">
-                    {validationErrors.prefix && <p className="text-sm text-destructive">{validationErrors.prefix}</p>}
-                    {validationErrors.first_name && (
-                      <p className="text-sm text-destructive">{validationErrors.first_name}</p>
-                    )}
-                    {validationErrors.middle_name && (
-                      <p className="text-sm text-destructive">{validationErrors.middle_name}</p>
-                    )}
-                    {validationErrors.last_name && (
-                      <p className="text-sm text-destructive">{validationErrors.last_name}</p>
-                    )}
-                    {validationErrors.suffix && <p className="text-sm text-destructive">{validationErrors.suffix}</p>}
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={card.title || ""}
-                    onChange={(e) => setCard({ ...card, title: e.target.value })}
-                    placeholder="e.g. CEO, Designer"
-                    maxLength={100}
-                    className={validationErrors.title ? "border-destructive" : ""}
-                  />
-                  {validationErrors.title && <p className="text-sm text-destructive">{validationErrors.title}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="company">Company</Label>
-                  <Input
-                    id="company"
-                    value={card.company || ""}
-                    onChange={(e) => setCard({ ...card, company: e.target.value })}
-                    maxLength={100}
-                    className={validationErrors.company ? "border-destructive" : ""}
-                  />
-                  {validationErrors.company && <p className="text-sm text-destructive">{validationErrors.company}</p>}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
-                <Textarea
-                  id="bio"
-                  value={card.bio || ""}
-                  onChange={(e) => setCard({ ...card, bio: e.target.value })}
-                  rows={4}
-                  maxLength={500}
-                  className={validationErrors.bio ? "border-destructive" : ""}
-                />
-                {validationErrors.bio && <p className="text-sm text-destructive">{validationErrors.bio}</p>}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Contact Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={card.email || ""}
-                    onChange={(e) => setCard({ ...card, email: e.target.value })}
-                    maxLength={255}
-                    className={validationErrors.email ? "border-destructive" : ""}
-                  />
-                  {validationErrors.email && <p className="text-sm text-destructive">{validationErrors.email}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={card.phone || ""}
-                    onChange={(e) => setCard({ ...card, phone: e.target.value })}
-                    maxLength={30}
-                    className={validationErrors.phone ? "border-destructive" : ""}
-                  />
-                  {validationErrors.phone && <p className="text-sm text-destructive">{validationErrors.phone}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    type="url"
-                    value={card.website || ""}
-                    onChange={(e) => setCard({ ...card, website: e.target.value })}
-                    placeholder="https://"
-                    maxLength={255}
-                    className={validationErrors.website ? "border-destructive" : ""}
-                  />
-                  {validationErrors.website && <p className="text-sm text-destructive">{validationErrors.website}</p>}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={card.location || ""}
-                    onChange={(e) => setCard({ ...card, location: e.target.value })}
-                    placeholder="City, Country"
-                    maxLength={200}
-                    className={validationErrors.location ? "border-destructive" : ""}
-                  />
-                  {validationErrors.location && <p className="text-sm text-destructive">{validationErrors.location}</p>}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Editor Content */}
+          {layoutMode === "accordion" ? (
+            <SmartAccordion
+              sections={buildSections()}
+              defaultOpenId="basic"
+              enableDragDrop={customizeOrder}
+              onReorder={handleSectionReorder}
+            />
+          ) : (
+            <div className="min-h-[600px]">
+              <EditorWizard
+                steps={buildWizardSteps()}
+                onComplete={() => {
+                  toast.success("All sections complete! Don't forget to save.");
+                }}
+              />
+            </div>
+          )}
         </div>
 
         {/* Live Preview */}
-        <div className="lg:sticky lg:top-8 lg:h-fit">
+        <div className="lg:sticky lg:top-24 lg:h-fit">
           <Card className="overflow-hidden border-border/50">
-            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20">
+            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3">
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
             <CardContent className="p-4">
