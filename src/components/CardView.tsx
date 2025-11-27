@@ -372,14 +372,29 @@ export default function CardView({
             alt="QR Code"
             className="w-48 h-48 rounded-lg border border-border transition-all duration-300"
           />
-          <a
-            href={card.qr_code_url}
-            download={`${card.slug}-qr.png`}
+          <button
+            onClick={async () => {
+              try {
+                const response = await fetch(card.qr_code_url!);
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `${card.slug}-qr.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+              } catch (error) {
+                console.error('Failed to download QR code:', error);
+                window.open(card.qr_code_url!, '_blank');
+              }
+            }}
             className="text-sm text-primary hover:underline flex items-center gap-2 transition-colors duration-300"
           >
             <Download className="h-4 w-4" />
             Download QR Code
-          </a>
+          </button>
         </div>
       )}
 
