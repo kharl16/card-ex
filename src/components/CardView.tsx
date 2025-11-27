@@ -400,27 +400,14 @@ export default function CardView({
 
       {/* Save Contact Button (always show) */}
       <div className="px-4 pb-4">
-        {isInteractive && showVCardButtons ? (
-          <div className="space-y-3">
-            <Button
-              className="w-full gap-2 bg-green-500 hover:bg-green-600 transition-colors duration-300"
-              onClick={() => handleDownloadVCard(true)}
-            >
-              <Download className="h-4 w-4" />
-              Download vCard (.vcf)
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full gap-2 transition-colors duration-300"
-              onClick={() => handleDownloadVCard(false)}
-            >
-              <Download className="h-4 w-4" />
-              Download vCard (no photo)
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              If your phone doesn't import, try the &quot;no photo&quot; option.
-            </p>
-          </div>
+      {isInteractive && showVCardButtons ? (
+          <Button
+            className="w-full gap-2 bg-green-500 hover:bg-green-600 transition-colors duration-300"
+            onClick={() => handleDownloadVCard(true)}
+          >
+            <Download className="h-4 w-4" />
+            Save Contact
+          </Button>
         ) : (
           <button
             className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500"
