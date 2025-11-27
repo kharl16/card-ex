@@ -366,6 +366,11 @@ const PATTERN_TYPES = [
   { value: "grid", label: "Grid" },
   { value: "diagonal", label: "Diagonal Lines" },
   { value: "waves", label: "Waves" },
+  { value: "chevron", label: "Chevron" },
+  { value: "honeycomb", label: "Honeycomb" },
+  { value: "zigzag", label: "Zigzag" },
+  { value: "crosses", label: "Crosses" },
+  { value: "diamonds", label: "Diamonds" },
 ];
 
 // Random color generators for Surprise Me
@@ -1158,6 +1163,16 @@ export function getPatternCSS(theme: any): string {
       return `repeating-linear-gradient(45deg, ${color}, ${color} 1px, transparent 1px, transparent 10px)`;
     case "waves":
       return `repeating-radial-gradient(circle at 0 0, transparent 0, transparent 10px, ${color} 10px, ${color} 11px)`;
+    case "chevron":
+      return `repeating-linear-gradient(135deg, ${color} 0px, ${color} 2px, transparent 2px, transparent 8px), repeating-linear-gradient(45deg, ${color} 0px, ${color} 2px, transparent 2px, transparent 8px)`;
+    case "honeycomb":
+      return `radial-gradient(circle farthest-side at 0% 50%, transparent 47%, ${color} 49%, ${color} 51%, transparent 53%), radial-gradient(circle farthest-side at 100% 50%, transparent 47%, ${color} 49%, ${color} 51%, transparent 53%)`;
+    case "zigzag":
+      return `linear-gradient(135deg, ${color} 25%, transparent 25%), linear-gradient(225deg, ${color} 25%, transparent 25%), linear-gradient(45deg, ${color} 25%, transparent 25%), linear-gradient(315deg, ${color} 25%, transparent 25%)`;
+    case "crosses":
+      return `linear-gradient(${color} 2px, transparent 2px), linear-gradient(90deg, ${color} 2px, transparent 2px), linear-gradient(${color} 1px, transparent 1px), linear-gradient(90deg, ${color} 1px, transparent 1px)`;
+    case "diamonds":
+      return `linear-gradient(45deg, ${color} 25%, transparent 25%, transparent 75%, ${color} 75%), linear-gradient(45deg, ${color} 25%, transparent 25%, transparent 75%, ${color} 75%)`;
     default:
       return `radial-gradient(${color} 1px, transparent 1px)`;
   }
@@ -1175,6 +1190,16 @@ export function getPatternSize(patternType?: string): string {
       return "14px 14px";
     case "waves":
       return "20px 20px";
+    case "chevron":
+      return "16px 16px";
+    case "honeycomb":
+      return "24px 12px";
+    case "zigzag":
+      return "20px 10px";
+    case "crosses":
+      return "24px 24px, 24px 24px, 8px 8px, 8px 8px";
+    case "diamonds":
+      return "20px 20px, 20px 20px";
     default:
       return "20px 20px";
   }
