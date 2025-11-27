@@ -234,8 +234,8 @@ export default function CardView({
               boxShadow: "0 18px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.5)",
             }}
           >
-            {/* Inner dark plate (thinner ring: inset-[2px]) */}
-            <div className="absolute inset-[2px] rounded-full bg-background/95 flex items-center justify-center">
+            {/* Inner dark plate */}
+            <div className="absolute inset-[4px] rounded-full bg-black flex items-center justify-center">
               {/* Inner black edge + photo */}
               <div className="h-[92%] w-[92%] rounded-full overflow-hidden border border-black/80 bg-black">
                 {card.avatar_url && (
