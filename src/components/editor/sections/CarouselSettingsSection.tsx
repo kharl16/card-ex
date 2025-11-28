@@ -1,6 +1,8 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { updateVariant } from "@/lib/theme";
 import type { Tables } from "@/integrations/supabase/types";
+import type { CardTheme, ThemeVariant } from "@/lib/theme";
 
 type CardData = Tables<"cards">;
 
@@ -10,14 +12,28 @@ interface CarouselSettingsSectionProps {
 }
 
 export function CarouselSettingsSection({ card, onCardChange }: CarouselSettingsSectionProps) {
-  const theme = (card.theme as any) || {};
+  const theme = (card.theme as CardTheme) || {};
+  const activeVariant = theme.activeVariant || "A";
+  const variant = theme.variants?.[activeVariant] || {};
+  const currentSpeed = variant.carouselSpeed || theme.carouselSpeed || 4000;
 
   const handleSpeedChange = (value: string) => {
-    const updatedTheme = {
-      ...theme,
-      carouselSpeed: parseInt(value) || 4000,
-    };
-    onCardChange({ theme: updatedTheme as any });
+    const newSpeed = parseInt(value) || 4000;
+    
+    // Update the active variant (if variants exist) AND top-level for backward compatibility
+    if (theme.variants) {
+      const updatedTheme = updateVariant(theme, activeVariant, { carouselSpeed: newSpeed });
+      // Also set top-level for backward compatibility
+      updatedTheme.carouselSpeed = newSpeed;
+      onCardChange({ theme: updatedTheme as any });
+    } else {
+      // Legacy: no variants, just update top-level
+      const updatedTheme = {
+        ...theme,
+        carouselSpeed: newSpeed,
+      };
+      onCardChange({ theme: updatedTheme as any });
+    }
   };
 
   return (
@@ -30,7 +46,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
           min="1000"
           max="10000"
           step="500"
-          value={theme.carouselSpeed || 4000}
+          value={currentSpeed}
           onChange={(e) => handleSpeedChange(e.target.value)}
           placeholder="4000"
         />
