@@ -402,7 +402,7 @@ export default function CardView({
       <div className="px-4 pb-4">
       {isInteractive && showVCardButtons ? (
           <Button
-            className="w-full gap-2 transition-colors duration-300"
+            className="w-full gap-2 transition-all duration-300 hover:brightness-90"
             style={{
               backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
             }}
@@ -413,7 +413,7 @@ export default function CardView({
           </Button>
         ) : (
           <button
-            className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500"
+            className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500 hover:brightness-90"
             style={{
               backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
             }}
