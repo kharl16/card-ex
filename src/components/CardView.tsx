@@ -366,11 +366,11 @@ export default function CardView({
 
       {/* QR Code */}
       {showQRCode && card.qr_code_url && (
-        <div className="flex flex-col items-center gap-3 p-6 bg-muted/30 transition-colors duration-500">
+        <div className="flex flex-col items-center gap-3 p-6 transition-colors duration-500">
           <img
             src={card.qr_code_url}
             alt="QR Code"
-            className="w-48 h-48 rounded-lg border border-border transition-all duration-300"
+            className="w-48 h-48 rounded-lg transition-all duration-300"
           />
           <button
             onClick={async () => {
@@ -402,7 +402,10 @@ export default function CardView({
       <div className="px-4 pb-4">
       {isInteractive && showVCardButtons ? (
           <Button
-            className="w-full gap-2 bg-green-500 hover:bg-green-600 transition-colors duration-300"
+            className="w-full gap-2 transition-colors duration-300"
+            style={{
+              backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
+            }}
             onClick={() => handleDownloadVCard(true)}
           >
             <Download className="h-4 w-4" />

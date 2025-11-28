@@ -833,7 +833,7 @@ export default function CardEditor() {
                   socialLinks={socialLinks}
                   productImages={productImages}
                   isInteractive={false}
-                  showQRCode={false}
+                  showQRCode={true}
                   showVCardButtons={false}
                 />
               </div>
