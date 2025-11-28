@@ -317,48 +317,56 @@ export default function CardView({
       {/* Contact Buttons */}
       <div className="space-y-3 px-4 pb-4">
         {card.email && (
-          <ContactButton
-            icon={<Mail className="h-6 w-6 text-white" />}
-            label={card.email}
-            sublabel="Personal"
-            colorClass={contactBrandColors.email}
-            onClick={isInteractive ? () => window.open(`mailto:${card.email}`) : undefined}
-            isInteractive={isInteractive}
-          />
+          <div className="animate-fade-in" style={{ animationDelay: '0.1s', animationFillMode: 'backwards' }}>
+            <ContactButton
+              icon={<Mail className="h-6 w-6 text-white" />}
+              label={card.email}
+              sublabel="Personal"
+              colorClass={contactBrandColors.email}
+              onClick={isInteractive ? () => window.open(`mailto:${card.email}`) : undefined}
+              isInteractive={isInteractive}
+            />
+          </div>
         )}
 
         {card.phone && (
-          <ContactButton
-            icon={<Phone className="h-6 w-6 text-white" />}
-            label={card.phone}
-            sublabel="Mobile"
-            colorClass={contactBrandColors.phone}
-            onClick={isInteractive ? () => window.open(`tel:${card.phone}`) : undefined}
-            isInteractive={isInteractive}
-          />
+          <div className="animate-fade-in" style={{ animationDelay: '0.2s', animationFillMode: 'backwards' }}>
+            <ContactButton
+              icon={<Phone className="h-6 w-6 text-white" />}
+              label={card.phone}
+              sublabel="Mobile"
+              colorClass={contactBrandColors.phone}
+              onClick={isInteractive ? () => window.open(`tel:${card.phone}`) : undefined}
+              isInteractive={isInteractive}
+            />
+          </div>
         )}
 
         {card.website && (
-          <ContactButton
-            icon={<Globe className="h-6 w-6 text-white" />}
-            label={card.website}
-            sublabel="Website"
-            colorClass={contactBrandColors.website}
-            onClick={isInteractive ? () => window.open(card.website!, "_blank") : undefined}
-            isInteractive={isInteractive}
-          />
+          <div className="animate-fade-in" style={{ animationDelay: '0.3s', animationFillMode: 'backwards' }}>
+            <ContactButton
+              icon={<Globe className="h-6 w-6 text-white" />}
+              label={card.website}
+              sublabel="Website"
+              colorClass={contactBrandColors.website}
+              onClick={isInteractive ? () => window.open(card.website!, "_blank") : undefined}
+              isInteractive={isInteractive}
+            />
+          </div>
         )}
 
         {card.location && (
-          <div className="flex w-full items-center gap-3 group transition-all duration-300 hover:bg-primary/5 rounded-lg p-2 -ml-2">
-            <div
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.location} shadow-md group-hover:scale-110 group-hover:shadow-lg group-hover:rotate-3 transition-all duration-300`}
-            >
-              <MapPin className="h-6 w-6 text-white" />
-            </div>
-            <div className="flex-1 min-w-0 transition-transform duration-300 group-hover:translate-x-1">
-              <p className="text-sm font-semibold group-hover:text-primary transition-colors duration-300">{card.location}</p>
-              <p className="text-xs text-muted-foreground">Location</p>
+          <div className="animate-fade-in" style={{ animationDelay: '0.4s', animationFillMode: 'backwards' }}>
+            <div className="flex w-full items-center gap-3 group transition-all duration-300 hover:bg-primary/5 rounded-lg p-2 -ml-2">
+              <div
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.location} shadow-md group-hover:scale-110 group-hover:shadow-lg group-hover:rotate-3 transition-all duration-300`}
+              >
+                <MapPin className="h-6 w-6 text-white" />
+              </div>
+              <div className="flex-1 min-w-0 transition-transform duration-300 group-hover:translate-x-1">
+                <p className="text-sm font-semibold group-hover:text-primary transition-colors duration-300">{card.location}</p>
+                <p className="text-xs text-muted-foreground">Location</p>
+              </div>
             </div>
           </div>
         )}
@@ -399,10 +407,10 @@ export default function CardView({
       )}
 
       {/* Save Contact Button (always show) */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'backwards' }}>
       {isInteractive && showVCardButtons ? (
           <Button
-            className="w-full gap-2 transition-all duration-300 hover:brightness-90"
+            className="w-full gap-2 transition-all duration-300 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite]"
             style={{
               backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
             }}
@@ -413,7 +421,7 @@ export default function CardView({
           </Button>
         ) : (
           <button
-            className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500 hover:brightness-90"
+            className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite]"
             style={{
               backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
             }}
