@@ -350,14 +350,14 @@ export default function CardView({
         )}
 
         {card.location && (
-          <div className="flex w-full items-center gap-3 transition-colors duration-500">
+          <div className="flex w-full items-center gap-3 group transition-all duration-300 hover:bg-primary/5 rounded-lg p-2 -ml-2">
             <div
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.location} shadow-md transition-transform duration-300`}
+              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${contactBrandColors.location} shadow-md group-hover:scale-110 group-hover:shadow-lg group-hover:rotate-3 transition-all duration-300`}
             >
               <MapPin className="h-6 w-6 text-white" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold">{card.location}</p>
+            <div className="flex-1 min-w-0 transition-transform duration-300 group-hover:translate-x-1">
+              <p className="text-sm font-semibold group-hover:text-primary transition-colors duration-300">{card.location}</p>
               <p className="text-xs text-muted-foreground">Location</p>
             </div>
           </div>
@@ -439,12 +439,12 @@ function ContactButton({ icon, label, sublabel, colorClass, onClick, isInteracti
   const content = (
     <>
       <div
-        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${colorClass} group-hover:scale-110 transition-all duration-300 shadow-md`}
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${colorClass} group-hover:scale-110 group-hover:shadow-lg group-hover:rotate-3 transition-all duration-300 shadow-md`}
       >
         {icon}
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold truncate">{label}</p>
+      <div className="flex-1 min-w-0 transition-transform duration-300 group-hover:translate-x-1">
+        <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors duration-300">{label}</p>
         <p className="text-xs text-muted-foreground">{sublabel}</p>
       </div>
     </>
@@ -454,12 +454,12 @@ function ContactButton({ icon, label, sublabel, colorClass, onClick, isInteracti
     return (
       <button
         onClick={onClick}
-        className="flex w-full items-center gap-3 text-left group transition-colors duration-500"
+        className="flex w-full items-center gap-3 text-left group transition-all duration-300 hover:bg-primary/5 rounded-lg p-2 -ml-2"
       >
         {content}
       </button>
     );
   }
 
-  return <div className="flex w-full items-center gap-3 group transition-colors duration-500">{content}</div>;
+  return <div className="flex w-full items-center gap-3 group transition-all duration-300 hover:bg-primary/5 rounded-lg p-2 -ml-2">{content}</div>;
 }
