@@ -15,7 +15,7 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
       </div>
 
       {/* Avatar + company logo group */}
-      <div className="absolute left-4 bottom-0 translate-y-1/2 flex items-center gap-4">
+      <div className="absolute left-4 bottom-0 translate-y-1/2 flex items-center gap-4 z-20">
         {/* Avatar container */}
         <div className="h-24 w-24 rounded-full border-4 border-background bg-background overflow-hidden shadow-lg">
           <img src={avatarUrl} alt="Rider" className="h-full w-full object-cover" />
@@ -29,8 +29,8 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
         )}
       </div>
 
-      {/* Spacer to avoid clipping */}
-      <div className="h-16" />
+      {/* Spacer to avoid overlap with content below */}
+      <div className="h-20" />
 
       {/* Optional text for name/title */}
       {(name || title) && (
