@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { QRPatternPreview } from "./qr/QRPatternPreview";
+import { QREyeStylePreview } from "./qr/QREyeStylePreview";
 
 export interface QRSettings {
   size?: number;
@@ -13,7 +15,7 @@ export interface QRSettings {
   lightColor?: string;
   logoUrl?: string;
   pattern?: 'squares' | 'classy' | 'rounded' | 'classy-rounded' | 'extra-rounded' | 'dots';
-  eyeStyle?: 'square' | 'extra-rounded' | 'leaf' | 'diamond';
+  eyeStyle?: 'square' | 'extra-rounded' | 'leaf' | 'diamond' | 'dot';
 }
 
 interface QRCodeCustomizerProps {
@@ -24,20 +26,21 @@ interface QRCodeCustomizerProps {
   cardId?: string;
 }
 
-const patternOptions: { value: QRSettings['pattern']; label: string; icon: string }[] = [
-  { value: 'squares', label: 'Squares', icon: '▦' },
-  { value: 'classy', label: 'Classy', icon: '◫' },
-  { value: 'rounded', label: 'Rounded', icon: '◉' },
-  { value: 'classy-rounded', label: 'Classy Rounded', icon: '◎' },
-  { value: 'extra-rounded', label: 'Extra Rounded', icon: '●' },
-  { value: 'dots', label: 'Dots', icon: '⠿' },
+const patternOptions: { value: QRSettings['pattern']; label: string }[] = [
+  { value: 'squares', label: 'Squares' },
+  { value: 'classy', label: 'Classy' },
+  { value: 'rounded', label: 'Rounded' },
+  { value: 'classy-rounded', label: 'Classy Rounded' },
+  { value: 'extra-rounded', label: 'Extra Rounded' },
+  { value: 'dots', label: 'Dots' },
 ];
 
-const eyeStyleOptions: { value: QRSettings['eyeStyle']; label: string; icon: string }[] = [
-  { value: 'square', label: 'Square', icon: '◻' },
-  { value: 'extra-rounded', label: 'Rounded', icon: '◯' },
-  { value: 'leaf', label: 'Leaf', icon: '◧' },
-  { value: 'diamond', label: 'Diamond', icon: '◇' },
+const eyeStyleOptions: { value: QRSettings['eyeStyle']; label: string }[] = [
+  { value: 'square', label: 'Square' },
+  { value: 'extra-rounded', label: 'Rounded' },
+  { value: 'leaf', label: 'Leaf' },
+  { value: 'diamond', label: 'Diamond' },
+  { value: 'dot', label: 'Dot' },
 ];
 
 export default function QRCodeCustomizer({ 
@@ -178,19 +181,13 @@ export default function QRCodeCustomizer({
           <Label>Pattern Style</Label>
           <div className="grid grid-cols-3 gap-2">
             {patternOptions.map((option) => (
-              <button
+              <QRPatternPreview
                 key={option.value}
-                type="button"
+                pattern={option.value!}
+                label={option.label}
+                isSelected={(settings.pattern || 'squares') === option.value}
                 onClick={() => onChange({ ...settings, pattern: option.value })}
-                className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all duration-200 hover:border-primary/50 ${
-                  (settings.pattern || 'squares') === option.value
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border bg-background hover:bg-muted/50'
-                }`}
-              >
-                <span className="text-2xl mb-1">{option.icon}</span>
-                <span className="text-xs font-medium">{option.label}</span>
-              </button>
+              />
             ))}
           </div>
         </div>
@@ -198,21 +195,15 @@ export default function QRCodeCustomizer({
         {/* Eye Style Selection */}
         <div className="space-y-2">
           <Label>Eye Style</Label>
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-5 gap-2">
             {eyeStyleOptions.map((option) => (
-              <button
+              <QREyeStylePreview
                 key={option.value}
-                type="button"
+                eyeStyle={option.value!}
+                label={option.label}
+                isSelected={(settings.eyeStyle || 'square') === option.value}
                 onClick={() => onChange({ ...settings, eyeStyle: option.value })}
-                className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all duration-200 hover:border-primary/50 ${
-                  (settings.eyeStyle || 'square') === option.value
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border bg-background hover:bg-muted/50'
-                }`}
-              >
-                <span className="text-2xl mb-1">{option.icon}</span>
-                <span className="text-xs font-medium">{option.label}</span>
-              </button>
+              />
             ))}
           </div>
         </div>
