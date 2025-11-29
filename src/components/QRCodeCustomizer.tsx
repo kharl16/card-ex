@@ -15,6 +15,8 @@ export interface QRSettings {
   darkColor?: string;
   lightColor?: string;
   logoUrl?: string;
+  logoPosition?: 'center' | 'background';
+  logoOpacity?: number;
   pattern?: 'squares' | 'classy' | 'rounded' | 'classy-rounded' | 'extra-rounded' | 'dots';
   eyeStyle?: 'square' | 'extra-rounded' | 'leaf' | 'diamond' | 'dot';
 }
@@ -218,22 +220,80 @@ export default function QRCodeCustomizer({
           <Label>Logo (Optional)</Label>
           <div className="flex flex-col gap-3">
             {settings.logoUrl ? (
-              <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
-                <img 
-                  src={settings.logoUrl} 
-                  alt="QR Logo" 
-                  className="h-12 w-12 object-contain rounded"
-                />
-                <span className="flex-1 text-sm truncate">{settings.logoUrl.split('/').pop()}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleRemoveLogo}
-                  className="h-8 w-8 text-destructive hover:text-destructive"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
+                  <img 
+                    src={settings.logoUrl} 
+                    alt="QR Logo" 
+                    className="h-12 w-12 object-contain rounded"
+                  />
+                  <span className="flex-1 text-sm truncate">{settings.logoUrl.split('/').pop()}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRemoveLogo}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                {/* Logo Position Toggle */}
+                <div className="space-y-2">
+                  <Label className="text-xs">Logo Position</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onChange({ ...settings, logoPosition: 'center' })}
+                      className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all duration-200 ${
+                        (settings.logoPosition || 'center') === 'center'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-background hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="w-10 h-10 border-2 border-current rounded flex items-center justify-center mb-1">
+                        <div className="w-4 h-4 bg-current rounded" />
+                      </div>
+                      <span className="text-xs font-medium">Center</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onChange({ ...settings, logoPosition: 'background' })}
+                      className={`flex flex-col items-center justify-center p-3 rounded-lg border-2 transition-all duration-200 ${
+                        settings.logoPosition === 'background'
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border bg-background hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="w-10 h-10 border-2 border-current rounded flex items-center justify-center mb-1 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-current/20" />
+                        <div className="relative grid grid-cols-3 gap-0.5">
+                          {[...Array(9)].map((_, i) => (
+                            <div key={i} className="w-1.5 h-1.5 bg-current rounded-full" />
+                          ))}
+                        </div>
+                      </div>
+                      <span className="text-xs font-medium">Background</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Logo Opacity (only for background mode) */}
+                {settings.logoPosition === 'background' && (
+                  <div className="space-y-2">
+                    <Label className="text-xs">Logo Opacity: {Math.round((settings.logoOpacity || 0.3) * 100)}%</Label>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="0.8"
+                      step="0.05"
+                      value={settings.logoOpacity || 0.3}
+                      onChange={(e) => onChange({ ...settings, logoOpacity: parseFloat(e.target.value) })}
+                      className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <div
@@ -257,7 +317,7 @@ export default function QRCodeCustomizer({
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            Add a logo overlay in the center of the QR code
+            Add a logo as center overlay or watermark background
           </p>
         </div>
 
