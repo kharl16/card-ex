@@ -282,9 +282,10 @@ export default function CardView({
       {/* Social Media Links */}
       {socialLinks.length > 0 && (
         <div className="flex flex-wrap gap-3 justify-center px-4 pb-4">
-          {socialLinks.map((link) => {
+          {socialLinks.map((link, index) => {
             const IconComponent = iconMap[link.icon] || Globe;
             const brandColor = socialBrandColors[link.kind] || "bg-primary";
+            const bounceDelay = `${index * 0.1}s`;
 
             if (isInteractive) {
               return (
@@ -293,7 +294,8 @@ export default function CardView({
                   href={link.value}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
+                  style={{ animationDelay: bounceDelay, animationFillMode: 'backwards' }}
                   title={link.label}
                 >
                   <IconComponent className="h-6 w-6 text-white" />
@@ -304,7 +306,8 @@ export default function CardView({
             return (
               <div
                 key={link.id}
-                className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md`}
+                className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
+                style={{ animationDelay: bounceDelay, animationFillMode: 'backwards' }}
                 title={link.label}
               >
                 <IconComponent className="h-6 w-6 text-white" />
@@ -410,23 +413,23 @@ export default function CardView({
       <div className="px-4 pb-4 animate-fade-in" style={{ animationDelay: '0.5s', animationFillMode: 'backwards' }}>
       {isInteractive && showVCardButtons ? (
           <Button
-            className="w-full gap-2 transition-all duration-300 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite]"
+            className="w-full gap-2 transition-all duration-300 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
             style={{
               backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
             }}
             onClick={() => handleDownloadVCard(true)}
           >
-            <Download className="h-4 w-4" />
-            Save Contact
+            <Download className="h-4 w-4 relative z-10" />
+            <span className="relative z-10">Save Contact</span>
           </Button>
         ) : (
           <button
-            className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite]"
+            className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
             style={{
               backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
             }}
           >
-            Save Contact
+            <span className="relative z-10">Save Contact</span>
           </button>
         )}
       </div>
