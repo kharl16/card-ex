@@ -249,9 +249,9 @@ export default function CardView({
             {/* Inner dark plate */}
             <div className="absolute inset-[4px] rounded-full bg-black flex items-center justify-center">
               {/* Inner black edge + photo */}
-              <div className="h-[92%] w-[92%] rounded-full overflow-hidden border border-black/80 bg-black">
+              <div className="h-[92%] w-[92%] rounded-full overflow-hidden border border-black/80 bg-black flex items-center justify-center">
                 {card.avatar_url && (
-                  <img src={card.avatar_url} alt={getLiveNameFromCard(card)} className="h-full w-full object-cover" />
+                  <img src={card.avatar_url} alt={getLiveNameFromCard(card)} className="h-full w-full object-contain" />
                 )}
               </div>
             </div>
@@ -260,8 +260,8 @@ export default function CardView({
 
         {/* Logo - Bottom Right - Half overlapping the cover */}
         {card.logo_url && (
-          <div className="absolute -bottom-8 right-4 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-1.5 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300 z-10">
-            <img src={card.logo_url} alt="Logo" className="h-full w-full object-contain" />
+          <div className="absolute -bottom-8 right-4 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-2 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300 z-10 flex items-center justify-center">
+            <img src={card.logo_url} alt="Logo" className="max-h-full max-w-full object-contain" />
           </div>
         )}
       </div>

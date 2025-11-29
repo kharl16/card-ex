@@ -317,16 +317,59 @@ export default function CardEditor() {
       const theme = card?.theme as any;
       const qrSettings = customSettings || theme?.qr || {};
 
-      const qrDataUrl = await QRCode.toDataURL(shareUrl, {
+      // Import QRCodeStyling dynamically
+      const QRCodeStyling = (await import('qr-code-styling')).default;
+
+      // Map pattern names to qr-code-styling dot types
+      const dotTypeMap: Record<string, string> = {
+        'squares': 'square',
+        'classy': 'classy',
+        'rounded': 'rounded',
+        'classy-rounded': 'classy-rounded',
+        'extra-rounded': 'extra-rounded',
+        'dots': 'dots',
+      };
+
+      // Map eye style names to qr-code-styling corner types
+      const cornerTypeMap: Record<string, string> = {
+        'square': 'square',
+        'extra-rounded': 'extra-rounded',
+        'leaf': 'leaf', 
+        'diamond': 'square', // qr-code-styling doesn't have diamond, use square as fallback
+        'dot': 'dot',
+      };
+
+      const qrCode = new QRCodeStyling({
         width: qrSettings.size || 512,
-        margin: 2,
-        color: {
-          dark: qrSettings.darkColor || "#000000",
-          light: qrSettings.lightColor || "#FFFFFF",
+        height: qrSettings.size || 512,
+        data: shareUrl,
+        margin: 10,
+        dotsOptions: {
+          color: qrSettings.darkColor || "#000000",
+          type: (dotTypeMap[qrSettings.pattern] || 'square') as any,
         },
+        backgroundOptions: {
+          color: qrSettings.lightColor || "#FFFFFF",
+        },
+        cornersSquareOptions: {
+          color: qrSettings.darkColor || "#000000",
+          type: (cornerTypeMap[qrSettings.eyeStyle] || 'square') as any,
+        },
+        cornersDotOptions: {
+          color: qrSettings.darkColor || "#000000",
+          type: (cornerTypeMap[qrSettings.eyeStyle] || 'square') as any,
+        },
+        imageOptions: {
+          crossOrigin: "anonymous",
+          margin: 10,
+          imageSize: 0.4,
+        },
+        image: qrSettings.logoUrl || undefined,
       });
 
-      const blob = await (await fetch(qrDataUrl)).blob();
+      const blob = await qrCode.getRawData('png');
+      if (!blob) throw new Error('Failed to generate QR code');
+
       const fileName = `${cardSlug}-qr-${Date.now()}.png`;
       const filePath = `${card?.user_id}/${fileName}`;
 
