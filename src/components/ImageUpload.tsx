@@ -141,11 +141,11 @@ export default function ImageUpload({
         onDrop={handleDrop}
       >
         {value ? (
-          <div className="relative h-full w-full">
+          <div className="relative h-full w-full bg-muted/30">
             <img
               src={value}
               alt={label}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
             <Button
               type="button"
