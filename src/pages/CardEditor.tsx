@@ -685,6 +685,8 @@ export default function CardEditor() {
             }}
             onRegenerate={handleRegenerateQR}
             isRegenerating={regeneratingQR}
+            cardId={card.id}
+            previewUrl={card.share_url || `https://card-ex.com/c/${card.slug}`}
           />
         ),
       },

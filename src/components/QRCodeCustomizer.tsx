@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QRPatternPreview } from "./qr/QRPatternPreview";
 import { QREyeStylePreview } from "./qr/QREyeStylePreview";
+import { QRLivePreview } from "./qr/QRLivePreview";
 
 export interface QRSettings {
   size?: number;
@@ -24,6 +25,7 @@ interface QRCodeCustomizerProps {
   onRegenerate: () => void;
   isRegenerating?: boolean;
   cardId?: string;
+  previewUrl?: string;
 }
 
 const patternOptions: { value: QRSettings['pattern']; label: string }[] = [
@@ -48,7 +50,8 @@ export default function QRCodeCustomizer({
   onChange, 
   onRegenerate,
   isRegenerating,
-  cardId
+  cardId,
+  previewUrl
 }: QRCodeCustomizerProps) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -256,29 +259,8 @@ export default function QRCodeCustomizer({
           </p>
         </div>
 
-        <div className="rounded-lg bg-muted/50 p-4 space-y-2">
-          <p className="text-sm font-medium">Preview Settings:</p>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div>
-              <span className="text-muted-foreground">Size:</span>{' '}
-              <span className="font-mono">{settings.size || 512}px</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Colors:</span>{' '}
-              <span className="font-mono">
-                {settings.darkColor || '#000'} / {settings.lightColor || '#FFF'}
-              </span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Pattern:</span>{' '}
-              <span className="font-mono">{settings.pattern || 'squares'}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Eye Style:</span>{' '}
-              <span className="font-mono">{settings.eyeStyle || 'square'}</span>
-            </div>
-          </div>
-        </div>
+        {/* Live QR Code Preview */}
+        <QRLivePreview settings={settings} previewUrl={previewUrl} />
 
         <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3">
           <p className="text-xs text-blue-900 dark:text-blue-100">
