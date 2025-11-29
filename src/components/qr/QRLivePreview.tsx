@@ -25,6 +25,72 @@ const cornerTypeMap: Record<string, string> = {
   'dot': 'dot',
 };
 
+async function compositeQRWithBackground(
+  qrBlob: Blob,
+  logoUrl: string,
+  size: number,
+  opacity: number,
+  lightColor: string
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Could not get canvas context'));
+      return;
+    }
+
+    // Draw light background color
+    ctx.fillStyle = lightColor;
+    ctx.fillRect(0, 0, size, size);
+
+    const logoImg = new Image();
+    logoImg.crossOrigin = 'anonymous';
+    logoImg.onload = () => {
+      // Draw logo as background with opacity
+      ctx.globalAlpha = opacity;
+      
+      // Calculate dimensions to cover the entire QR while maintaining aspect ratio
+      const logoAspect = logoImg.width / logoImg.height;
+      let drawWidth = size;
+      let drawHeight = size;
+      let drawX = 0;
+      let drawY = 0;
+
+      if (logoAspect > 1) {
+        // Logo is wider - fit to height
+        drawHeight = size;
+        drawWidth = size * logoAspect;
+        drawX = (size - drawWidth) / 2;
+      } else {
+        // Logo is taller - fit to width
+        drawWidth = size;
+        drawHeight = size / logoAspect;
+        drawY = (size - drawHeight) / 2;
+      }
+
+      ctx.drawImage(logoImg, drawX, drawY, drawWidth, drawHeight);
+      ctx.globalAlpha = 1;
+
+      // Now draw the QR code on top
+      const qrImg = new Image();
+      qrImg.onload = () => {
+        ctx.drawImage(qrImg, 0, 0, size, size);
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error('Failed to create blob'));
+        }, 'image/png');
+      };
+      qrImg.onerror = reject;
+      qrImg.src = URL.createObjectURL(qrBlob);
+    };
+    logoImg.onerror = reject;
+    logoImg.src = logoUrl;
+  });
+}
+
 export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/preview" }: QRLivePreviewProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,9 +107,12 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
         qrCodeRef.current = null;
       }
 
+      const isBackgroundMode = settings.logoPosition === 'background' && settings.logoUrl;
+      const size = 200;
+
       const qrCode = new QRCodeStyling({
-        width: 200,
-        height: 200,
+        width: size,
+        height: size,
         data: previewUrl,
         margin: 8,
         dotsOptions: {
@@ -51,7 +120,8 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
           type: (dotTypeMap[settings.pattern || 'squares'] || 'square') as any,
         },
         backgroundOptions: {
-          color: settings.lightColor || "#FFFFFF",
+          // Use transparent background for background mode so logo shows through
+          color: isBackgroundMode ? 'transparent' : (settings.lightColor || "#FFFFFF"),
         },
         cornersSquareOptions: {
           color: settings.darkColor || "#000000",
@@ -66,51 +136,56 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
           margin: 8,
           imageSize: 0.4,
         },
-        image: settings.logoUrl || undefined,
+        // Only use center logo if not in background mode
+        image: (!isBackgroundMode && settings.logoUrl) ? settings.logoUrl : undefined,
       });
 
       qrCodeRef.current = qrCode;
       
       // Get as data URL instead of appending to DOM
-      const blob = await qrCode.getRawData('png');
-      if (blob) {
-        let blobData: Blob;
-        if (blob instanceof Blob) {
-          blobData = blob;
-        } else {
-          // Handle Buffer type - convert to Uint8Array first
-          const uint8Array = new Uint8Array(blob as unknown as ArrayBuffer);
-          blobData = new Blob([uint8Array], { type: 'image/png' });
-        }
-        const url = URL.createObjectURL(blobData);
-        setQrDataUrl(prev => {
-          // Clean up previous blob URL
-          if (prev) URL.revokeObjectURL(prev);
-          return url;
-        });
+      let blob = await qrCode.getRawData('png');
+      if (!blob) throw new Error('Failed to generate QR');
+
+      // Handle Buffer type
+      let blobData: Blob;
+      if (blob instanceof Blob) {
+        blobData = blob;
+      } else {
+        const uint8Array = new Uint8Array(blob as unknown as ArrayBuffer);
+        blobData = new Blob([uint8Array], { type: 'image/png' });
       }
+
+      // If background mode, composite the logo behind the QR
+      if (isBackgroundMode && settings.logoUrl) {
+        blobData = await compositeQRWithBackground(
+          blobData,
+          settings.logoUrl,
+          size,
+          settings.logoOpacity || 0.3,
+          settings.lightColor || "#FFFFFF"
+        );
+      }
+
+      const url = URL.createObjectURL(blobData);
+      setQrDataUrl(prev => {
+        if (prev) URL.revokeObjectURL(prev);
+        return url;
+      });
     } catch (error) {
       console.error('Error generating QR preview:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [settings.darkColor, settings.lightColor, settings.pattern, settings.eyeStyle, settings.logoUrl, previewUrl]);
+  }, [settings.darkColor, settings.lightColor, settings.pattern, settings.eyeStyle, settings.logoUrl, settings.logoPosition, settings.logoOpacity, previewUrl]);
 
   useEffect(() => {
-    // Debounce the generation
     const timeoutId = setTimeout(generatePreview, 200);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
+    return () => clearTimeout(timeoutId);
   }, [generatePreview]);
 
-  // Cleanup blob URL on unmount
   useEffect(() => {
     return () => {
-      if (qrDataUrl) {
-        URL.revokeObjectURL(qrDataUrl);
-      }
+      if (qrDataUrl) URL.revokeObjectURL(qrDataUrl);
     };
   }, []);
 
