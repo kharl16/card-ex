@@ -73,6 +73,10 @@ export default {
         shimmer: {
           '100%': { transform: 'translateX(100%)' },
         },
+        'parallax-float': {
+          '0%': { transform: 'translateY(-5%)' },
+          '100%': { transform: 'translateY(-15%)' },
+        },
         "accordion-down": {
           from: {
             height: "0",

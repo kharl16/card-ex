@@ -202,9 +202,9 @@ export default function CardView({
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      {/* Header with full-bleed cover image (no overflow-hidden here so avatar/logo can hang over) */}
+      {/* Header with full-bleed cover image with parallax effect */}
       <div
-        className="relative w-full h-40 sm:h-48 md:h-56 transition-all duration-500 ease-out"
+        className="relative w-full h-40 sm:h-48 md:h-56 transition-all duration-500 ease-out overflow-hidden"
         style={{
           backgroundImage:
             !card.cover_url && theme?.primary
@@ -218,22 +218,34 @@ export default function CardView({
             <img
               src={card.cover_url}
               alt="Cover"
-              className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300"
+              className="absolute inset-0 h-[120%] w-full object-cover transition-all duration-300 hover:scale-105"
+              style={{
+                transform: 'translateY(-10%)',
+                animation: 'parallax-float 8s ease-in-out infinite alternate',
+              }}
             />
             {/* Subtle bottom gradient overlay for contrast */}
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
           </>
         )}
 
-        {/* Avatar – gradient ring derived from theme.primary */}
+        {/* Avatar – gradient ring derived from theme.primary with hover glow */}
         <div className="absolute -bottom-12 left-4 z-10">
           <div
-            className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-2xl transition-transform duration-300 hover:scale-105"
+            className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 group/avatar"
             style={{
               background: `conic-gradient(from 180deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 120deg, ${darkerPrimary} 240deg, ${lighterPrimary} 360deg)`,
               boxShadow: "0 18px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.5)",
             }}
           >
+            {/* Hover glow effect */}
+            <div 
+              className="absolute inset-0 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 blur-xl -z-10"
+              style={{
+                background: `radial-gradient(circle, ${basePrimary}80 0%, transparent 70%)`,
+                transform: 'scale(1.5)',
+              }}
+            />
             {/* Inner dark plate */}
             <div className="absolute inset-[4px] rounded-full bg-black flex items-center justify-center">
               {/* Inner black edge + photo */}
