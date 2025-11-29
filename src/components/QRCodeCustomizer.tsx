@@ -25,6 +25,7 @@ interface QRCodeCustomizerProps {
   onRegenerate: () => void;
   isRegenerating?: boolean;
   cardId?: string;
+  userId?: string;
   previewUrl?: string;
 }
 
@@ -51,6 +52,7 @@ export default function QRCodeCustomizer({
   onRegenerate,
   isRegenerating,
   cardId,
+  userId,
   previewUrl
 }: QRCodeCustomizerProps) {
   const [isUploading, setIsUploading] = useState(false);
@@ -58,7 +60,7 @@ export default function QRCodeCustomizer({
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !cardId) return;
+    if (!file || !userId) return;
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -75,16 +77,16 @@ export default function QRCodeCustomizer({
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${cardId}/qr-logo-${Date.now()}.${fileExt}`;
+      const fileName = `${userId}/qr-logo-${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('card-assets')
+        .from('media')
         .upload(fileName, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('card-assets')
+        .from('media')
         .getPublicUrl(fileName);
 
       onChange({ ...settings, logoUrl: publicUrl });
