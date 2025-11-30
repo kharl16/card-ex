@@ -31,7 +31,16 @@ function adjustHexColor(hex: string, amount: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name, title, primaryColor = "#D4AF37", avatarDisplayMode = "contain", logoDisplayMode = "contain" }: RiderHeaderProps) {
+export default function RiderHeader({
+  coverUrl,
+  avatarUrl,
+  companyLogoUrl,
+  name,
+  title,
+  primaryColor = "#D4AF37",
+  avatarDisplayMode = "contain",
+  logoDisplayMode = "contain",
+}: RiderHeaderProps) {
   const basePrimary = primaryColor;
   const lighterPrimary = adjustHexColor(basePrimary, 30);
   const darkerPrimary = adjustHexColor(basePrimary, -40);
@@ -39,26 +48,21 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
   return (
     <div className="relative -mx-6 -mt-6 mb-4 overflow-visible">
       {/* Cover image */}
-      <div 
+      <div
         className="h-40 sm:h-48 w-full overflow-hidden"
         style={{
-          backgroundImage: !coverUrl && primaryColor
-            ? `linear-gradient(to bottom right, ${primaryColor}33, ${primaryColor}0D)`
-            : undefined,
+          backgroundImage:
+            !coverUrl && primaryColor
+              ? `linear-gradient(to bottom right, ${primaryColor}33, ${primaryColor}0D)`
+              : undefined,
           backgroundColor: !coverUrl && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
-        {coverUrl && (
-          <img 
-            src={coverUrl} 
-            alt="Cover" 
-            className="h-full w-full object-cover"
-          />
-        )}
+        {coverUrl && <img src={coverUrl} alt="Cover" className="h-full w-full object-cover" />}
       </div>
 
       {/* Avatar - positioned on the left, overlapping cover bottom */}
-      <div className="absolute left-4 sm:left-6 bottom-0 translate-y-1/2 z-20">
+      <div className="absolute left-4 sm:left-6 bottom-0 -translate-y-1/2 z-20">
         <div
           className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar"
           style={{
@@ -67,11 +71,11 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
           }}
         >
           {/* Hover glow effect */}
-          <div 
+          <div
             className="absolute inset-0 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 blur-xl -z-10"
             style={{
               background: `radial-gradient(circle, ${basePrimary}80 0%, transparent 70%)`,
-              transform: 'scale(1.5)',
+              transform: "scale(1.5)",
             }}
           />
           {/* Inner dark plate */}
@@ -79,10 +83,10 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
             {/* Inner photo container */}
             <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
               {avatarUrl && (
-                <img 
-                  src={avatarUrl} 
-                  alt={name || "Rider"} 
-                  className={`h-full w-full ${avatarDisplayMode === "contain" ? "object-contain" : "object-cover"}`} 
+                <img
+                  src={avatarUrl}
+                  alt={name || "Rider"}
+                  className={`h-full w-full ${avatarDisplayMode === "contain" ? "object-contain" : "object-cover"}`}
                 />
               )}
             </div>
@@ -92,12 +96,12 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
 
       {/* Company logo - positioned on the right, aligned with avatar */}
       {companyLogoUrl && (
-        <div className="absolute right-4 sm:right-6 bottom-0 translate-y-1/2 z-20">
+        <div className="absolute right-4 sm:right-6 bottom-0 -translate-y-1/2 z-20">
           <div className="h-16 w-28 sm:h-20 sm:w-36 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
-            <img 
-              src={companyLogoUrl} 
-              alt="Company logo" 
-              className={`max-h-full max-w-full ${logoDisplayMode === "contain" ? "object-contain" : "object-cover"}`} 
+            <img
+              src={companyLogoUrl}
+              alt="Company logo"
+              className={`max-h-full max-w-full ${logoDisplayMode === "contain" ? "object-contain" : "object-cover"}`}
             />
           </div>
         </div>
