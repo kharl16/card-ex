@@ -738,7 +738,12 @@ export default function CardEditor() {
         progress: calculateProgress("products"),
         content: (
           <div className="space-y-4">
-            <ImagesSection card={card} onCardChange={handleCardChange} />
+            <ImagesSection 
+              card={card} 
+              onCardChange={handleCardChange}
+              theme={(card.theme as any) || {}}
+              onThemeChange={(theme) => setCard({ ...card, theme: theme as any })}
+            />
             <div className="pt-4 border-t border-border/50">
               <ProductImageManager cardId={card.id} ownerId={card.user_id} onImagesChange={loadProductImages} />
             </div>

@@ -29,6 +29,9 @@ export interface CardTheme extends ThemeVariant {
   // Team / Leader preset metadata
   teamPresetName?: string;
   teamLocked?: boolean;
+  // Image display modes
+  avatarDisplayMode?: "contain" | "cover";
+  logoDisplayMode?: "contain" | "cover";
 }
 
 // Light mode defaults

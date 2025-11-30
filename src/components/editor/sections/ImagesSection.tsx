@@ -1,17 +1,31 @@
-import { useState } from "react";
 import ImageUpload from "@/components/ImageUpload";
 import type { Tables } from "@/integrations/supabase/types";
+import type { CardTheme } from "@/lib/theme";
 
 type CardData = Tables<"cards">;
 
 interface ImagesSectionProps {
   card: CardData;
   onCardChange: (updates: Partial<CardData>) => void;
+  theme?: CardTheme;
+  onThemeChange?: (theme: CardTheme) => void;
 }
 
-export function ImagesSection({ card, onCardChange }: ImagesSectionProps) {
-  const [avatarDisplayMode, setAvatarDisplayMode] = useState<"contain" | "cover">("contain");
-  const [logoDisplayMode, setLogoDisplayMode] = useState<"contain" | "cover">("contain");
+export function ImagesSection({ card, onCardChange, theme, onThemeChange }: ImagesSectionProps) {
+  const avatarDisplayMode = theme?.avatarDisplayMode || "contain";
+  const logoDisplayMode = theme?.logoDisplayMode || "contain";
+
+  const handleAvatarDisplayModeChange = (mode: "contain" | "cover") => {
+    if (onThemeChange && theme) {
+      onThemeChange({ ...theme, avatarDisplayMode: mode });
+    }
+  };
+
+  const handleLogoDisplayModeChange = (mode: "contain" | "cover") => {
+    if (onThemeChange && theme) {
+      onThemeChange({ ...theme, logoDisplayMode: mode });
+    }
+  };
 
   return (
     <div className="grid grid-cols-3 gap-4">
@@ -23,7 +37,7 @@ export function ImagesSection({ card, onCardChange }: ImagesSectionProps) {
         maxSize={5}
         showDisplayToggle
         displayMode={avatarDisplayMode}
-        onDisplayModeChange={setAvatarDisplayMode}
+        onDisplayModeChange={handleAvatarDisplayModeChange}
       />
       <ImageUpload
         value={card.logo_url}
@@ -33,7 +47,7 @@ export function ImagesSection({ card, onCardChange }: ImagesSectionProps) {
         maxSize={2}
         showDisplayToggle
         displayMode={logoDisplayMode}
-        onDisplayModeChange={setLogoDisplayMode}
+        onDisplayModeChange={handleLogoDisplayModeChange}
       />
       <ImageUpload
         value={card.cover_url}
