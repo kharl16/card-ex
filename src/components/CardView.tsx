@@ -186,6 +186,8 @@ export default function CardView({
         name={getLiveNameFromCard(card)}
         title={card.title || undefined}
         primaryColor={basePrimary}
+        avatarDisplayMode={theme.avatarDisplayMode}
+        logoDisplayMode={theme.logoDisplayMode}
       />
 
       {/* Company and Bio */}

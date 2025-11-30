@@ -5,6 +5,8 @@ interface RiderHeaderProps {
   name?: string;
   title?: string;
   primaryColor?: string;
+  avatarDisplayMode?: "contain" | "cover";
+  logoDisplayMode?: "contain" | "cover";
 }
 
 // Helper: adjust a hex color lighter/darker
@@ -29,7 +31,7 @@ function adjustHexColor(hex: string, amount: number): string {
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name, title, primaryColor = "#D4AF37" }: RiderHeaderProps) {
+export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name, title, primaryColor = "#D4AF37", avatarDisplayMode = "contain", logoDisplayMode = "contain" }: RiderHeaderProps) {
   const basePrimary = primaryColor;
   const lighterPrimary = adjustHexColor(basePrimary, 30);
   const darkerPrimary = adjustHexColor(basePrimary, -40);
@@ -86,7 +88,11 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
             {/* Inner black edge + photo */}
             <div className="h-[92%] w-[92%] rounded-full overflow-hidden border border-black/80 bg-black flex items-center justify-center">
               {avatarUrl && (
-                <img src={avatarUrl} alt={name || "Rider"} className="h-full w-full object-contain" />
+                <img 
+                  src={avatarUrl} 
+                  alt={name || "Rider"} 
+                  className={`h-full w-full ${avatarDisplayMode === "contain" ? "object-contain" : "object-cover"}`} 
+                />
               )}
             </div>
           </div>
@@ -95,7 +101,11 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
         {/* Company logo (optional) */}
         {companyLogoUrl && (
           <div className="h-14 w-24 sm:h-16 sm:w-28 rounded-lg bg-black/90 p-2 shadow-2xl ring-2 ring-black/20 hover:scale-105 transition-transform duration-300 flex items-center justify-center flex-shrink-0">
-            <img src={companyLogoUrl} alt="Company logo" className="max-h-full max-w-full object-contain" />
+            <img 
+              src={companyLogoUrl} 
+              alt="Company logo" 
+              className={`max-h-full max-w-full ${logoDisplayMode === "contain" ? "object-contain" : "object-cover"}`} 
+            />
           </div>
         )}
       </div>
