@@ -37,10 +37,10 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
   const darkerPrimary = adjustHexColor(basePrimary, -40);
 
   return (
-    <div className="relative -mx-6 -mt-6 mb-4">
+    <div className="relative -mx-6 -mt-6 mb-4 overflow-visible">
       {/* Cover image */}
       <div 
-        className="h-40 sm:h-48 md:h-56 w-full overflow-hidden"
+        className="h-40 sm:h-48 w-full overflow-hidden"
         style={{
           backgroundImage: !coverUrl && primaryColor
             ? `linear-gradient(to bottom right, ${primaryColor}33, ${primaryColor}0D)`
@@ -49,30 +49,21 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
         }}
       >
         {coverUrl && (
-          <>
-            <img 
-              src={coverUrl} 
-              alt="Cover" 
-              className="h-[120%] w-full object-cover transition-all duration-300 hover:scale-105"
-              style={{
-                transform: 'translateY(-10%)',
-                animation: 'parallax-float 8s ease-in-out infinite alternate',
-              }}
-            />
-            {/* Subtle bottom gradient overlay for contrast */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
-          </>
+          <img 
+            src={coverUrl} 
+            alt="Cover" 
+            className="h-full w-full object-cover"
+          />
         )}
       </div>
 
-      {/* Avatar + company logo group - positioned to overlap cover bottom */}
-      <div className="absolute left-4 sm:left-6 bottom-0 translate-y-1/2 flex items-end gap-3 sm:gap-4 z-50">
-        {/* Avatar container with gradient ring */}
+      {/* Avatar - positioned on the left, overlapping cover bottom */}
+      <div className="absolute left-4 sm:left-6 bottom-0 translate-y-1/2 z-20">
         <div
-          className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 group/avatar flex-shrink-0"
+          className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar"
           style={{
             background: `conic-gradient(from 180deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 120deg, ${darkerPrimary} 240deg, ${lighterPrimary} 360deg)`,
-            boxShadow: "0 18px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.5)",
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
           }}
         >
           {/* Hover glow effect */}
@@ -85,8 +76,8 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
           />
           {/* Inner dark plate */}
           <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
-            {/* Inner black edge + photo */}
-            <div className="h-[92%] w-[92%] rounded-full overflow-hidden border border-black/80 bg-black flex items-center justify-center">
+            {/* Inner photo container */}
+            <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
               {avatarUrl && (
                 <img 
                   src={avatarUrl} 
@@ -97,27 +88,29 @@ export default function RiderHeader({ coverUrl, avatarUrl, companyLogoUrl, name,
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Company logo (optional) */}
-        {companyLogoUrl && (
-          <div className="h-14 w-24 sm:h-16 sm:w-28 rounded-lg bg-black/90 p-2 shadow-2xl ring-2 ring-black/20 hover:scale-105 transition-transform duration-300 flex items-center justify-center flex-shrink-0">
+      {/* Company logo - positioned on the right, aligned with avatar */}
+      {companyLogoUrl && (
+        <div className="absolute right-4 sm:right-6 bottom-0 translate-y-1/2 z-20">
+          <div className="h-16 w-28 sm:h-20 sm:w-36 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
             <img 
               src={companyLogoUrl} 
               alt="Company logo" 
               className={`max-h-full max-w-full ${logoDisplayMode === "contain" ? "object-contain" : "object-cover"}`} 
             />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Spacer to avoid overlap with content below - accounts for avatar overlap */}
-      <div className="h-12 sm:h-14" />
+      {/* Spacer so content doesn't overlap avatar/logo */}
+      <div className="h-14 sm:h-16" />
 
       {/* Name/title positioned below avatar area */}
       {(name || title) && (
         <div className="px-6 pt-2 pb-2">
-          {name && <h1 className="text-xl sm:text-2xl font-bold leading-tight transition-colors duration-500">{name}</h1>}
-          {title && <p className="text-sm sm:text-base opacity-80 mt-0.5 transition-colors duration-500">{title}</p>}
+          {name && <h1 className="text-xl sm:text-2xl font-bold leading-tight">{name}</h1>}
+          {title && <p className="text-sm sm:text-base text-muted-foreground mt-1">{title}</p>}
         </div>
       )}
     </div>
