@@ -17,6 +17,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ProductRingCarousel from "@/components/ProductRingCarousel";
+import RiderHeader from "@/components/RiderHeader";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import { getActiveTheme } from "@/lib/theme";
 import type { Tables } from "@/integrations/supabase/types";
@@ -103,29 +104,6 @@ const contactBrandColors: Record<string, string> = {
   location: "bg-[#FBBC04]",
 };
 
-// Helper: adjust a hex color lighter/darker
-function adjustHexColor(hex: string, amount: number): string {
-  if (!hex || !hex.startsWith("#") || (hex.length !== 7 && hex.length !== 4)) {
-    return hex;
-  }
-
-  // Normalize #RGB to #RRGGBB
-  let normalized = hex;
-  if (hex.length === 4) {
-    const r = hex[1];
-    const g = hex[2];
-    const b = hex[3];
-    normalized = `#${r}${r}${g}${g}${b}${b}`;
-  }
-
-  const r = Math.min(255, Math.max(0, parseInt(normalized.slice(1, 3), 16) + amount));
-  const g = Math.min(255, Math.max(0, parseInt(normalized.slice(3, 5), 16) + amount));
-  const b = Math.min(255, Math.max(0, parseInt(normalized.slice(5, 7), 16) + amount));
-
-  const toHex = (v: number) => v.toString(16).padStart(2, "0");
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
 export default function CardView({
   card,
   socialLinks,
@@ -188,10 +166,8 @@ export default function CardView({
     }
   };
 
-  // Avatar ring gradient derived from ONE editable primary color
+  // Primary color for RiderHeader gradient ring
   const basePrimary = theme.primary || "#D4AF37";
-  const lighterPrimary = adjustHexColor(basePrimary, 30); // +30 brightness
-  const darkerPrimary = adjustHexColor(basePrimary, -40); // -40 brightness
 
   return (
     <Card
@@ -202,76 +178,18 @@ export default function CardView({
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      {/* Header with full-bleed cover image with parallax effect */}
-      <div
-        className="relative w-full h-40 sm:h-48 md:h-56 transition-all duration-500 ease-out overflow-hidden"
-        style={{
-          backgroundImage:
-            !card.cover_url && theme?.primary
-              ? `linear-gradient(to bottom right, ${theme.primary}33, ${theme.primary}0D)`
-              : undefined,
-          backgroundColor: !card.cover_url && !theme?.primary ? "hsl(var(--primary) / 0.2)" : undefined,
-        }}
-      >
-        {card.cover_url && (
-          <>
-            <img
-              src={card.cover_url}
-              alt="Cover"
-              className="absolute inset-0 h-[120%] w-full object-cover transition-all duration-300 hover:scale-105"
-              style={{
-                transform: 'translateY(-10%)',
-                animation: 'parallax-float 8s ease-in-out infinite alternate',
-              }}
-            />
-            {/* Subtle bottom gradient overlay for contrast */}
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-background/30 to-transparent" />
-          </>
-        )}
+      {/* Header using RiderHeader component */}
+      <RiderHeader
+        coverUrl={card.cover_url}
+        avatarUrl={card.avatar_url}
+        companyLogoUrl={card.logo_url}
+        name={getLiveNameFromCard(card)}
+        title={card.title || undefined}
+        primaryColor={basePrimary}
+      />
 
-        {/* Avatar – gradient ring derived from theme.primary with hover glow */}
-        <div className="absolute -bottom-12 left-4 z-10">
-          <div
-            className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-2xl transition-all duration-300 hover:scale-105 group/avatar"
-            style={{
-              background: `conic-gradient(from 180deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 120deg, ${darkerPrimary} 240deg, ${lighterPrimary} 360deg)`,
-              boxShadow: "0 18px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,0,0,0.5)",
-            }}
-          >
-            {/* Hover glow effect */}
-            <div 
-              className="absolute inset-0 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 blur-xl -z-10"
-              style={{
-                background: `radial-gradient(circle, ${basePrimary}80 0%, transparent 70%)`,
-                transform: 'scale(1.5)',
-              }}
-            />
-            {/* Inner dark plate */}
-            <div className="absolute inset-[4px] rounded-full bg-black flex items-center justify-center">
-              {/* Inner black edge + photo */}
-              <div className="h-[92%] w-[92%] rounded-full overflow-hidden border border-black/80 bg-black flex items-center justify-center">
-                {card.avatar_url && (
-                  <img src={card.avatar_url} alt={getLiveNameFromCard(card)} className="h-full w-full object-contain" />
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Logo - Bottom Right - Half overlapping the cover */}
-        {card.logo_url && (
-          <div className="absolute -bottom-8 right-4 h-16 w-28 sm:h-20 sm:w-32 rounded-lg bg-black/90 p-2 shadow-2xl ring-4 ring-black/10 hover:scale-105 transition-transform duration-300 z-10 flex items-center justify-center">
-            <img src={card.logo_url} alt="Logo" className="max-h-full max-w-full object-contain" />
-          </div>
-        )}
-      </div>
-
-      {/* Profile Info */}
-      <div className="px-4 pt-16 pb-4 transition-colors duration-500">
-        <h1 className="text-xl sm:text-2xl font-bold transition-colors duration-500">{getLiveNameFromCard(card)}</h1>
-        {card.title && (
-          <p className="text-sm sm:text-lg opacity-80 mt-1 transition-colors duration-500">{card.title}</p>
-        )}
+      {/* Company and Bio */}
+      <div className="px-4 pb-4 transition-colors duration-500">
         {card.company && <p className="text-sm text-muted-foreground transition-colors duration-500">{card.company}</p>}
         {card.bio && <p className="mt-3 text-sm text-muted-foreground transition-colors duration-500">{card.bio}</p>}
       </div>
