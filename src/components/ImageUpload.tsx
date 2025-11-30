@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, Crop, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import ImageEditorDialog from "./ImageEditorDialog";
 
 interface ImageUploadProps {
   value: string | null;
@@ -10,6 +11,9 @@ interface ImageUploadProps {
   label: string;
   aspectRatio?: string;
   maxSize?: number; // in MB
+  displayMode?: "contain" | "cover";
+  onDisplayModeChange?: (mode: "contain" | "cover") => void;
+  showDisplayToggle?: boolean;
 }
 
 export default function ImageUpload({
@@ -18,24 +22,17 @@ export default function ImageUpload({
   label,
   aspectRatio = "aspect-square",
   maxSize = 5,
+  displayMode = "contain",
+  onDisplayModeChange,
+  showDisplayToggle = false,
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const uploadImage = async (file: File) => {
-    // Validate file type
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
-      return;
-    }
-
-    // Validate file size
-    if (file.size > maxSize * 1024 * 1024) {
-      toast.error(`File size must be less than ${maxSize}MB`);
-      return;
-    }
-
+  const uploadBlob = async (blob: Blob) => {
     setUploading(true);
 
     try {
@@ -49,15 +46,15 @@ export default function ImageUpload({
       }
 
       // Generate unique filename
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.jpg`;
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from("media")
-        .upload(fileName, file, {
+        .upload(fileName, blob, {
           cacheControl: "3600",
           upsert: false,
+          contentType: "image/jpeg",
         });
 
       if (error) {
@@ -76,14 +73,35 @@ export default function ImageUpload({
       toast.error(error.message || "Failed to upload image");
     } finally {
       setUploading(false);
+      setTempImageSrc(null);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      uploadImage(file);
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please upload an image file");
+        return;
+      }
+
+      // Validate file size
+      if (file.size > maxSize * 1024 * 1024) {
+        toast.error(`File size must be less than ${maxSize}MB`);
+        return;
+      }
+
+      // Open editor with the selected image
+      const reader = new FileReader();
+      reader.onload = () => {
+        setTempImageSrc(reader.result as string);
+        setEditorOpen(true);
+      };
+      reader.readAsDataURL(file);
     }
+    // Reset input so same file can be selected again
+    e.target.value = "";
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -102,7 +120,36 @@ export default function ImageUpload({
 
     const file = e.dataTransfer.files[0];
     if (file) {
-      uploadImage(file);
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please upload an image file");
+        return;
+      }
+
+      // Validate file size
+      if (file.size > maxSize * 1024 * 1024) {
+        toast.error(`File size must be less than ${maxSize}MB`);
+        return;
+      }
+
+      // Open editor with the dropped image
+      const reader = new FileReader();
+      reader.onload = () => {
+        setTempImageSrc(reader.result as string);
+        setEditorOpen(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEditorSave = (blob: Blob) => {
+    uploadBlob(blob);
+  };
+
+  const handleEditExisting = () => {
+    if (value) {
+      setTempImageSrc(value);
+      setEditorOpen(true);
     }
   };
 
@@ -128,7 +175,30 @@ export default function ImageUpload({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium">{label}</label>
+        {showDisplayToggle && value && onDisplayModeChange && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => onDisplayModeChange(displayMode === "contain" ? "cover" : "contain")}
+            className="h-7 text-xs gap-1"
+          >
+            {displayMode === "contain" ? (
+              <>
+                <Maximize2 className="h-3 w-3" />
+                Fit
+              </>
+            ) : (
+              <>
+                <Minimize2 className="h-3 w-3" />
+                Fill
+              </>
+            )}
+          </Button>
+        )}
+      </div>
 
       <div
         className={`relative ${aspectRatio} w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
@@ -145,17 +215,30 @@ export default function ImageUpload({
             <img
               src={value}
               alt={label}
-              className="h-full w-full object-contain"
+              className={`h-full w-full ${displayMode === "contain" ? "object-contain" : "object-cover"}`}
             />
-            <Button
-              type="button"
-              variant="destructive"
-              size="icon"
-              className="absolute right-2 top-2 h-8 w-8"
-              onClick={handleRemove}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="absolute right-2 top-2 flex gap-1">
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleEditExisting}
+                title="Crop & Adjust"
+              >
+                <Crop className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                size="icon"
+                className="h-8 w-8"
+                onClick={handleRemove}
+                title="Remove"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         ) : (
           <div
@@ -188,6 +271,16 @@ export default function ImageUpload({
           disabled={uploading}
         />
       </div>
+
+      {/* Image Editor Dialog */}
+      {tempImageSrc && (
+        <ImageEditorDialog
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          imageSrc={tempImageSrc}
+          onSave={handleEditorSave}
+        />
+      )}
     </div>
   );
 }
