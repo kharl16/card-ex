@@ -49,7 +49,7 @@ export default function RiderHeader({
     <div className="relative -mx-6 -mt-6 mb-4 overflow-visible">
       {/* Cover image */}
       <div
-        className="h-40 sm:h-48 w-full overflow-hidden"
+        className="h-40 sm:h-48 w-full overflow-hidden relative"
         style={{
           backgroundImage:
             !coverUrl && primaryColor
@@ -59,6 +59,8 @@ export default function RiderHeader({
         }}
       >
         {coverUrl && <img src={coverUrl} alt="Cover" className="h-full w-full object-cover" />}
+        {/* Gradient overlay for better contrast */}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
       </div>
 
       {/* Avatar - positioned on the left, overlapping cover bottom */}
