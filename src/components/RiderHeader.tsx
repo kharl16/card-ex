@@ -58,13 +58,13 @@ export default function RiderHeader({
           backgroundColor: !coverUrl && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
-        {coverUrl && <img src={coverUrl} alt="Cover" className="h-full w-full object-cover" />}
+        {coverUrl && <img src={coverUrl} alt="Cover" className="h-full w-full object-contain" />}
         {/* Gradient overlay for better contrast */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
       </div>
 
       {/* Avatar - positioned on the left, overlapping cover bottom */}
-      <div className="absolute left-4 sm:left-6 bottom-8 sm:bottom-10 -translate-y-1/2 z-20">
+      <div className="absolute left-8 sm:left-10 bottom-8 sm:bottom-10 -translate-y-1/2 z-20">
         <div
           className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar"
           style={{
@@ -98,7 +98,7 @@ export default function RiderHeader({
 
       {/* Company logo - positioned on the right, aligned with avatar */}
       {companyLogoUrl && (
-        <div className="absolute right-4 sm:right-6 bottom-8 sm:bottom-10 -translate-y-1/2 z-20">
+        <div className="absolute right-8 sm:right-10 bottom-8 sm:bottom-10 -translate-y-1/2 z-20">
           <div className="h-16 w-28 sm:h-20 sm:w-36 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
             <img
               src={companyLogoUrl}
