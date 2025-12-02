@@ -46,7 +46,8 @@ export default function RiderHeader({
   const darkerPrimary = adjustHexColor(basePrimary, -40);
 
   return (
-    <div className="relative -mx-6 -mt-6 mb-4 overflow-visible">
+    // ↓↓↓ changed -mt-6 to a gentler negative margin so the cover sits lower
+    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-visible">
       {/* Cover image */}
       <div
         className="h-48 sm:h-56 w-full overflow-hidden relative"
