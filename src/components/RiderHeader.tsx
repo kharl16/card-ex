@@ -64,7 +64,7 @@ export default function RiderHeader({
       </div>
 
       {/* Avatar - positioned on the left, overlapping cover bottom */}
-      <div className="absolute left-8 sm:left-10 bottom-10 sm:bottom-12 -translate-y-1/2 z-20">
+      <div className="absolute left-8 sm:left-10 bottom-12 sm:bottom-14 -translate-y-1/2 z-20">
         <div
           className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar"
           style={{
@@ -98,7 +98,7 @@ export default function RiderHeader({
 
       {/* Company logo - positioned on the right, aligned with avatar */}
       {companyLogoUrl && (
-        <div className="absolute right-8 sm:right-10 bottom-14 sm:bottom-16 -translate-y-1/2 z-20">
+        <div className="absolute right-8 sm:right-10 bottom-16 sm:bottom-18 -translate-y-1/2 z-20">
           <div className="h-16 w-28 sm:h-20 sm:w-36 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
             <img
               src={companyLogoUrl}
