@@ -46,7 +46,6 @@ export default function RiderHeader({
   const darkerPrimary = adjustHexColor(basePrimary, -40);
 
   return (
-    // ↓↓↓ changed -mt-6 to a gentler negative margin so the cover sits lower
     <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-visible">
       {/* Cover image */}
       <div
@@ -59,7 +58,11 @@ export default function RiderHeader({
           backgroundColor: !coverUrl && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
-        {coverUrl && <img src={coverUrl} alt="Cover" className="h-full w-full object-cover" />}
+        {coverUrl && (
+          <img src={coverUrl} alt="Cover" className="h-full w-full object-cover object-[left_center]" />
+          //          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          // forces object-position: left center; so the visible area shifts a bit left
+        )}
         {/* Gradient overlay for better contrast */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
       </div>
