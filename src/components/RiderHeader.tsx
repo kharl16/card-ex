@@ -49,7 +49,7 @@ export default function RiderHeader({
     <div className="relative -mx-6 -mt-6 mb-4 overflow-visible">
       {/* Cover image */}
       <div
-        className="h-40 sm:h-48 w-full overflow-hidden relative"
+        className="h-48 sm:h-56 w-full overflow-hidden relative"
         style={{
           backgroundImage:
             !coverUrl && primaryColor
@@ -58,7 +58,7 @@ export default function RiderHeader({
           backgroundColor: !coverUrl && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
-        {coverUrl && <img src={coverUrl} alt="Cover" className="h-full w-full object-contain" />}
+        {coverUrl && <img src={coverUrl} alt="Cover" className="h-full w-full object-cover" />}
         {/* Gradient overlay for better contrast */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
       </div>
@@ -110,13 +110,15 @@ export default function RiderHeader({
       )}
 
       {/* Spacer so content doesn't overlap avatar/logo */}
-      <div className="h-14 sm:h-16" />
+      <div className="h-16 sm:h-20" />
 
       {/* Name/title positioned below avatar area */}
       {(name || title) && (
-        <div className="px-6 pt-2 pb-2">
-          {name && <h1 className="text-xl sm:text-2xl font-bold leading-tight">{name}</h1>}
-          {title && <p className="text-sm sm:text-base text-muted-foreground mt-1">{title}</p>}
+        <div className="pl-8 sm:pl-10 pr-6 pt-2 pb-2">
+          <div className="flex flex-col space-y-1 leading-relaxed">
+            {name && <h1 className="text-xl sm:text-2xl font-bold">{name}</h1>}
+            {title && <p className="text-sm sm:text-base text-muted-foreground">{title}</p>}
+          </div>
         </div>
       )}
     </div>
