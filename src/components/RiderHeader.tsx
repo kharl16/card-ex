@@ -98,7 +98,7 @@ export default function RiderHeader({
 
       {/* Company logo - positioned on the right, aligned with avatar */}
       {companyLogoUrl && (
-        <div className="absolute right-8 sm:right-10 bottom-8 sm:bottom-10 -translate-y-1/2 z-20">
+        <div className="absolute right-8 sm:right-10 bottom-10 sm:bottom-12 -translate-y-1/2 z-20">
           <div className="h-16 w-28 sm:h-20 sm:w-36 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
             <img
               src={companyLogoUrl}
