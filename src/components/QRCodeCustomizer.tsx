@@ -4,12 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Upload, X } from "lucide-react";
+import { RefreshCw, Upload, X, RotateCcw, Save, FolderOpen, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { QRPatternPreview } from "./qr/QRPatternPreview";
 import { QREyeStylePreview } from "./qr/QREyeStylePreview";
 import { QRLivePreview } from "./qr/QRLivePreview";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export interface QRSettings {
   size?: number;
@@ -21,6 +28,26 @@ export interface QRSettings {
   pattern?: "squares" | "classy" | "rounded" | "classy-rounded" | "extra-rounded" | "dots";
   eyeStyle?: "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield";
 }
+
+export interface QRPreset {
+  id: string;
+  name: string;
+  settings: QRSettings;
+  createdAt: string;
+}
+
+export const DEFAULT_QR_SETTINGS: QRSettings = {
+  size: 512,
+  darkColor: "#000000",
+  lightColor: "#FFFFFF",
+  logoUrl: "",
+  logoPosition: "center",
+  logoOpacity: 0.3,
+  pattern: "squares",
+  eyeStyle: "square",
+};
+
+const QR_PRESETS_STORAGE_KEY = "cardex-qr-presets";
 
 interface QRCodeCustomizerProps {
   settings: QRSettings;
@@ -52,6 +79,20 @@ const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [
   { value: "shield", label: "Shield" },
 ];
 
+// Helper functions for presets
+const loadPresetsFromStorage = (): QRPreset[] => {
+  try {
+    const stored = localStorage.getItem(QR_PRESETS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+const savePresetsToStorage = (presets: QRPreset[]) => {
+  localStorage.setItem(QR_PRESETS_STORAGE_KEY, JSON.stringify(presets));
+};
+
 export default function QRCodeCustomizer({
   settings,
   onChange,
@@ -64,6 +105,14 @@ export default function QRCodeCustomizer({
   const [isUploading, setIsUploading] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [presets, setPresets] = useState<QRPreset[]>([]);
+  const [newPresetName, setNewPresetName] = useState("");
+  const [isPresetDialogOpen, setIsPresetDialogOpen] = useState(false);
+
+  // Load presets from localStorage on mount
+  useEffect(() => {
+    setPresets(loadPresetsFromStorage());
+  }, []);
 
   // Mark component as mounted to avoid auto-regenerate on first render
   useEffect(() => {
@@ -143,13 +192,50 @@ export default function QRCodeCustomizer({
     const parsed = parseInt(raw, 10);
 
     if (Number.isNaN(parsed)) {
-      // allow clearing field temporarily
       onChange({ ...settings, size: undefined });
       return;
     }
 
     const clamped = Math.min(1024, Math.max(256, parsed));
     onChange({ ...settings, size: clamped });
+  };
+
+  const handleResetSettings = () => {
+    onChange({ ...DEFAULT_QR_SETTINGS });
+    toast.success("QR settings reset to defaults");
+  };
+
+  const handleSavePreset = () => {
+    if (!newPresetName.trim()) {
+      toast.error("Please enter a preset name");
+      return;
+    }
+
+    const newPreset: QRPreset = {
+      id: `preset-${Date.now()}`,
+      name: newPresetName.trim(),
+      settings: { ...settings, logoUrl: "" }, // Don't save logo URL as it may expire
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedPresets = [...presets, newPreset];
+    setPresets(updatedPresets);
+    savePresetsToStorage(updatedPresets);
+    setNewPresetName("");
+    toast.success(`Preset "${newPreset.name}" saved`);
+  };
+
+  const handleLoadPreset = (preset: QRPreset) => {
+    onChange({ ...preset.settings, logoUrl: settings.logoUrl }); // Keep current logo
+    toast.success(`Preset "${preset.name}" loaded`);
+    setIsPresetDialogOpen(false);
+  };
+
+  const handleDeletePreset = (presetId: string) => {
+    const updatedPresets = presets.filter((p) => p.id !== presetId);
+    setPresets(updatedPresets);
+    savePresetsToStorage(updatedPresets);
+    toast.success("Preset deleted");
   };
 
   const darkColor = settings.darkColor || "#000000";
@@ -161,12 +247,92 @@ export default function QRCodeCustomizer({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center justify-between gap-3">
+        <CardTitle className="flex flex-col gap-3">
           <span>QR Code Customization</span>
-          <Button size="sm" variant="outline" onClick={onRegenerate} disabled={isRegenerating}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRegenerating ? "animate-spin" : ""}`} />
-            Regenerate QR
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={onRegenerate} disabled={isRegenerating}>
+              <RefreshCw className={`h-4 w-4 mr-1 ${isRegenerating ? "animate-spin" : ""}`} />
+              Regenerate
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleResetSettings}>
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Reset
+            </Button>
+            <Dialog open={isPresetDialogOpen} onOpenChange={setIsPresetDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline">
+                  <FolderOpen className="h-4 w-4 mr-1" />
+                  Presets
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>QR Code Presets</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {/* Save new preset */}
+                  <div className="space-y-2">
+                    <Label>Save Current Settings as Preset</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Preset name..."
+                        value={newPresetName}
+                        onChange={(e) => setNewPresetName(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleSavePreset()}
+                      />
+                      <Button onClick={handleSavePreset} disabled={!newPresetName.trim()}>
+                        <Save className="h-4 w-4 mr-1" />
+                        Save
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Saved presets list */}
+                  <div className="space-y-2">
+                    <Label>Saved Presets</Label>
+                    {presets.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-4 text-center">
+                        No presets saved yet. Save your current settings to create one!
+                      </p>
+                    ) : (
+                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                        {presets.map((preset) => (
+                          <div
+                            key={preset.id}
+                            className="flex items-center justify-between p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                          >
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{preset.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {preset.settings.pattern} • {preset.settings.eyeStyle}
+                              </p>
+                            </div>
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleLoadPreset(preset)}
+                              >
+                                Load
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => handleDeletePreset(preset.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
