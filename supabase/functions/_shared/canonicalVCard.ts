@@ -10,8 +10,10 @@ export type Profile = {
   org?: string;
   title?: string;
   email?: string;
+  emails?: { type: 'WORK' | 'HOME' | 'OTHER'; value: string; label?: string }[];
   phones?: { type: 'CELL' | 'WORK' | 'HOME' | 'MAIN' | 'FAX' | 'OTHER'; value: string }[];
   website?: string;
+  websites?: { type: 'WORK' | 'HOME' | 'OTHER'; value: string; label?: string }[];
   address?: {
     street?: string;
     city?: string;
@@ -20,6 +22,15 @@ export type Profile = {
     country?: string;
     type?: 'HOME' | 'WORK';
   };
+  addresses?: {
+    street?: string;
+    city?: string;
+    region?: string;
+    postcode?: string;
+    country?: string;
+    type?: 'HOME' | 'WORK' | 'OTHER';
+    label?: string;
+  }[];
   photo_url?: string;
   photo_type?: 'JPEG' | 'PNG';
   socials?: Partial<{
@@ -143,8 +154,24 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
     });
 
   if (p.email) lines.push(`EMAIL;TYPE=INTERNET,PREF:${esc(p.email.toLowerCase())}`);
-  if (p.website) lines.push(`URL;TYPE=Homepage:${esc(p.website)}`);
+  
+  // Additional Emails
+  (p.emails || []).forEach((em) => {
+    if (em?.value) {
+      lines.push(`EMAIL;TYPE=INTERNET,${em.type || 'OTHER'}:${esc(em.value.toLowerCase())}`);
+    }
+  });
 
+  if (p.website) lines.push(`URL;TYPE=Homepage:${esc(p.website)}`);
+  
+  // Additional Websites
+  (p.websites || []).forEach((ws) => {
+    if (ws?.value) {
+      lines.push(`URL;TYPE=${ws.label || ws.type || 'OTHER'}:${esc(ws.value)}`);
+    }
+  });
+
+  // Primary Address
   if (
     p.address &&
     (p.address.street ||
@@ -161,6 +188,19 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
     const country = esc(p.address.country || '');
     lines.push(`ADR;TYPE=${t}:;;${street};${city};${region};${post};${country}`);
   }
+
+  // Additional Addresses
+  (p.addresses || []).forEach((addr) => {
+    if (addr.street || addr.city || addr.region || addr.postcode || addr.country) {
+      const t = addr.type || 'OTHER';
+      const street = esc(addr.street || '');
+      const city = esc(addr.city || '');
+      const region = esc(addr.region || '');
+      const post = esc(addr.postcode || '');
+      const country = esc(addr.country || '');
+      lines.push(`ADR;TYPE=${t}:;;${street};${city};${region};${post};${country}`);
+    }
+  });
 
   if (p.photo_url) {
     const imgType =

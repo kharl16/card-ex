@@ -51,21 +51,46 @@ serve(async (req) => {
       );
     }
 
-    // Fetch social links
-    const { data: socialLinks } = await supabase
+    // Fetch social links and additional contacts
+    const { data: cardLinks } = await supabase
       .from("card_links")
-      .select("kind, value")
+      .select("kind, label, value")
       .eq("card_id", cardId);
 
     console.log("Card data:", card);
-    console.log("Social links:", socialLinks);
+    console.log("Card links:", cardLinks);
 
     // Map social links to canonical format
     const socials: Profile['socials'] = {};
-    if (socialLinks) {
-      for (const link of socialLinks) {
+    const additionalEmails: Profile['emails'] = [];
+    const additionalPhones: Profile['phones'] = [];
+    const additionalWebsites: Profile['websites'] = [];
+    const additionalAddresses: Profile['addresses'] = [];
+
+    if (cardLinks) {
+      for (const link of cardLinks) {
         const kind = link.kind?.toLowerCase();
-        if (kind === 'facebook') socials.facebook = link.value;
+        const label = link.label?.toLowerCase() || '';
+        
+        // Check if it's an additional contact (not primary)
+        const isAdditional = label.includes('additional') || 
+                            label.includes('alternate') || 
+                            label.includes('other') || 
+                            label.includes('secondary') ||
+                            label.includes('work') ||
+                            label.includes('home') ||
+                            label.includes('mobile') ||
+                            label.includes('office');
+        
+        if (kind === 'email' && isAdditional) {
+          additionalEmails.push({ type: 'OTHER', value: link.value, label: link.label });
+        } else if (kind === 'phone' && isAdditional) {
+          additionalPhones.push({ type: 'OTHER', value: link.value });
+        } else if (kind === 'url' && isAdditional) {
+          additionalWebsites.push({ type: 'OTHER', value: link.value, label: link.label });
+        } else if (kind === 'custom' && label.includes('location')) {
+          additionalAddresses.push({ street: link.value, type: 'OTHER', label: link.label });
+        } else if (kind === 'facebook') socials.facebook = link.value;
         else if (kind === 'instagram') socials.instagram = link.value;
         else if (kind === 'tiktok') socials.tiktok = link.value;
         else if (kind === 'youtube') socials.youtube = link.value;
@@ -85,9 +110,12 @@ serve(async (req) => {
       org: card.company || undefined,
       title: card.title || undefined,
       email: card.email || undefined,
-      phones: card.phone ? [{ type: 'CELL', value: card.phone }] : undefined,
+      emails: additionalEmails.length > 0 ? additionalEmails : undefined,
+      phones: card.phone ? [{ type: 'CELL', value: card.phone }, ...additionalPhones] : (additionalPhones.length > 0 ? additionalPhones : undefined),
       website: card.website || undefined,
+      websites: additionalWebsites.length > 0 ? additionalWebsites : undefined,
       address: card.location ? { street: card.location, type: 'WORK' } : undefined,
+      addresses: additionalAddresses.length > 0 ? additionalAddresses : undefined,
       notes: card.bio || undefined,
       photo_url: includePhoto ? (card.avatar_url || undefined) : undefined,
       socials: Object.keys(socials).length > 0 ? socials : undefined,
