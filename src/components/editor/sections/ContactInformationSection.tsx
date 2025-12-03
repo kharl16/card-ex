@@ -87,6 +87,7 @@ export function ContactInformationSection({
   // Get theme and primary color from the card
   const theme = getActiveTheme(card.theme);
   const primaryColor = theme?.primary || "#D4AF37";
+
   // additional contacts (from card_links)
   const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -404,15 +405,17 @@ export function ContactInformationSection({
   // ----- UI helpers -------------------------------------------------
 
   const getContactIcon = (kind: ContactKind) => {
+    const commonProps = { className: "h-4 w-4", style: { color: primaryColor } };
+
     switch (kind) {
       case "email":
-        return <Mail className="h-4 w-4" />;
+        return <Mail {...commonProps} />;
       case "phone":
-        return <Phone className="h-4 w-4" />;
+        return <Phone {...commonProps} />;
       case "url":
-        return <Globe className="h-4 w-4" />;
+        return <Globe {...commonProps} />;
       case "custom":
-        return <MapPin className="h-4 w-4" />;
+        return <MapPin {...commonProps} />;
       default:
         return null;
     }
@@ -450,15 +453,17 @@ export function ContactInformationSection({
   };
 
   const getPrimaryIcon = (field: PrimaryField) => {
+    const commonProps = { className: "h-4 w-4", style: { color: primaryColor } };
+
     switch (field) {
       case "email":
-        return <Mail className="h-4 w-4 text-muted-foreground" />;
+        return <Mail {...commonProps} />;
       case "phone":
-        return <Phone className="h-4 w-4 text-muted-foreground" />;
+        return <Phone {...commonProps} />;
       case "website":
-        return <Globe className="h-4 w-4 text-muted-foreground" />;
+        return <Globe {...commonProps} />;
       case "location":
-        return <MapPin className="h-4 w-4 text-muted-foreground" />;
+        return <MapPin {...commonProps} />;
       default:
         return null;
     }
@@ -596,7 +601,7 @@ export function ContactInformationSection({
                 </div>
 
                 {/* Icon */}
-                <div className="text-muted-foreground flex-shrink-0">{getContactIcon(contact.kind)}</div>
+                <div className="flex-shrink-0">{getContactIcon(contact.kind)}</div>
 
                 {/* Type + value */}
                 <div className="flex-1 flex flex-col sm:flex-row items-stretch gap-1.5 sm:gap-2">
