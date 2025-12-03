@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, X, Mail, Phone, Globe, MapPin, ChevronDown } from "lucide-react";
+import { Plus, X, Mail, Phone, Globe, MapPin, ChevronDown, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -68,6 +68,7 @@ export function ContactInformationSection({
   onAdditionalContactsChange,
 }: ContactInformationSectionProps) {
   const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (card?.id) {
@@ -83,7 +84,7 @@ export function ContactInformationSection({
 
     const { data, error } = await supabase
       .from("card_links")
-      .select("id, kind, label, value")
+      .select("id, kind, label, value, sort_index")
       .eq("card_id", card.id)
       .in("kind", ["email", "phone", "url", "custom"])
       .order("sort_index", { ascending: true });
@@ -185,7 +186,7 @@ export function ContactInformationSection({
               kind: contact.kind,
               label: contact.label || buildLabelFromKindAndType(contact.kind, contact.contactType),
               value: newValue.trim(),
-              sort_index: additionalContacts.length,
+              sort_index: updated.findIndex((c) => c.id === contact.id),
             },
           ])
           .select("id, label, value")
@@ -288,6 +289,51 @@ export function ContactInformationSection({
     } catch (err) {
       console.error("Unexpected error removing contact:", err);
       toast.error("Failed to remove contact");
+    }
+  };
+
+  // ----- Drag & Drop helpers -----
+
+  const handleDragStart = (id: string) => {
+    setDraggingId(id);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, overId: string) => {
+    e.preventDefault();
+    if (!draggingId || draggingId === overId) return;
+
+    const currentIndex = additionalContacts.findIndex((c) => c.id === draggingId);
+    const overIndex = additionalContacts.findIndex((c) => c.id === overId);
+    if (currentIndex === -1 || overIndex === -1) return;
+
+    const updated = [...additionalContacts];
+    const [moved] = updated.splice(currentIndex, 1);
+    updated.splice(overIndex, 0, moved);
+
+    setAdditionalContacts(updated);
+    onAdditionalContactsChange?.(updated);
+  };
+
+  const handleDragEnd = async () => {
+    if (!card?.id) {
+      setDraggingId(null);
+      return;
+    }
+
+    try {
+      // Persist new sort_index order
+      await Promise.all(
+        additionalContacts.map((contact, index) =>
+          contact.isNew
+            ? Promise.resolve()
+            : supabase.from("card_links").update({ sort_index: index }).eq("id", contact.id),
+        ),
+      );
+    } catch (err) {
+      console.error("Failed to save contact order:", err);
+      toast.error("Failed to save contact order");
+    } finally {
+      setDraggingId(null);
     }
   };
 
@@ -418,10 +464,23 @@ export function ContactInformationSection({
             {additionalContacts.map((contact) => (
               <div
                 key={contact.id}
-                className="flex items-center gap-2 rounded-lg bg-muted/30 border border-border/40 px-2 py-1.5"
+                draggable
+                onDragStart={() => handleDragStart(contact.id)}
+                onDragOver={(e) => handleDragOver(e, contact.id)}
+                onDragEnd={handleDragEnd}
+                className={`flex items-center gap-2 rounded-lg bg-muted/30 border border-border/40 px-2 py-1.5 cursor-grab ${
+                  draggingId === contact.id ? "ring-1 ring-primary/60 bg-muted/50" : ""
+                }`}
               >
+                {/* Drag handle */}
+                <div className="flex items-center justify-center text-muted-foreground flex-shrink-0">
+                  <GripVertical className="h-4 w-4 opacity-70" />
+                </div>
+
+                {/* Icon */}
                 <div className="text-muted-foreground flex-shrink-0">{getContactIcon(contact.kind)}</div>
 
+                {/* Type + value */}
                 <div className="flex-1 flex flex-col sm:flex-row items-stretch gap-1.5 sm:gap-2">
                   {/* Type selector with custom arrow */}
                   <div className="relative w-28 sm:w-32 flex-shrink-0">
@@ -451,6 +510,7 @@ export function ContactInformationSection({
                   />
                 </div>
 
+                {/* Remove */}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -463,7 +523,7 @@ export function ContactInformationSection({
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            Changes to additional contacts and types are saved automatically.
+            Drag rows to reorder. Changes and order are saved automatically.
           </p>
         </div>
       )}
