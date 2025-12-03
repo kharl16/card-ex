@@ -1,3 +1,59 @@
+// QR Settings interface
+export interface QRSettings {
+  pattern?: string;
+  eyeStyle?: string;
+  darkColor?: string;
+  lightColor?: string;
+  useGradient?: boolean;
+  gradientColor1?: string;
+  gradientColor2?: string;
+  gradientType?: string;
+  logoUrl?: string;
+  logoPosition?: string;
+  logoOpacity?: number;
+  frameEnabled?: boolean;
+  frameStyle?: string;
+  frameColor?: string;
+  frameWidth?: number;
+  frameBorderRadius?: number;
+  framePadding?: number;
+  frameShadow?: string;
+}
+
+// Theme variant for A/B testing
+export interface ThemeVariant {
+  primary: string;
+  background: string;
+  text: string;
+  accent?: string;
+  buttonColor?: string;
+  backgroundType?: "solid" | "gradient" | "pattern";
+  gradientStart?: string;
+  gradientEnd?: string;
+  gradientDirection?: string;
+  patternType?: string;
+  patternColor?: string;
+  patternOpacity?: number;
+  font?: string;
+  carouselSpeed?: number;
+  qr?: QRSettings;
+  avatarDisplayMode?: "contain" | "cover";
+  logoDisplayMode?: "contain" | "cover";
+}
+
+// Full card theme with A/B variants
+export interface CardTheme extends ThemeVariant {
+  baseMode?: "light" | "dark";
+  mode?: "light" | "dark";
+  activeVariant?: "A" | "B";
+  variants?: {
+    A?: ThemeVariant;
+    B?: ThemeVariant;
+  };
+  teamPresetName?: string;
+  teamLocked?: boolean;
+}
+
 // Light mode defaults – clean, modern, very legible (good for generic/light cards)
 export const LIGHT_MODE_DEFAULTS: ThemeVariant = {
   primary: "#2563EB", // Rich blue for headings / key accents
@@ -31,7 +87,7 @@ export const DEFAULT_THEME: CardTheme = {
   primary: "#FACC15",
   background: "#020617",
   text: "#F9FAFB",
-  accent: "#22C55E", // Green accent for “growth / success” CTAs
+  accent: "#22C55E", // Green accent for "growth / success" CTAs
   buttonColor: "#FACC15",
   backgroundType: "gradient",
   gradientStart: "#020617",
@@ -47,7 +103,7 @@ export const DEFAULT_THEME: CardTheme = {
       primary: "#FACC15", // Gold
       background: "#020617", // Deep ink
       text: "#F9FAFB",
-      accent: "#22C55E", // Green accent – good for “Join / Sign up”
+      accent: "#22C55E", // Green accent – good for "Join / Sign up"
       buttonColor: "#FACC15",
       backgroundType: "gradient",
       gradientStart: "#020617",
@@ -59,7 +115,7 @@ export const DEFAULT_THEME: CardTheme = {
       carouselSpeed: 1.0,
     },
 
-    // B: Platinum Gold – a cooler, slightly more “tech” variation
+    // B: Platinum Gold – a cooler, slightly more "tech" variation
     B: {
       primary: "#E5E7EB", // Soft platinum/silver for headings
       background: "#020617",
@@ -78,3 +134,82 @@ export const DEFAULT_THEME: CardTheme = {
     },
   },
 };
+
+// Helper: Get the active theme variant merged with base theme
+export function getActiveTheme(theme: CardTheme | null | undefined): CardTheme {
+  if (!theme) return DEFAULT_THEME;
+
+  const activeVariant = theme.activeVariant || "A";
+  const variant = theme.variants?.[activeVariant];
+
+  if (!variant) return { ...DEFAULT_THEME, ...theme };
+
+  return {
+    ...theme,
+    ...variant,
+    activeVariant,
+    variants: theme.variants,
+  };
+}
+
+// Helper: Initialize variants if they don't exist
+export function initializeVariants(theme: CardTheme): CardTheme {
+  if (theme.variants?.A && theme.variants?.B) return theme;
+
+  const baseVariant: ThemeVariant = {
+    primary: theme.primary,
+    background: theme.background,
+    text: theme.text,
+    accent: theme.accent,
+    buttonColor: theme.buttonColor,
+    backgroundType: theme.backgroundType,
+    gradientStart: theme.gradientStart,
+    gradientEnd: theme.gradientEnd,
+    gradientDirection: theme.gradientDirection,
+    patternType: theme.patternType,
+    patternColor: theme.patternColor,
+    patternOpacity: theme.patternOpacity,
+    font: theme.font,
+    carouselSpeed: theme.carouselSpeed,
+    qr: theme.qr,
+    avatarDisplayMode: theme.avatarDisplayMode,
+    logoDisplayMode: theme.logoDisplayMode,
+  };
+
+  return {
+    ...theme,
+    activeVariant: theme.activeVariant || "A",
+    variants: {
+      A: theme.variants?.A || { ...baseVariant },
+      B: theme.variants?.B || { ...baseVariant },
+    },
+  };
+}
+
+// Helper: Update a specific variant
+export function updateVariant(
+  theme: CardTheme,
+  variant: "A" | "B",
+  updates: Partial<ThemeVariant>
+): CardTheme {
+  const initialized = initializeVariants(theme);
+
+  return {
+    ...initialized,
+    variants: {
+      ...initialized.variants,
+      [variant]: {
+        ...initialized.variants?.[variant],
+        ...updates,
+      },
+    },
+  };
+}
+
+// Helper: Switch active variant
+export function switchVariant(theme: CardTheme, variant: "A" | "B"): CardTheme {
+  return {
+    ...theme,
+    activeVariant: variant,
+  };
+}
