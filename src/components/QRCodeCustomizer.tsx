@@ -31,6 +31,14 @@ export interface QRSettings {
   gradientColor1?: string;
   gradientColor2?: string;
   gradientType?: "linear" | "radial";
+  // Frame options
+  frameEnabled?: boolean;
+  frameStyle?: "solid" | "double" | "dashed" | "dotted" | "groove";
+  frameColor?: string;
+  frameWidth?: number;
+  frameBorderRadius?: number;
+  frameShadow?: "none" | "soft" | "medium" | "strong";
+  framePadding?: number;
 }
 
 export interface QRPreset {
@@ -53,6 +61,13 @@ export const DEFAULT_QR_SETTINGS: QRSettings = {
   gradientColor1: "#000000",
   gradientColor2: "#4F46E5",
   gradientType: "linear",
+  frameEnabled: false,
+  frameStyle: "solid",
+  frameColor: "#000000",
+  frameWidth: 4,
+  frameBorderRadius: 12,
+  frameShadow: "none",
+  framePadding: 16,
 };
 
 const QR_PRESETS_STORAGE_KEY = "cardex-qr-presets";
@@ -68,6 +83,7 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
       pattern: "squares",
       eyeStyle: "square",
       useGradient: false,
+      frameEnabled: false,
     },
   },
   {
@@ -82,6 +98,7 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
       gradientColor1: "#3B82F6",
       gradientColor2: "#8B5CF6",
       gradientType: "linear",
+      frameEnabled: false,
     },
   },
   {
@@ -96,17 +113,25 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
       gradientColor1: "#D4AF37",
       gradientColor2: "#B8860B",
       gradientType: "radial",
+      frameEnabled: false,
     },
   },
   {
-    name: "Minimal",
-    description: "Soft gray dots pattern",
+    name: "Framed Classic",
+    description: "Clean look with solid border",
     settings: {
-      darkColor: "#374151",
-      lightColor: "#F9FAFB",
-      pattern: "dots",
-      eyeStyle: "dot",
+      darkColor: "#1F2937",
+      lightColor: "#FFFFFF",
+      pattern: "squares",
+      eyeStyle: "square",
       useGradient: false,
+      frameEnabled: true,
+      frameStyle: "solid",
+      frameColor: "#1F2937",
+      frameWidth: 4,
+      frameBorderRadius: 16,
+      frameShadow: "soft",
+      framePadding: 16,
     },
   },
   {
@@ -121,20 +146,28 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
       gradientColor1: "#EC4899",
       gradientColor2: "#F97316",
       gradientType: "linear",
+      frameEnabled: false,
     },
   },
   {
-    name: "Nature",
-    description: "Green gradient with leaf eyes",
+    name: "Premium Gold",
+    description: "Gold frame with shadow effect",
     settings: {
-      darkColor: "#059669",
-      lightColor: "#ECFDF5",
+      darkColor: "#D4AF37",
+      lightColor: "#FFFEF5",
       pattern: "classy-rounded",
-      eyeStyle: "leaf",
+      eyeStyle: "extra-rounded",
       useGradient: true,
-      gradientColor1: "#059669",
-      gradientColor2: "#10B981",
-      gradientType: "radial",
+      gradientColor1: "#D4AF37",
+      gradientColor2: "#B8860B",
+      gradientType: "linear",
+      frameEnabled: true,
+      frameStyle: "double",
+      frameColor: "#D4AF37",
+      frameWidth: 6,
+      frameBorderRadius: 20,
+      frameShadow: "medium",
+      framePadding: 20,
     },
   },
 ];
@@ -793,6 +826,152 @@ export default function QRCodeCustomizer({
           <p className="text-xs text-muted-foreground">
             Use your logo as a center overlay or as a watermark-style background behind the QR pattern.
           </p>
+        </div>
+
+        {/* Frame/Border Options */}
+        <div className="space-y-3 p-3 rounded-lg border bg-muted/20">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">Add Frame/Border</Label>
+            <button
+              type="button"
+              onClick={() => onChange({ ...settings, frameEnabled: !settings.frameEnabled })}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                settings.frameEnabled ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  settings.frameEnabled ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+          </div>
+
+          {settings.frameEnabled && (
+            <div className="space-y-4 pt-2 border-t border-border/50">
+              {/* Frame Style */}
+              <div className="space-y-2">
+                <Label className="text-xs">Frame Style</Label>
+                <div className="grid grid-cols-5 gap-2">
+                  {(["solid", "double", "dashed", "dotted", "groove"] as const).map((style) => (
+                    <button
+                      key={style}
+                      type="button"
+                      onClick={() => onChange({ ...settings, frameStyle: style })}
+                      className={`flex flex-col items-center p-2 rounded border-2 transition-all ${
+                        (settings.frameStyle || "solid") === style
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      <div
+                        className="w-8 h-8 rounded"
+                        style={{
+                          border: `3px ${style} ${settings.frameColor || "#000000"}`,
+                        }}
+                      />
+                      <span className="text-[10px] mt-1 capitalize">{style}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Frame Color */}
+              <div className="space-y-2">
+                <Label className="text-xs">Frame Color</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="color"
+                    value={settings.frameColor || "#000000"}
+                    onChange={(e) => onChange({ ...settings, frameColor: e.target.value })}
+                    className="w-12 h-8 p-0.5 cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    value={settings.frameColor || "#000000"}
+                    onChange={(e) => onChange({ ...settings, frameColor: e.target.value })}
+                    className="flex-1 h-8 text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* Frame Width & Border Radius */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-xs">Border Width: {settings.frameWidth || 4}px</Label>
+                  <input
+                    type="range"
+                    min={1}
+                    max={12}
+                    step={1}
+                    value={settings.frameWidth || 4}
+                    onChange={(e) => onChange({ ...settings, frameWidth: parseInt(e.target.value) })}
+                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs">Corner Radius: {settings.frameBorderRadius || 12}px</Label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={32}
+                    step={2}
+                    value={settings.frameBorderRadius || 12}
+                    onChange={(e) => onChange({ ...settings, frameBorderRadius: parseInt(e.target.value) })}
+                    className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              {/* Frame Padding */}
+              <div className="space-y-2">
+                <Label className="text-xs">Padding: {settings.framePadding || 16}px</Label>
+                <input
+                  type="range"
+                  min={4}
+                  max={32}
+                  step={2}
+                  value={settings.framePadding || 16}
+                  onChange={(e) => onChange({ ...settings, framePadding: parseInt(e.target.value) })}
+                  className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
+                />
+              </div>
+
+              {/* Frame Shadow */}
+              <div className="space-y-2">
+                <Label className="text-xs">Shadow Effect</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {(["none", "soft", "medium", "strong"] as const).map((shadow) => (
+                    <button
+                      key={shadow}
+                      type="button"
+                      onClick={() => onChange({ ...settings, frameShadow: shadow })}
+                      className={`flex flex-col items-center p-2 rounded border-2 transition-all ${
+                        (settings.frameShadow || "none") === shadow
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      <div
+                        className="w-6 h-6 rounded bg-background border border-border"
+                        style={{
+                          boxShadow:
+                            shadow === "none"
+                              ? "none"
+                              : shadow === "soft"
+                              ? "0 2px 8px rgba(0,0,0,0.15)"
+                              : shadow === "medium"
+                              ? "0 4px 16px rgba(0,0,0,0.25)"
+                              : "0 8px 24px rgba(0,0,0,0.4)",
+                        }}
+                      />
+                      <span className="text-[10px] mt-1 capitalize">{shadow}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Live QR Code Preview */}
