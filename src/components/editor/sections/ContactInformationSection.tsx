@@ -14,6 +14,7 @@ export interface AdditionalContact {
   kind: "email" | "phone" | "url" | "custom";
   label: string;
   value: string;
+  isNew?: boolean; // not yet saved in DB
 }
 
 interface ContactInformationSectionProps {
@@ -30,7 +31,6 @@ export function ContactInformationSection({
   onAdditionalContactsChange,
 }: ContactInformationSectionProps) {
   const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
-  const [isAdding, setIsAdding] = useState(false);
 
   // Load additional contacts from card_links when card.id changes
   useEffect(() => {
@@ -97,15 +97,20 @@ export function ContactInformationSection({
         kind: link.kind as AdditionalContact["kind"],
         label: link.label || "",
         value: link.value || "",
+        isNew: false,
       }));
 
     setAdditionalContacts(contacts);
     onAdditionalContactsChange?.(contacts);
   };
 
-  const addContact = async (type: AdditionalContact["kind"]) => {
+  /**
+   * When user clicks +Email/+Phone/etc:
+   * - Only create a local row (isNew: true)
+   * - Do NOT hit Supabase yet (value is still empty and DB requires a value)
+   */
+  const addContact = (type: AdditionalContact["kind"]) => {
     if (!card?.id) return;
-    setIsAdding(true);
 
     const labelMap: Record<AdditionalContact["kind"], string> = {
       email: "Additional Email",
@@ -114,57 +119,87 @@ export function ContactInformationSection({
       custom: "Additional Location",
     };
 
-    try {
-      const { data, error } = await supabase
-        .from("card_links")
-        .insert([
-          {
-            card_id: card.id,
-            kind: type,
-            label: labelMap[type],
-            value: "",
-            sort_index: additionalContacts.length,
-          },
-        ])
-        .select("id, kind, label, value")
-        .single();
+    const newContact: AdditionalContact = {
+      id: crypto.randomUUID(), // temporary ID for React list rendering
+      kind: type,
+      label: labelMap[type],
+      value: "",
+      isNew: true,
+    };
 
-      if (error || !data) {
-        console.error("Failed to add contact field:", error);
-        toast.error(error?.message || "Failed to add contact field");
-        return;
-      }
-
-      const newContact: AdditionalContact = {
-        id: data.id,
-        kind: data.kind as AdditionalContact["kind"],
-        label: data.label || labelMap[type],
-        value: data.value || "",
-      };
-
-      const updated = [...additionalContacts, newContact];
-      setAdditionalContacts(updated);
-      onAdditionalContactsChange?.(updated);
-      toast.success("Additional contact added");
-    } catch (err: any) {
-      console.error("Unexpected error adding contact field:", err);
-      toast.error("Something went wrong while adding contact");
-    } finally {
-      setIsAdding(false);
-    }
+    const updated = [...additionalContacts, newContact];
+    setAdditionalContacts(updated);
+    onAdditionalContactsChange?.(updated);
   };
 
+  /**
+   * When user edits label or value:
+   * - Update React state immediately
+   * - If contact is new:
+   *    - Only insert into Supabase when value becomes non-empty
+   * - If contact already exists in DB:
+   *    - Update the row in Supabase
+   */
   const updateContact = async (id: string, field: "label" | "value", newValue: string) => {
     const updated = additionalContacts.map((c) => (c.id === id ? { ...c, [field]: newValue } : c));
     setAdditionalContacts(updated);
     onAdditionalContactsChange?.(updated);
 
-    // Fire-and-forget save; you can debounce this later if needed
+    const contact = updated.find((c) => c.id === id);
+    if (!contact || !card?.id) return;
+
+    // For brand new contacts, only hit DB the first time we get a non-empty value
+    if (contact.isNew) {
+      if (field === "value" && newValue.trim() !== "") {
+        try {
+          const { data, error } = await supabase
+            .from("card_links")
+            .insert([
+              {
+                card_id: card.id,
+                kind: contact.kind,
+                label: contact.label || "",
+                value: newValue.trim(),
+                sort_index: additionalContacts.length,
+              },
+            ])
+            .select("id, label, value")
+            .single();
+
+          if (error || !data) {
+            console.error("Failed to save new contact:", error);
+            toast.error(error?.message || "Failed to save contact");
+            return;
+          }
+
+          // Replace temp ID with real DB ID, mark isNew = false
+          const finalContacts = updated.map((c) =>
+            c.id === contact.id
+              ? {
+                  ...c,
+                  id: data.id,
+                  label: data.label || c.label,
+                  value: data.value || c.value,
+                  isNew: false,
+                }
+              : c,
+          );
+          setAdditionalContacts(finalContacts);
+          onAdditionalContactsChange?.(finalContacts);
+        } catch (err) {
+          console.error("Unexpected error saving new contact:", err);
+          toast.error("Failed to save contact");
+        }
+      }
+
+      // If still empty, just keep it local and don't touch DB yet
+      return;
+    }
+
+    // Existing contact → update Supabase
     try {
-      const { error } = await supabase
-        .from("card_links")
-        .update({ [field]: newValue })
-        .eq("id", id);
+      const payload: Record<string, string> = { [field]: newValue };
+      const { error } = await supabase.from("card_links").update(payload).eq("id", id);
 
       if (error) {
         console.error("Failed to update contact:", error);
@@ -180,6 +215,15 @@ export function ContactInformationSection({
     const contact = additionalContacts.find((c) => c.id === id);
     if (!contact) return;
 
+    // If it's only local (never saved), just drop it from state
+    if (contact.isNew) {
+      const updatedLocal = additionalContacts.filter((c) => c.id !== id);
+      setAdditionalContacts(updatedLocal);
+      onAdditionalContactsChange?.(updatedLocal);
+      return;
+    }
+
+    // Otherwise delete from DB then from state
     try {
       const { error } = await supabase.from("card_links").delete().eq("id", id);
       if (error) {
@@ -361,50 +405,22 @@ export function ContactInformationSection({
       <div className="space-y-2">
         <Label className="text-sm font-medium text-muted-foreground">Add Additional</Label>
         <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addContact("email")}
-            className="gap-1.5"
-            disabled={isAdding}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={() => addContact("email")} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" />
             <Mail className="h-3.5 w-3.5" />
             Email
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addContact("phone")}
-            className="gap-1.5"
-            disabled={isAdding}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={() => addContact("phone")} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" />
             <Phone className="h-3.5 w-3.5" />
             Phone
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addContact("url")}
-            className="gap-1.5"
-            disabled={isAdding}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={() => addContact("url")} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" />
             <Globe className="h-3.5 w-3.5" />
             Website
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => addContact("custom")}
-            className="gap-1.5"
-            disabled={isAdding}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={() => addContact("custom")} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" />
             <MapPin className="h-3.5 w-3.5" />
             Location
