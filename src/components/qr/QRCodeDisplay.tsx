@@ -1,5 +1,8 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { getCornerTypesFromEyeStyle } from "./QRLivePreview";
+import { toast } from "sonner";
 
 export interface QRDisplaySettings {
   pattern?: string;
@@ -20,6 +23,8 @@ interface QRCodeDisplayProps {
   settings?: QRDisplaySettings;
   size?: number;
   className?: string;
+  showDownload?: boolean;
+  downloadFileName?: string;
 }
 
 const dotTypeMap: Record<string, string> = {
@@ -98,9 +103,12 @@ export default function QRCodeDisplay({
   settings = {},
   size = 192,
   className = "",
+  showDownload = false,
+  downloadFileName = "qr-code",
 }: QRCodeDisplayProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const qrBlobRef = useRef<Blob | null>(null);
 
   const generateQR = useCallback(async () => {
     if (!url) return;
@@ -184,6 +192,7 @@ export default function QRCodeDisplay({
         );
       }
 
+      qrBlobRef.current = blobData;
       const dataUrl = URL.createObjectURL(blobData);
       setQrDataUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
@@ -221,6 +230,23 @@ export default function QRCodeDisplay({
     };
   }, [qrDataUrl]);
 
+  const handleDownload = useCallback(() => {
+    if (!qrBlobRef.current) {
+      toast.error("QR code not ready yet");
+      return;
+    }
+    
+    const url = URL.createObjectURL(qrBlobRef.current);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${downloadFileName}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("QR code downloaded!");
+  }, [downloadFileName]);
+
   if (isLoading || !qrDataUrl) {
     return (
       <div
@@ -233,11 +259,24 @@ export default function QRCodeDisplay({
   }
 
   return (
-    <img
-      src={qrDataUrl}
-      alt="QR Code"
-      className={`rounded-lg ${className}`}
-      style={{ width: size, height: size }}
-    />
+    <div className="flex flex-col items-center gap-2">
+      <img
+        src={qrDataUrl}
+        alt="QR Code"
+        className={`rounded-lg ${className}`}
+        style={{ width: size, height: size }}
+      />
+      {showDownload && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDownload}
+          className="gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Download QR
+        </Button>
+      )}
+    </div>
   );
 }

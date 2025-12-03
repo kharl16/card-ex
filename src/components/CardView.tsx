@@ -316,6 +316,8 @@ export default function CardView({
             settings={theme?.qr}
             size={192}
             className="transition-all duration-300"
+            showDownload={isInteractive}
+            downloadFileName={`${card.full_name?.replace(/\s+/g, "-") || "card"}-qr`}
           />
           <p className="text-xs text-muted-foreground">Scan to view this card</p>
         </div>
