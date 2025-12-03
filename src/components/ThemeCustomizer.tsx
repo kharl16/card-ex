@@ -5,7 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Palette, Sun, Moon, Sparkles, Copy, ChevronDown, ShieldCheck, Lock, Unlock, Shuffle, Users, RotateCcw } from "lucide-react";
+import {
+  Palette,
+  Sun,
+  Moon,
+  Sparkles,
+  Copy,
+  ChevronDown,
+  ShieldCheck,
+  Lock,
+  Unlock,
+  Shuffle,
+  Users,
+  RotateCcw,
+} from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -374,7 +387,11 @@ const PATTERN_TYPES = [
 ];
 
 // Random color generators for Surprise Me
-const randomHex = () => "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, "0");
+const randomHex = () =>
+  "#" +
+  Math.floor(Math.random() * 16777215)
+    .toString(16)
+    .padStart(6, "0");
 const randomFromArray = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
 export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCustomizerProps) {
@@ -438,14 +455,14 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
       patternColor: (preset as any).patternColor,
       patternOpacity: (preset as any).patternOpacity,
     };
-    
+
     // Only apply brand colors if brand lock is OFF
     if (!brandLock) {
       updates.primary = preset.primary;
       updates.accent = preset.accent;
       updates.buttonColor = preset.buttonColor;
     }
-    
+
     handleVariantChange(updates);
   };
 
@@ -453,7 +470,7 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
   const handleCopyVariant = () => {
     const sourceVariant = theme.variants?.[activeVariant] || currentVariant;
     const targetKey: "A" | "B" = activeVariant === "A" ? "B" : "A";
-    
+
     const updatedTheme: CardTheme = {
       ...theme,
       variants: {
@@ -461,7 +478,7 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
         [targetKey]: { ...sourceVariant },
       },
     };
-    
+
     setTheme(updatedTheme);
     onChange(updatedTheme);
   };
@@ -483,7 +500,7 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
   const handleSurpriseMe = () => {
     const backgroundTypes: Array<"solid" | "gradient" | "pattern"> = ["solid", "gradient", "pattern"];
     const bgType = randomFromArray(backgroundTypes);
-    
+
     const updates: Partial<ThemeVariant> = {
       backgroundType: bgType,
     };
@@ -498,11 +515,27 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
     // Always randomize background/text
     const isDark = Math.random() > 0.5;
     if (isDark) {
-      updates.background = "#" + Math.floor(Math.random() * 2236962).toString(16).padStart(6, "0"); // Dark colors
-      updates.text = "#" + Math.floor(Math.random() * 4473924 + 12303291).toString(16).padStart(6, "0"); // Light colors
+      updates.background =
+        "#" +
+        Math.floor(Math.random() * 2236962)
+          .toString(16)
+          .padStart(6, "0"); // Dark colors
+      updates.text =
+        "#" +
+        Math.floor(Math.random() * 4473924 + 12303291)
+          .toString(16)
+          .padStart(6, "0"); // Light colors
     } else {
-      updates.background = "#" + Math.floor(Math.random() * 4473924 + 12303291).toString(16).padStart(6, "0"); // Light colors
-      updates.text = "#" + Math.floor(Math.random() * 2236962).toString(16).padStart(6, "0"); // Dark colors
+      updates.background =
+        "#" +
+        Math.floor(Math.random() * 4473924 + 12303291)
+          .toString(16)
+          .padStart(6, "0"); // Light colors
+      updates.text =
+        "#" +
+        Math.floor(Math.random() * 2236962)
+          .toString(16)
+          .padStart(6, "0"); // Dark colors
     }
 
     if (bgType === "gradient") {
@@ -532,7 +565,7 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
       gradientEnd: mlmPreset.gradientEnd,
       gradientDirection: mlmPreset.gradientDirection,
     };
-    
+
     const updated = updateVariant(theme, activeVariant, updates);
     setTheme(updated);
     onChange(updated);
@@ -553,9 +586,7 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
 
   // Get presets by category
   const getPresetsByCategory = (categoryId: string) => {
-    return Object.entries(THEME_PRESETS).filter(
-      ([_, preset]) => (preset as any).category === categoryId
-    );
+    return Object.entries(THEME_PRESETS).filter(([_, preset]) => (preset as any).category === categoryId);
   };
 
   return (
@@ -578,13 +609,13 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
           </div>
           <Tabs value={activeVariant} onValueChange={(v) => handleSwitchVariant(v as "A" | "B")}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger 
-                value="A" 
+              <TabsTrigger
+                value="A"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 Theme A
               </TabsTrigger>
-              <TabsTrigger 
+              <TabsTrigger
                 value="B"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
@@ -592,7 +623,7 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          
+
           {/* Copy Variant Button */}
           <Button
             variant="outline"
@@ -616,12 +647,7 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
             {brandLock ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
             Brand Lock {brandLock ? "ON" : "OFF"}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSurpriseMe}
-            className="flex-1 gap-2"
-          >
+          <Button variant="outline" size="sm" onClick={handleSurpriseMe} className="flex-1 gap-2">
             <Shuffle className="h-4 w-4" />
             Surprise Me
           </Button>
@@ -713,7 +739,9 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
           <CollapsibleContent className="pt-2">
             <div className="space-y-4 p-3 border border-border rounded-lg bg-muted/20">
               <div className="space-y-2">
-                <Label htmlFor="team-preset-name" className="text-xs">Team Preset Name</Label>
+                <Label htmlFor="team-preset-name" className="text-xs">
+                  Team Preset Name
+                </Label>
                 <Input
                   id="team-preset-name"
                   value={theme.teamPresetName || ""}
@@ -722,13 +750,11 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
                   className="h-9 text-sm"
                 />
               </div>
-              
+
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label className="text-xs">Leader Locked</Label>
-                  <p className="text-xs text-muted-foreground">
-                    Prevent team members from changing this theme
-                  </p>
+                  <p className="text-xs text-muted-foreground">Prevent team members from changing this theme</p>
                 </div>
                 <Button
                   variant={theme.teamLocked ? "default" : "outline"}
@@ -741,18 +767,14 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
                 </Button>
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleResetToBrand}
-                className="w-full gap-2"
-              >
+              <Button variant="outline" size="sm" onClick={handleResetToBrand} className="w-full gap-2">
                 <RotateCcw className="h-4 w-4" />
                 Reset Theme {activeVariant} to Brand
               </Button>
-              
+
               <p className="text-xs text-muted-foreground">
-                Use this section to create and distribute team-approved themes. When locked, team members using this card will see the theme you've configured.
+                Use this section to create and distribute team-approved themes. When locked, team members using this
+                card will see the theme you've configured.
               </p>
             </div>
           </CollapsibleContent>
@@ -770,11 +792,7 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
             </SelectTrigger>
             <SelectContent>
               {FONT_OPTIONS.map((font) => (
-                <SelectItem
-                  key={font.value}
-                  value={font.value}
-                  style={{ fontFamily: `"${font.value}", sans-serif` }}
-                >
+                <SelectItem key={font.value} value={font.value} style={{ fontFamily: `"${font.value}", sans-serif` }}>
                   {font.label}
                 </SelectItem>
               ))}
@@ -856,7 +874,9 @@ export default function ThemeCustomizer({ theme: rawTheme, onChange }: ThemeCust
           <Label>Background Type</Label>
           <div className="flex gap-2">
             <Button
-              variant={(!currentVariant.backgroundType || currentVariant.backgroundType === "solid") ? "default" : "outline"}
+              variant={
+                !currentVariant.backgroundType || currentVariant.backgroundType === "solid" ? "default" : "outline"
+              }
               size="sm"
               onClick={() => handleVariantChange({ backgroundType: "solid" })}
               className="flex-1 transition-all duration-300"
