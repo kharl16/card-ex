@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Plus, X, Mail, Phone, Globe, MapPin } from "lucide-react";
+import { Plus, X, Mail, Phone, Globe, MapPin, ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -423,18 +423,23 @@ export function ContactInformationSection({
                 <div className="text-muted-foreground flex-shrink-0">{getContactIcon(contact.kind)}</div>
 
                 <div className="flex-1 flex flex-col sm:flex-row items-stretch gap-1.5 sm:gap-2">
-                  {/* Type selector */}
-                  <select
-                    value={contact.contactType}
-                    onChange={(e) => updateContactType(contact.id, e.target.value as ContactType)}
-                    className="text-xs sm:text-sm rounded-md border border-border bg-background px-2 pr-6 py-1 h-8 sm:h-9 w-28 sm:w-32 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  >
-                    <option value="work">{getContactTypeLabel("work")}</option>
-                    <option value="home">{getContactTypeLabel("home")}</option>
-                    <option value="mobile">{getContactTypeLabel("mobile")}</option>
-                    <option value="office">{getContactTypeLabel("office")}</option>
-                    <option value="other">{getContactTypeLabel("other")}</option>
-                  </select>
+                  {/* Type selector with custom arrow */}
+                  <div className="relative w-28 sm:w-32 flex-shrink-0">
+                    <select
+                      value={contact.contactType}
+                      onChange={(e) => updateContactType(contact.id, e.target.value as ContactType)}
+                      className="text-xs sm:text-sm rounded-md border border-border bg-background px-2 pr-8 py-1 h-8 sm:h-9 w-full appearance-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <option value="work">{getContactTypeLabel("work")}</option>
+                      <option value="home">{getContactTypeLabel("home")}</option>
+                      <option value="mobile">{getContactTypeLabel("mobile")}</option>
+                      <option value="office">{getContactTypeLabel("office")}</option>
+                      <option value="other">{getContactTypeLabel("other")}</option>
+                    </select>
+                    <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-muted-foreground">
+                      <ChevronDown className="h-3 w-3" />
+                    </span>
+                  </div>
 
                   {/* Value input */}
                   <Input
