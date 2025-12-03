@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, X, Mail, Phone, Globe, MapPin, ChevronDown, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getActiveTheme } from "@/lib/theme";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
@@ -83,6 +84,9 @@ export function ContactInformationSection({
   onCardChange,
   onAdditionalContactsChange,
 }: ContactInformationSectionProps) {
+  // Get theme and primary color from the card
+  const theme = getActiveTheme(card.theme);
+  const primaryColor = theme?.primary || "#D4AF37";
   // additional contacts (from card_links)
   const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
