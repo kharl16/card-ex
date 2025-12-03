@@ -31,18 +31,24 @@ export function QREyeStylePreview({ eyeStyle, isSelected, onClick, label }: QREy
       case 'leaf':
         return (
           <svg viewBox="0 0 40 40" className={baseClass}>
-            {/* Outer leaf shape */}
+            {/* Outer leaf shape - organic leaf with pointed tip and rounded base */}
             <path 
-              d="M4 4 L36 4 Q38 4 38 6 L38 34 Q38 38 34 38 L6 38 Q4 38 4 36 L4 6 Q4 4 4 4 Z" 
+              d="M20 2 C8 8 4 18 4 26 C4 34 10 38 20 38 C30 38 36 34 36 26 C36 18 32 8 20 2 Z" 
               fill="none" 
               stroke="currentColor" 
-              strokeWidth="4"
-              strokeLinejoin="round"
+              strokeWidth="3"
             />
             {/* Inner leaf */}
             <path 
-              d="M14 12 L28 12 Q30 12 30 14 L30 26 Q30 30 26 30 L14 30 Q12 30 12 28 L12 14 Q12 12 14 12 Z" 
+              d="M20 10 C14 14 12 19 12 24 C12 29 15 31 20 31 C25 31 28 29 28 24 C28 19 26 14 20 10 Z" 
               fill="currentColor"
+            />
+            {/* Leaf vein */}
+            <path 
+              d="M20 6 L20 34" 
+              stroke="currentColor" 
+              strokeWidth="1.5"
+              strokeOpacity="0.4"
             />
           </svg>
         );

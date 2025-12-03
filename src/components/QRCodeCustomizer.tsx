@@ -334,11 +334,11 @@ export default function QRCodeCustomizer({
                 {/* Logo Opacity (only for background mode) */}
                 {currentLogoPosition === "background" && (
                   <div className="space-y-2">
-                    <Label className="text-xs">Logo Opacity: {Math.round(currentLogoOpacity * 100)}%</Label>
+                    <Label className="text-xs">Background Logo Opacity: {Math.round(currentLogoOpacity * 100)}%</Label>
                     <input
                       type="range"
-                      min={0.1}
-                      max={0.8}
+                      min={0.05}
+                      max={1.0}
                       step={0.05}
                       value={currentLogoOpacity}
                       onChange={(e) =>
@@ -349,6 +349,7 @@ export default function QRCodeCustomizer({
                       }
                       className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                     />
+                    <p className="text-xs text-muted-foreground">Lower values create a subtle watermark, higher values make the logo more visible.</p>
                   </div>
                 )}
               </div>
