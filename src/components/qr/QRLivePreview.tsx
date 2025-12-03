@@ -134,25 +134,45 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
         settings.eyeStyle as EyeStyle,
       );
 
+      // Build gradient options if enabled
+      const useGradient = settings.useGradient ?? false;
+      const gradientColor1 = settings.gradientColor1 || "#000000";
+      const gradientColor2 = settings.gradientColor2 || "#4F46E5";
+      const gradientType = settings.gradientType || "linear";
+
+      const gradientOptions = useGradient
+        ? {
+            type: gradientType as "linear" | "radial",
+            rotation: gradientType === "linear" ? 45 : 0,
+            colorStops: [
+              { offset: 0, color: gradientColor1 },
+              { offset: 1, color: gradientColor2 },
+            ],
+          }
+        : undefined;
+
       const qrCode = new QRCodeStyling({
         width: size,
         height: size,
         data: previewUrl,
         margin: 8,
         dotsOptions: {
-          color: settings.darkColor || "#000000",
+          color: useGradient ? undefined : (settings.darkColor || "#000000"),
           type: (dotTypeMap[settings.pattern || "squares"] || "square") as any,
+          gradient: gradientOptions,
         },
         backgroundOptions: {
           color: isBackgroundMode ? "transparent" : settings.lightColor || "#FFFFFF",
         },
         cornersSquareOptions: {
-          color: settings.darkColor || "#000000",
+          color: useGradient ? undefined : (settings.darkColor || "#000000"),
           type: cornerSquareType as any,
+          gradient: gradientOptions,
         },
         cornersDotOptions: {
-          color: settings.darkColor || "#000000",
+          color: useGradient ? undefined : (settings.darkColor || "#000000"),
           type: cornerDotType as any,
+          gradient: gradientOptions,
         },
         imageOptions: {
           crossOrigin: "anonymous",
@@ -203,6 +223,10 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
     settings.logoUrl,
     settings.logoPosition,
     settings.logoOpacity,
+    settings.useGradient,
+    settings.gradientColor1,
+    settings.gradientColor2,
+    settings.gradientType,
     previewUrl,
   ]);
 
