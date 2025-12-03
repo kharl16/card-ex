@@ -1,559 +1,372 @@
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import RiderHeader from "@/components/RiderHeader";
+import ProductRingCarousel from "@/components/ProductRingCarousel";
+import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import { Button } from "@/components/ui/button";
-import { Plus, X, Mail, Phone, Globe, MapPin, ChevronDown, GripVertical } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  Mail,
+  Phone,
+  Globe,
+  MapPin,
+  Download,
+  Facebook,
+  Linkedin,
+  Instagram,
+  Youtube,
+  ExternalLink,
+  MessageCircle,
+} from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import { CardTheme, getActiveTheme } from "@/lib/theme";
 
 type CardData = Tables<"cards">;
 
-type ContactKind = "email" | "phone" | "url" | "custom";
-type ContactType = "work" | "home" | "mobile" | "office" | "other";
+export interface SocialLink {
+  id: string;
+  kind: string;
+  label: string;
+  value: string;
+  icon: string;
+}
+
+export interface ProductImage {
+  id: string;
+  image_url: string;
+  alt_text?: string | null;
+  description?: string | null;
+  sort_order?: number | null;
+}
 
 export interface AdditionalContact {
   id: string;
-  kind: ContactKind;
+  kind: "email" | "phone" | "url" | "custom";
   label: string;
   value: string;
-  contactType: ContactType;
-  isNew?: boolean;
+  contactType: "work" | "home" | "mobile" | "office" | "other";
 }
 
-interface ContactInformationSectionProps {
+interface CardViewProps {
   card: CardData;
-  validationErrors: Record<string, string>;
-  onCardChange: (updates: Partial<CardData>) => void;
-  onAdditionalContactsChange?: (contacts: AdditionalContact[]) => void;
+  socialLinks: SocialLink[];
+  productImages: ProductImage[];
+  additionalContacts?: AdditionalContact[];
+  isInteractive?: boolean;
+  showQRCode?: boolean;
+  showVCardButtons?: boolean;
 }
 
-// Infer contact type from an existing label
-function inferTypeFromLabel(labelLower: string): ContactType {
-  if (labelLower.includes("work")) return "work";
-  if (labelLower.includes("home")) return "home";
-  if (labelLower.includes("mobile") || labelLower.includes("cell")) return "mobile";
-  if (labelLower.includes("office")) return "office";
-  return "other";
+// Helper to get live composed name
+function getLiveNameFromCard(card: CardData): string {
+  const parts: string[] = [];
+  if (card.prefix?.trim()) parts.push(card.prefix.trim());
+  if (card.first_name?.trim()) parts.push(card.first_name.trim());
+  if (card.middle_name?.trim()) parts.push(card.middle_name.trim());
+  if (card.last_name?.trim()) parts.push(card.last_name.trim());
+  if (card.suffix?.trim()) parts.push(card.suffix.trim());
+  return parts.join(" ") || card.full_name || "Unnamed";
 }
 
-function getContactTypeLabel(type: ContactType): string {
-  switch (type) {
-    case "work":
-      return "Work";
-    case "home":
-      return "Home";
-    case "mobile":
-      return "Mobile";
-    case "office":
-      return "Office";
-    case "other":
-    default:
-      return "Other";
-  }
-}
-
-function buildLabelFromKindAndType(kind: ContactKind, type: ContactType): string {
-  const kindName = kind === "email" ? "Email" : kind === "phone" ? "Phone" : kind === "url" ? "Website" : "Location";
-
-  const typeName = type === "other" ? "Additional" : getContactTypeLabel(type); // Work / Home / Mobile / Office
-
-  return `${typeName} ${kindName}`;
-}
-
-export function ContactInformationSection({
-  card,
-  validationErrors,
-  onCardChange,
-  onAdditionalContactsChange,
-}: ContactInformationSectionProps) {
-  const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (card?.id) {
-      loadAdditionalContacts();
-    } else {
-      setAdditionalContacts([]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card?.id]);
-
-  const loadAdditionalContacts = async () => {
-    if (!card?.id) return;
-
-    const { data, error } = await supabase
-      .from("card_links")
-      .select("id, kind, label, value, sort_index")
-      .eq("card_id", card.id)
-      .in("kind", ["email", "phone", "url", "custom"])
-      .order("sort_index", { ascending: true });
-
-    if (error) {
-      console.error("Error loading additional contacts:", error);
-      return;
-    }
-
-    if (!data) {
-      setAdditionalContacts([]);
-      onAdditionalContactsChange?.([]);
-      return;
-    }
-
-    const contactLinks = data.filter((link) => {
-      const labelLower = (link.label || "").toLowerCase();
-
+const getSocialIcon = (kind: string) => {
+  switch (kind) {
+    case "facebook":
+      return <Facebook className="h-5 w-5" />;
+    case "linkedin":
+      return <Linkedin className="h-5 w-5" />;
+    case "instagram":
+      return <Instagram className="h-5 w-5" />;
+    case "youtube":
+      return <Youtube className="h-5 w-5" />;
+    case "x":
       return (
-        link.kind === "email" ||
-        link.kind === "phone" ||
-        (link.kind === "custom" && labelLower.includes("location")) ||
-        (link.kind === "url" &&
-          !["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok"].some((social) =>
-            labelLower.includes(social),
-          ))
+        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+        </svg>
       );
-    });
+    case "telegram":
+      return <MessageCircle className="h-5 w-5" />;
+    case "tiktok":
+      return (
+        <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+        </svg>
+      );
+    case "url":
+    default:
+      return <ExternalLink className="h-5 w-5" />;
+  }
+};
 
-    const contacts: AdditionalContact[] = contactLinks
-      .filter((link) => {
-        const label = (link.label || "").toLowerCase();
-        return (
-          label.includes("additional") ||
-          label.includes("alternate") ||
-          label.includes("other") ||
-          label.includes("secondary") ||
-          label.includes("work") ||
-          label.includes("home") ||
-          label.includes("mobile") ||
-          label.includes("office")
-        );
-      })
-      .map((link) => {
-        const rawLabel = link.label || "";
-        const labelLower = rawLabel.toLowerCase();
-        const contactType = inferTypeFromLabel(labelLower);
+const getContactIcon = (kind: string) => {
+  switch (kind) {
+    case "email":
+      return <Mail className="h-4 w-4" />;
+    case "phone":
+      return <Phone className="h-4 w-4" />;
+    case "url":
+      return <Globe className="h-4 w-4" />;
+    case "custom":
+      return <MapPin className="h-4 w-4" />;
+    default:
+      return null;
+  }
+};
 
-        return {
-          id: link.id,
-          kind: link.kind as ContactKind,
-          label: rawLabel || buildLabelFromKindAndType(link.kind as ContactKind, contactType),
-          value: link.value || "",
-          contactType,
-          isNew: false,
-        };
+export default function CardView({
+  card,
+  socialLinks,
+  productImages,
+  additionalContacts = [],
+  isInteractive = true,
+  showQRCode = true,
+  showVCardButtons = true,
+}: CardViewProps) {
+  const rawTheme = card.theme as CardTheme | undefined;
+  const theme = getActiveTheme(rawTheme);
+
+  const primaryColor = theme?.primary || "#D4AF37";
+  const buttonColor = theme?.buttonColor || primaryColor;
+  const carouselEnabled = card.carousel_enabled !== false;
+  const carouselSpeed = theme?.carouselSpeed || 4000;
+
+  const liveName = getLiveNameFromCard(card);
+
+  const handleSaveContact = async () => {
+    if (!isInteractive) return;
+
+    try {
+      // Track vcard download event
+      supabase.functions
+        .invoke("track-card-event", {
+          body: { card_id: card.id, kind: "vcard_download" },
+        })
+        .catch((err) => console.error("Failed to track vcard download:", err));
+
+      // Generate vCard via edge function
+      const { data, error } = await supabase.functions.invoke("generate-vcard", {
+        body: { card_id: card.id },
       });
 
-    setAdditionalContacts(contacts);
-    onAdditionalContactsChange?.(contacts);
-  };
+      if (error) throw error;
 
-  const addContact = (kind: ContactKind) => {
-    if (!card?.id) return;
+      // Download the vCard
+      const blob = new Blob([data.vcard], { type: "text/vcard" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${liveName.replace(/\s+/g, "_")}.vcf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
 
-    const defaultType: ContactType = kind === "phone" ? "mobile" : kind === "custom" ? "office" : "work";
-
-    const newContact: AdditionalContact = {
-      id: crypto.randomUUID(),
-      kind,
-      contactType: defaultType,
-      label: buildLabelFromKindAndType(kind, defaultType),
-      value: "",
-      isNew: true,
-    };
-
-    const updated = [...additionalContacts, newContact];
-    setAdditionalContacts(updated);
-    onAdditionalContactsChange?.(updated);
-  };
-
-  const updateContactValue = async (id: string, newValue: string) => {
-    const updated = additionalContacts.map((c) => (c.id === id ? { ...c, value: newValue } : c));
-    setAdditionalContacts(updated);
-    onAdditionalContactsChange?.(updated);
-
-    const contact = updated.find((c) => c.id === id);
-    if (!contact || !card?.id) return;
-
-    if (contact.isNew) {
-      if (newValue.trim() === "") return;
-
-      try {
-        const { data, error } = await supabase
-          .from("card_links")
-          .insert([
-            {
-              card_id: card.id,
-              kind: contact.kind,
-              label: contact.label || buildLabelFromKindAndType(contact.kind, contact.contactType),
-              value: newValue.trim(),
-              sort_index: updated.findIndex((c) => c.id === contact.id),
-            },
-          ])
-          .select("id, label, value")
-          .single();
-
-        if (error || !data) {
-          console.error("Failed to save new contact:", error);
-          toast.error(error?.message || "Failed to save contact");
-          return;
-        }
-
-        const finalContacts = updated.map((c) =>
-          c.id === contact.id
-            ? {
-                ...c,
-                id: data.id,
-                label: data.label || c.label,
-                value: data.value || c.value,
-                isNew: false,
-              }
-            : c,
-        );
-        setAdditionalContacts(finalContacts);
-        onAdditionalContactsChange?.(finalContacts);
-      } catch (err) {
-        console.error("Unexpected error saving contact:", err);
-        toast.error("Failed to save contact");
-      }
-
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from("card_links").update({ value: newValue }).eq("id", contact.id);
-
-      if (error) {
-        console.error("Failed to update contact:", error);
-        toast.error("Failed to save contact changes");
-      }
-    } catch (err) {
-      console.error("Unexpected error updating contact:", err);
-      toast.error("Failed to save contact changes");
+      toast.success("Contact saved!");
+    } catch (error) {
+      console.error("Error saving contact:", error);
+      toast.error("Failed to save contact");
     }
   };
 
-  const updateContactType = async (id: string, newType: ContactType) => {
-    const updated = additionalContacts.map((c) =>
-      c.id === id
-        ? {
-            ...c,
-            contactType: newType,
-            label: buildLabelFromKindAndType(c.kind, newType),
-          }
-        : c,
-    );
-    setAdditionalContacts(updated);
-    onAdditionalContactsChange?.(updated);
+  const handleContactClick = (type: string, value: string) => {
+    if (!isInteractive) return;
 
-    const contact = updated.find((c) => c.id === id);
-    if (!contact || !card?.id || contact.isNew) {
-      return;
-    }
+    // Track CTA click
+    supabase.functions
+      .invoke("track-card-event", {
+        body: { card_id: card.id, kind: "cta_click" },
+      })
+      .catch((err) => console.error("Failed to track CTA:", err));
 
-    try {
-      const { error } = await supabase.from("card_links").update({ label: contact.label }).eq("id", contact.id);
-
-      if (error) {
-        console.error("Failed to update contact type:", error);
-        toast.error("Failed to save contact type");
-      }
-    } catch (err) {
-      console.error("Unexpected error updating contact type:", err);
-      toast.error("Failed to save contact type");
-    }
-  };
-
-  const removeContact = async (id: string) => {
-    const contact = additionalContacts.find((c) => c.id === id);
-    if (!contact) return;
-
-    if (contact.isNew) {
-      const updatedLocal = additionalContacts.filter((c) => c.id !== id);
-      setAdditionalContacts(updatedLocal);
-      onAdditionalContactsChange?.(updatedLocal);
-      return;
-    }
-
-    try {
-      const { error } = await supabase.from("card_links").delete().eq("id", id);
-      if (error) {
-        console.error("Failed to remove contact:", error);
-        toast.error("Failed to remove contact");
-        return;
-      }
-
-      const updated = additionalContacts.filter((c) => c.id !== id);
-      setAdditionalContacts(updated);
-      onAdditionalContactsChange?.(updated);
-      toast.success("Contact removed");
-    } catch (err) {
-      console.error("Unexpected error removing contact:", err);
-      toast.error("Failed to remove contact");
-    }
-  };
-
-  // ----- Drag & Drop helpers -----
-
-  const handleDragStart = (id: string) => {
-    setDraggingId(id);
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, overId: string) => {
-    e.preventDefault();
-    if (!draggingId || draggingId === overId) return;
-
-    const currentIndex = additionalContacts.findIndex((c) => c.id === draggingId);
-    const overIndex = additionalContacts.findIndex((c) => c.id === overId);
-    if (currentIndex === -1 || overIndex === -1) return;
-
-    const updated = [...additionalContacts];
-    const [moved] = updated.splice(currentIndex, 1);
-    updated.splice(overIndex, 0, moved);
-
-    setAdditionalContacts(updated);
-    onAdditionalContactsChange?.(updated);
-  };
-
-  const handleDragEnd = async () => {
-    if (!card?.id) {
-      setDraggingId(null);
-      return;
-    }
-
-    try {
-      // Persist new sort_index order
-      await Promise.all(
-        additionalContacts.map((contact, index) =>
-          contact.isNew
-            ? Promise.resolve()
-            : supabase.from("card_links").update({ sort_index: index }).eq("id", contact.id),
-        ),
-      );
-    } catch (err) {
-      console.error("Failed to save contact order:", err);
-      toast.error("Failed to save contact order");
-    } finally {
-      setDraggingId(null);
-    }
-  };
-
-  const getContactIcon = (kind: ContactKind) => {
-    switch (kind) {
+    switch (type) {
       case "email":
-        return <Mail className="h-4 w-4" />;
+        window.location.href = `mailto:${value}`;
+        break;
       case "phone":
-        return <Phone className="h-4 w-4" />;
+        window.location.href = `tel:${value}`;
+        break;
+      case "website":
       case "url":
-        return <Globe className="h-4 w-4" />;
+        window.open(value.startsWith("http") ? value : `https://${value}`, "_blank");
+        break;
+      case "location":
       case "custom":
-        return <MapPin className="h-4 w-4" />;
-      default:
-        return null;
+        window.open(`https://maps.google.com/?q=${encodeURIComponent(value)}`, "_blank");
+        break;
     }
   };
 
-  const getPlaceholder = (kind: ContactKind) => {
-    switch (kind) {
-      case "email":
-        return "additional@email.com";
-      case "phone":
-        return "+1 234 567 8901";
-      case "url":
-        return "https://other-website.com";
-      case "custom":
-        return "City, Country";
-      default:
-        return "";
-    }
+  const handleSocialClick = (link: SocialLink) => {
+    if (!isInteractive) return;
+
+    // Track CTA click
+    supabase.functions
+      .invoke("track-card-event", {
+        body: { card_id: card.id, kind: "cta_click" },
+      })
+      .catch((err) => console.error("Failed to track CTA:", err));
+
+    const url = link.value.startsWith("http") ? link.value : `https://${link.value}`;
+    window.open(url, "_blank");
   };
 
-  const getInputType = (kind: ContactKind) => {
-    switch (kind) {
-      case "email":
-        return "email";
-      case "phone":
-        return "tel";
-      case "url":
-        return "url";
-      default:
-        return "text";
-    }
-  };
+  // Map product images to carousel format
+  const carouselImages = productImages.map((img) => ({
+    id: img.id,
+    url: img.image_url,
+    alt: img.alt_text || undefined,
+  }));
 
   return (
-    <div className="space-y-6">
-      {/* Primary Contact Fields */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Email */}
-        <div className="space-y-2">
-          <Label htmlFor="email" className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-muted-foreground" />
-            Email
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            value={card.email || ""}
-            onChange={(e) => onCardChange({ email: e.target.value })}
-            placeholder="your@email.com"
-            maxLength={255}
-            className={validationErrors.email ? "border-destructive" : ""}
-          />
-          {validationErrors.email && <p className="text-sm text-destructive">{validationErrors.email}</p>}
-        </div>
+    <div className="space-y-6 rounded-xl bg-card p-4 sm:p-6 shadow-lg">
+      {/* Header with cover, avatar, logo */}
+      <RiderHeader
+        coverUrl={card.cover_url}
+        avatarUrl={card.avatar_url}
+        companyLogoUrl={card.logo_url}
+        name={liveName}
+        title={card.title || undefined}
+        primaryColor={primaryColor}
+        avatarDisplayMode={theme?.avatarDisplayMode || "contain"}
+        logoDisplayMode={theme?.logoDisplayMode || "contain"}
+      />
 
-        {/* Phone */}
-        <div className="space-y-2">
-          <Label htmlFor="phone" className="flex items-center gap-2">
-            <Phone className="h-4 w-4 text-muted-foreground" />
-            Phone
-          </Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={card.phone || ""}
-            onChange={(e) => onCardChange({ phone: e.target.value })}
-            placeholder="+1 234 567 8900"
-            maxLength={30}
-            className={validationErrors.phone ? "border-destructive" : ""}
-          />
-          {validationErrors.phone && <p className="text-sm text-destructive">{validationErrors.phone}</p>}
-        </div>
+      {/* Bio */}
+      {card.bio && (
+        <p className="text-sm text-muted-foreground leading-relaxed px-2">{card.bio}</p>
+      )}
 
-        {/* Website */}
-        <div className="space-y-2">
-          <Label htmlFor="website" className="flex items-center gap-2">
-            <Globe className="h-4 w-4 text-muted-foreground" />
-            Website
-          </Label>
-          <Input
-            id="website"
-            type="url"
-            value={card.website || ""}
-            onChange={(e) => onCardChange({ website: e.target.value })}
-            placeholder="https://yourwebsite.com"
-            maxLength={255}
-            className={validationErrors.website ? "border-destructive" : ""}
-          />
-          {validationErrors.website && <p className="text-sm text-destructive">{validationErrors.website}</p>}
-        </div>
+      {/* Company */}
+      {card.company && (
+        <p className="text-sm font-medium text-foreground/80 px-2">{card.company}</p>
+      )}
 
-        {/* Location */}
-        <div className="space-y-2">
-          <Label htmlFor="location" className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            Location
-          </Label>
-          <Input
-            id="location"
-            value={card.location || ""}
-            onChange={(e) => onCardChange({ location: e.target.value })}
-            placeholder="City, Country"
-            maxLength={200}
-            className={validationErrors.location ? "border-destructive" : ""}
-          />
-          {validationErrors.location && <p className="text-sm text-destructive">{validationErrors.location}</p>}
-        </div>
+      {/* Primary Contact Actions */}
+      <div className="grid grid-cols-2 gap-2 px-2">
+        {card.email && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 group transition-all duration-300 hover:scale-[1.02]"
+            onClick={() => handleContactClick("email", card.email!)}
+            style={{ animationDelay: "0.1s" }}
+          >
+            <Mail className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Email</span>
+          </Button>
+        )}
+        {card.phone && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 group transition-all duration-300 hover:scale-[1.02]"
+            onClick={() => handleContactClick("phone", card.phone!)}
+            style={{ animationDelay: "0.2s" }}
+          >
+            <Phone className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Call</span>
+          </Button>
+        )}
+        {card.website && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 group transition-all duration-300 hover:scale-[1.02]"
+            onClick={() => handleContactClick("website", card.website!)}
+            style={{ animationDelay: "0.3s" }}
+          >
+            <Globe className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Website</span>
+          </Button>
+        )}
+        {card.location && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 group transition-all duration-300 hover:scale-[1.02]"
+            onClick={() => handleContactClick("location", card.location!)}
+            style={{ animationDelay: "0.4s" }}
+          >
+            <MapPin className="h-4 w-4 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Location</span>
+          </Button>
+        )}
       </div>
 
-      {/* Additional Contacts Section */}
+      {/* Additional Contacts */}
       {additionalContacts.length > 0 && (
-        <div className="space-y-2">
-          <Label className="text-sm font-medium text-muted-foreground">Additional Contacts</Label>
-          <div className="space-y-2">
+        <div className="space-y-2 px-2">
+          <p className="text-xs font-medium text-muted-foreground">Additional Contacts</p>
+          <div className="grid grid-cols-2 gap-2">
             {additionalContacts.map((contact) => (
-              <div
+              <Button
                 key={contact.id}
-                draggable
-                onDragStart={() => handleDragStart(contact.id)}
-                onDragOver={(e) => handleDragOver(e, contact.id)}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-2 rounded-lg bg-muted/30 border border-border/40 px-2 py-1.5 cursor-grab ${
-                  draggingId === contact.id ? "ring-1 ring-primary/60 bg-muted/50" : ""
-                }`}
+                variant="outline"
+                size="sm"
+                className="gap-2 group transition-all duration-300 hover:scale-[1.02]"
+                onClick={() => handleContactClick(contact.kind, contact.value)}
               >
-                {/* Drag handle */}
-                <div className="flex items-center justify-center text-muted-foreground flex-shrink-0">
-                  <GripVertical className="h-4 w-4 opacity-70" />
-                </div>
-
-                {/* Icon */}
-                <div className="text-muted-foreground flex-shrink-0">{getContactIcon(contact.kind)}</div>
-
-                {/* Type + value */}
-                <div className="flex-1 flex flex-col sm:flex-row items-stretch gap-1.5 sm:gap-2">
-                  {/* Type selector with custom arrow */}
-                  <div className="relative w-28 sm:w-32 flex-shrink-0">
-                    <select
-                      value={contact.contactType}
-                      onChange={(e) => updateContactType(contact.id, e.target.value as ContactType)}
-                      className="text-xs sm:text-sm rounded-md border border-border bg-background px-2 pr-8 py-1 h-8 sm:h-9 w-full appearance-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    >
-                      <option value="work">{getContactTypeLabel("work")}</option>
-                      <option value="home">{getContactTypeLabel("home")}</option>
-                      <option value="mobile">{getContactTypeLabel("mobile")}</option>
-                      <option value="office">{getContactTypeLabel("office")}</option>
-                      <option value="other">{getContactTypeLabel("other")}</option>
-                    </select>
-                    <span className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-muted-foreground">
-                      <ChevronDown className="h-3 w-3" />
-                    </span>
-                  </div>
-
-                  {/* Value input */}
-                  <Input
-                    type={getInputType(contact.kind)}
-                    value={contact.value}
-                    onChange={(e) => updateContactValue(contact.id, e.target.value)}
-                    placeholder={getPlaceholder(contact.kind)}
-                    className="text-xs sm:text-sm flex-1 min-w-0 h-8 sm:h-9"
-                  />
-                </div>
-
-                {/* Remove */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-destructive flex-shrink-0"
-                  onClick={() => removeContact(contact.id)}
-                >
-                  <X className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+                {getContactIcon(contact.kind)}
+                <span className="truncate text-xs">{contact.label}</span>
+              </Button>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
-            Drag rows to reorder. Changes and order are saved automatically.
-          </p>
         </div>
       )}
 
-      {/* Add Additional Contact Buttons */}
-      <div className="space-y-2">
-        <Label className="text-sm font-medium text-muted-foreground">Add Additional</Label>
-        <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={() => addContact("email")} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" />
-            <Mail className="h-3.5 w-3.5" />
-            Email
-          </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => addContact("phone")} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" />
-            <Phone className="h-3.5 w-3.5" />
-            Phone
-          </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => addContact("url")} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" />
-            <Globe className="h-3.5 w-3.5" />
-            Website
-          </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => addContact("custom")} className="gap-1.5">
-            <Plus className="h-3.5 w-3.5" />
-            <MapPin className="h-3.5 w-3.5" />
-            Location
+      {/* Social Links */}
+      {socialLinks.length > 0 && (
+        <div className="flex flex-wrap justify-center gap-3 px-2">
+          {socialLinks.map((link, index) => (
+            <button
+              key={link.id}
+              onClick={() => handleSocialClick(link)}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-muted/50 text-muted-foreground transition-all duration-300 hover:bg-primary hover:text-primary-foreground hover:scale-110"
+              style={{
+                animationDelay: `${0.1 + index * 0.1}s`,
+              }}
+              title={link.label}
+            >
+              {getSocialIcon(link.kind)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Product Images Carousel */}
+      {carouselEnabled && carouselImages.length > 0 && (
+        <ProductRingCarousel images={carouselImages} autoPlayMs={carouselSpeed} />
+      )}
+
+      {/* Save Contact Button */}
+      {showVCardButtons && (
+        <div className="flex justify-center px-2">
+          <Button
+            onClick={handleSaveContact}
+            className="w-full gap-2 text-white font-semibold shadow-lg transition-all duration-300 hover:scale-[1.02] animate-pulse"
+            style={{
+              backgroundColor: buttonColor,
+              animationDuration: "2s",
+            }}
+          >
+            <Download className="h-5 w-5" />
+            Save Contact
           </Button>
         </div>
-      </div>
+      )}
+
+      {/* QR Code */}
+      {showQRCode && (
+        <div className="flex flex-col items-center gap-3 pt-4 border-t border-border/50">
+          <p className="text-xs text-muted-foreground">Scan to save contact</p>
+          <QRCodeDisplay
+            url={card.public_url || card.share_url || `https://card-ex.com/c/${card.slug}`}
+            settings={theme?.qr}
+            size={160}
+            showDownload={isInteractive}
+            downloadFileName={`${liveName.replace(/\s+/g, "_")}_qr`}
+          />
+        </div>
+      )}
     </div>
   );
 }
