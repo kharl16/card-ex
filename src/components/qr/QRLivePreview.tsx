@@ -17,12 +17,17 @@ const dotTypeMap: Record<string, string> = {
 };
 
 // Map eye style names to qr-code-styling corner types
+// Note: qr-code-styling only supports 'square', 'extra-rounded', 'dot'
+// Custom styles map to their closest visual equivalents
 const cornerTypeMap: Record<string, string> = {
   'square': 'square',
   'extra-rounded': 'extra-rounded',
-  'leaf': 'leaf',
-  'diamond': 'square',
   'dot': 'dot',
+  'leaf': 'extra-rounded',     // Leaf maps to extra-rounded for organic feel
+  'diamond': 'square',          // Diamond maps to square
+  'star': 'dot',                // Star maps to dot for rounded corners
+  'heart': 'extra-rounded',     // Heart maps to extra-rounded
+  'shield': 'square',           // Shield maps to square
 };
 
 async function compositeQRWithBackground(
