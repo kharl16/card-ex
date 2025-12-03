@@ -3,11 +3,22 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import LoadingAnimation from "@/components/LoadingAnimation";
-import CardView, { SocialLink, ProductImage } from "@/components/CardView";
+import CardView, { SocialLink, ProductImage, AdditionalContact } from "@/components/CardView";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
 
 type CardData = Tables<"cards">;
+
+type ContactKind = "email" | "phone" | "url" | "custom";
+type ContactType = "work" | "home" | "mobile" | "office" | "other";
+
+function inferTypeFromLabel(labelLower: string): ContactType {
+  if (labelLower.includes("work")) return "work";
+  if (labelLower.includes("home")) return "home";
+  if (labelLower.includes("mobile") || labelLower.includes("cell")) return "mobile";
+  if (labelLower.includes("office")) return "office";
+  return "other";
+}
 
 interface ShareLinkData {
   card_id: string;
@@ -19,6 +30,7 @@ export default function SharedCard() {
   const [card, setCard] = useState<CardData | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
+  const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Get the effective theme (with A/B variant support)
@@ -121,6 +133,44 @@ export default function SharedCard() {
       if (images) {
         setProductImages(images);
       }
+
+      // Load additional contacts
+      const { data: contactLinks } = await supabase
+        .from("card_links")
+        .select("id, kind, label, value")
+        .eq("card_id", data.id)
+        .in("kind", ["email", "phone", "url", "custom"])
+        .order("sort_index", { ascending: true });
+
+      if (contactLinks) {
+        const contacts: AdditionalContact[] = contactLinks
+          .filter((link) => {
+            const label = (link.label || "").toLowerCase();
+            return (
+              label.includes("additional") ||
+              label.includes("alternate") ||
+              label.includes("other") ||
+              label.includes("secondary") ||
+              label.includes("work") ||
+              label.includes("home") ||
+              label.includes("mobile") ||
+              label.includes("office")
+            );
+          })
+          .map((link) => {
+            const rawLabel = link.label || "";
+            const labelLower = rawLabel.toLowerCase();
+            const contactType = inferTypeFromLabel(labelLower);
+            return {
+              id: link.id,
+              kind: link.kind as ContactKind,
+              label: rawLabel,
+              value: link.value || "",
+              contactType,
+            };
+          });
+        setAdditionalContacts(contacts);
+      }
     }
     setLoading(false);
   };
@@ -174,6 +224,7 @@ export default function SharedCard() {
           card={cardWithEffectiveTheme}
           socialLinks={socialLinks}
           productImages={productImages}
+          additionalContacts={additionalContacts}
           isInteractive={true}
           showQRCode={true}
           showVCardButtons={true}
