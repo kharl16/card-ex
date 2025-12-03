@@ -19,7 +19,7 @@ export interface QRSettings {
   logoPosition?: "center" | "background";
   logoOpacity?: number;
   pattern?: "squares" | "classy" | "rounded" | "classy-rounded" | "extra-rounded" | "dots";
-  eyeStyle?: "square" | "extra-rounded" | "leaf" | "diamond" | "dot";
+  eyeStyle?: "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield";
 }
 
 interface QRCodeCustomizerProps {
@@ -44,9 +44,12 @@ const patternOptions: { value: QRSettings["pattern"]; label: string }[] = [
 const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [
   { value: "square", label: "Square" },
   { value: "extra-rounded", label: "Rounded" },
+  { value: "dot", label: "Dot" },
   { value: "leaf", label: "Leaf" },
   { value: "diamond", label: "Diamond" },
-  { value: "dot", label: "Dot" },
+  { value: "star", label: "Star" },
+  { value: "heart", label: "Heart" },
+  { value: "shield", label: "Shield" },
 ];
 
 export default function QRCodeCustomizer({
@@ -244,7 +247,7 @@ export default function QRCodeCustomizer({
         {/* Eye Style Selection */}
         <div className="space-y-2">
           <Label>Eye Style</Label>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {eyeStyleOptions.map((option) => (
               <QREyeStylePreview
                 key={option.value}
