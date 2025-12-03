@@ -27,6 +27,10 @@ export interface QRSettings {
   logoOpacity?: number;
   pattern?: "squares" | "classy" | "rounded" | "classy-rounded" | "extra-rounded" | "dots";
   eyeStyle?: "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield";
+  useGradient?: boolean;
+  gradientColor1?: string;
+  gradientColor2?: string;
+  gradientType?: "linear" | "radial";
 }
 
 export interface QRPreset {
@@ -45,9 +49,95 @@ export const DEFAULT_QR_SETTINGS: QRSettings = {
   logoOpacity: 0.3,
   pattern: "squares",
   eyeStyle: "square",
+  useGradient: false,
+  gradientColor1: "#000000",
+  gradientColor2: "#4F46E5",
+  gradientType: "linear",
 };
 
 const QR_PRESETS_STORAGE_KEY = "cardex-qr-presets";
+
+// Built-in QR preset templates
+const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial<QRSettings> }[] = [
+  {
+    name: "Professional",
+    description: "Clean black & white classic look",
+    settings: {
+      darkColor: "#1A1A1A",
+      lightColor: "#FFFFFF",
+      pattern: "squares",
+      eyeStyle: "square",
+      useGradient: false,
+    },
+  },
+  {
+    name: "Modern",
+    description: "Rounded corners with blue gradient",
+    settings: {
+      darkColor: "#3B82F6",
+      lightColor: "#FFFFFF",
+      pattern: "extra-rounded",
+      eyeStyle: "extra-rounded",
+      useGradient: true,
+      gradientColor1: "#3B82F6",
+      gradientColor2: "#8B5CF6",
+      gradientType: "linear",
+    },
+  },
+  {
+    name: "Elegant",
+    description: "Gold tones with classy pattern",
+    settings: {
+      darkColor: "#D4AF37",
+      lightColor: "#FFF8E7",
+      pattern: "classy",
+      eyeStyle: "leaf",
+      useGradient: true,
+      gradientColor1: "#D4AF37",
+      gradientColor2: "#B8860B",
+      gradientType: "radial",
+    },
+  },
+  {
+    name: "Minimal",
+    description: "Soft gray dots pattern",
+    settings: {
+      darkColor: "#374151",
+      lightColor: "#F9FAFB",
+      pattern: "dots",
+      eyeStyle: "dot",
+      useGradient: false,
+    },
+  },
+  {
+    name: "Vibrant",
+    description: "Bold pink-to-orange gradient",
+    settings: {
+      darkColor: "#EC4899",
+      lightColor: "#FFFFFF",
+      pattern: "rounded",
+      eyeStyle: "extra-rounded",
+      useGradient: true,
+      gradientColor1: "#EC4899",
+      gradientColor2: "#F97316",
+      gradientType: "linear",
+    },
+  },
+  {
+    name: "Nature",
+    description: "Green gradient with leaf eyes",
+    settings: {
+      darkColor: "#059669",
+      lightColor: "#ECFDF5",
+      pattern: "classy-rounded",
+      eyeStyle: "leaf",
+      useGradient: true,
+      gradientColor1: "#059669",
+      gradientColor2: "#10B981",
+      gradientType: "radial",
+    },
+  },
+];
 
 interface QRCodeCustomizerProps {
   settings: QRSettings;
@@ -238,11 +328,20 @@ export default function QRCodeCustomizer({
     toast.success("Preset deleted");
   };
 
+  const handleLoadTemplate = (template: typeof BUILT_IN_TEMPLATES[0]) => {
+    onChange({ ...settings, ...template.settings });
+    toast.success(`Template "${template.name}" applied`);
+  };
+
   const darkColor = settings.darkColor || "#000000";
   const lightColor = settings.lightColor || "#FFFFFF";
   const currentSize = settings.size ?? 512;
   const currentLogoOpacity = settings.logoOpacity ?? 0.3;
   const currentLogoPosition = settings.logoPosition || "center";
+  const useGradient = settings.useGradient ?? false;
+  const gradientColor1 = settings.gradientColor1 || "#000000";
+  const gradientColor2 = settings.gradientColor2 || "#4F46E5";
+  const gradientType = settings.gradientType || "linear";
 
   return (
     <Card>
@@ -265,11 +364,38 @@ export default function QRCodeCustomizer({
                   Presets
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
+              <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>QR Code Presets</DialogTitle>
+                  <DialogTitle>QR Code Presets & Templates</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Built-in Templates */}
+                  <div className="space-y-2">
+                    <Label>Quick Templates</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {BUILT_IN_TEMPLATES.map((template) => (
+                        <button
+                          key={template.name}
+                          onClick={() => handleLoadTemplate(template)}
+                          className="flex flex-col items-start p-3 rounded-lg border-2 border-border bg-background hover:bg-muted/50 hover:border-primary/50 transition-all text-left"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <div
+                              className="w-4 h-4 rounded-full border"
+                              style={{
+                                background: template.settings.useGradient
+                                  ? `linear-gradient(135deg, ${template.settings.gradientColor1}, ${template.settings.gradientColor2})`
+                                  : template.settings.darkColor,
+                              }}
+                            />
+                            <span className="font-medium text-sm">{template.name}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground">{template.description}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   {/* Save new preset */}
                   <div className="space-y-2">
                     <Label>Save Current Settings as Preset</Label>
@@ -289,13 +415,13 @@ export default function QRCodeCustomizer({
 
                   {/* Saved presets list */}
                   <div className="space-y-2">
-                    <Label>Saved Presets</Label>
+                    <Label>Your Saved Presets</Label>
                     {presets.length === 0 ? (
                       <p className="text-sm text-muted-foreground py-4 text-center">
                         No presets saved yet. Save your current settings to create one!
                       </p>
                     ) : (
-                      <div className="space-y-2 max-h-60 overflow-y-auto">
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
                         {presets.map((preset) => (
                           <div
                             key={preset.id}
@@ -305,6 +431,7 @@ export default function QRCodeCustomizer({
                               <p className="font-medium text-sm">{preset.name}</p>
                               <p className="text-xs text-muted-foreground">
                                 {preset.settings.pattern} • {preset.settings.eyeStyle}
+                                {preset.settings.useGradient && " • Gradient"}
                               </p>
                             </div>
                             <div className="flex gap-1">
@@ -352,45 +479,164 @@ export default function QRCodeCustomizer({
         </div>
 
         {/* Colors */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="qr-dark">Dark Color</Label>
-            <div className="flex gap-2">
-              <Input
-                id="qr-dark"
-                type="color"
-                value={darkColor}
-                onChange={(e) => onChange({ ...settings, darkColor: e.target.value })}
-                className="w-16 h-10 p-1 cursor-pointer"
-              />
-              <Input
-                type="text"
-                value={darkColor}
-                onChange={(e) => onChange({ ...settings, darkColor: e.target.value })}
-                placeholder="#000000"
-                className="flex-1"
-              />
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="qr-dark">Dark Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="qr-dark"
+                  type="color"
+                  value={darkColor}
+                  onChange={(e) => onChange({ ...settings, darkColor: e.target.value })}
+                  className="w-16 h-10 p-1 cursor-pointer"
+                  disabled={useGradient}
+                />
+                <Input
+                  type="text"
+                  value={darkColor}
+                  onChange={(e) => onChange({ ...settings, darkColor: e.target.value })}
+                  placeholder="#000000"
+                  className="flex-1"
+                  disabled={useGradient}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="qr-light">Light Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="qr-light"
+                  type="color"
+                  value={lightColor}
+                  onChange={(e) => onChange({ ...settings, lightColor: e.target.value })}
+                  className="w-16 h-10 p-1 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={lightColor}
+                  onChange={(e) => onChange({ ...settings, lightColor: e.target.value })}
+                  placeholder="#FFFFFF"
+                  className="flex-1"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="qr-light">Light Color</Label>
-            <div className="flex gap-2">
-              <Input
-                id="qr-light"
-                type="color"
-                value={lightColor}
-                onChange={(e) => onChange({ ...settings, lightColor: e.target.value })}
-                className="w-16 h-10 p-1 cursor-pointer"
-              />
-              <Input
-                type="text"
-                value={lightColor}
-                onChange={(e) => onChange({ ...settings, lightColor: e.target.value })}
-                placeholder="#FFFFFF"
-                className="flex-1"
-              />
+          {/* Gradient Toggle */}
+          <div className="space-y-3 p-3 rounded-lg border bg-muted/20">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm font-medium">Use Gradient</Label>
+              <button
+                type="button"
+                onClick={() => onChange({ ...settings, useGradient: !useGradient })}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  useGradient ? "bg-primary" : "bg-muted"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    useGradient ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
             </div>
+
+            {useGradient && (
+              <div className="space-y-3 pt-2 border-t border-border/50">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Color 1</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={gradientColor1}
+                        onChange={(e) => onChange({ ...settings, gradientColor1: e.target.value })}
+                        className="w-12 h-8 p-0.5 cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={gradientColor1}
+                        onChange={(e) => onChange({ ...settings, gradientColor1: e.target.value })}
+                        className="flex-1 h-8 text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Color 2</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        value={gradientColor2}
+                        onChange={(e) => onChange({ ...settings, gradientColor2: e.target.value })}
+                        className="w-12 h-8 p-0.5 cursor-pointer"
+                      />
+                      <Input
+                        type="text"
+                        value={gradientColor2}
+                        onChange={(e) => onChange({ ...settings, gradientColor2: e.target.value })}
+                        className="flex-1 h-8 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs">Gradient Type</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onChange({ ...settings, gradientType: "linear" })}
+                      className={`flex items-center justify-center gap-2 p-2 rounded border-2 transition-all ${
+                        gradientType === "linear"
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      <div
+                        className="w-6 h-6 rounded"
+                        style={{
+                          background: `linear-gradient(135deg, ${gradientColor1}, ${gradientColor2})`,
+                        }}
+                      />
+                      <span className="text-xs font-medium">Linear</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onChange({ ...settings, gradientType: "radial" })}
+                      className={`flex items-center justify-center gap-2 p-2 rounded border-2 transition-all ${
+                        gradientType === "radial"
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:bg-muted/50"
+                      }`}
+                    >
+                      <div
+                        className="w-6 h-6 rounded"
+                        style={{
+                          background: `radial-gradient(circle, ${gradientColor1}, ${gradientColor2})`,
+                        }}
+                      />
+                      <span className="text-xs font-medium">Radial</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Gradient Preview */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Preview:</span>
+                  <div
+                    className="flex-1 h-6 rounded"
+                    style={{
+                      background:
+                        gradientType === "linear"
+                          ? `linear-gradient(135deg, ${gradientColor1}, ${gradientColor2})`
+                          : `radial-gradient(circle, ${gradientColor1}, ${gradientColor2})`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -28,6 +28,10 @@ interface QRThemeSettings {
   logoUrl?: string;
   logoPosition?: string;
   logoOpacity?: number;
+  useGradient?: boolean;
+  gradientColor1?: string;
+  gradientColor2?: string;
+  gradientType?: string;
 }
 
 interface CardData {
@@ -102,25 +106,45 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
         qrSettings.eyeStyle as any
       );
 
+      // Build gradient options if enabled
+      const useGradient = qrSettings.useGradient ?? false;
+      const gradientColor1 = qrSettings.gradientColor1 || "#000000";
+      const gradientColor2 = qrSettings.gradientColor2 || "#4F46E5";
+      const gradientType = qrSettings.gradientType || "linear";
+
+      const gradientOptions = useGradient
+        ? {
+            type: gradientType as "linear" | "radial",
+            rotation: gradientType === "linear" ? 45 : 0,
+            colorStops: [
+              { offset: 0, color: gradientColor1 },
+              { offset: 1, color: gradientColor2 },
+            ],
+          }
+        : undefined;
+
       const qrCode = new QRCodeStyling({
         width: size,
         height: size,
         data: url,
         margin: 8,
         dotsOptions: {
-          color: qrSettings.darkColor || "#000000",
+          color: useGradient ? undefined : (qrSettings.darkColor || "#000000"),
           type: (dotTypeMap[qrSettings.pattern || "squares"] || "square") as any,
+          gradient: gradientOptions,
         },
         backgroundOptions: {
           color: isBackgroundMode ? "transparent" : qrSettings.lightColor || "#FFFFFF",
         },
         cornersSquareOptions: {
-          color: qrSettings.darkColor || "#000000",
+          color: useGradient ? undefined : (qrSettings.darkColor || "#000000"),
           type: cornerSquareType as any,
+          gradient: gradientOptions,
         },
         cornersDotOptions: {
-          color: qrSettings.darkColor || "#000000",
+          color: useGradient ? undefined : (qrSettings.darkColor || "#000000"),
           type: cornerDotType as any,
+          gradient: gradientOptions,
         },
         imageOptions: {
           crossOrigin: "anonymous",
