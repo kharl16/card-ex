@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ProductRingCarousel from "@/components/ProductRingCarousel";
 import RiderHeader from "@/components/RiderHeader";
+import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import { getActiveTheme } from "@/lib/theme";
 import type { Tables } from "@/integrations/supabase/types";
@@ -308,36 +309,15 @@ export default function CardView({
       </div>
 
       {/* QR Code */}
-      {showQRCode && card.qr_code_url && (
+      {showQRCode && card.public_url && (
         <div className="flex flex-col items-center gap-3 p-6 transition-colors duration-500">
-          <img
-            src={card.qr_code_url}
-            alt="QR Code"
-            className="w-48 h-48 rounded-lg transition-all duration-300"
+          <QRCodeDisplay
+            url={card.public_url}
+            settings={theme?.qr}
+            size={192}
+            className="transition-all duration-300"
           />
-          <button
-            onClick={async () => {
-              try {
-                const response = await fetch(card.qr_code_url!);
-                const blob = await response.blob();
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `${card.slug}-qr.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-              } catch (error) {
-                console.error('Failed to download QR code:', error);
-                window.open(card.qr_code_url!, '_blank');
-              }
-            }}
-            className="text-sm text-primary hover:underline flex items-center gap-2 transition-colors duration-300"
-          >
-            <Download className="h-4 w-4" />
-            Download QR Code
-          </button>
+          <p className="text-xs text-muted-foreground">Scan to view this card</p>
         </div>
       )}
 
