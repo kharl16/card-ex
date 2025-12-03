@@ -62,7 +62,7 @@ function buildLabelFromKindAndType(kind: ContactKind, type: ContactType): string
   return `${typeName} ${kindName}`;
 }
 
-// Enforce grouping order: email → phone → url → custom
+// Enforce grouping order for additional contacts (email → phone → url → custom)
 function kindOrder(kind: ContactKind): number {
   switch (kind) {
     case "email":
@@ -83,8 +83,14 @@ export function ContactInformationSection({
   onCardChange,
   onAdditionalContactsChange,
 }: ContactInformationSectionProps) {
+  // additional contacts (from card_links)
   const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+
+  // drag state for primary (main) fields
+  type PrimaryField = "email" | "phone" | "website" | "location";
+  const [primaryOrder, setPrimaryOrder] = useState<PrimaryField[]>(["email", "phone", "website", "location"]);
+  const [primaryDraggingId, setPrimaryDraggingId] = useState<PrimaryField | null>(null);
 
   useEffect(() => {
     if (card?.id) {
@@ -308,7 +314,31 @@ export function ContactInformationSection({
     }
   };
 
-  // ----- Drag & drop ------------------------------------------------
+  // ----- Drag & drop: PRIMARY fields (local only) -------------------
+
+  const handlePrimaryDragStart = (field: PrimaryField) => {
+    setPrimaryDraggingId(field);
+  };
+
+  const handlePrimaryDragOver = (e: React.DragEvent<HTMLDivElement>, overField: PrimaryField) => {
+    e.preventDefault();
+    if (!primaryDraggingId || primaryDraggingId === overField) return;
+
+    const currentIndex = primaryOrder.indexOf(primaryDraggingId);
+    const overIndex = primaryOrder.indexOf(overField);
+    if (currentIndex === -1 || overIndex === -1) return;
+
+    const updated = [...primaryOrder];
+    const [moved] = updated.splice(currentIndex, 1);
+    updated.splice(overIndex, 0, moved);
+    setPrimaryOrder(updated);
+  };
+
+  const handlePrimaryDragEnd = () => {
+    setPrimaryDraggingId(null);
+  };
+
+  // ----- Drag & drop: ADDITIONAL contacts (with grouping & persistence) -----
 
   const handleDragStart = (id: string) => {
     setDraggingId(id);
@@ -341,7 +371,7 @@ export function ContactInformationSection({
     const indexMap = new Map<string, number>(idOrder);
 
     // Group by kind (email → phone → url → custom),
-    // while keeping relative order inside each kind from current UI.
+    // keep relative order inside each kind from current UI.
     const grouped = [...additionalContacts].sort((a, b) => {
       const kDiff = kindOrder(a.kind) - kindOrder(b.kind);
       if (kDiff !== 0) return kDiff;
@@ -384,31 +414,111 @@ export function ContactInformationSection({
     }
   };
 
-  const getPlaceholder = (kind: ContactKind) => {
+  const getPlaceholder = (kind: ContactKind | PrimaryField) => {
     switch (kind) {
       case "email":
-        return "additional@email.com";
+        return "your@email.com";
       case "phone":
-        return "+1 234 567 8901";
+        return "+1 234 567 8900";
       case "url":
-        return "https://other-website.com";
+      case "website":
+        return "https://yourwebsite.com";
       case "custom":
+      case "location":
         return "City, Country";
       default:
         return "";
     }
   };
 
-  const getInputType = (kind: ContactKind) => {
+  const getInputType = (kind: ContactKind | PrimaryField) => {
     switch (kind) {
       case "email":
         return "email";
       case "phone":
         return "tel";
       case "url":
+      case "website":
         return "url";
       default:
         return "text";
+    }
+  };
+
+  const getPrimaryIcon = (field: PrimaryField) => {
+    switch (field) {
+      case "email":
+        return <Mail className="h-4 w-4 text-muted-foreground" />;
+      case "phone":
+        return <Phone className="h-4 w-4 text-muted-foreground" />;
+      case "website":
+        return <Globe className="h-4 w-4 text-muted-foreground" />;
+      case "location":
+        return <MapPin className="h-4 w-4 text-muted-foreground" />;
+      default:
+        return null;
+    }
+  };
+
+  const getPrimaryLabel = (field: PrimaryField) => {
+    switch (field) {
+      case "email":
+        return "Email";
+      case "phone":
+        return "Phone";
+      case "website":
+        return "Website";
+      case "location":
+        return "Location";
+      default:
+        return "";
+    }
+  };
+
+  const getPrimaryValue = (field: PrimaryField) => {
+    switch (field) {
+      case "email":
+        return card.email || "";
+      case "phone":
+        return card.phone || "";
+      case "website":
+        return card.website || "";
+      case "location":
+        return card.location || "";
+      default:
+        return "";
+    }
+  };
+
+  const setPrimaryValue = (field: PrimaryField, value: string) => {
+    switch (field) {
+      case "email":
+        onCardChange({ email: value });
+        break;
+      case "phone":
+        onCardChange({ phone: value });
+        break;
+      case "website":
+        onCardChange({ website: value });
+        break;
+      case "location":
+        onCardChange({ location: value });
+        break;
+    }
+  };
+
+  const getPrimaryError = (field: PrimaryField) => {
+    switch (field) {
+      case "email":
+        return validationErrors.email;
+      case "phone":
+        return validationErrors.phone;
+      case "website":
+        return validationErrors.website;
+      case "location":
+        return validationErrors.location;
+      default:
+        return undefined;
     }
   };
 
@@ -416,77 +526,47 @@ export function ContactInformationSection({
 
   return (
     <div className="space-y-6">
-      {/* Primary Contact Fields (fixed order for main card fields) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Email */}
+      {/* Primary Contact Fields (now draggable rows) */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium text-muted-foreground">Contact Information</Label>
         <div className="space-y-2">
-          <Label htmlFor="email" className="flex items-center gap-2">
-            <Mail className="h-4 w-4 text-muted-foreground" />
-            Email
-          </Label>
-          <Input
-            id="email"
-            type="email"
-            value={card.email || ""}
-            onChange={(e) => onCardChange({ email: e.target.value })}
-            placeholder="your@email.com"
-            maxLength={255}
-            className={validationErrors.email ? "border-destructive" : ""}
-          />
-          {validationErrors.email && <p className="text-sm text-destructive">{validationErrors.email}</p>}
-        </div>
+          {primaryOrder.map((field) => {
+            const error = getPrimaryError(field);
+            return (
+              <div
+                key={field}
+                draggable
+                onDragStart={() => handlePrimaryDragStart(field)}
+                onDragOver={(e) => handlePrimaryDragOver(e, field)}
+                onDragEnd={handlePrimaryDragEnd}
+                className={`flex items-center gap-2 rounded-lg bg-muted/20 border border-border/40 px-2 py-1.5 cursor-grab ${
+                  primaryDraggingId === field ? "ring-1 ring-primary/60 bg-muted/40" : ""
+                }`}
+              >
+                {/* Drag handle */}
+                <div className="flex items-center justify-center text-muted-foreground flex-shrink-0">
+                  <GripVertical className="h-4 w-4 opacity-70" />
+                </div>
 
-        {/* Phone */}
-        <div className="space-y-2">
-          <Label htmlFor="phone" className="flex items-center gap-2">
-            <Phone className="h-4 w-4 text-muted-foreground" />
-            Phone
-          </Label>
-          <Input
-            id="phone"
-            type="tel"
-            value={card.phone || ""}
-            onChange={(e) => onCardChange({ phone: e.target.value })}
-            placeholder="+1 234 567 8900"
-            maxLength={30}
-            className={validationErrors.phone ? "border-destructive" : ""}
-          />
-          {validationErrors.phone && <p className="text-sm text-destructive">{validationErrors.phone}</p>}
-        </div>
+                {/* Icon */}
+                <div className="flex items-center justify-center flex-shrink-0">{getPrimaryIcon(field)}</div>
 
-        {/* Website */}
-        <div className="space-y-2">
-          <Label htmlFor="website" className="flex items-center gap-2">
-            <Globe className="h-4 w-4 text-muted-foreground" />
-            Website
-          </Label>
-          <Input
-            id="website"
-            type="url"
-            value={card.website || ""}
-            onChange={(e) => onCardChange({ website: e.target.value })}
-            placeholder="https://yourwebsite.com"
-            maxLength={255}
-            className={validationErrors.website ? "border-destructive" : ""}
-          />
-          {validationErrors.website && <p className="text-sm text-destructive">{validationErrors.website}</p>}
-        </div>
-
-        {/* Location */}
-        <div className="space-y-2">
-          <Label htmlFor="location" className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            Location
-          </Label>
-          <Input
-            id="location"
-            value={card.location || ""}
-            onChange={(e) => onCardChange({ location: e.target.value })}
-            placeholder="City, Country"
-            maxLength={200}
-            className={validationErrors.location ? "border-destructive" : ""}
-          />
-          {validationErrors.location && <p className="text-sm text-destructive">{validationErrors.location}</p>}
+                {/* Label + input */}
+                <div className="flex-1 flex flex-col gap-0.5">
+                  <span className="text-xs font-medium text-muted-foreground">{getPrimaryLabel(field)}</span>
+                  <Input
+                    type={getInputType(field)}
+                    value={getPrimaryValue(field)}
+                    onChange={(e) => setPrimaryValue(field, e.target.value)}
+                    placeholder={getPlaceholder(field)}
+                    maxLength={field === "phone" ? 30 : 255}
+                    className={`h-8 text-sm ${error ? "border-destructive" : ""}`}
+                  />
+                  {error && <p className="text-xs text-destructive mt-0.5">{error}</p>}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -557,8 +637,8 @@ export function ContactInformationSection({
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            Drag rows to reorder. Emails, phones, websites, and locations stay grouped together. Changes and order are
-            saved automatically.
+            Drag rows to reorder. Emails, phones, websites, and locations for additional contacts stay grouped together.
+            Changes and order are saved automatically.
           </p>
         </div>
       )}
