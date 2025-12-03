@@ -28,7 +28,8 @@ interface ContactInformationSectionProps {
   onAdditionalContactsChange?: (contacts: AdditionalContact[]) => void;
 }
 
-// Infer contact type from an existing label
+// --- helpers ----------------------------------------------------
+
 function inferTypeFromLabel(labelLower: string): ContactType {
   if (labelLower.includes("work")) return "work";
   if (labelLower.includes("home")) return "home";
@@ -56,9 +57,24 @@ function getContactTypeLabel(type: ContactType): string {
 function buildLabelFromKindAndType(kind: ContactKind, type: ContactType): string {
   const kindName = kind === "email" ? "Email" : kind === "phone" ? "Phone" : kind === "url" ? "Website" : "Location";
 
-  const typeName = type === "other" ? "Additional" : getContactTypeLabel(type); // Work / Home / Mobile / Office
+  const typeName = type === "other" ? "Additional" : getContactTypeLabel(type);
 
   return `${typeName} ${kindName}`;
+}
+
+// Enforce grouping order: email → phone → url → custom
+function kindOrder(kind: ContactKind): number {
+  switch (kind) {
+    case "email":
+      return 1;
+    case "phone":
+      return 2;
+    case "url":
+      return 3;
+    case "custom":
+    default:
+      return 4;
+  }
 }
 
 export function ContactInformationSection({
@@ -292,7 +308,7 @@ export function ContactInformationSection({
     }
   };
 
-  // ----- Drag & Drop helpers -----
+  // ----- Drag & drop ------------------------------------------------
 
   const handleDragStart = (id: string) => {
     setDraggingId(id);
@@ -320,10 +336,24 @@ export function ContactInformationSection({
       return;
     }
 
+    // Current visual order
+    const idOrder = additionalContacts.map((c, idx) => [c.id, idx] as const);
+    const indexMap = new Map<string, number>(idOrder);
+
+    // Group by kind (email → phone → url → custom),
+    // while keeping relative order inside each kind from current UI.
+    const grouped = [...additionalContacts].sort((a, b) => {
+      const kDiff = kindOrder(a.kind) - kindOrder(b.kind);
+      if (kDiff !== 0) return kDiff;
+      return (indexMap.get(a.id) ?? 0) - (indexMap.get(b.id) ?? 0);
+    });
+
+    setAdditionalContacts(grouped);
+    onAdditionalContactsChange?.(grouped);
+
     try {
-      // Persist new sort_index order
       await Promise.all(
-        additionalContacts.map((contact, index) =>
+        grouped.map((contact, index) =>
           contact.isNew
             ? Promise.resolve()
             : supabase.from("card_links").update({ sort_index: index }).eq("id", contact.id),
@@ -336,6 +366,8 @@ export function ContactInformationSection({
       setDraggingId(null);
     }
   };
+
+  // ----- UI helpers -------------------------------------------------
 
   const getContactIcon = (kind: ContactKind) => {
     switch (kind) {
@@ -380,9 +412,11 @@ export function ContactInformationSection({
     }
   };
 
+  // ----- render -----------------------------------------------------
+
   return (
     <div className="space-y-6">
-      {/* Primary Contact Fields */}
+      {/* Primary Contact Fields (fixed order for main card fields) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Email */}
         <div className="space-y-2">
@@ -456,7 +490,7 @@ export function ContactInformationSection({
         </div>
       </div>
 
-      {/* Additional Contacts Section */}
+      {/* Additional Contacts Section (drag, group by kind) */}
       {additionalContacts.length > 0 && (
         <div className="space-y-2">
           <Label className="text-sm font-medium text-muted-foreground">Additional Contacts</Label>
@@ -523,7 +557,8 @@ export function ContactInformationSection({
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            Drag rows to reorder. Changes and order are saved automatically.
+            Drag rows to reorder. Emails, phones, websites, and locations stay grouped together. Changes and order are
+            saved automatically.
           </p>
         </div>
       )}
