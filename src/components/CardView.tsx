@@ -63,10 +63,19 @@ export interface ProductImage {
   sort_order?: number | null;
 }
 
+export interface AdditionalContact {
+  id: string;
+  kind: "email" | "phone" | "url" | "custom";
+  label: string;
+  value: string;
+  contactType: "work" | "home" | "mobile" | "office" | "other";
+}
+
 interface CardViewProps {
   card: CardData;
   socialLinks: SocialLink[];
   productImages: ProductImage[];
+  additionalContacts?: AdditionalContact[];
   /** If true, renders interactive elements (links, download buttons). False for preview. */
   isInteractive?: boolean;
   /** If true, shows the QR code section */
@@ -109,6 +118,7 @@ export default function CardView({
   card,
   socialLinks,
   productImages,
+  additionalContacts = [],
   isInteractive = false,
   showQRCode = false,
   showVCardButtons = false,
@@ -306,6 +316,76 @@ export default function CardView({
             </div>
           </div>
         )}
+
+        {/* Additional Contacts */}
+        {additionalContacts.map((contact, index) => {
+          const getContactIcon = () => {
+            switch (contact.kind) {
+              case "email": return <Mail className="h-6 w-6 text-white" />;
+              case "phone": return <Phone className="h-6 w-6 text-white" />;
+              case "url": return <Globe className="h-6 w-6 text-white" />;
+              case "custom": return <MapPin className="h-6 w-6 text-white" />;
+              default: return <Globe className="h-6 w-6 text-white" />;
+            }
+          };
+
+          const getContactColor = () => {
+            switch (contact.kind) {
+              case "email": return contactBrandColors.email;
+              case "phone": return contactBrandColors.phone;
+              case "url": return contactBrandColors.website;
+              case "custom": return contactBrandColors.location;
+              default: return contactBrandColors.website;
+            }
+          };
+
+          const getContactHref = () => {
+            switch (contact.kind) {
+              case "email": return `mailto:${contact.value}`;
+              case "phone": return `tel:${contact.value}`;
+              case "url": return contact.value;
+              default: return undefined;
+            }
+          };
+
+          const getTypeLabel = () => {
+            switch (contact.contactType) {
+              case "work": return "Work";
+              case "home": return "Home";
+              case "mobile": return "Mobile";
+              case "office": return "Office";
+              default: return "Other";
+            }
+          };
+
+          if (!contact.value) return null;
+
+          return (
+            <div 
+              key={contact.id} 
+              className="animate-fade-in" 
+              style={{ animationDelay: `${0.5 + index * 0.1}s`, animationFillMode: 'backwards' }}
+            >
+              <ContactButton
+                icon={getContactIcon()}
+                label={contact.value}
+                sublabel={getTypeLabel()}
+                colorClass={getContactColor()}
+                onClick={isInteractive && getContactHref() ? () => {
+                  const href = getContactHref();
+                  if (href) {
+                    if (contact.kind === "url") {
+                      window.open(href, "_blank");
+                    } else {
+                      window.open(href);
+                    }
+                  }
+                } : undefined}
+                isInteractive={isInteractive}
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* QR Code */}

@@ -40,7 +40,7 @@ import CardView, { SocialLink, ProductImage } from "@/components/CardView";
 import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
 import { EditorWizard, WizardStep } from "@/components/editor/EditorWizard";
 import { BasicInformationSection } from "@/components/editor/sections/BasicInformationSection";
-import { ContactInformationSection } from "@/components/editor/sections/ContactInformationSection";
+import { ContactInformationSection, AdditionalContact } from "@/components/editor/sections/ContactInformationSection";
 import { ImagesSection } from "@/components/editor/sections/ImagesSection";
 import { CarouselSettingsSection } from "@/components/editor/sections/CarouselSettingsSection";
 import { CustomUrlSection } from "@/components/editor/sections/CustomUrlSection";
@@ -117,6 +117,7 @@ export default function CardEditor() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
+  const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
   const [regeneratingQR, setRegeneratingQR] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   
@@ -719,6 +720,7 @@ export default function CardEditor() {
             card={card}
             validationErrors={validationErrors}
             onCardChange={handleCardChange}
+            onAdditionalContactsChange={setAdditionalContacts}
           />
         ),
       },
@@ -967,6 +969,7 @@ export default function CardEditor() {
                   card={card}
                   socialLinks={socialLinks}
                   productImages={productImages}
+                  additionalContacts={additionalContacts}
                   isInteractive={false}
                   showQRCode={true}
                   showVCardButtons={false}
