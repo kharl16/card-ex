@@ -14,7 +14,6 @@ export interface AdditionalContact {
   kind: "email" | "phone" | "url" | "custom";
   label: string;
   value: string;
-  isNew?: boolean;
 }
 
 interface ContactInformationSectionProps {
@@ -31,13 +30,16 @@ export function ContactInformationSection({
   onAdditionalContactsChange,
 }: ContactInformationSectionProps) {
   const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
-  // Load additional contacts from card_links
+  // Load additional contacts from card_links when card.id changes
   useEffect(() => {
     if (card?.id) {
       loadAdditionalContacts();
+    } else {
+      setAdditionalContacts([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card?.id]);
 
   const loadAdditionalContacts = async () => {
@@ -48,110 +50,129 @@ export function ContactInformationSection({
       .select("id, kind, label, value")
       .eq("card_id", card.id)
       .in("kind", ["email", "phone", "url", "custom"])
-      .order("sort_index");
+      .order("sort_index", { ascending: true });
 
     if (error) {
       console.error("Error loading additional contacts:", error);
       return;
     }
 
-    if (data) {
-      // Filter out social links that use 'url' kind by checking labels
-      const contactLinks = data.filter((link) => {
-        // Keep only contact-related links (not social media)
-        const contactLabels = ["email", "phone", "website", "location", "address", "alternate"];
-        const labelLower = link.label.toLowerCase();
-        return (
-          link.kind === "email" ||
-          link.kind === "phone" ||
-          (link.kind === "custom" && labelLower.includes("location")) ||
-          (link.kind === "url" && !["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok"].some(social => labelLower.includes(social)))
-        );
-      });
-
-      const contacts: AdditionalContact[] = contactLinks
-        .filter((link) => {
-          // Only include if it's labeled as additional contact
-          const label = link.label.toLowerCase();
-          return (
-            label.includes("additional") ||
-            label.includes("alternate") ||
-            label.includes("other") ||
-            label.includes("secondary") ||
-            label.includes("work") ||
-            label.includes("home") ||
-            label.includes("mobile") ||
-            label.includes("office")
-          );
-        })
-        .map((link) => ({
-          id: link.id,
-          kind: link.kind as AdditionalContact["kind"],
-          label: link.label,
-          value: link.value,
-        }));
-
-      setAdditionalContacts(contacts);
-      onAdditionalContactsChange?.(contacts);
+    if (!data) {
+      setAdditionalContacts([]);
+      onAdditionalContactsChange?.([]);
+      return;
     }
+
+    // Keep only contact-related links (not social media)
+    const contactLinks = data.filter((link) => {
+      const labelLower = (link.label || "").toLowerCase();
+
+      return (
+        link.kind === "email" ||
+        link.kind === "phone" ||
+        (link.kind === "custom" && labelLower.includes("location")) ||
+        (link.kind === "url" &&
+          !["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok"].some((social) =>
+            labelLower.includes(social),
+          ))
+      );
+    });
+
+    const contacts: AdditionalContact[] = contactLinks
+      .filter((link) => {
+        const label = (link.label || "").toLowerCase();
+        return (
+          label.includes("additional") ||
+          label.includes("alternate") ||
+          label.includes("other") ||
+          label.includes("secondary") ||
+          label.includes("work") ||
+          label.includes("home") ||
+          label.includes("mobile") ||
+          label.includes("office")
+        );
+      })
+      .map((link) => ({
+        id: link.id,
+        kind: link.kind as AdditionalContact["kind"],
+        label: link.label || "",
+        value: link.value || "",
+      }));
+
+    setAdditionalContacts(contacts);
+    onAdditionalContactsChange?.(contacts);
   };
 
-  const addContact = async (type: "email" | "phone" | "url" | "custom") => {
+  const addContact = async (type: AdditionalContact["kind"]) => {
     if (!card?.id) return;
+    setIsAdding(true);
 
-    const labelMap = {
+    const labelMap: Record<AdditionalContact["kind"], string> = {
       email: "Additional Email",
       phone: "Additional Phone",
       url: "Additional Website",
       custom: "Additional Location",
     };
 
-    const newContact: AdditionalContact = {
-      id: crypto.randomUUID(),
-      kind: type,
-      label: labelMap[type],
-      value: "",
-      isNew: true,
-    };
+    try {
+      const { data, error } = await supabase
+        .from("card_links")
+        .insert([
+          {
+            card_id: card.id,
+            kind: type,
+            label: labelMap[type],
+            value: "",
+            sort_index: additionalContacts.length,
+          },
+        ])
+        .select("id, kind, label, value")
+        .single();
 
-    // Save to database immediately
-    const { data, error } = await supabase
-      .from("card_links")
-      .insert({
-        card_id: card.id,
-        kind: type,
-        label: newContact.label,
-        value: "",
-        sort_index: additionalContacts.length,
-      })
-      .select("id")
-      .single();
+      if (error || !data) {
+        console.error("Failed to add contact field:", error);
+        toast.error(error?.message || "Failed to add contact field");
+        return;
+      }
 
-    if (error) {
-      toast.error("Failed to add contact field");
-      return;
+      const newContact: AdditionalContact = {
+        id: data.id,
+        kind: data.kind as AdditionalContact["kind"],
+        label: data.label || labelMap[type],
+        value: data.value || "",
+      };
+
+      const updated = [...additionalContacts, newContact];
+      setAdditionalContacts(updated);
+      onAdditionalContactsChange?.(updated);
+      toast.success("Additional contact added");
+    } catch (err: any) {
+      console.error("Unexpected error adding contact field:", err);
+      toast.error("Something went wrong while adding contact");
+    } finally {
+      setIsAdding(false);
     }
-
-    const contactWithDbId = { ...newContact, id: data.id, isNew: false };
-    const updated = [...additionalContacts, contactWithDbId];
-    setAdditionalContacts(updated);
-    onAdditionalContactsChange?.(updated);
   };
 
   const updateContact = async (id: string, field: "label" | "value", newValue: string) => {
-    const updated = additionalContacts.map((c) =>
-      c.id === id ? { ...c, [field]: newValue } : c
-    );
+    const updated = additionalContacts.map((c) => (c.id === id ? { ...c, [field]: newValue } : c));
     setAdditionalContacts(updated);
     onAdditionalContactsChange?.(updated);
 
-    // Debounced save to database
-    const contact = updated.find((c) => c.id === id);
-    if (contact && !contact.isNew) {
-      await supabase
+    // Fire-and-forget save; you can debounce this later if needed
+    try {
+      const { error } = await supabase
         .from("card_links")
         .update({ [field]: newValue })
         .eq("id", id);
+
+      if (error) {
+        console.error("Failed to update contact:", error);
+        toast.error("Failed to save contact changes");
+      }
+    } catch (err) {
+      console.error("Unexpected error updating contact:", err);
+      toast.error("Failed to save contact changes");
     }
   };
 
@@ -159,22 +180,25 @@ export function ContactInformationSection({
     const contact = additionalContacts.find((c) => c.id === id);
     if (!contact) return;
 
-    // Remove from database
-    if (!contact.isNew) {
+    try {
       const { error } = await supabase.from("card_links").delete().eq("id", id);
       if (error) {
+        console.error("Failed to remove contact:", error);
         toast.error("Failed to remove contact");
         return;
       }
-    }
 
-    const updated = additionalContacts.filter((c) => c.id !== id);
-    setAdditionalContacts(updated);
-    onAdditionalContactsChange?.(updated);
-    toast.success("Contact removed");
+      const updated = additionalContacts.filter((c) => c.id !== id);
+      setAdditionalContacts(updated);
+      onAdditionalContactsChange?.(updated);
+      toast.success("Contact removed");
+    } catch (err) {
+      console.error("Unexpected error removing contact:", err);
+      toast.error("Failed to remove contact");
+    }
   };
 
-  const getContactIcon = (kind: string) => {
+  const getContactIcon = (kind: AdditionalContact["kind"]) => {
     switch (kind) {
       case "email":
         return <Mail className="h-4 w-4" />;
@@ -189,7 +213,7 @@ export function ContactInformationSection({
     }
   };
 
-  const getPlaceholder = (kind: string) => {
+  const getPlaceholder = (kind: AdditionalContact["kind"]) => {
     switch (kind) {
       case "email":
         return "additional@email.com";
@@ -204,7 +228,7 @@ export function ContactInformationSection({
     }
   };
 
-  const getInputType = (kind: string) => {
+  const getInputType = (kind: AdditionalContact["kind"]) => {
     switch (kind) {
       case "email":
         return "email";
@@ -221,6 +245,7 @@ export function ContactInformationSection({
     <div className="space-y-6">
       {/* Primary Contact Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Email */}
         <div className="space-y-2">
           <Label htmlFor="email" className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-muted-foreground" />
@@ -235,11 +260,10 @@ export function ContactInformationSection({
             maxLength={255}
             className={validationErrors.email ? "border-destructive" : ""}
           />
-          {validationErrors.email && (
-            <p className="text-sm text-destructive">{validationErrors.email}</p>
-          )}
+          {validationErrors.email && <p className="text-sm text-destructive">{validationErrors.email}</p>}
         </div>
 
+        {/* Phone */}
         <div className="space-y-2">
           <Label htmlFor="phone" className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-muted-foreground" />
@@ -254,11 +278,10 @@ export function ContactInformationSection({
             maxLength={30}
             className={validationErrors.phone ? "border-destructive" : ""}
           />
-          {validationErrors.phone && (
-            <p className="text-sm text-destructive">{validationErrors.phone}</p>
-          )}
+          {validationErrors.phone && <p className="text-sm text-destructive">{validationErrors.phone}</p>}
         </div>
 
+        {/* Website */}
         <div className="space-y-2">
           <Label htmlFor="website" className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-muted-foreground" />
@@ -273,11 +296,10 @@ export function ContactInformationSection({
             maxLength={255}
             className={validationErrors.website ? "border-destructive" : ""}
           />
-          {validationErrors.website && (
-            <p className="text-sm text-destructive">{validationErrors.website}</p>
-          )}
+          {validationErrors.website && <p className="text-sm text-destructive">{validationErrors.website}</p>}
         </div>
 
+        {/* Location */}
         <div className="space-y-2">
           <Label htmlFor="location" className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -291,9 +313,7 @@ export function ContactInformationSection({
             maxLength={200}
             className={validationErrors.location ? "border-destructive" : ""}
           />
-          {validationErrors.location && (
-            <p className="text-sm text-destructive">{validationErrors.location}</p>
-          )}
+          {validationErrors.location && <p className="text-sm text-destructive">{validationErrors.location}</p>}
         </div>
       </div>
 
@@ -307,9 +327,7 @@ export function ContactInformationSection({
                 key={contact.id}
                 className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-border/50"
               >
-                <div className="mt-2 text-muted-foreground">
-                  {getContactIcon(contact.kind)}
-                </div>
+                <div className="mt-2 text-muted-foreground">{getContactIcon(contact.kind)}</div>
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
                   <Input
                     value={contact.label}
@@ -349,6 +367,7 @@ export function ContactInformationSection({
             size="sm"
             onClick={() => addContact("email")}
             className="gap-1.5"
+            disabled={isAdding}
           >
             <Plus className="h-3.5 w-3.5" />
             <Mail className="h-3.5 w-3.5" />
@@ -360,6 +379,7 @@ export function ContactInformationSection({
             size="sm"
             onClick={() => addContact("phone")}
             className="gap-1.5"
+            disabled={isAdding}
           >
             <Plus className="h-3.5 w-3.5" />
             <Phone className="h-3.5 w-3.5" />
@@ -371,6 +391,7 @@ export function ContactInformationSection({
             size="sm"
             onClick={() => addContact("url")}
             className="gap-1.5"
+            disabled={isAdding}
           >
             <Plus className="h-3.5 w-3.5" />
             <Globe className="h-3.5 w-3.5" />
@@ -382,6 +403,7 @@ export function ContactInformationSection({
             size="sm"
             onClick={() => addContact("custom")}
             className="gap-1.5"
+            disabled={isAdding}
           >
             <Plus className="h-3.5 w-3.5" />
             <MapPin className="h-3.5 w-3.5" />
