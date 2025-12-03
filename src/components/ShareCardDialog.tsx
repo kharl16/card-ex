@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Copy, Download, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import QRCode from "qrcode";
+import { getCornerTypesFromEyeStyle } from "@/components/qr/QRLivePreview";
 
 interface ShareCardDialogProps {
   cardId: string;
@@ -20,10 +20,23 @@ interface ShareCardDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface QRThemeSettings {
+  pattern?: string;
+  eyeStyle?: string;
+  darkColor?: string;
+  lightColor?: string;
+  logoUrl?: string;
+  logoPosition?: string;
+  logoOpacity?: number;
+}
+
 interface CardData {
   slug: string;
   share_url: string;
   public_url: string;
+  theme?: {
+    qr?: QRThemeSettings;
+  } | null;
 }
 
 export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCardDialogProps) {
@@ -47,14 +60,14 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
     setLoading(true);
     const { data, error } = await supabase
       .from("cards")
-      .select("slug, share_url, public_url")
+      .select("slug, share_url, public_url, theme")
       .eq("id", cardId)
       .single();
 
     if (error) {
       toast.error("Failed to load card");
     } else {
-      setCard(data);
+      setCard(data as CardData);
     }
     setLoading(false);
   };
@@ -66,22 +79,144 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
     toast.success(`✅ Share link copied: ${url}`);
   };
 
+  const dotTypeMap: Record<string, string> = {
+    squares: "square",
+    classy: "classy",
+    rounded: "rounded",
+    "classy-rounded": "classy-rounded",
+    "extra-rounded": "extra-rounded",
+    dots: "dots",
+  };
+
   const generateQR = async () => {
     const url = card?.public_url || card?.share_url;
     if (!url) return;
+
     try {
-      const dataUrl = await QRCode.toDataURL(url, {
-        width: 512,
-        margin: 2,
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
+      const QRCodeStyling = (await import("qr-code-styling")).default;
+      const qrSettings = card?.theme?.qr || {};
+      const size = 512;
+
+      const isBackgroundMode = qrSettings.logoPosition === "background" && qrSettings.logoUrl;
+      const { square: cornerSquareType, dot: cornerDotType } = getCornerTypesFromEyeStyle(
+        qrSettings.eyeStyle as any
+      );
+
+      const qrCode = new QRCodeStyling({
+        width: size,
+        height: size,
+        data: url,
+        margin: 8,
+        dotsOptions: {
+          color: qrSettings.darkColor || "#000000",
+          type: (dotTypeMap[qrSettings.pattern || "squares"] || "square") as any,
         },
+        backgroundOptions: {
+          color: isBackgroundMode ? "transparent" : qrSettings.lightColor || "#FFFFFF",
+        },
+        cornersSquareOptions: {
+          color: qrSettings.darkColor || "#000000",
+          type: cornerSquareType as any,
+        },
+        cornersDotOptions: {
+          color: qrSettings.darkColor || "#000000",
+          type: cornerDotType as any,
+        },
+        imageOptions: {
+          crossOrigin: "anonymous",
+          margin: 8,
+          imageSize: 0.4,
+        },
+        image: !isBackgroundMode && qrSettings.logoUrl ? qrSettings.logoUrl : undefined,
       });
+
+      let blob = await qrCode.getRawData("png");
+      if (!blob) throw new Error("Failed to generate QR");
+
+      let blobData: Blob;
+      if (blob instanceof Blob) {
+        blobData = blob;
+      } else {
+        const uint8Array = new Uint8Array(blob as unknown as ArrayBuffer);
+        blobData = new Blob([uint8Array], { type: "image/png" });
+      }
+
+      // Handle background logo mode
+      if (isBackgroundMode && qrSettings.logoUrl) {
+        blobData = await compositeQRWithBackground(
+          blobData,
+          qrSettings.logoUrl,
+          size,
+          qrSettings.logoOpacity || 0.3,
+          qrSettings.lightColor || "#FFFFFF"
+        );
+      }
+
+      const dataUrl = URL.createObjectURL(blobData);
       setQrDataUrl(dataUrl);
     } catch (err) {
       console.error("Failed to generate QR code:", err);
     }
+  };
+
+  const compositeQRWithBackground = (
+    qrBlob: Blob,
+    logoUrl: string,
+    size: number,
+    opacity: number,
+    lightColor: string
+  ): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Could not get canvas context"));
+        return;
+      }
+
+      ctx.fillStyle = lightColor;
+      ctx.fillRect(0, 0, size, size);
+
+      const logoImg = new Image();
+      logoImg.crossOrigin = "anonymous";
+      logoImg.onload = () => {
+        ctx.globalAlpha = opacity;
+
+        const logoAspect = logoImg.width / logoImg.height;
+        let drawWidth = size;
+        let drawHeight = size;
+        let drawX = 0;
+        let drawY = 0;
+
+        if (logoAspect > 1) {
+          drawHeight = size;
+          drawWidth = size * logoAspect;
+          drawX = (size - drawWidth) / 2;
+        } else {
+          drawWidth = size;
+          drawHeight = size / logoAspect;
+          drawY = (size - drawHeight) / 2;
+        }
+
+        ctx.drawImage(logoImg, drawX, drawY, drawWidth, drawHeight);
+        ctx.globalAlpha = 1;
+
+        const qrImg = new Image();
+        qrImg.onload = () => {
+          ctx.drawImage(qrImg, 0, 0, size, size);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Failed to create blob"));
+          }, "image/png");
+        };
+        qrImg.onerror = reject;
+        qrImg.src = URL.createObjectURL(qrBlob);
+      };
+      logoImg.onerror = reject;
+      logoImg.src = logoUrl;
+    });
   };
 
   const downloadQR = async () => {
