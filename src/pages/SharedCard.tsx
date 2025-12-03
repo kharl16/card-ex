@@ -34,7 +34,7 @@ export default function SharedCard() {
   const [loading, setLoading] = useState(true);
 
   // Get the effective theme (with A/B variant support)
-  const rawTheme = card?.theme as CardTheme | undefined;
+  const rawTheme = (card?.theme ?? null) as unknown as CardTheme | null;
   const theme = getActiveTheme(rawTheme);
 
   // Apply custom theme colors to document

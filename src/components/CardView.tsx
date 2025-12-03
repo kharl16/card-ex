@@ -20,7 +20,7 @@ import ProductRingCarousel from "@/components/ProductRingCarousel";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
-import { getActiveTheme } from "@/lib/theme";
+import { getActiveTheme, CardTheme } from "@/lib/theme";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
@@ -124,7 +124,7 @@ export default function CardView({
   showVCardButtons = false,
 }: CardViewProps) {
   // Use getActiveTheme for A/B variant support
-  const theme = getActiveTheme(card.theme) || {
+  const theme = getActiveTheme((card.theme ?? null) as unknown as CardTheme | null) || {
     primary: "#D4AF37",
     background: "#0B0B0C",
     text: "#F8F8F8",

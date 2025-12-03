@@ -12,17 +12,17 @@ interface CarouselSettingsSectionProps {
 }
 
 export function CarouselSettingsSection({ card, onCardChange }: CarouselSettingsSectionProps) {
-  const theme = (card.theme as CardTheme) || {};
+  const theme = ((card.theme ?? {}) as unknown) as CardTheme;
   const activeVariant = theme.activeVariant || "A";
-  const variant = theme.variants?.[activeVariant] || {};
-  const currentSpeed = variant.carouselSpeed || theme.carouselSpeed || 4000;
+  const variant = (theme.variants?.[activeVariant] ?? {}) as ThemeVariant;
+  const currentSpeed = variant.carouselSpeed ?? theme.carouselSpeed ?? 4000;
 
   const handleSpeedChange = (value: string) => {
     const newSpeed = parseInt(value) || 4000;
     
     // Update the active variant (if variants exist) AND top-level for backward compatibility
-    if (theme.variants) {
-      const updatedTheme = updateVariant(theme, activeVariant, { carouselSpeed: newSpeed });
+    if (theme.variants && theme.primary) {
+      const updatedTheme = updateVariant(theme as CardTheme, activeVariant, { carouselSpeed: newSpeed });
       // Also set top-level for backward compatibility
       updatedTheme.carouselSpeed = newSpeed;
       onCardChange({ theme: updatedTheme as any });
