@@ -398,6 +398,7 @@ export function ContactInformationSection({
               </div>
             ))}
           </div>
+          <p className="text-xs text-muted-foreground">Changes to additional contacts are saved automatically.</p>
         </div>
       )}
 
