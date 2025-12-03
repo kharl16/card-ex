@@ -6,70 +6,76 @@ interface QRLivePreviewProps {
   previewUrl?: string;
 }
 
-// Map pattern names to qr-code-styling dot types
+// ----- Pattern (dots) mapping -----
 const dotTypeMap: Record<string, string> = {
-  'squares': 'square',
-  'classy': 'classy',
-  'rounded': 'rounded',
-  'classy-rounded': 'classy-rounded',
-  'extra-rounded': 'extra-rounded',
-  'dots': 'dots',
+  squares: "square",
+  classy: "classy",
+  rounded: "rounded",
+  "classy-rounded": "classy-rounded",
+  "extra-rounded": "extra-rounded",
+  dots: "dots",
 };
 
-// Map eye style names to qr-code-styling corner square types
-// cornersSquareOptions supports: 'square', 'extra-rounded', 'dot'
-const cornerSquareTypeMap: Record<string, string> = {
-  'square': 'square',
-  'extra-rounded': 'extra-rounded',
-  'dot': 'dot',
-  'leaf': 'extra-rounded',
-  'diamond': 'square',
-  'star': 'dot',
-  'heart': 'extra-rounded',
-  'shield': 'square',
-};
+// EyeStyle values we expect from QRSettings
+type EyeStyle = "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield" | undefined;
 
-// Map eye style names to qr-code-styling corner dot types
-// cornersDotOptions only supports: 'square', 'dot'
-const cornerDotTypeMap: Record<string, string> = {
-  'square': 'square',
-  'extra-rounded': 'dot',
-  'dot': 'dot',
-  'leaf': 'dot',
-  'diamond': 'square',
-  'star': 'dot',
-  'heart': 'dot',
-  'shield': 'square',
-};
+// Library-supported corner types
+type CornerSquareType = "square" | "extra-rounded" | "dot";
+type CornerDotType = "square" | "dot";
+
+// Centralized resolver so Card Editor / Preview / Card can all use the same logic
+export function getCornerTypesFromEyeStyle(eyeStyle: EyeStyle): { square: CornerSquareType; dot: CornerDotType } {
+  switch (eyeStyle) {
+    case "extra-rounded":
+      // "Rounded" eyes in the UI
+      return { square: "extra-rounded", dot: "square" };
+
+    case "leaf":
+    case "heart":
+      // Softer / organic feel → map to extra-rounded
+      return { square: "extra-rounded", dot: "dot" };
+
+    case "diamond":
+    case "shield":
+      // Strong / angular feel → map to square
+      return { square: "square", dot: "square" };
+
+    case "dot":
+    case "star":
+      // Small dot-eyes
+      return { square: "dot", dot: "dot" };
+
+    case "square":
+    default:
+      return { square: "square", dot: "square" };
+  }
+}
 
 async function compositeQRWithBackground(
   qrBlob: Blob,
   logoUrl: string,
   size: number,
   opacity: number,
-  lightColor: string
+  lightColor: string,
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) {
-      reject(new Error('Could not get canvas context'));
+      reject(new Error("Could not get canvas context"));
       return;
     }
 
-    // Draw light background color
     ctx.fillStyle = lightColor;
     ctx.fillRect(0, 0, size, size);
 
     const logoImg = new Image();
-    logoImg.crossOrigin = 'anonymous';
+    logoImg.crossOrigin = "anonymous";
     logoImg.onload = () => {
-      // Draw logo as background with opacity
       ctx.globalAlpha = opacity;
-      
-      // Calculate dimensions to cover the entire QR while maintaining aspect ratio
+
       const logoAspect = logoImg.width / logoImg.height;
       let drawWidth = size;
       let drawHeight = size;
@@ -77,12 +83,10 @@ async function compositeQRWithBackground(
       let drawY = 0;
 
       if (logoAspect > 1) {
-        // Logo is wider - fit to height
         drawHeight = size;
         drawWidth = size * logoAspect;
         drawX = (size - drawWidth) / 2;
       } else {
-        // Logo is taller - fit to width
         drawWidth = size;
         drawHeight = size / logoAspect;
         drawY = (size - drawHeight) / 2;
@@ -91,14 +95,13 @@ async function compositeQRWithBackground(
       ctx.drawImage(logoImg, drawX, drawY, drawWidth, drawHeight);
       ctx.globalAlpha = 1;
 
-      // Now draw the QR code on top
       const qrImg = new Image();
       qrImg.onload = () => {
         ctx.drawImage(qrImg, 0, 0, size, size);
         canvas.toBlob((blob) => {
           if (blob) resolve(blob);
-          else reject(new Error('Failed to create blob'));
-        }, 'image/png');
+          else reject(new Error("Failed to create blob"));
+        }, "image/png");
       };
       qrImg.onerror = reject;
       qrImg.src = URL.createObjectURL(qrBlob);
@@ -115,17 +118,21 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
 
   const generatePreview = useCallback(async () => {
     setIsLoading(true);
-    
+
     try {
-      const QRCodeStyling = (await import('qr-code-styling')).default;
-      
-      // Clean up previous instance
+      const QRCodeStyling = (await import("qr-code-styling")).default;
+
       if (qrCodeRef.current) {
         qrCodeRef.current = null;
       }
 
-      const isBackgroundMode = settings.logoPosition === 'background' && settings.logoUrl;
+      const isBackgroundMode = settings.logoPosition === "background" && settings.logoUrl;
       const size = 200;
+
+      // Resolve corner types from our EyeStyle mapping
+      const { square: cornerSquareType, dot: cornerDotType } = getCornerTypesFromEyeStyle(
+        settings.eyeStyle as EyeStyle,
+      );
 
       const qrCode = new QRCodeStyling({
         width: size,
@@ -134,66 +141,70 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
         margin: 8,
         dotsOptions: {
           color: settings.darkColor || "#000000",
-          type: (dotTypeMap[settings.pattern || 'squares'] || 'square') as any,
+          type: (dotTypeMap[settings.pattern || "squares"] || "square") as any,
         },
         backgroundOptions: {
-          // Use transparent background for background mode so logo shows through
-          color: isBackgroundMode ? 'transparent' : (settings.lightColor || "#FFFFFF"),
+          color: isBackgroundMode ? "transparent" : settings.lightColor || "#FFFFFF",
         },
         cornersSquareOptions: {
           color: settings.darkColor || "#000000",
-          type: (cornerSquareTypeMap[settings.eyeStyle || 'square'] || 'square') as any,
+          type: cornerSquareType as any,
         },
         cornersDotOptions: {
           color: settings.darkColor || "#000000",
-          type: (cornerDotTypeMap[settings.eyeStyle || 'square'] || 'square') as any,
+          type: cornerDotType as any,
         },
         imageOptions: {
           crossOrigin: "anonymous",
           margin: 8,
           imageSize: 0.4,
         },
-        // Only use center logo if not in background mode
-        image: (!isBackgroundMode && settings.logoUrl) ? settings.logoUrl : undefined,
+        image: !isBackgroundMode && settings.logoUrl ? settings.logoUrl : undefined,
       });
 
       qrCodeRef.current = qrCode;
-      
-      // Get as data URL instead of appending to DOM
-      let blob = await qrCode.getRawData('png');
-      if (!blob) throw new Error('Failed to generate QR');
 
-      // Handle Buffer type
+      let blob = await qrCode.getRawData("png");
+      if (!blob) throw new Error("Failed to generate QR");
+
       let blobData: Blob;
       if (blob instanceof Blob) {
         blobData = blob;
       } else {
         const uint8Array = new Uint8Array(blob as unknown as ArrayBuffer);
-        blobData = new Blob([uint8Array], { type: 'image/png' });
+        blobData = new Blob([uint8Array], { type: "image/png" });
       }
 
-      // If background mode, composite the logo behind the QR
       if (isBackgroundMode && settings.logoUrl) {
         blobData = await compositeQRWithBackground(
           blobData,
           settings.logoUrl,
           size,
           settings.logoOpacity || 0.3,
-          settings.lightColor || "#FFFFFF"
+          settings.lightColor || "#FFFFFF",
         );
       }
 
       const url = URL.createObjectURL(blobData);
-      setQrDataUrl(prev => {
+      setQrDataUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return url;
       });
     } catch (error) {
-      console.error('Error generating QR preview:', error);
+      console.error("Error generating QR preview:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [settings.darkColor, settings.lightColor, settings.pattern, settings.eyeStyle, settings.logoUrl, settings.logoPosition, settings.logoOpacity, previewUrl]);
+  }, [
+    settings.darkColor,
+    settings.lightColor,
+    settings.pattern,
+    settings.eyeStyle,
+    settings.logoUrl,
+    settings.logoPosition,
+    settings.logoOpacity,
+    previewUrl,
+  ]);
 
   useEffect(() => {
     const timeoutId = setTimeout(generatePreview, 200);
@@ -204,21 +215,19 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
     return () => {
       if (qrDataUrl) URL.revokeObjectURL(qrDataUrl);
     };
-  }, []);
+  }, [qrDataUrl]);
 
   return (
     <div className="flex flex-col items-center gap-3 p-4 rounded-lg bg-muted/30 border">
       <p className="text-sm font-medium text-muted-foreground">Live Preview</p>
-      <div 
-        className={`relative flex items-center justify-center rounded-lg overflow-hidden transition-opacity duration-200 ${isLoading ? 'opacity-50' : 'opacity-100'}`}
+      <div
+        className={`relative flex items-center justify-center rounded-lg overflow-hidden transition-opacity duration-200 ${
+          isLoading ? "opacity-50" : "opacity-100"
+        }`}
         style={{ width: 200, height: 200 }}
       >
         {qrDataUrl ? (
-          <img 
-            src={qrDataUrl} 
-            alt="QR Code Preview" 
-            className="w-full h-full object-contain"
-          />
+          <img src={qrDataUrl} alt="QR Code Preview" className="w-full h-full object-contain" />
         ) : (
           <div className="w-full h-full bg-muted flex items-center justify-center">
             <span className="text-xs text-muted-foreground">Generating...</span>
@@ -230,9 +239,7 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
           </div>
         )}
       </div>
-      <p className="text-xs text-muted-foreground text-center">
-        Preview updates as you change settings
-      </p>
+      <p className="text-xs text-muted-foreground text-center">Preview updates as you change settings</p>
     </div>
   );
 }
