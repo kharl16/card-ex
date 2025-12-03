@@ -16,6 +16,14 @@ export interface QRDisplaySettings {
   gradientColor1?: string;
   gradientColor2?: string;
   gradientType?: string;
+  // Frame options
+  frameEnabled?: boolean;
+  frameStyle?: string;
+  frameColor?: string;
+  frameWidth?: number;
+  frameBorderRadius?: number;
+  frameShadow?: string;
+  framePadding?: number;
 }
 
 interface QRCodeDisplayProps {
@@ -230,28 +238,149 @@ export default function QRCodeDisplay({
     };
   }, [qrDataUrl]);
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
     if (!qrBlobRef.current) {
       toast.error("QR code not ready yet");
       return;
     }
+
+    const frameEnabled = settings.frameEnabled ?? false;
     
-    const url = URL.createObjectURL(qrBlobRef.current);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${downloadFileName}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    toast.success("QR code downloaded!");
-  }, [downloadFileName]);
+    if (!frameEnabled) {
+      // Simple download without frame
+      const url = URL.createObjectURL(qrBlobRef.current);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${downloadFileName}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("QR code downloaded!");
+      return;
+    }
+
+    // Download with frame
+    const frameStyle = settings.frameStyle || "solid";
+    const frameColor = settings.frameColor || "#000000";
+    const frameWidth = settings.frameWidth || 4;
+    const frameBorderRadius = settings.frameBorderRadius || 12;
+    const framePadding = settings.framePadding || 16;
+    const lightColor = settings.lightColor || "#FFFFFF";
+
+    const canvas = document.createElement("canvas");
+    const totalSize = size + (framePadding * 2) + (frameWidth * 2);
+    canvas.width = totalSize;
+    canvas.height = totalSize;
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      toast.error("Could not create canvas");
+      return;
+    }
+
+    // Draw background with rounded corners
+    ctx.fillStyle = lightColor;
+    if (frameBorderRadius > 0) {
+      ctx.beginPath();
+      ctx.roundRect(frameWidth, frameWidth, totalSize - frameWidth * 2, totalSize - frameWidth * 2, frameBorderRadius);
+      ctx.fill();
+    } else {
+      ctx.fillRect(frameWidth, frameWidth, totalSize - frameWidth * 2, totalSize - frameWidth * 2);
+    }
+
+    // Draw border
+    ctx.strokeStyle = frameColor;
+    ctx.lineWidth = frameWidth;
+    if (frameStyle === "dashed") {
+      ctx.setLineDash([frameWidth * 2, frameWidth]);
+    } else if (frameStyle === "dotted") {
+      ctx.setLineDash([frameWidth, frameWidth]);
+    } else {
+      ctx.setLineDash([]);
+    }
+
+    if (frameBorderRadius > 0) {
+      ctx.beginPath();
+      ctx.roundRect(frameWidth / 2, frameWidth / 2, totalSize - frameWidth, totalSize - frameWidth, frameBorderRadius);
+      ctx.stroke();
+    } else {
+      ctx.strokeRect(frameWidth / 2, frameWidth / 2, totalSize - frameWidth, totalSize - frameWidth);
+    }
+
+    // Double border effect
+    if (frameStyle === "double") {
+      const innerOffset = frameWidth * 2;
+      ctx.lineWidth = frameWidth / 2;
+      if (frameBorderRadius > 0) {
+        ctx.beginPath();
+        ctx.roundRect(
+          innerOffset,
+          innerOffset,
+          totalSize - innerOffset * 2,
+          totalSize - innerOffset * 2,
+          Math.max(0, frameBorderRadius - innerOffset / 2)
+        );
+        ctx.stroke();
+      } else {
+        ctx.strokeRect(innerOffset, innerOffset, totalSize - innerOffset * 2, totalSize - innerOffset * 2);
+      }
+    }
+
+    // Draw QR code
+    const qrImg = new Image();
+    qrImg.onload = () => {
+      const qrX = frameWidth + framePadding;
+      const qrY = frameWidth + framePadding;
+      ctx.drawImage(qrImg, qrX, qrY, size, size);
+
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          toast.error("Failed to create download");
+          return;
+        }
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${downloadFileName}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        toast.success("QR code downloaded!");
+      }, "image/png");
+    };
+    qrImg.src = URL.createObjectURL(qrBlobRef.current);
+  }, [downloadFileName, settings, size]);
+
+  // Frame styling helpers
+  const getFrameShadow = (shadow?: string) => {
+    switch (shadow) {
+      case "soft":
+        return "0 2px 8px rgba(0,0,0,0.15)";
+      case "medium":
+        return "0 4px 16px rgba(0,0,0,0.25)";
+      case "strong":
+        return "0 8px 24px rgba(0,0,0,0.4)";
+      default:
+        return "none";
+    }
+  };
+
+  const frameEnabled = settings.frameEnabled ?? false;
+  const frameStyle = settings.frameStyle || "solid";
+  const frameColor = settings.frameColor || "#000000";
+  const frameWidth = settings.frameWidth || 4;
+  const frameBorderRadius = settings.frameBorderRadius || 12;
+  const frameShadow = settings.frameShadow || "none";
+  const framePadding = settings.framePadding || 16;
 
   if (isLoading || !qrDataUrl) {
+    const totalSize = frameEnabled ? size + (framePadding * 2) + (frameWidth * 2) : size;
     return (
       <div
         className={`flex items-center justify-center bg-muted rounded-lg ${className}`}
-        style={{ width: size, height: size }}
+        style={{ width: totalSize, height: totalSize }}
       >
         <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
@@ -260,12 +389,33 @@ export default function QRCodeDisplay({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <img
-        src={qrDataUrl}
-        alt="QR Code"
-        className={`rounded-lg ${className}`}
-        style={{ width: size, height: size }}
-      />
+      {frameEnabled ? (
+        <div
+          style={{
+            padding: framePadding,
+            borderStyle: frameStyle,
+            borderWidth: frameWidth,
+            borderColor: frameColor,
+            borderRadius: frameBorderRadius,
+            boxShadow: getFrameShadow(frameShadow),
+            backgroundColor: settings.lightColor || "#FFFFFF",
+          }}
+        >
+          <img
+            src={qrDataUrl}
+            alt="QR Code"
+            className={className}
+            style={{ width: size, height: size, display: "block" }}
+          />
+        </div>
+      ) : (
+        <img
+          src={qrDataUrl}
+          alt="QR Code"
+          className={`rounded-lg ${className}`}
+          style={{ width: size, height: size }}
+        />
+      )}
       {showDownload && (
         <Button
           variant="outline"

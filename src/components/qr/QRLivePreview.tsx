@@ -241,24 +241,73 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
     };
   }, [qrDataUrl]);
 
+  // Frame styling helpers
+  const getFrameShadow = (shadow?: string) => {
+    switch (shadow) {
+      case "soft":
+        return "0 2px 8px rgba(0,0,0,0.15)";
+      case "medium":
+        return "0 4px 16px rgba(0,0,0,0.25)";
+      case "strong":
+        return "0 8px 24px rgba(0,0,0,0.4)";
+      default:
+        return "none";
+    }
+  };
+
+  const frameEnabled = settings.frameEnabled ?? false;
+  const frameStyle = settings.frameStyle || "solid";
+  const frameColor = settings.frameColor || "#000000";
+  const frameWidth = settings.frameWidth || 4;
+  const frameBorderRadius = settings.frameBorderRadius || 12;
+  const frameShadow = settings.frameShadow || "none";
+  const framePadding = settings.framePadding || 16;
+
   return (
     <div className="flex flex-col items-center gap-3 p-4 rounded-lg bg-muted/30 border">
       <p className="text-sm font-medium text-muted-foreground">Live Preview</p>
       <div
-        className={`relative flex items-center justify-center rounded-lg overflow-hidden transition-opacity duration-200 ${
+        className={`relative flex items-center justify-center transition-opacity duration-200 ${
           isLoading ? "opacity-50" : "opacity-100"
         }`}
-        style={{ width: 200, height: 200 }}
       >
         {qrDataUrl ? (
-          <img src={qrDataUrl} alt="QR Code Preview" className="w-full h-full object-contain" />
+          frameEnabled ? (
+            <div
+              style={{
+                padding: framePadding * 0.6, // Scale down for preview
+                borderStyle: frameStyle,
+                borderWidth: Math.max(1, frameWidth * 0.6),
+                borderColor: frameColor,
+                borderRadius: frameBorderRadius * 0.6,
+                boxShadow: getFrameShadow(frameShadow),
+                backgroundColor: settings.lightColor || "#FFFFFF",
+              }}
+            >
+              <img
+                src={qrDataUrl}
+                alt="QR Code Preview"
+                style={{ width: 160, height: 160, display: "block" }}
+              />
+            </div>
+          ) : (
+            <img
+              src={qrDataUrl}
+              alt="QR Code Preview"
+              className="rounded-lg"
+              style={{ width: 200, height: 200 }}
+            />
+          )
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center">
+          <div
+            className="bg-muted flex items-center justify-center rounded-lg"
+            style={{ width: 200, height: 200 }}
+          >
             <span className="text-xs text-muted-foreground">Generating...</span>
           </div>
         )}
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/50">
+          <div className="absolute inset-0 flex items-center justify-center bg-background/50 rounded-lg">
             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
           </div>
         )}
