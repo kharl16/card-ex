@@ -18,7 +18,7 @@ export interface AdditionalContact {
   label: string;
   value: string;
   contactType: ContactType;
-  isNew?: boolean; // not yet saved in DB
+  isNew?: boolean;
 }
 
 interface ContactInformationSectionProps {
@@ -37,7 +37,6 @@ function inferTypeFromLabel(labelLower: string): ContactType {
   return "other";
 }
 
-// Human label for type dropdown
 function getContactTypeLabel(type: ContactType): string {
   switch (type) {
     case "work":
@@ -54,7 +53,6 @@ function getContactTypeLabel(type: ContactType): string {
   }
 }
 
-// Build the label we store in card_links.label
 function buildLabelFromKindAndType(kind: ContactKind, type: ContactType): string {
   const kindName = kind === "email" ? "Email" : kind === "phone" ? "Phone" : kind === "url" ? "Website" : "Location";
 
@@ -71,7 +69,6 @@ export function ContactInformationSection({
 }: ContactInformationSectionProps) {
   const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
 
-  // Load additional contacts from card_links when card.id changes
   useEffect(() => {
     if (card?.id) {
       loadAdditionalContacts();
@@ -102,7 +99,6 @@ export function ContactInformationSection({
       return;
     }
 
-    // Keep only contact-related links (not social media)
     const contactLinks = data.filter((link) => {
       const labelLower = (link.label || "").toLowerCase();
 
@@ -150,19 +146,13 @@ export function ContactInformationSection({
     onAdditionalContactsChange?.(contacts);
   };
 
-  /**
-   * When user clicks +Email/+Phone/etc:
-   * - Create a local row (isNew: true) with default type
-   * - No Supabase insert yet (DB requires a non-empty value)
-   */
   const addContact = (kind: ContactKind) => {
     if (!card?.id) return;
 
-    // sensible defaults
     const defaultType: ContactType = kind === "phone" ? "mobile" : kind === "custom" ? "office" : "work";
 
     const newContact: AdditionalContact = {
-      id: crypto.randomUUID(), // temporary ID
+      id: crypto.randomUUID(),
       kind,
       contactType: defaultType,
       label: buildLabelFromKindAndType(kind, defaultType),
@@ -175,10 +165,6 @@ export function ContactInformationSection({
     onAdditionalContactsChange?.(updated);
   };
 
-  /**
-   * Update contact value (email/phone/url/etc).
-   * For new rows, insert into Supabase the first time value becomes non-empty.
-   */
   const updateContactValue = async (id: string, newValue: string) => {
     const updated = additionalContacts.map((c) => (c.id === id ? { ...c, value: newValue } : c));
     setAdditionalContacts(updated);
@@ -187,7 +173,6 @@ export function ContactInformationSection({
     const contact = updated.find((c) => c.id === id);
     if (!contact || !card?.id) return;
 
-    // Brand new contact → only insert once we have a value
     if (contact.isNew) {
       if (newValue.trim() === "") return;
 
@@ -226,14 +211,13 @@ export function ContactInformationSection({
         setAdditionalContacts(finalContacts);
         onAdditionalContactsChange?.(finalContacts);
       } catch (err) {
-        console.error("Unexpected error saving new contact:", err);
+        console.error("Unexpected error saving contact:", err);
         toast.error("Failed to save contact");
       }
 
       return;
     }
 
-    // Existing contact → update Supabase
     try {
       const { error } = await supabase.from("card_links").update({ value: newValue }).eq("id", contact.id);
 
@@ -247,13 +231,6 @@ export function ContactInformationSection({
     }
   };
 
-  /**
-   * Change the contact type (Work/Home/Mobile/Office/Other).
-   * We update:
-   *  - local contactType
-   *  - label (e.g. "Work Email")
-   *  - Supabase label for existing rows
-   */
   const updateContactType = async (id: string, newType: ContactType) => {
     const updated = additionalContacts.map((c) =>
       c.id === id
@@ -269,7 +246,6 @@ export function ContactInformationSection({
 
     const contact = updated.find((c) => c.id === id);
     if (!contact || !card?.id || contact.isNew) {
-      // For new contacts, label will be sent on first save
       return;
     }
 
@@ -436,21 +412,22 @@ export function ContactInformationSection({
 
       {/* Additional Contacts Section */}
       {additionalContacts.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <Label className="text-sm font-medium text-muted-foreground">Additional Contacts</Label>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {additionalContacts.map((contact) => (
               <div
                 key={contact.id}
-                className="flex items-start gap-2 p-3 rounded-lg bg-muted/30 border border-border/50"
+                className="flex items-center gap-2 rounded-lg bg-muted/30 border border-border/40 px-2 py-1.5"
               >
-                <div className="mt-2 text-muted-foreground">{getContactIcon(contact.kind)}</div>
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="text-muted-foreground flex-shrink-0">{getContactIcon(contact.kind)}</div>
+
+                <div className="flex-1 flex flex-col sm:flex-row items-stretch gap-1.5 sm:gap-2">
                   {/* Type selector */}
                   <select
                     value={contact.contactType}
                     onChange={(e) => updateContactType(contact.id, e.target.value as ContactType)}
-                    className="text-sm rounded-md border bg-background px-2 py-1.5"
+                    className="text-xs sm:text-sm rounded-md border border-border bg-background px-2 pr-6 py-1 h-8 sm:h-9 w-28 sm:w-32 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
                     <option value="work">{getContactTypeLabel("work")}</option>
                     <option value="home">{getContactTypeLabel("home")}</option>
@@ -465,16 +442,17 @@ export function ContactInformationSection({
                     value={contact.value}
                     onChange={(e) => updateContactValue(contact.id, e.target.value)}
                     placeholder={getPlaceholder(contact.kind)}
-                    className="text-sm"
+                    className="text-xs sm:text-sm flex-1 min-w-0 h-8 sm:h-9"
                   />
                 </div>
+
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-destructive flex-shrink-0"
                   onClick={() => removeContact(contact.id)}
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </Button>
               </div>
             ))}
