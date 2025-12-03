@@ -9,11 +9,15 @@ import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
 
+type ContactKind = "email" | "phone" | "url" | "custom";
+type ContactType = "work" | "home" | "mobile" | "office" | "other";
+
 export interface AdditionalContact {
   id: string;
-  kind: "email" | "phone" | "url" | "custom";
+  kind: ContactKind;
   label: string;
   value: string;
+  contactType: ContactType;
   isNew?: boolean; // not yet saved in DB
 }
 
@@ -22,6 +26,41 @@ interface ContactInformationSectionProps {
   validationErrors: Record<string, string>;
   onCardChange: (updates: Partial<CardData>) => void;
   onAdditionalContactsChange?: (contacts: AdditionalContact[]) => void;
+}
+
+// Infer contact type from an existing label
+function inferTypeFromLabel(labelLower: string): ContactType {
+  if (labelLower.includes("work")) return "work";
+  if (labelLower.includes("home")) return "home";
+  if (labelLower.includes("mobile") || labelLower.includes("cell")) return "mobile";
+  if (labelLower.includes("office")) return "office";
+  return "other";
+}
+
+// Human label for type dropdown
+function getContactTypeLabel(type: ContactType): string {
+  switch (type) {
+    case "work":
+      return "Work";
+    case "home":
+      return "Home";
+    case "mobile":
+      return "Mobile";
+    case "office":
+      return "Office";
+    case "other":
+    default:
+      return "Other";
+  }
+}
+
+// Build the label we store in card_links.label
+function buildLabelFromKindAndType(kind: ContactKind, type: ContactType): string {
+  const kindName = kind === "email" ? "Email" : kind === "phone" ? "Phone" : kind === "url" ? "Website" : "Location";
+
+  const typeName = type === "other" ? "Additional" : getContactTypeLabel(type); // Work / Home / Mobile / Office
+
+  return `${typeName} ${kindName}`;
 }
 
 export function ContactInformationSection({
@@ -92,13 +131,20 @@ export function ContactInformationSection({
           label.includes("office")
         );
       })
-      .map((link) => ({
-        id: link.id,
-        kind: link.kind as AdditionalContact["kind"],
-        label: link.label || "",
-        value: link.value || "",
-        isNew: false,
-      }));
+      .map((link) => {
+        const rawLabel = link.label || "";
+        const labelLower = rawLabel.toLowerCase();
+        const contactType = inferTypeFromLabel(labelLower);
+
+        return {
+          id: link.id,
+          kind: link.kind as ContactKind,
+          label: rawLabel || buildLabelFromKindAndType(link.kind as ContactKind, contactType),
+          value: link.value || "",
+          contactType,
+          isNew: false,
+        };
+      });
 
     setAdditionalContacts(contacts);
     onAdditionalContactsChange?.(contacts);
@@ -106,23 +152,20 @@ export function ContactInformationSection({
 
   /**
    * When user clicks +Email/+Phone/etc:
-   * - Only create a local row (isNew: true)
-   * - Do NOT hit Supabase yet (value is still empty and DB requires a value)
+   * - Create a local row (isNew: true) with default type
+   * - No Supabase insert yet (DB requires a non-empty value)
    */
-  const addContact = (type: AdditionalContact["kind"]) => {
+  const addContact = (kind: ContactKind) => {
     if (!card?.id) return;
 
-    const labelMap: Record<AdditionalContact["kind"], string> = {
-      email: "Additional Email",
-      phone: "Additional Phone",
-      url: "Additional Website",
-      custom: "Additional Location",
-    };
+    // sensible defaults
+    const defaultType: ContactType = kind === "phone" ? "mobile" : kind === "custom" ? "office" : "work";
 
     const newContact: AdditionalContact = {
-      id: crypto.randomUUID(), // temporary ID for React list rendering
-      kind: type,
-      label: labelMap[type],
+      id: crypto.randomUUID(), // temporary ID
+      kind,
+      contactType: defaultType,
+      label: buildLabelFromKindAndType(kind, defaultType),
       value: "",
       isNew: true,
     };
@@ -133,73 +176,66 @@ export function ContactInformationSection({
   };
 
   /**
-   * When user edits label or value:
-   * - Update React state immediately
-   * - If contact is new:
-   *    - Only insert into Supabase when value becomes non-empty
-   * - If contact already exists in DB:
-   *    - Update the row in Supabase
+   * Update contact value (email/phone/url/etc).
+   * For new rows, insert into Supabase the first time value becomes non-empty.
    */
-  const updateContact = async (id: string, field: "label" | "value", newValue: string) => {
-    const updated = additionalContacts.map((c) => (c.id === id ? { ...c, [field]: newValue } : c));
+  const updateContactValue = async (id: string, newValue: string) => {
+    const updated = additionalContacts.map((c) => (c.id === id ? { ...c, value: newValue } : c));
     setAdditionalContacts(updated);
     onAdditionalContactsChange?.(updated);
 
     const contact = updated.find((c) => c.id === id);
     if (!contact || !card?.id) return;
 
-    // For brand new contacts, only hit DB the first time we get a non-empty value
+    // Brand new contact → only insert once we have a value
     if (contact.isNew) {
-      if (field === "value" && newValue.trim() !== "") {
-        try {
-          const { data, error } = await supabase
-            .from("card_links")
-            .insert([
-              {
-                card_id: card.id,
-                kind: contact.kind,
-                label: contact.label || "",
-                value: newValue.trim(),
-                sort_index: additionalContacts.length,
-              },
-            ])
-            .select("id, label, value")
-            .single();
+      if (newValue.trim() === "") return;
 
-          if (error || !data) {
-            console.error("Failed to save new contact:", error);
-            toast.error(error?.message || "Failed to save contact");
-            return;
-          }
+      try {
+        const { data, error } = await supabase
+          .from("card_links")
+          .insert([
+            {
+              card_id: card.id,
+              kind: contact.kind,
+              label: contact.label || buildLabelFromKindAndType(contact.kind, contact.contactType),
+              value: newValue.trim(),
+              sort_index: additionalContacts.length,
+            },
+          ])
+          .select("id, label, value")
+          .single();
 
-          // Replace temp ID with real DB ID, mark isNew = false
-          const finalContacts = updated.map((c) =>
-            c.id === contact.id
-              ? {
-                  ...c,
-                  id: data.id,
-                  label: data.label || c.label,
-                  value: data.value || c.value,
-                  isNew: false,
-                }
-              : c,
-          );
-          setAdditionalContacts(finalContacts);
-          onAdditionalContactsChange?.(finalContacts);
-        } catch (err) {
-          console.error("Unexpected error saving new contact:", err);
-          toast.error("Failed to save contact");
+        if (error || !data) {
+          console.error("Failed to save new contact:", error);
+          toast.error(error?.message || "Failed to save contact");
+          return;
         }
+
+        const finalContacts = updated.map((c) =>
+          c.id === contact.id
+            ? {
+                ...c,
+                id: data.id,
+                label: data.label || c.label,
+                value: data.value || c.value,
+                isNew: false,
+              }
+            : c,
+        );
+        setAdditionalContacts(finalContacts);
+        onAdditionalContactsChange?.(finalContacts);
+      } catch (err) {
+        console.error("Unexpected error saving new contact:", err);
+        toast.error("Failed to save contact");
       }
 
-      // If still empty, just keep it local and don't touch DB yet
       return;
     }
 
     // Existing contact → update Supabase
     try {
-      const payload: Record<string, string> = { [field]: newValue };
-      const { error } = await supabase.from("card_links").update(payload).eq("id", id);
+      const { error } = await supabase.from("card_links").update({ value: newValue }).eq("id", contact.id);
 
       if (error) {
         console.error("Failed to update contact:", error);
@@ -211,11 +247,49 @@ export function ContactInformationSection({
     }
   };
 
+  /**
+   * Change the contact type (Work/Home/Mobile/Office/Other).
+   * We update:
+   *  - local contactType
+   *  - label (e.g. "Work Email")
+   *  - Supabase label for existing rows
+   */
+  const updateContactType = async (id: string, newType: ContactType) => {
+    const updated = additionalContacts.map((c) =>
+      c.id === id
+        ? {
+            ...c,
+            contactType: newType,
+            label: buildLabelFromKindAndType(c.kind, newType),
+          }
+        : c,
+    );
+    setAdditionalContacts(updated);
+    onAdditionalContactsChange?.(updated);
+
+    const contact = updated.find((c) => c.id === id);
+    if (!contact || !card?.id || contact.isNew) {
+      // For new contacts, label will be sent on first save
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("card_links").update({ label: contact.label }).eq("id", contact.id);
+
+      if (error) {
+        console.error("Failed to update contact type:", error);
+        toast.error("Failed to save contact type");
+      }
+    } catch (err) {
+      console.error("Unexpected error updating contact type:", err);
+      toast.error("Failed to save contact type");
+    }
+  };
+
   const removeContact = async (id: string) => {
     const contact = additionalContacts.find((c) => c.id === id);
     if (!contact) return;
 
-    // If it's only local (never saved), just drop it from state
     if (contact.isNew) {
       const updatedLocal = additionalContacts.filter((c) => c.id !== id);
       setAdditionalContacts(updatedLocal);
@@ -223,7 +297,6 @@ export function ContactInformationSection({
       return;
     }
 
-    // Otherwise delete from DB then from state
     try {
       const { error } = await supabase.from("card_links").delete().eq("id", id);
       if (error) {
@@ -242,7 +315,7 @@ export function ContactInformationSection({
     }
   };
 
-  const getContactIcon = (kind: AdditionalContact["kind"]) => {
+  const getContactIcon = (kind: ContactKind) => {
     switch (kind) {
       case "email":
         return <Mail className="h-4 w-4" />;
@@ -257,7 +330,7 @@ export function ContactInformationSection({
     }
   };
 
-  const getPlaceholder = (kind: AdditionalContact["kind"]) => {
+  const getPlaceholder = (kind: ContactKind) => {
     switch (kind) {
       case "email":
         return "additional@email.com";
@@ -272,7 +345,7 @@ export function ContactInformationSection({
     }
   };
 
-  const getInputType = (kind: AdditionalContact["kind"]) => {
+  const getInputType = (kind: ContactKind) => {
     switch (kind) {
       case "email":
         return "email";
@@ -373,16 +446,24 @@ export function ContactInformationSection({
               >
                 <div className="mt-2 text-muted-foreground">{getContactIcon(contact.kind)}</div>
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
-                  <Input
-                    value={contact.label}
-                    onChange={(e) => updateContact(contact.id, "label", e.target.value)}
-                    placeholder="Label (e.g., Work Email)"
-                    className="text-sm"
-                  />
+                  {/* Type selector */}
+                  <select
+                    value={contact.contactType}
+                    onChange={(e) => updateContactType(contact.id, e.target.value as ContactType)}
+                    className="text-sm rounded-md border bg-background px-2 py-1.5"
+                  >
+                    <option value="work">{getContactTypeLabel("work")}</option>
+                    <option value="home">{getContactTypeLabel("home")}</option>
+                    <option value="mobile">{getContactTypeLabel("mobile")}</option>
+                    <option value="office">{getContactTypeLabel("office")}</option>
+                    <option value="other">{getContactTypeLabel("other")}</option>
+                  </select>
+
+                  {/* Value input */}
                   <Input
                     type={getInputType(contact.kind)}
                     value={contact.value}
-                    onChange={(e) => updateContact(contact.id, "value", e.target.value)}
+                    onChange={(e) => updateContactValue(contact.id, e.target.value)}
                     placeholder={getPlaceholder(contact.kind)}
                     className="text-sm"
                   />
@@ -398,7 +479,9 @@ export function ContactInformationSection({
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">Changes to additional contacts are saved automatically.</p>
+          <p className="text-xs text-muted-foreground">
+            Changes to additional contacts and types are saved automatically.
+          </p>
         </div>
       )}
 
