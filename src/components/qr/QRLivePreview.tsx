@@ -16,18 +16,30 @@ const dotTypeMap: Record<string, string> = {
   'dots': 'dots',
 };
 
-// Map eye style names to qr-code-styling corner types
-// Note: qr-code-styling only supports 'square', 'extra-rounded', 'dot'
-// Custom styles map to their closest visual equivalents
-const cornerTypeMap: Record<string, string> = {
+// Map eye style names to qr-code-styling corner square types
+// cornersSquareOptions supports: 'square', 'extra-rounded', 'dot'
+const cornerSquareTypeMap: Record<string, string> = {
   'square': 'square',
   'extra-rounded': 'extra-rounded',
   'dot': 'dot',
-  'leaf': 'extra-rounded',     // Leaf maps to extra-rounded for organic feel
-  'diamond': 'square',          // Diamond maps to square
-  'star': 'dot',                // Star maps to dot for rounded corners
-  'heart': 'extra-rounded',     // Heart maps to extra-rounded
-  'shield': 'square',           // Shield maps to square
+  'leaf': 'extra-rounded',
+  'diamond': 'square',
+  'star': 'dot',
+  'heart': 'extra-rounded',
+  'shield': 'square',
+};
+
+// Map eye style names to qr-code-styling corner dot types
+// cornersDotOptions only supports: 'square', 'dot'
+const cornerDotTypeMap: Record<string, string> = {
+  'square': 'square',
+  'extra-rounded': 'dot',
+  'dot': 'dot',
+  'leaf': 'dot',
+  'diamond': 'square',
+  'star': 'dot',
+  'heart': 'dot',
+  'shield': 'square',
 };
 
 async function compositeQRWithBackground(
@@ -130,11 +142,11 @@ export function QRLivePreview({ settings, previewUrl = "https://card-ex.com/prev
         },
         cornersSquareOptions: {
           color: settings.darkColor || "#000000",
-          type: (cornerTypeMap[settings.eyeStyle || 'square'] || 'square') as any,
+          type: (cornerSquareTypeMap[settings.eyeStyle || 'square'] || 'square') as any,
         },
         cornersDotOptions: {
           color: settings.darkColor || "#000000",
-          type: (cornerTypeMap[settings.eyeStyle || 'square'] || 'square') as any,
+          type: (cornerDotTypeMap[settings.eyeStyle || 'square'] || 'square') as any,
         },
         imageOptions: {
           crossOrigin: "anonymous",
