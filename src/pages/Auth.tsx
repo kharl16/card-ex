@@ -7,89 +7,102 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Mail, Chrome } from "lucide-react";
+import { Mail, Chrome, ArrowLeft } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
+
 export default function Auth() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+
   useEffect(() => {
-    // Check if already authenticated
-    supabase.auth.getSession().then(({
-      data: {
-        session
-      }
-    }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/dashboard", {
-          replace: true
-        });
+        navigate("/dashboard", { replace: true });
       }
     });
 
-    // Listen for auth state changes
-    const {
-      data: {
-        subscription
-      }
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/dashboard", {
-          replace: true
-        });
+        navigate("/dashboard", { replace: true });
       }
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const getErrorMessage = (error: any): string => {
+    const message = error?.message?.toLowerCase() || "";
+    
+    if (message.includes("user already registered") || 
+        message.includes("already been registered") ||
+        message.includes("email already in use") ||
+        message.includes("duplicate")) {
+      return "This email is already registered. Please sign in or use a different email.";
+    }
+    
+    if (message.includes("invalid login credentials") || 
+        message.includes("invalid credentials")) {
+      return "Invalid email or password. Please check your credentials and try again.";
+    }
+    
+    if (message.includes("email not confirmed")) {
+      return "Please verify your email before signing in. Check your inbox for the verification link.";
+    }
+    
+    if (message.includes("password") && message.includes("weak")) {
+      return "Password is too weak. Please use at least 6 characters with a mix of letters and numbers.";
+    }
+    
+    return error?.message || "An unexpected error occurred. Please try again.";
+  };
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            full_name: fullName
-          },
+          data: { full_name: fullName },
           emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
       if (error) throw error;
       toast.success("Account created! Check your email to verify.");
     } catch (error: any) {
-      toast.error(error.message || "Failed to create account");
+      toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
   };
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       if (error) throw error;
       toast.success("Welcome back!");
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign in");
+      toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
   };
+
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`
@@ -98,17 +111,16 @@ export default function Auth() {
       if (error) throw error;
       toast.success("Magic link sent! Check your email.");
     } catch (error: any) {
-      toast.error(error.message || "Failed to send magic link");
+      toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
     }
   };
+
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`
@@ -116,18 +128,87 @@ export default function Auth() {
       });
       if (error) throw error;
     } catch (error: any) {
-      toast.error(error.message || "Failed to sign in with Google");
+      toast.error(getErrorMessage(error));
       setLoading(false);
     }
   };
-  return <div className="flex min-h-screen items-center justify-center p-4">
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) {
+      toast.error("Please enter your email address.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
+      });
+      if (error) throw error;
+      toast.success("If an account with that email exists, a password reset link has been sent.");
+      setShowForgotPassword(false);
+      setResetEmail("");
+    } catch (error: any) {
+      toast.error(getErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (showForgotPassword) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
+          <CardHeader className="space-y-1 text-center">
+            <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden bg-transparent animate-fade-in">
+              <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-contain animate-scale-in" />
+            </div>
+            <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
+            <CardDescription>
+              Enter your email address and we'll send you a link to reset your password.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Sending..." : "Send Reset Link"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full gap-2"
+                onClick={() => setShowForgotPassword(false)}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to Sign In
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden bg-transparent animate-fade-in">
             <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-contain animate-scale-in" />
           </div>
           <CardTitle className="text-2xl font-bold">Welcome to Card-Ex</CardTitle>
-          <CardDescription>Create your digital business portfolio  </CardDescription>
+          <CardDescription>Create your digital business portfolio</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
@@ -140,16 +221,38 @@ export default function Auth() {
               <form onSubmit={handleEmailSignIn} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signin-email">Email</Label>
-                  <Input id="signin-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signin-password">Password</Label>
-                  <Input id="signin-password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+                  <Input
+                    id="signin-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
+
+              <Button
+                type="button"
+                variant="link"
+                className="w-full text-sm text-muted-foreground hover:text-primary"
+                onClick={() => setShowForgotPassword(true)}
+              >
+                Forgot your password?
+              </Button>
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -161,7 +264,13 @@ export default function Auth() {
               </div>
 
               <div className="space-y-2">
-                <Button type="button" variant="outline" className="w-full gap-2" onClick={handleGoogleSignIn} disabled={loading}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                >
                   <Chrome className="h-4 w-4" />
                   Google
                 </Button>
@@ -179,15 +288,37 @@ export default function Auth() {
               <form onSubmit={handleEmailSignUp} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Full Name</Label>
-                  <Input id="signup-name" type="text" placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} required />
+                  <Input
+                    id="signup-name"
+                    type="text"
+                    placeholder="John Doe"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
-                  <Input id="signup-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
-                  <Input id="signup-password" type="password" placeholder="Minimum 6 characters" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    placeholder="Minimum 6 characters"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                  />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Creating account..." : "Create Account"}
@@ -203,7 +334,13 @@ export default function Auth() {
                 </div>
               </div>
 
-              <Button type="button" variant="outline" className="w-full gap-2" onClick={handleGoogleSignIn} disabled={loading}>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full gap-2"
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+              >
                 <Chrome className="h-4 w-4" />
                 Google
               </Button>
@@ -211,5 +348,6 @@ export default function Auth() {
           </Tabs>
         </CardContent>
       </Card>
-    </div>;
+    </div>
+  );
 }

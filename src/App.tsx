@@ -7,6 +7,7 @@ import { AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import CardEditor from "./pages/CardEditor";
 import PublicCard from "./pages/PublicCard";
@@ -30,6 +31,7 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<PageTransition><Index /></PageTransition>} />
         <Route path="/auth" element={<PageTransition><Auth /></PageTransition>} />
         <Route path="/auth/callback" element={<PageTransition><AuthCallback /></PageTransition>} />
+        <Route path="/auth/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route
           path="/dashboard"
           element={
