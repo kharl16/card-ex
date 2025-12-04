@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SignOutButton from "@/components/auth/SignOutButton";
-import { ArrowLeft, Edit, Trash2, Search, Plus, User, CreditCard, Users } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Search, Plus, User, CreditCard, Users, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -57,6 +57,13 @@ export default function AdminCards() {
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [newCardName, setNewCardName] = useState("");
   const [creating, setCreating] = useState(false);
+  
+  // Create User Dialog state
+  const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
+  const [newUserName, setNewUserName] = useState("");
+  const [newUserEmail, setNewUserEmail] = useState("");
+  const [newUserPassword, setNewUserPassword] = useState("");
+  const [creatingUser, setCreatingUser] = useState(false);
 
   useEffect(() => {
     checkAdminAndLoadData();
@@ -192,6 +199,57 @@ export default function AdminCards() {
     }
   };
 
+  const handleCreateUser = async () => {
+    if (!newUserName.trim() || !newUserEmail.trim() || !newUserPassword.trim()) {
+      toast.error("Please fill in all fields");
+      return;
+    }
+
+    if (newUserPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setCreatingUser(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch(
+        `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-create-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            email: newUserEmail.trim(),
+            password: newUserPassword,
+            full_name: newUserName.trim(),
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create user");
+      }
+
+      toast.success(`User "${newUserName}" created successfully! They can now sign in.`);
+      setShowCreateUserDialog(false);
+      setNewUserName("");
+      setNewUserEmail("");
+      setNewUserPassword("");
+      loadUsers();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create user");
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
   const filteredCards = cards.filter(card =>
     card.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     card.slug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -234,6 +292,10 @@ export default function AdminCards() {
         <div className="mb-4 flex flex-wrap gap-2">
           <Button onClick={() => navigate("/admin/data-tools")} variant="outline">
             Data Tools & Migration
+          </Button>
+          <Button onClick={() => setShowCreateUserDialog(true)} variant="outline" className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Create New User
           </Button>
           <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
             <Plus className="h-4 w-4" />
@@ -484,6 +546,60 @@ export default function AdminCards() {
             </Button>
             <Button onClick={handleCreateCardForUser} disabled={creating}>
               {creating ? "Creating..." : "Create Card"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create New User Dialog */}
+      <Dialog open={showCreateUserDialog} onOpenChange={setShowCreateUserDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>
+              Create a new user account. The user will be auto-verified and can sign in immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-user-name">Full Name</Label>
+              <Input
+                id="new-user-name"
+                placeholder="Enter full name"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-user-email">Email</Label>
+              <Input
+                id="new-user-email"
+                type="email"
+                placeholder="Enter email address"
+                value={newUserEmail}
+                onChange={(e) => setNewUserEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-user-password">Password</Label>
+              <Input
+                id="new-user-password"
+                type="password"
+                placeholder="Enter password (min 6 characters)"
+                value={newUserPassword}
+                onChange={(e) => setNewUserPassword(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                The user can change this password after signing in.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateUserDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateUser} disabled={creatingUser}>
+              {creatingUser ? "Creating..." : "Create User"}
             </Button>
           </DialogFooter>
         </DialogContent>
