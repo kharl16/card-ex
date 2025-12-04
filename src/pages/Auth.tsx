@@ -64,7 +64,7 @@ export default function Auth() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -73,6 +73,13 @@ export default function Auth() {
         }
       });
       if (error) throw error;
+      
+      // Check if user already exists (Supabase returns user with empty identities for duplicate emails)
+      if (data.user && data.user.identities && data.user.identities.length === 0) {
+        toast.error("This email is already registered. Please sign in or use a different email.");
+        return;
+      }
+      
       toast.success("Account created! Check your email to verify.");
     } catch (error: any) {
       toast.error(getErrorMessage(error));
