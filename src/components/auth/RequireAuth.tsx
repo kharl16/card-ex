@@ -13,24 +13,34 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [resending, setResending] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
-      setLoading(false);
       if (!session) {
+        setLoading(false);
         navigate("/auth", { replace: true });
+        return;
       }
+      
+      // Check if user is admin (bypasses email verification)
+      const { data: adminCheck } = await supabase.rpc("is_super_admin", { _user_id: session.user.id });
+      setIsAdmin(!!adminCheck);
+      setLoading(false);
     });
 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       if (!session) {
         navigate("/auth", { replace: true });
+      } else {
+        const { data: adminCheck } = await supabase.rpc("is_super_admin", { _user_id: session.user.id });
+        setIsAdmin(!!adminCheck);
       }
     });
 
@@ -89,10 +99,10 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     return null;
   }
 
-  // Check if email is verified
+  // Check if email is verified (admins bypass this check)
   const isEmailVerified = session.user?.email_confirmed_at != null;
 
-  if (!isEmailVerified) {
+  if (!isEmailVerified && !isAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
