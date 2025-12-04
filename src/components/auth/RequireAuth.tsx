@@ -1,51 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, RefreshCw, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { session, isAdmin, loading } = useAuth();
   const [resending, setResending] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    // Check initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      if (!session) {
-        setLoading(false);
-        navigate("/auth", { replace: true });
-        return;
-      }
-      
-      // Check if user is admin (bypasses email verification)
-      const { data: adminCheck } = await supabase.rpc("is_super_admin", { _user_id: session.user.id });
-      setIsAdmin(!!adminCheck);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      if (!session) {
-        navigate("/auth", { replace: true });
-      } else {
-        const { data: adminCheck } = await supabase.rpc("is_super_admin", { _user_id: session.user.id });
-        setIsAdmin(!!adminCheck);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (!loading && !session) {
+      navigate("/auth", { replace: true });
+    }
+  }, [loading, session, navigate]);
 
   const handleResendVerification = async () => {
     if (!session?.user?.email) return;
@@ -75,13 +49,13 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
   };
 
   const handleRefreshStatus = async () => {
-    setLoading(true);
+    setRefreshing(true);
     const { data: { session: freshSession } } = await supabase.auth.getSession();
-    setSession(freshSession);
-    setLoading(false);
+    setRefreshing(false);
     
     if (freshSession?.user?.email_confirmed_at) {
       toast.success("Email verified! Welcome to Card-Ex.");
+      window.location.reload();
     } else {
       toast.info("Email not yet verified. Please check your inbox.");
     }
@@ -131,9 +105,9 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
                 variant="outline"
                 className="w-full gap-2"
                 onClick={handleRefreshStatus}
-                disabled={loading}
+                disabled={refreshing}
               >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                 I've verified my email
               </Button>
               

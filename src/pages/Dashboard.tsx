@@ -109,7 +109,7 @@ export default function Dashboard() {
             <span className="text-xl font-bold">Card-Ex</span>
           </div>
           <div className="flex items-center gap-2">
-            <AdminButton userId={profile?.id} />
+            <AdminButton />
             <Button onClick={() => navigate("/gallery")} variant="outline" size="sm">
               Gallery
             </Button>

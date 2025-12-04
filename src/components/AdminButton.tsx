@@ -1,36 +1,11 @@
-import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Shield } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface AdminButtonProps {
-  userId?: string;
-}
-
-export default function AdminButton({ userId }: AdminButtonProps) {
+export default function AdminButton() {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAdmin = async () => {
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .rpc("is_super_admin", { _user_id: userId });
-
-      if (!error && data) {
-        setIsAdmin(true);
-      }
-      setLoading(false);
-    };
-
-    checkAdmin();
-  }, [userId]);
+  const { isAdmin, loading } = useAuth();
 
   if (loading || !isAdmin) {
     return null;
