@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,12 +47,12 @@ interface UserProfile {
 
 export default function AdminCards() {
   const navigate = useNavigate();
+  const { isAdmin, loading: authLoading, session } = useAuth();
   const [cards, setCards] = useState<CardData[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [userSearchTerm, setUserSearchTerm] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
@@ -66,27 +67,23 @@ export default function AdminCards() {
   const [creatingUser, setCreatingUser] = useState(false);
 
   useEffect(() => {
-    checkAdminAndLoadData();
-  }, []);
-
-  const checkAdminAndLoadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    if (authLoading) return;
     
-    if (!user) {
+    if (!session) {
       navigate("/auth");
       return;
     }
 
-    const { data: adminCheck, error } = await supabase
-      .rpc("is_super_admin", { _user_id: user.id });
-
-    if (error || !adminCheck) {
+    if (!isAdmin) {
       toast.error("Access denied: Super admin only");
       navigate("/dashboard");
       return;
     }
 
-    setIsAdmin(true);
+    loadData();
+  }, [authLoading, session, isAdmin, navigate]);
+
+  const loadData = async () => {
     await Promise.all([loadCards(), loadUsers()]);
   };
 
@@ -261,7 +258,7 @@ export default function AdminCards() {
     user.id.toLowerCase().includes(userSearchTerm.toLowerCase())
   );
 
-  if (!isAdmin) {
+  if (authLoading || !isAdmin) {
     return <LoadingAnimation />;
   }
 

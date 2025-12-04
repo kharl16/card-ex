@@ -19,6 +19,7 @@ import Analytics from "./pages/Analytics";
 import RequireAuth from "./components/auth/RequireAuth";
 import NotFound from "./pages/NotFound";
 import PageTransition from "./components/PageTransition";
+import { AuthProvider } from "./contexts/AuthContext";
 
 const queryClient = new QueryClient();
 
@@ -108,7 +109,9 @@ const App = () => (
     <Toaster />
     <Sonner />
     <BrowserRouter>
-      <AnimatedRoutes />
+      <AuthProvider>
+        <AnimatedRoutes />
+      </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>
 );
