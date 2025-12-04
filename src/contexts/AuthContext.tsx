@@ -24,50 +24,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!mounted) return;
-      
-      setSession(session);
-      
-      if (session?.user) {
+    // Check admin status in background (non-blocking)
+    const checkAdminStatus = (userId: string) => {
+      setTimeout(async () => {
+        if (!mounted) return;
         const { data: adminCheck } = await supabase.rpc("is_super_admin", { 
-          _user_id: session.user.id 
+          _user_id: userId 
         });
         if (mounted) {
           setIsAdmin(!!adminCheck);
         }
-      }
-      
-      if (mounted) {
-        setLoading(false);
-      }
+      }, 0);
     };
 
-    initAuth();
-
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
         
         setSession(session);
         
         if (session?.user) {
-          // Only check admin status on sign-in, not on every token refresh
           if (event === "SIGNED_IN") {
-            const { data: adminCheck } = await supabase.rpc("is_super_admin", { 
-              _user_id: session.user.id 
-            });
-            if (mounted) {
-              setIsAdmin(!!adminCheck);
-            }
+            checkAdminStatus(session.user.id);
           }
         } else {
           setIsAdmin(false);
         }
       }
     );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      
+      setSession(session);
+      setLoading(false);
+      
+      if (session?.user) {
+        checkAdminStatus(session.user.id);
+      }
+    });
 
     return () => {
       mounted = false;
