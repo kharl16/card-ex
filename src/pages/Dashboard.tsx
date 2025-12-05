@@ -5,23 +5,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { Plus, CreditCard, TrendingUp, Share2 } from "lucide-react";
+import { Plus, CreditCard, TrendingUp, Share2, Palette } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import DeploymentStatus from "@/components/DeploymentStatus";
+import { NewCardDialog } from "@/components/templates/NewCardDialog";
+import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
+import { useAuth } from "@/contexts/AuthContext";
 
 type CardData = Tables<"cards">;
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [newCardDialogOpen, setNewCardDialogOpen] = useState(false);
+  const [templateManagerOpen, setTemplateManagerOpen] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -64,34 +70,6 @@ export default function Dashboard() {
     setLoading(false);
   };
 
-  const createCard = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return;
-
-    const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
-
-    const { data, error } = await supabase
-      .from("cards")
-      .insert({
-        user_id: user.id,
-        full_name: profile?.full_name || "New Card",
-        slug,
-        is_published: false,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      toast.error("Failed to create card");
-    } else {
-      toast.success("Card created!");
-      navigate(`/cards/${data.id}/edit`);
-    }
-  };
-
   const openShareDialog = (cardId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedCardId(cardId);
@@ -109,6 +87,12 @@ export default function Dashboard() {
             <span className="text-xl font-bold">Card-Ex</span>
           </div>
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button onClick={() => setTemplateManagerOpen(true)} variant="outline" size="sm" className="gap-2">
+                <Palette className="h-4 w-4" />
+                Templates
+              </Button>
+            )}
             <AdminButton />
             <Button onClick={() => navigate("/gallery")} variant="outline" size="sm">
               Gallery
@@ -128,7 +112,7 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold">Your Cards</h1>
             <p className="text-muted-foreground">Manage your digital business cards</p>
           </div>
-          <Button onClick={createCard} className="gap-2">
+          <Button onClick={() => setNewCardDialogOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             New Card
           </Button>
@@ -144,7 +128,7 @@ export default function Dashboard() {
               <p className="mb-4 text-sm text-muted-foreground">
                 Create your first digital business card
               </p>
-              <Button onClick={createCard} className="gap-2">
+              <Button onClick={() => setNewCardDialogOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Create Card
               </Button>
@@ -203,6 +187,17 @@ export default function Dashboard() {
           onOpenChange={setShareDialogOpen}
         />
       )}
+
+      <NewCardDialog
+        open={newCardDialogOpen}
+        onOpenChange={setNewCardDialogOpen}
+        profileName={profile?.full_name}
+      />
+
+      <AdminTemplateManager
+        open={templateManagerOpen}
+        onOpenChange={setTemplateManagerOpen}
+      />
     </div>
   );
 }
