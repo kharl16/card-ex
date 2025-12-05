@@ -54,6 +54,8 @@ export default function AdminCards() {
   const [searchTerm, setSearchTerm] = useState("");
   const [userSearchTerm, setUserSearchTerm] = useState("");
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string>("");
   const [newCardName, setNewCardName] = useState("");
@@ -244,6 +246,43 @@ export default function AdminCards() {
       toast.error(error.message || "Failed to create user");
     } finally {
       setCreatingUser(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteUserId) return;
+
+    setDeletingUser(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const response = await fetch(
+        `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-delete-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ user_id: deleteUserId }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to delete user");
+      }
+
+      toast.success("User deleted successfully");
+      setDeleteUserId(null);
+      loadUsers();
+      loadCards(); // Reload cards as user's cards might have been affected
+    } catch (error: any) {
+      toast.error(error.message || "Failed to delete user");
+    } finally {
+      setDeletingUser(false);
     }
   };
 
@@ -458,19 +497,28 @@ export default function AdminCards() {
                               {new Date(user.created_at).toLocaleDateString()}
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="gap-2"
-                                onClick={() => {
-                                  setSelectedUserId(user.id);
-                                  setNewCardName(user.full_name || "");
-                                  setShowCreateDialog(true);
-                                }}
-                              >
-                                <Plus className="h-4 w-4" />
-                                Create Card
-                              </Button>
+                              <div className="flex justify-end gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-2"
+                                  onClick={() => {
+                                    setSelectedUserId(user.id);
+                                    setNewCardName(user.full_name || "");
+                                    setShowCreateDialog(true);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                  Create Card
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setDeleteUserId(user.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))
@@ -497,6 +545,28 @@ export default function AdminCards() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete User Dialog */}
+      <AlertDialog open={!!deleteUserId} onOpenChange={() => setDeleteUserId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this user account? This will permanently remove the user and all their associated data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingUser}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteUser} 
+              className="bg-destructive text-destructive-foreground"
+              disabled={deletingUser}
+            >
+              {deletingUser ? "Deleting..." : "Delete User"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
