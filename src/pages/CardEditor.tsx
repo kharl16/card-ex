@@ -25,6 +25,7 @@ import {
   Cloud,
   CloudOff,
   Loader2,
+  FileDown,
 } from "lucide-react";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import type { Tables } from "@/integrations/supabase/types";
@@ -35,6 +36,8 @@ import QRCodeCustomizer from "@/components/QRCodeCustomizer";
 import QRCode from "qrcode";
 import ProductImageManager from "@/components/ProductImageManager";
 import CardView, { SocialLink, ProductImage } from "@/components/CardView";
+import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Editor section components
 import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
@@ -120,12 +123,13 @@ export default function CardEditor() {
   const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
   const [regeneratingQR, setRegeneratingQR] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
   
   // Layout mode: "accordion" or "wizard"
   const [layoutMode, setLayoutMode] = useState<"accordion" | "wizard">("accordion");
   
-  // Admin drag-drop mode
-  const [isAdmin] = useState(true); // TODO: Replace with actual admin check
+  // Admin from auth context
+  const { isAdmin } = useAuth();
   const [customizeOrder, setCustomizeOrder] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<string[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -882,6 +886,10 @@ export default function CardEditor() {
             <AutosaveIndicator />
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setSaveTemplateDialogOpen(true)} className="gap-2">
+              <FileDown className="h-4 w-4" />
+              <span className="hidden sm:inline">Save Template</span>
+            </Button>
             <Button variant="outline" onClick={() => navigate(`/cards/${card.id}/analytics`)} className="gap-2">
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Analytics</span>
@@ -891,6 +899,7 @@ export default function CardEditor() {
               <span className="hidden sm:inline">Generate Card</span>
             </Button>
             <ShareCardDialog cardId={card.id} open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
+            <SaveTemplateDialog card={card} open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen} />
             <Button onClick={togglePublish} variant={card.is_published ? "secondary" : "default"}>
               {card.is_published ? "Unpublish" : "Publish"}
             </Button>

@@ -184,6 +184,42 @@ export type Database = {
           },
         ]
       }
+      card_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_global: boolean
+          layout_data: Json
+          name: string
+          owner_id: string
+          thumbnail_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_global?: boolean
+          layout_data: Json
+          name: string
+          owner_id: string
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_global?: boolean
+          layout_data?: Json
+          name?: string
+          owner_id?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cards: {
         Row: {
           avatar_url: string | null
