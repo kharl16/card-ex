@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SignOutButton from "@/components/auth/SignOutButton";
-import { ArrowLeft, Edit, Trash2, Search, Plus, User, CreditCard, Users, UserPlus } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Search, Plus, User, CreditCard, Users, UserPlus, Key, Mail } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -67,6 +67,13 @@ export default function AdminCards() {
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
   const [creatingUser, setCreatingUser] = useState(false);
+
+  // Edit User Dialog state
+  const [showEditUserDialog, setShowEditUserDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [editUserEmail, setEditUserEmail] = useState("");
+  const [editUserPassword, setEditUserPassword] = useState("");
+  const [updatingUser, setUpdatingUser] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -131,9 +138,34 @@ export default function AdminCards() {
       countMap[card.user_id] = (countMap[card.user_id] || 0) + 1;
     });
 
+    // Fetch user emails from admin edge function
+    let emailMap: Record<string, string> = {};
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const response = await fetch(
+          `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-list-users`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          }
+        );
+        if (response.ok) {
+          const result = await response.json();
+          emailMap = result.users || {};
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch user emails:", e);
+    }
+
     // Combine data
     const usersWithCounts: UserProfile[] = (profiles || []).map(p => ({
       ...p,
+      email: emailMap[p.id] || "",
       card_count: countMap[p.id] || 0
     }));
 
@@ -278,11 +310,66 @@ export default function AdminCards() {
       toast.success("User deleted successfully");
       setDeleteUserId(null);
       loadUsers();
-      loadCards(); // Reload cards as user's cards might have been affected
+      loadCards();
     } catch (error: any) {
       toast.error(error.message || "Failed to delete user");
     } finally {
       setDeletingUser(false);
+    }
+  };
+
+  const handleUpdateUser = async () => {
+    if (!editingUser) return;
+
+    if (!editUserEmail.trim() && !editUserPassword.trim()) {
+      toast.error("Please enter an email or password to update");
+      return;
+    }
+
+    if (editUserPassword && editUserPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    setUpdatingUser(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Not authenticated");
+
+      const body: { user_id: string; email?: string; password?: string } = {
+        user_id: editingUser.id,
+      };
+      if (editUserEmail.trim()) body.email = editUserEmail.trim();
+      if (editUserPassword.trim()) body.password = editUserPassword;
+
+      const response = await fetch(
+        `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-update-user`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to update user");
+      }
+
+      toast.success("User updated successfully");
+      setShowEditUserDialog(false);
+      setEditingUser(null);
+      setEditUserEmail("");
+      setEditUserPassword("");
+      loadUsers();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update user");
+    } finally {
+      setUpdatingUser(false);
     }
   };
 
@@ -294,6 +381,7 @@ export default function AdminCards() {
 
   const filteredUsers = users.filter(user =>
     user.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
     user.id.toLowerCase().includes(userSearchTerm.toLowerCase())
   );
 
@@ -465,7 +553,8 @@ export default function AdminCards() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Name</TableHead>
-                        <TableHead>User ID</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Password</TableHead>
                         <TableHead>Cards</TableHead>
                         <TableHead>Joined</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -474,7 +563,7 @@ export default function AdminCards() {
                     <TableBody>
                       {filteredUsers.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center text-muted-foreground">
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
                             No users found
                           </TableCell>
                         </TableRow>
@@ -487,7 +576,12 @@ export default function AdminCards() {
                                 {user.full_name || "Unnamed User"}
                               </div>
                             </TableCell>
-                            <TableCell className="font-mono text-xs">{user.id.slice(0, 8)}...</TableCell>
+                            <TableCell className="text-sm">
+                              {user.email || "—"}
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              ••••••••
+                            </TableCell>
                             <TableCell>
                               <Badge variant={user.card_count && user.card_count > 0 ? "default" : "secondary"}>
                                 {user.card_count || 0} card{user.card_count !== 1 ? "s" : ""}
@@ -503,13 +597,27 @@ export default function AdminCards() {
                                   size="sm"
                                   className="gap-2"
                                   onClick={() => {
+                                    setEditingUser(user);
+                                    setEditUserEmail(user.email || "");
+                                    setEditUserPassword("");
+                                    setShowEditUserDialog(true);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-2"
+                                  onClick={() => {
                                     setSelectedUserId(user.id);
                                     setNewCardName(user.full_name || "");
                                     setShowCreateDialog(true);
                                   }}
                                 >
                                   <Plus className="h-4 w-4" />
-                                  Create Card
+                                  Card
                                 </Button>
                                 <Button
                                   variant="ghost"
@@ -667,6 +775,57 @@ export default function AdminCards() {
             </Button>
             <Button onClick={handleCreateUser} disabled={creatingUser}>
               {creatingUser ? "Creating..." : "Create User"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={showEditUserDialog} onOpenChange={setShowEditUserDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update the user's email address or reset their password. Leave a field empty to keep the current value.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-user-email" className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Email Address
+              </Label>
+              <Input
+                id="edit-user-email"
+                type="email"
+                placeholder="Enter new email address"
+                value={editUserEmail}
+                onChange={(e) => setEditUserEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-user-password" className="flex items-center gap-2">
+                <Key className="h-4 w-4" />
+                New Password
+              </Label>
+              <Input
+                id="edit-user-password"
+                type="password"
+                placeholder="Enter new password (min 6 characters)"
+                value={editUserPassword}
+                onChange={(e) => setEditUserPassword(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Leave empty to keep the current password.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditUserDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateUser} disabled={updatingUser}>
+              {updatingUser ? "Updating..." : "Update User"}
             </Button>
           </DialogFooter>
         </DialogContent>
