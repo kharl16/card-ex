@@ -1,12 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Sparkles, Layers, ArrowRight } from "lucide-react";
@@ -57,12 +51,12 @@ const DEFAULT_THEME = {
 
 type Step = "choice" | "templates";
 
-export function AdminCreateCardDialog({ 
-  open, 
-  onOpenChange, 
-  targetUserId, 
+export function AdminCreateCardDialog({
+  open,
+  onOpenChange,
+  targetUserId,
   targetUserName,
-  onSuccess 
+  onSuccess,
 }: AdminCreateCardDialogProps) {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>("choice");
@@ -78,39 +72,53 @@ export function AdminCreateCardDialog({
     setCreating(true);
     try {
       const slug = generateSlug();
-      
+
+      // ---- NEW: normalize product / carousel images from layoutData ----
+      const templateProductImages =
+        // what we expect templates to store
+        (layoutData as any)?.product_images ??
+        // fallback names, in case useTemplates saves them differently
+        (layoutData as any)?.carousel_images ??
+        (layoutData as any)?.carouselImages ??
+        [];
+
+      const hasTemplateImages = Array.isArray(templateProductImages) && templateProductImages.length > 0;
+
       // Get theme from template or use default
       // IMPORTANT: Extract only QR styling, not QR data/URL
-      const templateTheme = layoutData?.theme || {};
+      const templateTheme: any = layoutData?.theme || {};
       const theme = {
         ...DEFAULT_THEME,
         ...templateTheme,
         // Ensure QR settings only have styling, no actual QR data
-        qr: templateTheme.qr ? {
-          pattern: templateTheme.qr.pattern,
-          eyeStyle: templateTheme.qr.eyeStyle,
-          darkColor: templateTheme.qr.darkColor,
-          lightColor: templateTheme.qr.lightColor,
-          size: templateTheme.qr.size,
-          logoPosition: templateTheme.qr.logoPosition,
-          logoOpacity: templateTheme.qr.logoOpacity,
-          // Include logo URL from template if it's a design asset (not personal)
-          logoUrl: templateTheme.qr.logoUrl,
-          gradientEnabled: templateTheme.qr.gradientEnabled,
-          gradientColor1: templateTheme.qr.gradientColor1,
-          gradientColor2: templateTheme.qr.gradientColor2,
-          gradientType: templateTheme.qr.gradientType,
-          frameStyle: templateTheme.qr.frameStyle,
-          frameColor: templateTheme.qr.frameColor,
-          frameWidth: templateTheme.qr.frameWidth,
-          frameBorderRadius: templateTheme.qr.frameBorderRadius,
-          framePadding: templateTheme.qr.framePadding,
-          frameShadow: templateTheme.qr.frameShadow,
-          // Explicitly DO NOT copy: qrCodeUrl, shareUrl, or any encoded data
-        } : undefined,
+        qr: templateTheme.qr
+          ? {
+              pattern: templateTheme.qr.pattern,
+              eyeStyle: templateTheme.qr.eyeStyle,
+              darkColor: templateTheme.qr.darkColor,
+              lightColor: templateTheme.qr.lightColor,
+              size: templateTheme.qr.size,
+              logoPosition: templateTheme.qr.logoPosition,
+              logoOpacity: templateTheme.qr.logoOpacity,
+              // logoUrl is OK – design asset, not personal
+              logoUrl: templateTheme.qr.logoUrl,
+              gradientEnabled: templateTheme.qr.gradientEnabled,
+              gradientColor1: templateTheme.qr.gradientColor1,
+              gradientColor2: templateTheme.qr.gradientColor2,
+              gradientType: templateTheme.qr.gradientType,
+              frameStyle: templateTheme.qr.frameStyle,
+              frameColor: templateTheme.qr.frameColor,
+              frameWidth: templateTheme.qr.frameWidth,
+              frameBorderRadius: templateTheme.qr.frameBorderRadius,
+              framePadding: templateTheme.qr.framePadding,
+              frameShadow: templateTheme.qr.frameShadow,
+              // DO NOT copy qrCodeUrl, shareUrl, or encoded data
+            }
+          : undefined,
       };
-      
-      const carouselEnabled = layoutData?.carousel_enabled ?? true;
+
+      // ---- NEW: enable carousel if template has images or if explicitly set ----
+      const carouselEnabled = layoutData?.carousel_enabled ?? hasTemplateImages ?? true;
 
       // Create the card for the target user (not the admin)
       const { data, error } = await supabase
@@ -140,25 +148,30 @@ export function AdminCreateCardDialog({
 
       if (error) throw error;
 
-      // If template has product images, copy them to the new card
-      if (layoutData?.product_images && layoutData.product_images.length > 0) {
-        const productImageInserts = layoutData.product_images.map((img: any, index: number) => ({
+      // ---- UPDATED: use normalized templateProductImages ----
+      if (hasTemplateImages) {
+        const productImageInserts = templateProductImages.map((img: any, index: number) => ({
           card_id: data.id,
-          owner: targetUserId,
-          image_url: img.image_url,
+          owner: targetUserId, // ensure this matches your column name
+          image_url: img.image_url, // make sure this matches the template structure
           alt_text: img.alt_text || null,
           description: img.description || null,
           sort_order: index,
         }));
 
-        await supabase.from("product_images").insert(productImageInserts);
+        const { error: imagesError } = await supabase.from("product_images").insert(productImageInserts);
+
+        if (imagesError) {
+          console.error("Error inserting product images:", imagesError);
+          // not fatal – card is still created, just no carousel
+        }
       }
 
       toast.success("Card created for " + targetUserName);
       onOpenChange(false);
       setStep("choice");
       onSuccess?.();
-      
+
       // Navigate to edit the new card
       navigate(`/cards/${data.id}/edit`);
     } catch (error: any) {
@@ -186,10 +199,12 @@ export function AdminCreateCardDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className={cn(
-        "overflow-y-auto transition-all",
-        step === "templates" ? "max-h-[90vh] sm:max-w-[800px]" : "sm:max-w-[600px]"
-      )}>
+      <DialogContent
+        className={cn(
+          "overflow-y-auto transition-all",
+          step === "templates" ? "max-h-[90vh] sm:max-w-[800px]" : "sm:max-w-[600px]",
+        )}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             {step === "choice" ? (
@@ -205,9 +220,7 @@ export function AdminCreateCardDialog({
             )}
           </DialogTitle>
           <DialogDescription>
-            {step === "choice"
-              ? "How would you like to start this card?"
-              : "Select a template to get started quickly."}
+            {step === "choice" ? "How would you like to start this card?" : "Select a template to get started quickly."}
           </DialogDescription>
         </DialogHeader>
 
@@ -272,18 +285,10 @@ export function AdminCreateCardDialog({
           </div>
         ) : (
           <div className="py-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="mb-4"
-              onClick={() => setStep("choice")}
-            >
+            <Button variant="ghost" size="sm" className="mb-4" onClick={() => setStep("choice")}>
               ← Back to options
             </Button>
-            <TemplateGallery
-              onSelectTemplate={handleSelectTemplate}
-              onBuildFromScratch={handleBuildFromScratch}
-            />
+            <TemplateGallery onSelectTemplate={handleSelectTemplate} onBuildFromScratch={handleBuildFromScratch} />
           </div>
         )}
       </DialogContent>
