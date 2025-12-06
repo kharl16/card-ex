@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SignOutButton from "@/components/auth/SignOutButton";
 import { ArrowLeft, Edit, Trash2, Search, Plus, User, CreditCard, Users, UserPlus, Key, Mail } from "lucide-react";
 import { toast } from "sonner";
@@ -34,6 +33,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { AdminCreateCardDialog } from "@/components/admin/AdminCreateCardDialog";
 
 type CardData = Tables<"cards">;
 
@@ -56,10 +56,10 @@ export default function AdminCards() {
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<string>("");
-  const [newCardName, setNewCardName] = useState("");
-  const [creating, setCreating] = useState(false);
+  
+  // Admin Create Card Dialog state (with template support)
+  const [showCreateCardDialog, setShowCreateCardDialog] = useState(false);
+  const [selectedUserForCard, setSelectedUserForCard] = useState<UserProfile | null>(null);
   
   // Create User Dialog state
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
@@ -189,45 +189,10 @@ export default function AdminCards() {
     setDeleteCardId(null);
   };
 
-  const generateSlug = () => {
-    return Math.random().toString(36).substring(2, 10);
-  };
-
-  const handleCreateCardForUser = async () => {
-    if (!selectedUserId || !newCardName.trim()) {
-      toast.error("Please select a user and enter a card name");
-      return;
-    }
-
-    setCreating(true);
-    try {
-      const slug = generateSlug();
-      const { data, error } = await supabase
-        .from("cards")
-        .insert({
-          user_id: selectedUserId,
-          full_name: newCardName.trim(),
-          slug: slug,
-          is_published: false
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast.success("Card created successfully");
-      setShowCreateDialog(false);
-      setSelectedUserId("");
-      setNewCardName("");
-      loadCards();
-      
-      // Navigate to edit the new card
-      navigate(`/cards/${data.id}/edit`);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create card");
-    } finally {
-      setCreating(false);
-    }
+  // Open the create card dialog for a specific user
+  const openCreateCardForUser = (user: UserProfile) => {
+    setSelectedUserForCard(user);
+    setShowCreateCardDialog(true);
   };
 
   const handleCreateUser = async () => {
@@ -421,10 +386,7 @@ export default function AdminCards() {
             <UserPlus className="h-4 w-4" />
             Create New User
           </Button>
-          <Button onClick={() => setShowCreateDialog(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Create Card for User
-          </Button>
+          {/* Note: "Create Card for User" now available via the "+ Card" button on individual users in the All Users tab */}
         </div>
 
         <Tabs defaultValue="cards" className="space-y-4">
@@ -610,11 +572,7 @@ export default function AdminCards() {
                                   variant="outline"
                                   size="sm"
                                   className="gap-2"
-                                  onClick={() => {
-                                    setSelectedUserId(user.id);
-                                    setNewCardName(user.full_name || "");
-                                    setShowCreateDialog(true);
-                                  }}
+                                  onClick={() => openCreateCardForUser(user)}
                                 >
                                   <Plus className="h-4 w-4" />
                                   Card
@@ -680,51 +638,22 @@ export default function AdminCards() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Create Card for User Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Card for User</DialogTitle>
-            <DialogDescription>
-              Create a new digital business card on behalf of a user.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="user-select">Select User</Label>
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a user..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.full_name || "Unnamed User"} ({user.card_count || 0} cards)
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="card-name">Card Name (Full Name)</Label>
-              <Input
-                id="card-name"
-                placeholder="Enter the card holder's name"
-                value={newCardName}
-                onChange={(e) => setNewCardName(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateCardForUser} disabled={creating}>
-              {creating ? "Creating..." : "Create Card"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Admin Create Card Dialog (with template support) */}
+      {selectedUserForCard && (
+        <AdminCreateCardDialog
+          open={showCreateCardDialog}
+          onOpenChange={(open) => {
+            setShowCreateCardDialog(open);
+            if (!open) setSelectedUserForCard(null);
+          }}
+          targetUserId={selectedUserForCard.id}
+          targetUserName={selectedUserForCard.full_name || "New Card"}
+          onSuccess={() => {
+            loadCards();
+            loadUsers();
+          }}
+        />
+      )}
 
       {/* Create New User Dialog */}
       <Dialog open={showCreateUserDialog} onOpenChange={setShowCreateUserDialog}>

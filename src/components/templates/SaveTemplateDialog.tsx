@@ -19,6 +19,7 @@ interface SaveTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   card: Record<string, any>;
+  productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>;
   onSaved?: () => void;
 }
 
@@ -26,6 +27,7 @@ export function SaveTemplateDialog({
   open,
   onOpenChange,
   card,
+  productImages,
   onSaved,
 }: SaveTemplateDialogProps) {
   const { isAdmin } = useAuth();
@@ -43,9 +45,9 @@ export function SaveTemplateDialog({
       let success = false;
 
       if (isAdmin && saveAsGlobal) {
-        success = await saveAsGlobalTemplate(card, name.trim(), description.trim());
+        success = await saveAsGlobalTemplate(card, name.trim(), description.trim(), undefined, productImages);
       } else {
-        success = await savePersonalTemplate(card, name.trim(), description.trim());
+        success = await savePersonalTemplate(card, name.trim(), description.trim(), productImages);
       }
 
       if (success) {
