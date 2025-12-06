@@ -18,6 +18,15 @@ export interface CardTemplate {
 export interface LayoutData {
   theme: Record<string, any>;
   carousel_enabled: boolean;
+  // Design assets (non-personal)
+  cover_url?: string | null;
+  logo_url?: string | null;
+  // Product/carousel images (non-personal portfolio content)
+  product_images?: Array<{
+    image_url: string;
+    alt_text?: string | null;
+    description?: string | null;
+  }>;
   [key: string]: any; // Allow additional properties for JSON compatibility
 }
 
@@ -71,11 +80,68 @@ export function useTemplates() {
     loadTemplates();
   }, [loadTemplates]);
 
-  const extractLayoutData = (card: Record<string, any>): LayoutData => {
-    // Extract only design/layout data, excluding personal information
+  /**
+   * Extract layout/design data from a card for template storage.
+   * 
+   * INCLUDES (design/layout elements):
+   * - Theme settings (colors, fonts, gradients, patterns, etc.)
+   * - QR styling ONLY (pattern, colors, eye style, frame - NOT the actual QR data/URL)
+   * - Cover image, company logo
+   * - Carousel/product images
+   * - Carousel enabled setting
+   * 
+   * EXCLUDES (personal data - must NOT be saved):
+   * - Name, email, phone, location, bio, title, company, website
+   * - Avatar photo (personal profile picture)
+   * - Social media links and URLs
+   * - QR code URL, share URL, or any encoded card-specific data
+   */
+  const extractLayoutData = (
+    card: Record<string, any>, 
+    productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>
+  ): LayoutData => {
+    // Extract theme but sanitize QR settings to only include styling
+    const theme = card.theme ? { ...card.theme } : {};
+    
+    if (theme.qr) {
+      // Keep only QR styling, explicitly remove any card-specific data
+      theme.qr = {
+        pattern: theme.qr.pattern,
+        eyeStyle: theme.qr.eyeStyle,
+        darkColor: theme.qr.darkColor,
+        lightColor: theme.qr.lightColor,
+        size: theme.qr.size,
+        logoPosition: theme.qr.logoPosition,
+        logoOpacity: theme.qr.logoOpacity,
+        logoUrl: theme.qr.logoUrl, // Design asset, not personal
+        gradientEnabled: theme.qr.gradientEnabled,
+        gradientColor1: theme.qr.gradientColor1,
+        gradientColor2: theme.qr.gradientColor2,
+        gradientType: theme.qr.gradientType,
+        frameStyle: theme.qr.frameStyle,
+        frameColor: theme.qr.frameColor,
+        frameWidth: theme.qr.frameWidth,
+        frameBorderRadius: theme.qr.frameBorderRadius,
+        framePadding: theme.qr.framePadding,
+        frameShadow: theme.qr.frameShadow,
+        // DO NOT include: qrCodeUrl, shareUrl, encodedData, or any card-specific URLs
+      };
+    }
+
     return {
-      theme: card.theme || {},
+      theme,
       carousel_enabled: card.carousel_enabled ?? true,
+      // Design assets (company branding, not personal)
+      cover_url: card.cover_url || null,
+      logo_url: card.logo_url || null,
+      // Product/portfolio images (non-personal content)
+      product_images: productImages || [],
+      // EXCLUDED (not saved):
+      // - avatar_url (personal profile photo)
+      // - full_name, first_name, last_name, prefix, middle_name, suffix
+      // - email, phone, location, bio, title, company, website
+      // - qr_code_url, share_url, public_url, vcard_url
+      // - Social links from card_links table
     };
   };
 
@@ -83,7 +149,8 @@ export function useTemplates() {
     card: Record<string, any>,
     name: string,
     description?: string,
-    thumbnailUrl?: string
+    thumbnailUrl?: string,
+    productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>
   ): Promise<boolean> => {
     if (!user || !isAdmin) {
       toast.error("Only admins can create global templates");
@@ -91,7 +158,7 @@ export function useTemplates() {
     }
 
     try {
-      const layoutData = extractLayoutData(card);
+      const layoutData = extractLayoutData(card, productImages);
 
       const { error } = await supabase.from("card_templates").insert([{
         owner_id: user.id,
@@ -117,7 +184,8 @@ export function useTemplates() {
   const savePersonalTemplate = async (
     card: Record<string, any>,
     name: string,
-    description?: string
+    description?: string,
+    productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>
   ): Promise<boolean> => {
     if (!user) {
       toast.error("You must be logged in to save a template");
@@ -125,7 +193,7 @@ export function useTemplates() {
     }
 
     try {
-      const layoutData = extractLayoutData(card);
+      const layoutData = extractLayoutData(card, productImages);
 
       if (userTemplate) {
         // Update existing personal template

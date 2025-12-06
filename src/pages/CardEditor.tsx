@@ -899,7 +899,12 @@ export default function CardEditor() {
               <span className="hidden sm:inline">Generate Card</span>
             </Button>
             <ShareCardDialog cardId={card.id} open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
-            <SaveTemplateDialog card={card} open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen} />
+            <SaveTemplateDialog 
+              card={card} 
+              productImages={productImages} 
+              open={saveTemplateDialogOpen} 
+              onOpenChange={setSaveTemplateDialogOpen} 
+            />
             <Button onClick={togglePublish} variant={card.is_published ? "secondary" : "default"}>
               {card.is_published ? "Unpublish" : "Publish"}
             </Button>

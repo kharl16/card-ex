@@ -11,16 +11,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Sparkles, Layers, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { TemplateGallery } from "./TemplateGallery";
+import { TemplateGallery } from "@/components/templates/TemplateGallery";
 import { CardTemplate, LayoutData } from "@/hooks/useTemplates";
 import { cn } from "@/lib/utils";
 
-interface NewCardDialogProps {
+interface AdminCreateCardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  profileName?: string;
+  targetUserId: string;
+  targetUserName: string;
+  onSuccess?: () => void;
 }
 
 // Default theme matching the MLM gold branding
@@ -56,20 +57,30 @@ const DEFAULT_THEME = {
 
 type Step = "choice" | "templates";
 
-export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialogProps) {
+export function AdminCreateCardDialog({ 
+  open, 
+  onOpenChange, 
+  targetUserId, 
+  targetUserName,
+  onSuccess 
+}: AdminCreateCardDialogProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [step, setStep] = useState<Step>("choice");
   const [creating, setCreating] = useState(false);
 
+  const generateSlug = () => {
+    return `${targetUserId.slice(0, 8)}-${Date.now()}`;
+  };
+
   const createCard = async (layoutData?: LayoutData) => {
-    if (!user) return;
+    if (!targetUserId) return;
 
     setCreating(true);
     try {
-      const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
+      const slug = generateSlug();
       
-      // Get theme from template, ensuring QR styling is preserved but not QR data
+      // Get theme from template or use default
+      // IMPORTANT: Extract only QR styling, not QR data/URL
       const templateTheme = layoutData?.theme || {};
       const theme = {
         ...DEFAULT_THEME,
@@ -83,6 +94,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
           size: templateTheme.qr.size,
           logoPosition: templateTheme.qr.logoPosition,
           logoOpacity: templateTheme.qr.logoOpacity,
+          // Include logo URL from template if it's a design asset (not personal)
           logoUrl: templateTheme.qr.logoUrl,
           gradientEnabled: templateTheme.qr.gradientEnabled,
           gradientColor1: templateTheme.qr.gradientColor1,
@@ -94,25 +106,34 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
           frameBorderRadius: templateTheme.qr.frameBorderRadius,
           framePadding: templateTheme.qr.framePadding,
           frameShadow: templateTheme.qr.frameShadow,
+          // Explicitly DO NOT copy: qrCodeUrl, shareUrl, or any encoded data
         } : undefined,
       };
       
       const carouselEnabled = layoutData?.carousel_enabled ?? true;
 
+      // Create the card for the target user (not the admin)
       const { data, error } = await supabase
         .from("cards")
         .insert({
-          user_id: user.id,
-          full_name: profileName || "New Card",
+          user_id: targetUserId,
+          full_name: targetUserName || "New Card",
           slug,
           is_published: false,
           theme,
           carousel_enabled: carouselEnabled,
-          // Apply design assets from template (non-personal media)
+          // Apply design assets from template
           cover_url: layoutData?.cover_url || null,
           logo_url: layoutData?.logo_url || null,
-          // Personal fields are intentionally left empty for user to fill
+          // Personal fields are intentionally left empty
           avatar_url: null,
+          email: null,
+          phone: null,
+          location: null,
+          bio: null,
+          title: null,
+          company: null,
+          website: null,
         })
         .select()
         .single();
@@ -123,7 +144,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
       if (layoutData?.product_images && layoutData.product_images.length > 0) {
         const productImageInserts = layoutData.product_images.map((img: any, index: number) => ({
           card_id: data.id,
-          owner: user.id,
+          owner: targetUserId,
           image_url: img.image_url,
           alt_text: img.alt_text || null,
           description: img.description || null,
@@ -133,13 +154,16 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
         await supabase.from("product_images").insert(productImageInserts);
       }
 
-      toast.success("Card created!");
+      toast.success("Card created for " + targetUserName);
       onOpenChange(false);
       setStep("choice");
+      onSuccess?.();
+      
+      // Navigate to edit the new card
       navigate(`/cards/${data.id}/edit`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating card:", error);
-      toast.error("Failed to create card");
+      toast.error(error.message || "Failed to create card");
     } finally {
       setCreating(false);
     }
@@ -171,7 +195,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
             {step === "choice" ? (
               <>
                 <Sparkles className="h-5 w-5 text-primary" />
-                Create New Card
+                Create Card for {targetUserName}
               </>
             ) : (
               <>
@@ -182,7 +206,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
           </DialogTitle>
           <DialogDescription>
             {step === "choice"
-              ? "How would you like to start your new card?"
+              ? "How would you like to start this card?"
               : "Select a template to get started quickly."}
           </DialogDescription>
         </DialogHeader>
@@ -190,7 +214,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
         {creating ? (
           <div className="flex flex-col items-center justify-center py-12">
             <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
-            <p className="text-muted-foreground">Creating your card...</p>
+            <p className="text-muted-foreground">Creating card for {targetUserName}...</p>
           </div>
         ) : step === "choice" ? (
           <div className="grid gap-4 py-4 md:grid-cols-2">
@@ -237,7 +261,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
               </CardHeader>
               <CardContent>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Choose from professionally designed templates. Just add your details!
+                  Choose from professionally designed templates. Just add the member's details!
                 </p>
                 <Button variant="secondary" className="w-full gap-2">
                   Browse Templates
