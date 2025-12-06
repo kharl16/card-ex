@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { Plus, CreditCard, TrendingUp, Share2, Palette } from "lucide-react";
+import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -14,6 +14,7 @@ import ShareCardDialog from "@/components/ShareCardDialog";
 import DeploymentStatus from "@/components/DeploymentStatus";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
+import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 import { useAuth } from "@/contexts/AuthContext";
 
 type CardData = Tables<"cards">;
@@ -26,6 +27,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<any>(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+  const [selectedCardForDuplicate, setSelectedCardForDuplicate] = useState<CardData | null>(null);
   const [newCardDialogOpen, setNewCardDialogOpen] = useState(false);
   const [templateManagerOpen, setTemplateManagerOpen] = useState(false);
 
@@ -74,6 +76,11 @@ export default function Dashboard() {
     e.stopPropagation();
     setSelectedCardId(cardId);
     setShareDialogOpen(true);
+  };
+
+  const openDuplicateDialog = (card: CardData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedCardForDuplicate(card);
   };
 
   return (
@@ -164,14 +171,26 @@ export default function Dashboard() {
                       </div>
                       <span>/{card.slug}</span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => openShareDialog(card.id, e)}
-                      className="h-8 w-8"
-                    >
-                      <Share2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => openDuplicateDialog(card, e)}
+                        className="h-8 w-8"
+                        title="Duplicate card"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => openShareDialog(card.id, e)}
+                        className="h-8 w-8"
+                        title="Share card"
+                      >
+                        <Share2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -198,6 +217,15 @@ export default function Dashboard() {
         open={templateManagerOpen}
         onOpenChange={setTemplateManagerOpen}
       />
+
+      {selectedCardForDuplicate && (
+        <DuplicateCardDialog
+          card={selectedCardForDuplicate}
+          open={!!selectedCardForDuplicate}
+          onOpenChange={(open) => !open && setSelectedCardForDuplicate(null)}
+          onDuplicated={loadCards}
+        />
+      )}
     </div>
   );
 }
