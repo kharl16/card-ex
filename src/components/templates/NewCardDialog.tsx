@@ -69,55 +69,56 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
     try {
       const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
       
-      // Get theme from template, ensuring QR styling is preserved but not QR data
+      // Get theme from template - copy ALL settings including QR
       const templateTheme = layoutData?.theme || {};
       const theme = {
         ...DEFAULT_THEME,
         ...templateTheme,
-        // Ensure QR settings only have styling, no actual QR data
-        qr: templateTheme.qr ? {
-          pattern: templateTheme.qr.pattern,
-          eyeStyle: templateTheme.qr.eyeStyle,
-          darkColor: templateTheme.qr.darkColor,
-          lightColor: templateTheme.qr.lightColor,
-          size: templateTheme.qr.size,
-          logoPosition: templateTheme.qr.logoPosition,
-          logoOpacity: templateTheme.qr.logoOpacity,
-          logoUrl: templateTheme.qr.logoUrl,
-          gradientEnabled: templateTheme.qr.gradientEnabled,
-          gradientColor1: templateTheme.qr.gradientColor1,
-          gradientColor2: templateTheme.qr.gradientColor2,
-          gradientType: templateTheme.qr.gradientType,
-          frameStyle: templateTheme.qr.frameStyle,
-          frameColor: templateTheme.qr.frameColor,
-          frameWidth: templateTheme.qr.frameWidth,
-          frameBorderRadius: templateTheme.qr.frameBorderRadius,
-          framePadding: templateTheme.qr.framePadding,
-          frameShadow: templateTheme.qr.frameShadow,
-        } : undefined,
       };
       
       const carouselEnabled = layoutData?.carousel_enabled ?? true;
 
+      // Create card with ALL data from template (no stripping)
       const { data, error } = await supabase
         .from("cards")
         .insert({
           user_id: user.id,
-          full_name: profileName || "New Card",
           slug,
           is_published: false,
           theme,
           carousel_enabled: carouselEnabled,
-          // Apply design assets from template (non-personal media)
+          // Design assets from template
           cover_url: layoutData?.cover_url || null,
           logo_url: layoutData?.logo_url || null,
-          // Personal fields are intentionally left empty for user to fill
-          avatar_url: null,
+          avatar_url: layoutData?.avatar_url || null,
+          // Personal data from template (no longer stripped)
+          full_name: layoutData?.full_name || profileName || "New Card",
+          first_name: layoutData?.first_name || null,
+          middle_name: layoutData?.middle_name || null,
+          last_name: layoutData?.last_name || null,
+          prefix: layoutData?.prefix || null,
+          suffix: layoutData?.suffix || null,
+          title: layoutData?.title || null,
+          company: layoutData?.company || null,
+          bio: layoutData?.bio || null,
+          email: layoutData?.email || null,
+          phone: layoutData?.phone || null,
+          website: layoutData?.website || null,
+          location: layoutData?.location || null,
+          // Card type for new cards
+          card_type: 'publishable',
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a card limit error
+        if (error.message?.includes('Card limit reached')) {
+          toast.error("Card limit reached! Non-admin users can only have 2 cards. Please delete an existing card first.");
+          return;
+        }
+        throw error;
+      }
 
       // If template has product images, copy them to the new card
       if (layoutData?.product_images && layoutData.product_images.length > 0) {
@@ -133,13 +134,31 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
         await supabase.from("product_images").insert(productImageInserts);
       }
 
+      // If template has card links, copy them to the new card
+      if (layoutData?.card_links && layoutData.card_links.length > 0) {
+        const cardLinkInserts = layoutData.card_links.map((link: any, index: number) => ({
+          card_id: data.id,
+          kind: link.kind,
+          label: link.label,
+          value: link.value,
+          icon: link.icon || null,
+          sort_index: link.sort_index ?? index,
+        }));
+
+        await supabase.from("card_links").insert(cardLinkInserts);
+      }
+
       toast.success("Card created!");
       onOpenChange(false);
       setStep("choice");
       navigate(`/cards/${data.id}/edit`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating card:", error);
-      toast.error("Failed to create card");
+      if (error.message?.includes('Card limit reached')) {
+        toast.error("Card limit reached! Non-admin users can only have 2 cards.");
+      } else {
+        toast.error("Failed to create card");
+      }
     } finally {
       setCreating(false);
     }
@@ -237,7 +256,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
               </CardHeader>
               <CardContent>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Choose from professionally designed templates. Just add your details!
+                  Choose from professionally designed templates with all content included.
                 </p>
                 <Button variant="secondary" className="w-full gap-2">
                   Browse Templates

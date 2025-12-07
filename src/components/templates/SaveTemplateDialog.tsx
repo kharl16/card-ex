@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save } from "lucide-react";
 import { useTemplates } from "@/hooks/useTemplates";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SaveTemplateDialogProps {
   open: boolean;
@@ -36,6 +37,28 @@ export function SaveTemplateDialog({
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveAsGlobal, setSaveAsGlobal] = useState(false);
+  const [cardLinks, setCardLinks] = useState<Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>>([]);
+
+  // Fetch card links when dialog opens
+  useEffect(() => {
+    if (open && card.id) {
+      fetchCardLinks();
+    }
+  }, [open, card.id]);
+
+  const fetchCardLinks = async () => {
+    if (!card.id) return;
+    
+    const { data, error } = await supabase
+      .from("card_links")
+      .select("kind, label, value, icon, sort_index")
+      .eq("card_id", card.id)
+      .order("sort_index");
+    
+    if (!error && data) {
+      setCardLinks(data);
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) return;
@@ -45,15 +68,16 @@ export function SaveTemplateDialog({
       let success = false;
 
       if (isAdmin && saveAsGlobal) {
-        success = await saveAsGlobalTemplate(card, name.trim(), description.trim(), undefined, productImages);
+        success = await saveAsGlobalTemplate(card, name.trim(), description.trim(), undefined, productImages, cardLinks);
       } else {
-        success = await savePersonalTemplate(card, name.trim(), description.trim(), productImages);
+        success = await savePersonalTemplate(card, name.trim(), description.trim(), productImages, cardLinks);
       }
 
       if (success) {
         setName("");
         setDescription("");
         setSaveAsGlobal(false);
+        setCardLinks([]);
         onOpenChange(false);
         onSaved?.();
       }
@@ -67,6 +91,7 @@ export function SaveTemplateDialog({
       setName("");
       setDescription("");
       setSaveAsGlobal(false);
+      setCardLinks([]);
     }
     onOpenChange(newOpen);
   };
@@ -82,7 +107,7 @@ export function SaveTemplateDialog({
           <DialogDescription>
             {hasPersonalTemplate && !isAdmin
               ? "You already have a personal template. This will overwrite it."
-              : "Save this card's design as a reusable template."}
+              : "Save this card as a reusable template with all content included."}
           </DialogDescription>
         </DialogHeader>
 
@@ -108,6 +133,13 @@ export function SaveTemplateDialog({
               maxLength={500}
               rows={3}
             />
+          </div>
+
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+            <p className="font-medium text-primary">Full Card Template</p>
+            <p className="text-muted-foreground">
+              This template will include all content: design, personal info, images, and links.
+            </p>
           </div>
 
           {isAdmin && (
