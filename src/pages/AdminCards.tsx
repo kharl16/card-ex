@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SignOutButton from "@/components/auth/SignOutButton";
-import { ArrowLeft, Edit, Trash2, Search, Plus, User, CreditCard, Users, UserPlus, Key, Mail } from "lucide-react";
+import { ArrowLeft, Edit, Trash2, Search, Plus, User, CreditCard, Users, UserPlus, Key, Mail, Copy, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -32,8 +32,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { AdminCreateCardDialog } from "@/components/admin/AdminCreateCardDialog";
+import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 
 type CardData = Tables<"cards">;
 
@@ -74,6 +89,12 @@ export default function AdminCards() {
   const [editUserEmail, setEditUserEmail] = useState("");
   const [editUserPassword, setEditUserPassword] = useState("");
   const [updatingUser, setUpdatingUser] = useState(false);
+
+  // Duplicate Card to User Dialog state
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateSourceCard, setDuplicateSourceCard] = useState<CardData | null>(null);
+  const [showSelectUserForDuplicateDialog, setShowSelectUserForDuplicateDialog] = useState(false);
+  const [selectedUserForDuplicate, setSelectedUserForDuplicate] = useState<string>("");
 
   useEffect(() => {
     if (authLoading) return;
@@ -193,6 +214,25 @@ export default function AdminCards() {
   const openCreateCardForUser = (user: UserProfile) => {
     setSelectedUserForCard(user);
     setShowCreateCardDialog(true);
+  };
+
+  // Open the duplicate card flow for a specific card
+  const openDuplicateCardFlow = (card: CardData) => {
+    setDuplicateSourceCard(card);
+    setSelectedUserForDuplicate("");
+    setShowSelectUserForDuplicateDialog(true);
+  };
+
+  // Handle user selection for duplicate and open the duplicate dialog
+  const confirmDuplicateToUser = () => {
+    if (!selectedUserForDuplicate || !duplicateSourceCard) return;
+    setShowSelectUserForDuplicateDialog(false);
+    setShowDuplicateDialog(true);
+  };
+
+  // Get the selected user profile for duplicate
+  const getSelectedUserForDuplicate = () => {
+    return users.find(u => u.id === selectedUserForDuplicate);
   };
 
   const handleCreateUser = async () => {
@@ -461,22 +501,31 @@ export default function AdminCards() {
                                 {new Date(card.updated_at).toLocaleDateString()}
                               </TableCell>
                               <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => navigate(`/cards/${card.id}/edit`)}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => setDeleteCardId(card.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </div>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => navigate(`/cards/${card.id}/edit`)}>
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      Edit Card
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openDuplicateCardFlow(card)}>
+                                      <Copy className="mr-2 h-4 w-4" />
+                                      Duplicate Design to User
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem 
+                                      onClick={() => setDeleteCardId(card.id)}
+                                      className="text-destructive focus:text-destructive"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete Card
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </TableCell>
                             </TableRow>
                           ))
@@ -759,6 +808,69 @@ export default function AdminCards() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Select User for Duplicate Dialog */}
+      <Dialog open={showSelectUserForDuplicateDialog} onOpenChange={setShowSelectUserForDuplicateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Duplicate Design to User</DialogTitle>
+            <DialogDescription>
+              Select a user to receive a copy of the card design from "{duplicateSourceCard?.full_name}".
+              Only the design elements (theme, images, carousel) will be copied. Personal information will not be transferred.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="duplicate-target-user">Select User</Label>
+              <Select value={selectedUserForDuplicate} onValueChange={setSelectedUserForDuplicate}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a user..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>{user.full_name || "Unnamed User"}</span>
+                        <span className="text-xs text-muted-foreground">({user.email})</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSelectUserForDuplicateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmDuplicateToUser} disabled={!selectedUserForDuplicate}>
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Duplicate Card Dialog */}
+      {duplicateSourceCard && getSelectedUserForDuplicate() && (
+        <DuplicateCardDialog
+          card={duplicateSourceCard}
+          open={showDuplicateDialog}
+          onOpenChange={(open) => {
+            setShowDuplicateDialog(open);
+            if (!open) {
+              setDuplicateSourceCard(null);
+              setSelectedUserForDuplicate("");
+            }
+          }}
+          targetUserId={selectedUserForDuplicate}
+          targetUserName={getSelectedUserForDuplicate()?.full_name || getSelectedUserForDuplicate()?.email || "User"}
+          onDuplicated={() => {
+            loadCards();
+            loadUsers();
+          }}
+        />
+      )}
     </div>
   );
 }
