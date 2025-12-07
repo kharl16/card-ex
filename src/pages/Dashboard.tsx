@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy } from "lucide-react";
+import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -41,11 +41,7 @@ export default function Dashboard() {
       data: { user },
     } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
       setProfile(data);
     }
   };
@@ -64,6 +60,7 @@ export default function Dashboard() {
         .order("created_at", { ascending: false });
 
       if (error) {
+        console.error(error);
         toast.error("Failed to load cards");
       } else {
         setCards(data || []);
@@ -81,6 +78,31 @@ export default function Dashboard() {
   const openDuplicateDialog = (card: CardData, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedCardForDuplicate(card);
+  };
+
+  const handleDeleteCard = async (card: CardData, e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    const confirmed = window.confirm(`Delete the card "${card.full_name || "Untitled Card"}"? This cannot be undone.`);
+
+    if (!confirmed) return;
+
+    try {
+      const { error } = await supabase.from("cards").delete().eq("id", card.id);
+
+      if (error) {
+        console.error("Error deleting card:", error);
+        toast.error("Failed to delete card");
+        return;
+      }
+
+      toast.success("Card deleted");
+      // Refresh list after deletion
+      loadCards();
+    } catch (err) {
+      console.error("Error deleting card:", err);
+      toast.error("Failed to delete card");
+    }
   };
 
   return (
@@ -132,9 +154,7 @@ export default function Dashboard() {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <CreditCard className="mb-4 h-12 w-12 text-muted-foreground" />
               <h3 className="mb-2 text-lg font-semibold">No cards yet</h3>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Create your first digital business card
-              </p>
+              <p className="mb-4 text-sm text-muted-foreground">Create your first digital business card</p>
               <Button onClick={() => setNewCardDialogOpen(true)} className="gap-2">
                 <Plus className="h-4 w-4" />
                 Create Card
@@ -152,11 +172,9 @@ export default function Dashboard() {
                 <CardHeader>
                   <div className="mb-2 flex items-center justify-between">
                     <CardTitle className="text-lg">{card.full_name}</CardTitle>
-                    <div
-                      className={`h-2 w-2 rounded-full ${
-                        card.is_published ? "bg-primary" : "bg-muted"
-                      }`}
-                    />
+                    <div className="flex items-center gap-2">
+                      <div className={`h-2 w-2 rounded-full ${card.is_published ? "bg-primary" : "bg-muted"}`} />
+                    </div>
                   </div>
                   <CardDescription>
                     {card.title || "No title"} • {card.company || "No company"}
@@ -190,6 +208,15 @@ export default function Dashboard() {
                       >
                         <Share2 className="h-4 w-4" />
                       </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => handleDeleteCard(card, e)}
+                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        title="Delete card"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
@@ -200,23 +227,12 @@ export default function Dashboard() {
       </main>
 
       {selectedCardId && (
-        <ShareCardDialog
-          cardId={selectedCardId}
-          open={shareDialogOpen}
-          onOpenChange={setShareDialogOpen}
-        />
+        <ShareCardDialog cardId={selectedCardId} open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
       )}
 
-      <NewCardDialog
-        open={newCardDialogOpen}
-        onOpenChange={setNewCardDialogOpen}
-        profileName={profile?.full_name}
-      />
+      <NewCardDialog open={newCardDialogOpen} onOpenChange={setNewCardDialogOpen} profileName={profile?.full_name} />
 
-      <AdminTemplateManager
-        open={templateManagerOpen}
-        onOpenChange={setTemplateManagerOpen}
-      />
+      <AdminTemplateManager open={templateManagerOpen} onOpenChange={setTemplateManagerOpen} />
 
       {selectedCardForDuplicate && (
         <DuplicateCardDialog
