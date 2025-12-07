@@ -13,6 +13,13 @@ interface CardLimitInfo {
   message?: string;
 }
 
+/**
+ * Card limit logic for Card-Ex / Tagex.app.
+ *
+ * Testing note:
+ * - Test the full card duplication by duplicating a card with carousel images
+ *   to another user and verify the carousel displays correctly.
+ */
 export function useCardLimits() {
   const { user, isAdmin, session } = useAuth();
   const [checking, setChecking] = useState(false);
@@ -81,55 +88,52 @@ export function useCardLimits() {
    * Check if a specific user can have a new card created for them
    * (Used by admin when creating cards for members)
    */
-  const checkCardLimitForUser = useCallback(
-    async (userId: string, userEmail?: string): Promise<CardLimitInfo> => {
-      // Check if target user is admin by email
-      if (userEmail === ADMIN_EMAIL) {
+  const checkCardLimitForUser = useCallback(async (userId: string, userEmail?: string): Promise<CardLimitInfo> => {
+    // Check if target user is admin by email
+    if (userEmail === ADMIN_EMAIL) {
+      return {
+        canCreateCard: true,
+        currentCount: 0,
+        maxCards: Infinity,
+        isAdmin: true,
+      };
+    }
+
+    setChecking(true);
+    try {
+      // Count target user's current cards
+      const { count, error } = await supabase
+        .from("cards")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", userId);
+
+      if (error) {
+        console.error("Error checking card count for user:", error);
         return {
-          canCreateCard: true,
+          canCreateCard: false,
           currentCount: 0,
-          maxCards: Infinity,
-          isAdmin: true,
-        };
-      }
-
-      setChecking(true);
-      try {
-        // Count target user's current cards
-        const { count, error } = await supabase
-          .from("cards")
-          .select("*", { count: "exact", head: true })
-          .eq("user_id", userId);
-
-        if (error) {
-          console.error("Error checking card count for user:", error);
-          return {
-            canCreateCard: false,
-            currentCount: 0,
-            maxCards: MAX_CARDS_FOR_MEMBERS,
-            isAdmin: false,
-            message: "Failed to check card limit for this user.",
-          };
-        }
-
-        const currentCount = count || 0;
-        const canCreate = currentCount < MAX_CARDS_FOR_MEMBERS;
-
-        return {
-          canCreateCard: canCreate,
-          currentCount,
           maxCards: MAX_CARDS_FOR_MEMBERS,
           isAdmin: false,
-          message: canCreate
-            ? undefined
-            : `This user already has ${MAX_CARDS_FOR_MEMBERS} cards. They need to delete one first.`,
+          message: "Failed to check card limit for this user.",
         };
-      } finally {
-        setChecking(false);
       }
-    },
-    []
-  );
+
+      const currentCount = count || 0;
+      const canCreate = currentCount < MAX_CARDS_FOR_MEMBERS;
+
+      return {
+        canCreateCard: canCreate,
+        currentCount,
+        maxCards: MAX_CARDS_FOR_MEMBERS,
+        isAdmin: false,
+        message: canCreate
+          ? undefined
+          : `This user already has ${MAX_CARDS_FOR_MEMBERS} cards. They need to delete one first.`,
+      };
+    } finally {
+      setChecking(false);
+    }
+  }, []);
 
   return {
     checkCardLimit,
