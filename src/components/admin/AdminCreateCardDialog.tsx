@@ -73,87 +73,76 @@ export function AdminCreateCardDialog({
     try {
       const slug = generateSlug();
 
-      // ---- NEW: normalize product / carousel images from layoutData ----
+      // Normalize product / carousel images from layoutData
       const templateProductImages =
-        // what we expect templates to store
         (layoutData as any)?.product_images ??
-        // fallback names, in case useTemplates saves them differently
         (layoutData as any)?.carousel_images ??
         (layoutData as any)?.carouselImages ??
         [];
 
       const hasTemplateImages = Array.isArray(templateProductImages) && templateProductImages.length > 0;
 
-      // Get theme from template or use default
-      // IMPORTANT: Extract only QR styling, not QR data/URL
+      // Normalize card links from layoutData
+      const templateCardLinks = (layoutData as any)?.card_links ?? [];
+      const hasTemplateLinks = Array.isArray(templateCardLinks) && templateCardLinks.length > 0;
+
+      // Get theme from template - copy ALL settings including QR styling
       const templateTheme: any = layoutData?.theme || {};
       const theme = {
         ...DEFAULT_THEME,
         ...templateTheme,
-        // Ensure QR settings only have styling, no actual QR data
-        qr: templateTheme.qr
-          ? {
-              pattern: templateTheme.qr.pattern,
-              eyeStyle: templateTheme.qr.eyeStyle,
-              darkColor: templateTheme.qr.darkColor,
-              lightColor: templateTheme.qr.lightColor,
-              size: templateTheme.qr.size,
-              logoPosition: templateTheme.qr.logoPosition,
-              logoOpacity: templateTheme.qr.logoOpacity,
-              // logoUrl is OK – design asset, not personal
-              logoUrl: templateTheme.qr.logoUrl,
-              gradientEnabled: templateTheme.qr.gradientEnabled,
-              gradientColor1: templateTheme.qr.gradientColor1,
-              gradientColor2: templateTheme.qr.gradientColor2,
-              gradientType: templateTheme.qr.gradientType,
-              frameStyle: templateTheme.qr.frameStyle,
-              frameColor: templateTheme.qr.frameColor,
-              frameWidth: templateTheme.qr.frameWidth,
-              frameBorderRadius: templateTheme.qr.frameBorderRadius,
-              framePadding: templateTheme.qr.framePadding,
-              frameShadow: templateTheme.qr.frameShadow,
-              // DO NOT copy qrCodeUrl, shareUrl, or encoded data
-            }
-          : undefined,
       };
 
-      // ---- NEW: enable carousel if template has images or if explicitly set ----
       const carouselEnabled = layoutData?.carousel_enabled ?? hasTemplateImages ?? true;
 
-      // Create the card for the target user (not the admin)
+      // Create the card for the target user with ALL template data (no stripping)
       const { data, error } = await supabase
         .from("cards")
         .insert({
           user_id: targetUserId,
-          full_name: targetUserName || "New Card",
           slug,
           is_published: false,
           theme,
           carousel_enabled: carouselEnabled,
-          // Apply design assets from template
+          // Design assets from template
           cover_url: layoutData?.cover_url || null,
           logo_url: layoutData?.logo_url || null,
-          // Personal fields are intentionally left empty
-          avatar_url: null,
-          email: null,
-          phone: null,
-          location: null,
-          bio: null,
-          title: null,
-          company: null,
-          website: null,
+          avatar_url: layoutData?.avatar_url || null,
+          // Personal data from template (no longer stripped)
+          full_name: layoutData?.full_name || targetUserName || "New Card",
+          first_name: layoutData?.first_name || null,
+          middle_name: layoutData?.middle_name || null,
+          last_name: layoutData?.last_name || null,
+          prefix: layoutData?.prefix || null,
+          suffix: layoutData?.suffix || null,
+          title: layoutData?.title || null,
+          company: layoutData?.company || null,
+          bio: layoutData?.bio || null,
+          email: layoutData?.email || null,
+          phone: layoutData?.phone || null,
+          website: layoutData?.website || null,
+          location: layoutData?.location || null,
+          // Card type
+          card_type: 'publishable',
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Check if it's a card limit error
+        if (error.message?.includes('Card limit reached')) {
+          toast.error(`Card limit reached for ${targetUserName}! Non-admin users can only have 2 cards.`);
+          return;
+        }
+        throw error;
+      }
 
-      // ---- UPDATED: use normalized templateProductImages ----
+      // Copy product images from template
       if (hasTemplateImages) {
         const productImageInserts = templateProductImages.map((img: any, index: number) => ({
           card_id: data.id,
-          owner: targetUserId, // ensure this matches your column name
-          image_url: img.image_url, // make sure this matches the template structure
+          owner: targetUserId,
+          image_url: img.image_url,
           alt_text: img.alt_text || null,
           description: img.description || null,
           sort_order: index,
@@ -163,7 +152,24 @@ export function AdminCreateCardDialog({
 
         if (imagesError) {
           console.error("Error inserting product images:", imagesError);
-          // not fatal – card is still created, just no carousel
+        }
+      }
+
+      // Copy card links from template
+      if (hasTemplateLinks) {
+        const cardLinkInserts = templateCardLinks.map((link: any, index: number) => ({
+          card_id: data.id,
+          kind: link.kind,
+          label: link.label,
+          value: link.value,
+          icon: link.icon || null,
+          sort_index: link.sort_index ?? index,
+        }));
+
+        const { error: linksError } = await supabase.from("card_links").insert(cardLinkInserts);
+
+        if (linksError) {
+          console.error("Error inserting card links:", linksError);
         }
       }
 
@@ -176,7 +182,11 @@ export function AdminCreateCardDialog({
       navigate(`/cards/${data.id}/edit`);
     } catch (error: any) {
       console.error("Error creating card:", error);
-      toast.error(error.message || "Failed to create card");
+      if (error.message?.includes('Card limit reached')) {
+        toast.error(`Card limit reached for ${targetUserName}! Non-admin users can only have 2 cards.`);
+      } else {
+        toast.error(error.message || "Failed to create card");
+      }
     } finally {
       setCreating(false);
     }
@@ -274,7 +284,7 @@ export function AdminCreateCardDialog({
               </CardHeader>
               <CardContent>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Choose from professionally designed templates. Just add the member's details!
+                  Choose from professionally designed templates with all content included.
                 </p>
                 <Button variant="secondary" className="w-full gap-2">
                   Browse Templates
