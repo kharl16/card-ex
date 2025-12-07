@@ -11,7 +11,6 @@ import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import ShareCardDialog from "@/components/ShareCardDialog";
-import DeploymentStatus from "@/components/DeploymentStatus";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
@@ -97,7 +96,6 @@ export default function Dashboard() {
       }
 
       toast.success("Card deleted");
-      // Refresh list after deletion
       loadCards();
     } catch (err) {
       console.error("Error deleting card:", err);
@@ -132,10 +130,6 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <DeploymentStatus />
-        </div>
-
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Your Cards</h1>
