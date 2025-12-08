@@ -24,9 +24,9 @@ export default function ImageUpload({
   value,
   onChange,
   label,
-  aspectRatio = "aspect-square",
+  aspectRatio,
   maxSize = 5,
-  displayMode = "contain",
+  displayMode,
   onDisplayModeChange,
   showDisplayToggle = false,
   bucket = "media",
@@ -38,6 +38,16 @@ export default function ImageUpload({
   const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 🔧 Smart defaults for "Cover" / "Banner" images
+  const lowerLabel = label.toLowerCase();
+  const isCoverLike = lowerLabel.includes("cover") || lowerLabel.includes("banner") || lowerLabel.includes("header");
+
+  // If parent didn't specify aspectRatio, pick based on label
+  const effectiveAspectRatio = aspectRatio ?? (isCoverLike ? "aspect-[16/9]" : "aspect-square");
+
+  // If parent didn't specify displayMode, pick based on label
+  const effectiveDisplayMode = displayMode ?? (isCoverLike ? "cover" : "contain");
 
   // Validate image URL when value changes
   useEffect(() => {
@@ -187,6 +197,12 @@ export default function ImageUpload({
 
   const canToggleDisplayMode = showDisplayToggle && value && onDisplayModeChange && !imageError;
 
+  const handleToggleDisplayMode = () => {
+    if (!onDisplayModeChange) return;
+    const nextMode = effectiveDisplayMode === "contain" ? "cover" : "contain";
+    onDisplayModeChange(nextMode);
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
@@ -196,10 +212,10 @@ export default function ImageUpload({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => onDisplayModeChange!(displayMode === "contain" ? "cover" : "contain")}
+            onClick={handleToggleDisplayMode}
             className="h-7 text-xs gap-1"
           >
-            {displayMode === "contain" ? (
+            {effectiveDisplayMode === "contain" ? (
               <>
                 <Maximize2 className="h-3 w-3" />
                 Fit
@@ -215,7 +231,7 @@ export default function ImageUpload({
       </div>
 
       <div
-        className={`relative ${aspectRatio} w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
+        className={`relative ${effectiveAspectRatio} w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
           isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
         }`}
         onDragOver={handleDragOver}
@@ -238,7 +254,7 @@ export default function ImageUpload({
               <img
                 src={value}
                 alt={label}
-                className={`h-full w-full ${displayMode === "contain" ? "object-contain" : "object-cover"}`}
+                className={`h-full w-full ${effectiveDisplayMode === "contain" ? "object-contain" : "object-cover"}`}
                 onError={() => setImageError(true)}
               />
             )}
