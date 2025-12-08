@@ -319,7 +319,6 @@ export function ImageUpload({
           onOpenChange={setEditorOpen}
           imageSrc={tempImageSrc}
           onSave={handleEditorSave}
-          aspectRatio={editorAspectRatio} // 👈 16:9 for cover/banner, 1:1 otherwise
         />
       )}
     </div>
