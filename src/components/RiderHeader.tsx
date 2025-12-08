@@ -58,23 +58,16 @@ export default function RiderHeader({
           backgroundColor: !coverUrl && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
-        {coverUrl && (
-          <img
-            src={coverUrl}
-            alt="Cover"
-            // IMPORTANT: full width, natural height, no cropping
-            className="w-full h-auto object-contain object-top block"
-          />
-        )}
+        {coverUrl && <img src={coverUrl} alt="Cover" className="w-full h-auto object-contain object-top block" />}
 
         {/* Gradient overlay for better contrast at the bottom of the cover */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
       </div>
 
-      {/* Avatar - positioned on the left, overlapping cover bottom */}
+      {/* Avatar - slightly bigger */}
       <div className="absolute left-8 sm:left-10 bottom-12 sm:bottom-14 -translate-y-1/2 z-20">
         <div
-          className="relative h-20 w-20 sm:h-24 sm:w-24 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar"
+          className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar"
           style={{
             background: `conic-gradient(from 180deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 120deg, ${darkerPrimary} 240deg, ${lighterPrimary} 360deg)`,
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
@@ -104,14 +97,14 @@ export default function RiderHeader({
         </div>
       </div>
 
-      {/* Company logo - positioned on the right, aligned with avatar */}
+      {/* Company logo - bigger & square */}
       {companyLogoUrl && (
         <div className="absolute right-8 sm:right-10 bottom-17 sm:bottom-19 -translate-y-1/2 z-20">
-          <div className="h-16 w-28 sm:h-20 sm:w-36 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
+          <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
             <img
               src={companyLogoUrl}
               alt="Company logo"
-              className={`max-h-full max-w-full ${logoDisplayMode === "contain" ? "object-contain" : "object-cover"}`}
+              className={`h-full w-full ${logoDisplayMode === "contain" ? "object-contain" : "object-cover"}`}
             />
           </div>
         </div>
