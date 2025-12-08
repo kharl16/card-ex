@@ -66,8 +66,8 @@ export default function RiderHeader({
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none z-10" />
       </div>
 
-      {/* Avatar + Company Logo row, centers aligned to bottom edge of cover */}
-      <div className="absolute inset-x-0 bottom-0 -translate-y-1/2 px-8 sm:px-10 flex items-center justify-between pointer-events-none z-[60]">
+      {/* Avatar + Company Logo row, lifted further into the cover */}
+      <div className="absolute inset-x-0 bottom-6 sm:bottom-8 px-8 sm:px-10 flex items-center justify-between pointer-events-none z-[60]">
         {/* Avatar */}
         <div className="pointer-events-auto">
           <div
