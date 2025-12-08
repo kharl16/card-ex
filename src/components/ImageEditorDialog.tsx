@@ -1,6 +1,3 @@
-// ===============================
-// ImageEditorDialog.tsx
-// ===============================
 import { useState, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -113,7 +110,7 @@ export default function ImageEditorDialog({
             image={imageSrc}
             crop={crop}
             zoom={zoom}
-            aspect={aspectRatio ?? 1} // 👈 key line: use provided aspect ratio
+            aspect={aspectRatio ?? 1}
             onCropChange={setCrop}
             onZoomChange={setZoom}
             onCropComplete={onCropComplete}
