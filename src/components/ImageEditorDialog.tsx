@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Cropper from "react-easy-crop";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Slider } from "@/components/ui/slider";
@@ -10,8 +10,8 @@ interface ImageEditorDialogProps {
   onOpenChange: (open: boolean) => void;
   imageSrc: string;
   /**
-   * Optional: force an aspect ratio (e.g. 16/9).
-   * If not provided, the dialog will use the image's natural aspect ratio.
+   * Optional aspect ratio (e.g. 16/9).
+   * If not provided we just let the image decide visually.
    */
   aspectRatio?: number;
   onSave: (blob: Blob) => void;
@@ -84,65 +84,15 @@ export default function ImageEditorDialog({
   } | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Measure container width so we can size the crop frame to full width.
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [containerWidth, setContainerWidth] = useState<number>(0);
-
-  // Detect image's natural aspect ratio so the container matches it.
-  const [imageAspect, setImageAspect] = useState<number | null>(null);
-
+  // Reset state whenever dialog opens with a new image
   useEffect(() => {
     if (!open) return;
-
-    // Measure container width
-    const el = containerRef.current;
-    if (!el) return;
-
-    const updateSize = () => {
-      setContainerWidth(el.clientWidth);
-    };
-
-    updateSize();
-    const observer = new ResizeObserver(updateSize);
-    observer.observe(el);
-
-    return () => observer.disconnect();
-  }, [open]);
-
-  useEffect(() => {
-    if (!open || !imageSrc) return;
-
-    const img = new Image();
-    img.src = imageSrc;
-    img.onload = () => {
-      if (img.naturalWidth && img.naturalHeight) {
-        setImageAspect(img.naturalWidth / img.naturalHeight);
-      }
-    };
-
-    return () => {
-      setImageAspect(null);
-      setZoom(1);
-      setCrop({ x: 0, y: 0 });
-    };
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    setCroppedAreaPixels(null);
   }, [open, imageSrc]);
 
-  const effectiveAspect = aspectRatio ?? imageAspect ?? 1;
-
-  // Make container height follow the image aspect ratio
-  // so the image can fill the area without black bars.
-  const containerHeight = containerWidth > 0 ? containerWidth / effectiveAspect : 360;
-
-  // Crop frame = full container size (so full image is shown initially).
-  const cropSize =
-    containerWidth > 0
-      ? {
-          width: containerWidth,
-          height: containerHeight,
-        }
-      : undefined;
-
-  const onCropComplete = useCallback((croppedArea: any, croppedAreaPixelsParam: any) => {
+  const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixelsParam: any) => {
     setCroppedAreaPixels(croppedAreaPixelsParam);
   }, []);
 
@@ -167,31 +117,48 @@ export default function ImageEditorDialog({
           <DialogTitle>Edit Image</DialogTitle>
         </DialogHeader>
 
-        {/* Container that controls the size of the crop frame */}
+        {/* Fixed-height container so the image can stretch full width */}
         <div
-          ref={containerRef}
           className="relative w-full rounded-md bg-black/90 overflow-hidden"
           style={{
-            // Height based on image aspect so top + sides touch edges.
-            height: `${containerHeight}px`,
+            // 16:9–ish viewing window; tall enough for your cover
+            height: "min(70vh, 480px)",
           }}
         >
-          {imageAspect && (
-            <Cropper
-              image={imageSrc}
-              crop={crop}
-              zoom={zoom}
-              aspect={effectiveAspect}
-              cropSize={cropSize}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={onCropComplete}
-              showGrid={false}
-            />
-          )}
+          <Cropper
+            image={imageSrc}
+            crop={crop}
+            zoom={zoom}
+            onCropChange={setCrop}
+            onZoomChange={setZoom}
+            onCropComplete={onCropComplete}
+            aspect={aspectRatio ?? 16 / 9}
+            showGrid={false}
+            // Make the crop frame fill the whole visible area
+            style={{
+              containerStyle: {
+                width: "100%",
+                height: "100%",
+              },
+              cropAreaStyle: {
+                width: "100%",
+                height: "100%",
+                // remove rounded corners so it feels like the whole image
+                borderRadius: 0,
+              },
+              mediaStyle: {
+                width: "100%",
+                height: "100%",
+                objectFit: "cover", // cover the whole area, no side gaps
+              },
+            }}
+            minZoom={1}
+            maxZoom={3}
+            restrictPosition={false}
+          />
         </div>
 
-        {/* Zoom slider (optional, in case you ever DO want to crop tighter) */}
+        {/* Zoom control */}
         <div className="mt-4 space-y-2">
           <span className="text-xs font-medium text-muted-foreground">Zoom</span>
           <Slider value={[zoom]} min={1} max={3} step={0.1} onValueChange={(val) => setZoom(val[0])} />
