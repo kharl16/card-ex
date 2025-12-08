@@ -45,10 +45,6 @@ export function ImageUpload({
   // 🔍 Detect cover / banner style fields from the label
   const lowerLabel = label.toLowerCase();
   const isCoverLike = lowerLabel.includes("cover") || lowerLabel.includes("banner") || lowerLabel.includes("header");
-
-  // Use wide 16:9 aspect for covers, square (1) otherwise
-  const editorAspectRatio = isCoverLike ? 16 / 9 : 1;
-
   // Validate image URL when value changes
   useEffect(() => {
     if (!value) {
