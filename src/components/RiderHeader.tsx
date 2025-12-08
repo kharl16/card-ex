@@ -1,3 +1,5 @@
+import React from "react";
+
 interface RiderHeaderProps {
   coverUrl?: string | null;
   avatarUrl?: string | null;
@@ -46,10 +48,10 @@ export default function RiderHeader({
   const darkerPrimary = adjustHexColor(basePrimary, -40);
 
   return (
-    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-visible z-[9999] pointer-events-none">
+    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-visible z-10">
       {/* Cover image */}
       <div
-        className="w-full overflow-hidden relative bg-black"
+        className="relative h-48 sm:h-56 w-full overflow-hidden"
         style={{
           backgroundImage:
             !coverUrl && primaryColor
@@ -58,22 +60,24 @@ export default function RiderHeader({
           backgroundColor: !coverUrl && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
-        {coverUrl && <img src={coverUrl} alt="Cover" className="w-full h-auto object-contain object-top block" />}
+        {coverUrl && <img src={coverUrl} alt="Cover" className="h-full w-full object-cover" />}
 
-        {/* Gradient overlay just for text contrast on the cover */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-10" />
+        {/* Gradient overlay for better contrast */}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none z-10" />
+      </div>
 
-        {/* Avatar + Logo bar – centered on cover base, above everything */}
-        <div className="absolute inset-x-0 top-full -translate-y-1/2 px-8 sm:px-10 flex items-center justify-between z-[100] pointer-events-none">
-          {/* Avatar */}
+      {/* Avatar + Company Logo row, sitting on the bottom edge of the cover */}
+      <div className="absolute inset-x-0 bottom-0 translate-y-1/2 px-8 sm:px-10 flex items-end justify-between pointer-events-none z-[60]">
+        {/* Avatar */}
+        <div className="pointer-events-auto">
           <div
-            className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar pointer-events-auto"
+            className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar"
             style={{
               background: `conic-gradient(from 180deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 120deg, ${darkerPrimary} 240deg, ${lighterPrimary} 360deg)`,
               boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
             }}
           >
-            {/* Hover glow */}
+            {/* Hover glow effect */}
             <div
               className="absolute inset-0 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 blur-xl -z-10"
               style={{
@@ -82,38 +86,40 @@ export default function RiderHeader({
               }}
             />
             {/* Inner dark plate */}
-            <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
+            <div className="absolute inset-[4px] rounded-full bg-black flex items-center justify-center">
               <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
                 {avatarUrl && (
                   <img
                     src={avatarUrl}
-                    alt={name || "Profile"}
+                    alt={name || "Profile photo"}
                     className={`h-full w-full ${avatarDisplayMode === "contain" ? "object-contain" : "object-cover"}`}
                   />
                 )}
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Company logo – square */}
-          {companyLogoUrl && (
-            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300 pointer-events-auto">
+        {/* Company logo (square) */}
+        {companyLogoUrl && (
+          <div className="pointer-events-auto">
+            <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300">
               <img
                 src={companyLogoUrl}
                 alt="Company logo"
                 className={`h-full w-full ${logoDisplayMode === "contain" ? "object-contain" : "object-cover"}`}
               />
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* Spacer so text/content below doesn't overlap the floating row */}
+      {/* Spacer so content doesn't overlap avatar/logo */}
       <div className="h-16 sm:h-20" />
 
-      {/* Name & title */}
+      {/* Name/title positioned below avatar area */}
       {(name || title) && (
-        <div className="pl-8 sm:pl-10 pr-6 pt-2 pb-2 pointer-events-auto">
+        <div className="pl-8 sm:pl-10 pr-6 pt-2 pb-2 relative z-20">
           <div className="flex flex-col space-y-1 leading-relaxed">
             {name && <h1 className="text-xl sm:text-2xl font-bold">{name}</h1>}
             {title && <p className="text-sm sm:text-base text-muted-foreground">{title}</p>}
