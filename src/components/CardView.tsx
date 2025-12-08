@@ -189,330 +189,333 @@ export default function CardView({
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      {/* Header using RiderHeader component */}
-      <RiderHeader
-        coverUrl={card.cover_url}
-        avatarUrl={card.avatar_url}
-        companyLogoUrl={card.logo_url}
-        name={getLiveNameFromCard(card)}
-        title={card.title || undefined}
-        primaryColor={basePrimary}
-        avatarDisplayMode={theme.avatarDisplayMode}
-        logoDisplayMode={theme.logoDisplayMode}
-      />
-
-      {/* Company and Bio */}
-      <div className="px-4 pb-4 transition-colors duration-500">
-        {card.company && <p className="text-sm text-muted-foreground transition-colors duration-500">{card.company}</p>}
-        {card.bio && <p className="mt-3 text-sm text-muted-foreground transition-colors duration-500">{card.bio}</p>}
+      {/* Header (avatar + logo on top of everything) */}
+      <div className="relative z-20">
+        <RiderHeader
+          coverUrl={card.cover_url}
+          avatarUrl={card.avatar_url}
+          companyLogoUrl={card.logo_url}
+          name={getLiveNameFromCard(card)}
+          title={card.title || undefined}
+          primaryColor={basePrimary}
+          avatarDisplayMode={theme.avatarDisplayMode}
+          logoDisplayMode={theme.logoDisplayMode}
+        />
       </div>
 
-      {/* Product Carousel */}
-      {card.carousel_enabled !== false && productImages.length > 0 && (
-        <div className="my-4 transition-opacity duration-500">
-          <ProductRingCarousel
-            images={productImages.map((img) => ({
-              id: img.id,
-              url: img.image_url,
-              alt: img.alt_text || undefined,
-              description: img.description || undefined,
-            }))}
-            autoPlayMs={theme?.carouselSpeed || 4000}
-          />
+      {/* Rest of the card content below, in a lower z-index */}
+      <div className="relative z-10">
+        {/* Company and Bio */}
+        <div className="px-4 pb-4 transition-colors duration-500">
+          {card.company && (
+            <p className="text-sm text-muted-foreground transition-colors duration-500">{card.company}</p>
+          )}
+          {card.bio && <p className="mt-3 text-sm text-muted-foreground transition-colors duration-500">{card.bio}</p>}
         </div>
-      )}
 
-      {/* Social Media Links */}
-      {socialLinks.length > 0 && (
-        <div className="flex flex-wrap gap-3 justify-center px-4 pb-4">
-          {socialLinks.map((link, index) => {
-            const IconComponent = iconMap[link.icon] || Globe;
-            const brandColor = socialBrandColors[link.kind] || "bg-primary";
-            const bounceDelay = `${index * 0.1}s`;
+        {/* Product Carousel */}
+        {card.carousel_enabled !== false && productImages.length > 0 && (
+          <div className="my-4 transition-opacity duration-500">
+            <ProductRingCarousel
+              images={productImages.map((img) => ({
+                id: img.id,
+                url: img.image_url,
+                alt: img.alt_text || undefined,
+                description: img.description || undefined,
+              }))}
+              autoPlayMs={theme?.carouselSpeed || 4000}
+            />
+          </div>
+        )}
 
-            if (isInteractive) {
+        {/* Social Media Links */}
+        {socialLinks.length > 0 && (
+          <div className="flex flex-wrap gap-3 justify-center px-4 pb-4">
+            {socialLinks.map((link, index) => {
+              const IconComponent = iconMap[link.icon] || Globe;
+              const brandColor = socialBrandColors[link.kind] || "bg-primary";
+              const bounceDelay = `${index * 0.1}s`;
+
+              if (isInteractive) {
+                return (
+                  <a
+                    key={link.id}
+                    href={link.value}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
+                    style={{ animationDelay: bounceDelay, animationFillMode: "backwards" }}
+                    title={link.label}
+                  >
+                    <IconComponent className="h-6 w-6 text-white" />
+                  </a>
+                );
+              }
+
               return (
-                <a
+                <div
                   key={link.id}
-                  href={link.value}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
                   style={{ animationDelay: bounceDelay, animationFillMode: "backwards" }}
                   title={link.label}
                 >
                   <IconComponent className="h-6 w-6 text-white" />
-                </a>
+                </div>
               );
-            }
-
-            return (
-              <div
-                key={link.id}
-                className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
-                style={{ animationDelay: bounceDelay, animationFillMode: "backwards" }}
-                title={link.label}
-              >
-                <IconComponent className="h-6 w-6 text-white" />
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Unified Contact Buttons (primary + additional together) */}
-      <div className="space-y-3 px-4 pb-4">
-        {(() => {
-          type CombinedKind = "email" | "phone" | "url" | "custom";
-
-          interface CombinedContact {
-            id: string;
-            source: "primary" | "additional";
-            kind: CombinedKind;
-            label: string; // main text
-            sublabel: string; // type text (Personal, Work, Mobile, etc.)
-            icon: React.ReactNode;
-            colorClass: string;
-            href?: string;
-            additionalIndex?: number;
-          }
-
-          const contacts: CombinedContact[] = [];
-
-          // --- primary contacts -------------------------------------------------
-          if (card.email) {
-            contacts.push({
-              id: "primary-email",
-              source: "primary",
-              kind: "email",
-              label: card.email,
-              sublabel: "Personal",
-              icon: <Mail className="h-6 w-6 text-white" />,
-              colorClass: contactBrandColors.email,
-              href: `mailto:${card.email}`,
-            });
-          }
-
-          if (card.phone) {
-            contacts.push({
-              id: "primary-phone",
-              source: "primary",
-              kind: "phone",
-              label: card.phone,
-              sublabel: "Mobile",
-              icon: <Phone className="h-6 w-6 text-white" />,
-              colorClass: contactBrandColors.phone,
-              href: `tel:${card.phone}`,
-            });
-          }
-
-          if (card.website) {
-            contacts.push({
-              id: "primary-website",
-              source: "primary",
-              kind: "url",
-              label: card.website,
-              sublabel: "Website",
-              icon: <Globe className="h-6 w-6 text-white" />,
-              colorClass: contactBrandColors.website,
-              href: card.website,
-            });
-          }
-
-          if (card.location) {
-            contacts.push({
-              id: "primary-location",
-              source: "primary",
-              kind: "custom",
-              label: card.location,
-              sublabel: "Location",
-              icon: <MapPin className="h-6 w-6 text-white" />,
-              colorClass: contactBrandColors.location,
-            });
-          }
-
-          // --- helper for additional type label --------------------------------
-          const getTypeLabel = (type: AdditionalContact["contactType"]) => {
-            switch (type) {
-              case "work":
-                return "Work";
-              case "home":
-                return "Home";
-              case "mobile":
-                return "Mobile";
-              case "office":
-                return "Office";
-              default:
-                return "Other";
-            }
-          };
-
-          const getContactIcon = (kind: AdditionalContact["kind"]) => {
-            switch (kind) {
-              case "email":
-                return <Mail className="h-6 w-6 text-white" />;
-              case "phone":
-                return <Phone className="h-6 w-6 text-white" />;
-              case "url":
-                return <Globe className="h-6 w-6 text-white" />;
-              case "custom":
-              default:
-                return <MapPin className="h-6 w-6 text-white" />;
-            }
-          };
-
-          const getContactColor = (kind: AdditionalContact["kind"]) => {
-            switch (kind) {
-              case "email":
-                return contactBrandColors.email;
-              case "phone":
-                return contactBrandColors.phone;
-              case "url":
-                return contactBrandColors.website;
-              case "custom":
-              default:
-                return contactBrandColors.location;
-            }
-          };
-
-          const getHref = (kind: AdditionalContact["kind"], value: string) => {
-            if (!value) return undefined;
-            switch (kind) {
-              case "email":
-                return `mailto:${value}`;
-              case "phone":
-                return `tel:${value}`;
-              case "url":
-                return value;
-              default:
-                return undefined;
-            }
-          };
-
-          // --- additional contacts ---------------------------------------------
-          additionalContacts.forEach((contact, index) => {
-            if (!contact.value) return;
-
-            contacts.push({
-              id: contact.id,
-              source: "additional",
-              kind: contact.kind,
-              label: contact.value,
-              sublabel: getTypeLabel(contact.contactType),
-              icon: getContactIcon(contact.kind),
-              colorClass: getContactColor(contact.kind),
-              href: getHref(contact.kind, contact.value),
-              additionalIndex: index,
-            });
-          });
-
-          // --- sorting: group by kind, then primary first, then additional order
-          const kindRank = (kind: CombinedKind) => {
-            switch (kind) {
-              case "email":
-                return 1;
-              case "phone":
-                return 2;
-              case "url":
-                return 3;
-              case "custom":
-              default:
-                return 4;
-            }
-          };
-
-          contacts.sort((a, b) => {
-            const kd = kindRank(a.kind) - kindRank(b.kind);
-            if (kd !== 0) return kd;
-
-            // primary before additional within same kind
-            const sd = (a.source === "primary" ? 0 : 1) - (b.source === "primary" ? 0 : 1);
-            if (sd !== 0) return sd;
-
-            // both additional: follow array order (which your drag-and-drop updates)
-            if (a.source === "additional" && b.source === "additional") {
-              return (a.additionalIndex ?? 0) - (b.additionalIndex ?? 0);
-            }
-
-            return 0;
-          });
-
-          // --- render contacts with animation ----------------------------------
-          return contacts.map((item, index) => {
-            const delay = 0.1 + index * 0.1;
-
-            const handleClick =
-              isInteractive && item.href
-                ? () => {
-                    if (item.kind === "url") {
-                      window.open(item.href, "_blank");
-                    } else {
-                      window.open(item.href);
-                    }
-                  }
-                : undefined;
-
-            return (
-              <div
-                key={item.id}
-                className="animate-fade-in"
-                style={{
-                  animationDelay: `${delay}s`,
-                  animationFillMode: "backwards",
-                }}
-              >
-                <ContactButton
-                  icon={item.icon}
-                  label={item.label}
-                  sublabel={item.sublabel}
-                  colorClass={item.colorClass}
-                  onClick={handleClick}
-                  isInteractive={isInteractive}
-                />
-              </div>
-            );
-          });
-        })()}
-      </div>
-
-      {/* QR Code */}
-      {showQRCode && card.public_url && (
-        <div className="flex flex-col items-center gap-3 p-6 transition-colors duration-500">
-          <QRCodeDisplay
-            url={card.public_url}
-            settings={theme?.qr}
-            size={192}
-            className="transition-all duration-300"
-            showDownload={isInteractive}
-            downloadFileName={`${card.full_name?.replace(/\s+/g, "-") || "card"}-qr`}
-          />
-          <p className="text-xs text-muted-foreground">Scan to view this card</p>
-        </div>
-      )}
-
-      {/* Save Contact Button (always show) */}
-      <div className="px-4 pb-4 animate-fade-in" style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}>
-        {isInteractive && showVCardButtons ? (
-          <Button
-            className="w-full gap-2 transition-all duration-300 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
-            style={{
-              backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
-            }}
-            onClick={() => handleDownloadVCard(true)}
-          >
-            <Download className="h-4 w-4 relative z-10" />
-            <span className="relative z-10">Save Contact</span>
-          </Button>
-        ) : (
-          <button
-            className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
-            style={{
-              backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
-            }}
-          >
-            <span className="relative z-10">Save Contact</span>
-          </button>
+            })}
+          </div>
         )}
+
+        {/* Unified Contact Buttons (primary + additional together) */}
+        <div className="space-y-3 px-4 pb-4">
+          {(() => {
+            type CombinedKind = "email" | "phone" | "url" | "custom";
+
+            interface CombinedContact {
+              id: string;
+              source: "primary" | "additional";
+              kind: CombinedKind;
+              label: string;
+              sublabel: string;
+              icon: React.ReactNode;
+              colorClass: string;
+              href?: string;
+              additionalIndex?: number;
+            }
+
+            const contacts: CombinedContact[] = [];
+
+            // primary contacts
+            if (card.email) {
+              contacts.push({
+                id: "primary-email",
+                source: "primary",
+                kind: "email",
+                label: card.email,
+                sublabel: "Personal",
+                icon: <Mail className="h-6 w-6 text-white" />,
+                colorClass: contactBrandColors.email,
+                href: `mailto:${card.email}`,
+              });
+            }
+
+            if (card.phone) {
+              contacts.push({
+                id: "primary-phone",
+                source: "primary",
+                kind: "phone",
+                label: card.phone,
+                sublabel: "Mobile",
+                icon: <Phone className="h-6 w-6 text-white" />,
+                colorClass: contactBrandColors.phone,
+                href: `tel:${card.phone}`,
+              });
+            }
+
+            if (card.website) {
+              contacts.push({
+                id: "primary-website",
+                source: "primary",
+                kind: "url",
+                label: card.website,
+                sublabel: "Website",
+                icon: <Globe className="h-6 w-6 text-white" />,
+                colorClass: contactBrandColors.website,
+                href: card.website,
+              });
+            }
+
+            if (card.location) {
+              contacts.push({
+                id: "primary-location",
+                source: "primary",
+                kind: "custom",
+                label: card.location,
+                sublabel: "Location",
+                icon: <MapPin className="h-6 w-6 text-white" />,
+                colorClass: contactBrandColors.location,
+              });
+            }
+
+            // helpers for additional contacts
+            const getTypeLabel = (type: AdditionalContact["contactType"]) => {
+              switch (type) {
+                case "work":
+                  return "Work";
+                case "home":
+                  return "Home";
+                case "mobile":
+                  return "Mobile";
+                case "office":
+                  return "Office";
+                default:
+                  return "Other";
+              }
+            };
+
+            const getContactIcon = (kind: AdditionalContact["kind"]) => {
+              switch (kind) {
+                case "email":
+                  return <Mail className="h-6 w-6 text-white" />;
+                case "phone":
+                  return <Phone className="h-6 w-6 text-white" />;
+                case "url":
+                  return <Globe className="h-6 w-6 text-white" />;
+                case "custom":
+                default:
+                  return <MapPin className="h-6 w-6 text-white" />;
+              }
+            };
+
+            const getContactColor = (kind: AdditionalContact["kind"]) => {
+              switch (kind) {
+                case "email":
+                  return contactBrandColors.email;
+                case "phone":
+                  return contactBrandColors.phone;
+                case "url":
+                  return contactBrandColors.website;
+                case "custom":
+                default:
+                  return contactBrandColors.location;
+              }
+            };
+
+            const getHref = (kind: AdditionalContact["kind"], value: string) => {
+              if (!value) return undefined;
+              switch (kind) {
+                case "email":
+                  return `mailto:${value}`;
+                case "phone":
+                  return `tel:${value}`;
+                case "url":
+                  return value;
+                default:
+                  return undefined;
+              }
+            };
+
+            // additional contacts
+            additionalContacts.forEach((contact, index) => {
+              if (!contact.value) return;
+
+              contacts.push({
+                id: contact.id,
+                source: "additional",
+                kind: contact.kind,
+                label: contact.value,
+                sublabel: getTypeLabel(contact.contactType),
+                icon: getContactIcon(contact.kind),
+                colorClass: getContactColor(contact.kind),
+                href: getHref(contact.kind, contact.value),
+                additionalIndex: index,
+              });
+            });
+
+            const kindRank = (kind: CombinedKind) => {
+              switch (kind) {
+                case "email":
+                  return 1;
+                case "phone":
+                  return 2;
+                case "url":
+                  return 3;
+                case "custom":
+                default:
+                  return 4;
+              }
+            };
+
+            contacts.sort((a, b) => {
+              const kd = kindRank(a.kind) - kindRank(b.kind);
+              if (kd !== 0) return kd;
+
+              const sd = (a.source === "primary" ? 0 : 1) - (b.source === "primary" ? 0 : 1);
+              if (sd !== 0) return sd;
+
+              if (a.source === "additional" && b.source === "additional") {
+                return (a.additionalIndex ?? 0) - (b.additionalIndex ?? 0);
+              }
+
+              return 0;
+            });
+
+            return contacts.map((item, index) => {
+              const delay = 0.1 + index * 0.1;
+
+              const handleClick =
+                isInteractive && item.href
+                  ? () => {
+                      if (item.kind === "url") {
+                        window.open(item.href, "_blank");
+                      } else {
+                        window.open(item.href);
+                      }
+                    }
+                  : undefined;
+
+              return (
+                <div
+                  key={item.id}
+                  className="animate-fade-in"
+                  style={{
+                    animationDelay: `${delay}s`,
+                    animationFillMode: "backwards",
+                  }}
+                >
+                  <ContactButton
+                    icon={item.icon}
+                    label={item.label}
+                    sublabel={item.sublabel}
+                    colorClass={item.colorClass}
+                    onClick={handleClick}
+                    isInteractive={isInteractive}
+                  />
+                </div>
+              );
+            });
+          })()}
+        </div>
+
+        {/* QR Code */}
+        {showQRCode && card.public_url && (
+          <div className="flex flex-col items-center gap-3 p-6 transition-colors duration-500">
+            <QRCodeDisplay
+              url={card.public_url}
+              settings={theme?.qr}
+              size={192}
+              className="transition-all duration-300"
+              showDownload={isInteractive}
+              downloadFileName={`${card.full_name?.replace(/\s+/g, "-") || "card"}-qr`}
+            />
+            <p className="text-xs text-muted-foreground">Scan to view this card</p>
+          </div>
+        )}
+
+        {/* Save Contact Button (always show) */}
+        <div className="px-4 pb-4 animate-fade-in" style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}>
+          {isInteractive && showVCardButtons ? (
+            <Button
+              className="w-full gap-2 transition-all duration-300 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
+              style={{
+                backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
+              }}
+              onClick={() => handleDownloadVCard(true)}
+            >
+              <Download className="h-4 w-4 relative z-10" />
+              <span className="relative z-10">Save Contact</span>
+            </Button>
+          ) : (
+            <button
+              className="w-full h-14 text-white text-lg font-semibold rounded-full transition-all duration-500 hover:brightness-90 animate-[pulse_2s_ease-in-out_infinite] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
+              style={{
+                backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
+              }}
+            >
+              <span className="relative z-10">Save Contact</span>
+            </button>
+          )}
+        </div>
       </div>
     </Card>
   );
