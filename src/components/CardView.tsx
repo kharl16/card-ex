@@ -182,7 +182,9 @@ export default function CardView({
 
   return (
     <Card
-      className="overflow-hidden border-0 rounded-xl shadow-lg transition-all duration-500 ease-out"
+      return (
+  <Card
+    className="relative border-0 rounded-xl shadow-lg transition-all duration-500 ease-out overflow-visible"
       style={{
         ...getBackgroundStyle(),
         color: theme?.text || undefined,
