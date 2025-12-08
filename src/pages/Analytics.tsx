@@ -29,47 +29,73 @@ interface AnalyticsData {
 }
 
 export default function Analytics() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<AnalyticsData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dateRange, setDateRange] = useState(30);
+  const [dateRange, setDateRange] = useState<7 | 30 | 90>(30);
 
   useEffect(() => {
+    if (!id) {
+      console.error("Analytics page loaded without card id in route params");
+      toast.error("Missing card ID for analytics");
+      setLoading(false);
+      return;
+    }
+
+    const loadAnalytics = async () => {
+      setLoading(true);
+      try {
+        const startDate = format(startOfDay(subDays(new Date(), dateRange)), "yyyy-MM-dd");
+        const endDate = format(endOfDay(new Date()), "yyyy-MM-dd");
+
+        console.log("[Analytics] Loading for card_id =", id, "range", {
+          startDate,
+          endDate,
+        });
+
+        const { data: analyticsData, error } = await supabase
+          .from("analytics_daily")
+          .select("*")
+          .eq("card_id", id)
+          .gte("day", startDate)
+          .lte("day", endDate)
+          .order("day", { ascending: true });
+
+        if (error) {
+          console.error("[Analytics] Supabase error:", error);
+          toast.error("Failed to load analytics");
+          setData([]);
+          return;
+        }
+
+        console.log("[Analytics] Raw analytics rows:", analyticsData);
+
+        if (analyticsData && analyticsData.length > 0) {
+          setData(
+            analyticsData.map((item: any) => ({
+              day: format(new Date(item.day), "MMM dd"),
+              views: item.views || 0,
+              unique_views: item.unique_views || 0,
+              qr_scans: item.qr_scans || 0,
+              cta_clicks: item.cta_clicks || 0,
+              vcard_downloads: item.vcard_downloads || 0,
+            })),
+          );
+        } else {
+          setData([]);
+        }
+      } catch (err) {
+        console.error("[Analytics] Unexpected error:", err);
+        toast.error("Failed to load analytics");
+        setData([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadAnalytics();
   }, [id, dateRange]);
-
-  const loadAnalytics = async () => {
-    if (!id) return;
-
-    const startDate = format(startOfDay(subDays(new Date(), dateRange)), "yyyy-MM-dd");
-    const endDate = format(endOfDay(new Date()), "yyyy-MM-dd");
-
-    const { data: analyticsData, error } = await supabase
-      .from("analytics_daily")
-      .select("*")
-      .eq("card_id", id)
-      .gte("day", startDate)
-      .lte("day", endDate)
-      .order("day", { ascending: true });
-
-    if (error) {
-      toast.error("Failed to load analytics");
-      console.error(error);
-    } else if (analyticsData) {
-      setData(
-        analyticsData.map((item) => ({
-          day: format(new Date(item.day), "MMM dd"),
-          views: item.views || 0,
-          unique_views: item.unique_views || 0,
-          qr_scans: item.qr_scans || 0,
-          cta_clicks: item.cta_clicks || 0,
-          vcard_downloads: item.vcard_downloads || 0,
-        }))
-      );
-    }
-    setLoading(false);
-  };
 
   const totalStats = data.reduce(
     (acc, curr) => ({
@@ -79,7 +105,7 @@ export default function Analytics() {
       cta_clicks: acc.cta_clicks + curr.cta_clicks,
       vcard_downloads: acc.vcard_downloads + curr.vcard_downloads,
     }),
-    { views: 0, unique_views: 0, qr_scans: 0, cta_clicks: 0, vcard_downloads: 0 }
+    { views: 0, unique_views: 0, qr_scans: 0, cta_clicks: 0, vcard_downloads: 0 },
   );
 
   if (loading) {
@@ -100,25 +126,13 @@ export default function Analytics() {
           </Button>
           <h1 className="text-lg font-semibold">Analytics</h1>
           <div className="flex gap-2">
-            <Button
-              variant={dateRange === 7 ? "default" : "outline"}
-              size="sm"
-              onClick={() => setDateRange(7)}
-            >
+            <Button variant={dateRange === 7 ? "default" : "outline"} size="sm" onClick={() => setDateRange(7)}>
               7 Days
             </Button>
-            <Button
-              variant={dateRange === 30 ? "default" : "outline"}
-              size="sm"
-              onClick={() => setDateRange(30)}
-            >
+            <Button variant={dateRange === 30 ? "default" : "outline"} size="sm" onClick={() => setDateRange(30)}>
               30 Days
             </Button>
-            <Button
-              variant={dateRange === 90 ? "default" : "outline"}
-              size="sm"
-              onClick={() => setDateRange(90)}
-            >
+            <Button variant={dateRange === 90 ? "default" : "outline"} size="sm" onClick={() => setDateRange(90)}>
               90 Days
             </Button>
           </div>
@@ -134,9 +148,7 @@ export default function Analytics() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalStats.views}</div>
-              <p className="text-xs text-muted-foreground">
-                {totalStats.unique_views} unique visitors
-              </p>
+              <p className="text-xs text-muted-foreground">{totalStats.unique_views} unique visitors</p>
             </CardContent>
           </Card>
           <Card>
@@ -181,18 +193,8 @@ export default function Analytics() {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="views"
-                    stroke="hsl(var(--primary))"
-                    name="Total Views"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="unique_views"
-                    stroke="hsl(var(--secondary))"
-                    name="Unique Views"
-                  />
+                  <Line type="monotone" dataKey="views" stroke="hsl(var(--primary))" name="Total Views" />
+                  <Line type="monotone" dataKey="unique_views" stroke="hsl(var(--secondary))" name="Unique Views" />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -212,11 +214,7 @@ export default function Analytics() {
                   <Legend />
                   <Bar dataKey="qr_scans" fill="hsl(var(--primary))" name="QR Scans" />
                   <Bar dataKey="cta_clicks" fill="hsl(var(--accent))" name="CTA Clicks" />
-                  <Bar
-                    dataKey="vcard_downloads"
-                    fill="hsl(var(--secondary))"
-                    name="vCard Downloads"
-                  />
+                  <Bar dataKey="vcard_downloads" fill="hsl(var(--secondary))" name="vCard Downloads" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
