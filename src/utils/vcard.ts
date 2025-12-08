@@ -6,87 +6,97 @@ type CardData = Tables<"cards">;
 
 export interface AdditionalContact {
   id: string;
-  kind: string;
+  kind: "email" | "phone" | "url" | "custom";
+  label: string;
   value: string;
-  label?: string;
 }
 
+// Map CardData to canonical Profile format
 function mapCardToProfile(card: CardData, additionalContacts?: AdditionalContact[]): Profile {
-  // Build phones array
-  const phones: Profile['phones'] = [];
-  if (card.phone) {
-    phones.push({ type: 'CELL', value: card.phone });
-  }
-  // Add additional phones
-  additionalContacts?.filter(c => c.kind === 'phone').forEach(c => {
-    phones.push({ type: 'OTHER', value: c.value });
-  });
+  // Process additional contacts
+  const additionalEmails: Profile["emails"] = [];
+  const additionalPhones: Profile["phones"] = [];
+  const additionalWebsites: Profile["websites"] = [];
+  const additionalAddresses: Profile["addresses"] = [];
 
-  // Build emails array
-  const emails: Profile['emails'] = [];
-  additionalContacts?.filter(c => c.kind === 'email').forEach(c => {
-    emails.push({ type: 'OTHER', value: c.value, label: c.label });
-  });
+  if (additionalContacts) {
+    for (const contact of additionalContacts) {
+      if (!contact.value) continue;
 
-  // Build websites array
-  const websites: Profile['websites'] = [];
-  additionalContacts?.filter(c => c.kind === 'url').forEach(c => {
-    websites.push({ type: 'OTHER', value: c.value, label: c.label });
-  });
-
-  // Build addresses array from additional locations
-  const addresses: Profile['addresses'] = [];
-  additionalContacts?.filter(c => c.kind === 'custom' || c.kind === 'location').forEach(c => {
-    addresses.push({ street: c.value, type: 'OTHER', label: c.label });
-  });
-
-  // Parse card.theme for socials if available
-  let socials: Profile['socials'] = {};
-  if (card.theme && typeof card.theme === 'object') {
-    const theme = card.theme as Record<string, unknown>;
-    if (theme.socialLinks && Array.isArray(theme.socialLinks)) {
-      const socialLinks = theme.socialLinks as Array<{ platform: string; url: string }>;
-      socialLinks.forEach(link => {
-        const platform = link.platform?.toLowerCase();
-        if (platform === 'facebook') socials!.facebook = link.url;
-        else if (platform === 'instagram') socials!.instagram = link.url;
-        else if (platform === 'tiktok') socials!.tiktok = link.url;
-        else if (platform === 'youtube') socials!.youtube = link.url;
-        else if (platform === 'linkedin') socials!.linkedin = link.url;
-        else if (platform === 'twitter' || platform === 'x') socials!.twitter = link.url;
-        else if (platform === 'whatsapp') socials!.whatsapp = link.url;
-      });
+      if (contact.kind === "email") {
+        additionalEmails.push({
+          type: "OTHER",
+          value: contact.value,
+          label: contact.label,
+        });
+      } else if (contact.kind === "phone") {
+        additionalPhones.push({ type: "OTHER", value: contact.value });
+      } else if (contact.kind === "url") {
+        additionalWebsites.push({
+          type: "OTHER",
+          value: contact.value,
+          label: contact.label,
+        });
+      } else if (contact.kind === "custom") {
+        additionalAddresses.push({
+          street: contact.value,
+          type: "OTHER",
+          label: contact.label,
+        });
+      }
     }
   }
 
   return {
     prefix: card.prefix || undefined,
-    first_name: card.first_name || '',
+    first_name: card.first_name || "",
     middle_name: card.middle_name || undefined,
-    last_name: card.last_name || '',
+    last_name: card.last_name || "",
     suffix: card.suffix || undefined,
     org: card.company || undefined,
     title: card.title || undefined,
     email: card.email || undefined,
-    emails: emails.length > 0 ? emails : undefined,
-    phones: phones.length > 0 ? phones : undefined,
+    emails: additionalEmails.length > 0 ? additionalEmails : undefined,
+    phones: card.phone
+      ? [{ type: "CELL", value: card.phone }, ...additionalPhones]
+      : additionalPhones.length > 0
+        ? additionalPhones
+        : undefined,
     website: card.website || undefined,
-    websites: websites.length > 0 ? websites : undefined,
-    address: card.location ? { street: card.location, type: 'WORK' } : undefined,
-    addresses: addresses.length > 0 ? addresses : undefined,
-    photo_url: card.avatar_url || undefined,
-    socials: Object.keys(socials).length > 0 ? socials : undefined,
+    websites: additionalWebsites.length > 0 ? additionalWebsites : undefined,
+    address: card.location ? { street: card.location, type: "WORK" } : undefined,
+    addresses: additionalAddresses.length > 0 ? additionalAddresses : undefined,
     notes: card.bio || undefined,
-    uid: card.id,
+    photo_url: card.avatar_url || undefined,
+    uid: `cardex-${card.id}`,
   };
 }
 
+// Simple front-end rate limiter for downloads
+let lastVCardDownloadAt: number | null = null;
+
+/**
+ * Generate the vCard text.
+ * Also validates the card is published.
+ */
 export async function generateVCard(card: CardData, additionalContacts?: AdditionalContact[]): Promise<string> {
+  if (!card.is_published) {
+    throw new Error("Cannot generate vCard for an unpublished card.");
+  }
+
   const profile = mapCardToProfile(card, additionalContacts);
   return await profileToVCardV3(profile);
 }
 
-export async function downloadVCard(card: CardData, additionalContacts?: AdditionalContact[]): Promise<void> {
+/**
+ * Ensure there is a vcard_url for this card:
+ *  - generates the vCard
+ *  - uploads to Supabase Storage ("vcards" bucket)
+ *  - updates cards.vcard_url
+ *  - returns the public URL (or null on failure)
+ */
+export async function ensureVCardUrl(card: CardData, additionalContacts?: AdditionalContact[]): Promise<string | null> {
+  // Generate vCard content (throws if not published)
   const vcardContent = await generateVCard(card, additionalContacts);
 
   const safeName =
@@ -97,9 +107,9 @@ export async function downloadVCard(card: CardData, additionalContacts?: Additio
 
   const filePath = `cards/${card.id}/${safeName}.vcf`;
 
-  // 1) Upload vCard text to Supabase Storage
+  // Upload to Supabase Storage; upsert so latest data always overwrites
   const { error: uploadError } = await supabase.storage
-    .from("vcards")
+    .from("vcards") // 🔹 change "vcards" if your bucket name is different
     .upload(filePath, vcardContent, {
       cacheControl: "3600",
       upsert: true,
@@ -107,56 +117,79 @@ export async function downloadVCard(card: CardData, additionalContacts?: Additio
     });
 
   if (uploadError) {
-    console.error("Failed to upload vCard:", uploadError);
-    // Fallback: still let the user download via blob so UX is not broken
-    const blob = new Blob([vcardContent], {
-      type: "text/vcard;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${safeName}.vcf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    return;
+    console.error("Failed to upload vCard to Supabase:", uploadError);
+    return null;
   }
 
-  // 2) Get public URL from Storage
+  // Get public URL
   const { data: publicData } = supabase.storage.from("vcards").getPublicUrl(filePath);
 
   const publicUrl = publicData?.publicUrl;
-
-  // 3) Save vcard_url in the cards table
-  if (publicUrl) {
-    const { error: updateError } = await supabase.from("cards").update({ vcard_url: publicUrl }).eq("id", card.id);
-
-    if (updateError) {
-      console.error("Failed to update card with vcard_url:", updateError);
-    }
+  if (!publicUrl) {
+    console.error("No public URL returned for vCard file:", filePath);
+    return null;
   }
 
-  // 4) Trigger the actual download for the user
-  if (publicUrl) {
-    const link = document.createElement("a");
-    link.href = publicUrl;
-    link.download = `${safeName}.vcf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } else {
-    // Fallback again: blob download if somehow no URL
+  // Save vcard_url into the cards table
+  const { error: updateError } = await supabase.from("cards").update({ vcard_url: publicUrl }).eq("id", card.id);
+
+  if (updateError) {
+    console.error("Failed to update card with vcard_url:", updateError);
+  }
+
+  return publicUrl;
+}
+
+/**
+ * Download the vCard:
+ *  - rate-limited (5 seconds)
+ *  - requires published card
+ *  - uses the permanent Supabase URL (and updates vcard_url)
+ *  - falls back to blob download if something goes wrong
+ */
+export async function downloadVCard(card: CardData, additionalContacts?: AdditionalContact[]): Promise<void> {
+  const now = Date.now();
+
+  // Rate limit: 1 download every 5 seconds from this tab
+  if (lastVCardDownloadAt && now - lastVCardDownloadAt < 5000) {
+    console.warn("vCard download rate-limited");
+    return;
+  }
+  lastVCardDownloadAt = now;
+
+  try {
+    // Try to get / generate a permanent URL
+    const publicUrl = await ensureVCardUrl(card, additionalContacts);
+
+    if (publicUrl) {
+      const link = document.createElement("a");
+      link.href = publicUrl;
+      link.download = card.full_name?.trim().replace(/\s+/g, "-") || "contact.vcf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+  } catch (err) {
+    console.error("Error ensuring vcard_url, falling back to blob:", err);
+  }
+
+  // Fallback: local blob download if any step failed
+  try {
+    const vcardContent = await generateVCard(card, additionalContacts);
     const blob = new Blob([vcardContent], {
       type: "text/vcard;charset=utf-8",
     });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+    const safeName = card.full_name?.trim().replace(/\s+/g, "-") || "contact.vcf";
     link.href = url;
-    link.download = `${safeName}.vcf`;
+    link.download = safeName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error("Final vCard generation failed:", err);
   }
 }
