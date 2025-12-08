@@ -48,8 +48,8 @@ export default function RiderHeader({
   const darkerPrimary = adjustHexColor(basePrimary, -40);
 
   return (
-    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-visible z-[999]">
-      {/* Cover image (positioning context) */}
+    <div className="relative w-full mb-6 overflow-visible z-[50]">
+      {/* Cover image */}
       <div
         className="relative h-48 sm:h-56 w-full overflow-hidden"
         style={{
@@ -65,8 +65,8 @@ export default function RiderHeader({
         {/* Contrast overlay */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none z-10" />
 
-        {/* Avatar + Logo row: centers on cover bottom */}
-        <div className="absolute inset-x-0 bottom-0 translate-y-1/2 px-8 sm:px-10 flex items-center justify-between pointer-events-none z-[999]">
+        {/* Avatar + logo row */}
+        <div className="absolute inset-x-0 bottom-0 translate-y-1/2 px-8 sm:px-10 flex items-center justify-between z-20 pointer-events-none">
           {/* Avatar */}
           <div className="pointer-events-auto">
             <div
@@ -112,12 +112,11 @@ export default function RiderHeader({
         </div>
       </div>
 
-      {/* BIG spacer so nothing overlaps the lower half of avatar/logo */}
-      <div className="h-28 sm:h-32" />
+      {/* Spacer so content below never overlaps the circles */}
+      <div className="h-20 sm:h-24" />
 
-      {/* Name / Title */}
       {(name || title) && (
-        <div className="pl-8 sm:pl-10 pr-6 pt-2 pb-2 relative z-[999]">
+        <div className="pl-8 sm:pl-10 pr-6 pt-1 pb-2 relative z-30">
           <div className="flex flex-col space-y-1 leading-relaxed">
             {name && <h1 className="text-xl sm:text-2xl font-bold">{name}</h1>}
             {title && <p className="text-sm sm:text-base text-muted-foreground">{title}</p>}
