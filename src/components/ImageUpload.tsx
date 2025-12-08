@@ -14,6 +14,10 @@ interface ImageUploadProps {
   displayMode?: "contain" | "cover";
   onDisplayModeChange?: (mode: "contain" | "cover") => void;
   showDisplayToggle?: boolean;
+  /** Optional: override Supabase bucket (default: "media") */
+  bucket?: string;
+  /** Optional: extra folder prefix inside bucket, ex: "avatars" */
+  folderPrefix?: string;
 }
 
 export default function ImageUpload({
@@ -25,6 +29,8 @@ export default function ImageUpload({
   displayMode = "contain",
   onDisplayModeChange,
   showDisplayToggle = false,
+  bucket = "media",
+  folderPrefix,
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -44,7 +50,7 @@ export default function ImageUpload({
     img.onload = () => setImageError(false);
     img.onerror = () => {
       setImageError(true);
-      toast.error("Image not found. Please re-upload your " + label.toLowerCase() + ".");
+      toast.error(`Image not found. Please re-upload your ${label.toLowerCase()}.`);
     };
     img.src = value;
   }, [value, label]);
@@ -58,30 +64,27 @@ export default function ImageUpload({
       } = await supabase.auth.getUser();
 
       if (!user) {
-        toast.error("You must be logged in to upload images");
+        toast.error("You must be logged in to upload images.");
         return;
       }
 
-      // Generate unique filename
-      const fileName = `${user.id}/${Date.now()}.jpg`;
+      const timestamp = Date.now();
+      const basePath = folderPrefix ? `${folderPrefix}/${user.id}` : `${user.id}`;
+      const fileName = `${basePath}/${timestamp}.jpg`;
 
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from("media")
-        .upload(fileName, blob, {
-          cacheControl: "3600",
-          upsert: false,
-          contentType: "image/jpeg",
-        });
+      const { data, error } = await supabase.storage.from(bucket).upload(fileName, blob, {
+        cacheControl: "3600",
+        upsert: false,
+        contentType: "image/jpeg",
+      });
 
       if (error) {
         throw error;
       }
 
-      // Get public URL
       const {
         data: { publicUrl },
-      } = supabase.storage.from("media").getPublicUrl(data.path);
+      } = supabase.storage.from(bucket).getPublicUrl(data.path);
 
       onChange(publicUrl);
       toast.success("Image uploaded successfully!");
@@ -94,28 +97,31 @@ export default function ImageUpload({
     }
   };
 
+  const openEditorWithFile = (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    // Validate file size
+    if (file.size > maxSize * 1024 * 1024) {
+      toast.error(`File size must be less than ${maxSize}MB`);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setTempImageSrc(reader.result as string);
+      setEditorOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please upload an image file");
-        return;
-      }
-
-      // Validate file size
-      if (file.size > maxSize * 1024 * 1024) {
-        toast.error(`File size must be less than ${maxSize}MB`);
-        return;
-      }
-
-      // Open editor with the selected image
-      const reader = new FileReader();
-      reader.onload = () => {
-        setTempImageSrc(reader.result as string);
-        setEditorOpen(true);
-      };
-      reader.readAsDataURL(file);
+      openEditorWithFile(file);
     }
     // Reset input so same file can be selected again
     e.target.value = "";
@@ -123,7 +129,9 @@ export default function ImageUpload({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    setIsDragging(true);
+    if (!uploading) {
+      setIsDragging(true);
+    }
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -134,28 +142,11 @@ export default function ImageUpload({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+    if (uploading) return;
 
-    const file = e.dataTransfer.files[0];
+    const file = e.dataTransfer.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith("image/")) {
-        toast.error("Please upload an image file");
-        return;
-      }
-
-      // Validate file size
-      if (file.size > maxSize * 1024 * 1024) {
-        toast.error(`File size must be less than ${maxSize}MB`);
-        return;
-      }
-
-      // Open editor with the dropped image
-      const reader = new FileReader();
-      reader.onload = () => {
-        setTempImageSrc(reader.result as string);
-        setEditorOpen(true);
-      };
-      reader.readAsDataURL(file);
+      openEditorWithFile(file);
     }
   };
 
@@ -174,32 +165,38 @@ export default function ImageUpload({
     if (!value) return;
 
     try {
-      // Extract path from URL
       const url = new URL(value);
-      const path = url.pathname.split("/storage/v1/object/public/media/")[1];
+
+      // Public URL pattern: /storage/v1/object/public/{bucket}/{path}
+      const parts = url.pathname.split(`/storage/v1/object/public/${bucket}/`);
+      const path = parts[1];
 
       if (path) {
-        await supabase.storage.from("media").remove([path]);
+        await supabase.storage.from(bucket).remove([path]);
       }
 
       onChange(null);
       toast.success("Image removed");
     } catch (error) {
       console.error("Remove error:", error);
-      toast.error("Failed to remove image");
+      // Even if delete fails, we still let user clear the UI
+      onChange(null);
+      toast.error("Failed to remove image from storage, but it was cleared locally.");
     }
   };
+
+  const canToggleDisplayMode = showDisplayToggle && value && onDisplayModeChange && !imageError;
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium">{label}</label>
-        {showDisplayToggle && value && onDisplayModeChange && (
+        {canToggleDisplayMode && (
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            onClick={() => onDisplayModeChange(displayMode === "contain" ? "cover" : "contain")}
+            onClick={() => onDisplayModeChange!(displayMode === "contain" ? "cover" : "contain")}
             className="h-7 text-xs gap-1"
           >
             {displayMode === "contain" ? (
@@ -219,19 +216,18 @@ export default function ImageUpload({
 
       <div
         className={`relative ${aspectRatio} w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
-          isDragging
-            ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/50"
+          isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        aria-busy={uploading}
       >
         {value ? (
           <div className="relative h-full w-full bg-muted/30">
             {imageError ? (
-              <div 
-                className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 p-4 text-center bg-destructive/10 border-2 border-destructive/30 rounded-lg"
+              <div
+                className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-destructive/30 bg-destructive/10 p-4 text-center"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <AlertTriangle className="h-8 w-8 text-destructive" />
@@ -246,6 +242,7 @@ export default function ImageUpload({
                 onError={() => setImageError(true)}
               />
             )}
+
             <div className="absolute right-2 top-2 flex gap-1">
               {!imageError && (
                 <Button
@@ -270,11 +267,22 @@ export default function ImageUpload({
                 <X className="h-4 w-4" />
               </Button>
             </div>
+
+            {uploading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-sm">
+                <div className="flex flex-col items-center gap-2">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <p className="text-xs text-muted-foreground">Uploading…</p>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
-          <div
-            className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 p-4 text-center"
+          <button
+            type="button"
+            className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 p-4 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
           >
             {uploading ? (
               <>
@@ -285,12 +293,10 @@ export default function ImageUpload({
               <>
                 <Upload className="h-8 w-8 text-muted-foreground" />
                 <p className="text-sm font-medium">Click to upload or drag and drop</p>
-                <p className="text-xs text-muted-foreground">
-                  PNG, JPG, WEBP (max {maxSize}MB)
-                </p>
+                <p className="text-xs text-muted-foreground">PNG, JPG, WEBP (max {maxSize}MB)</p>
               </>
             )}
-          </div>
+          </button>
         )}
 
         <input
@@ -303,7 +309,6 @@ export default function ImageUpload({
         />
       </div>
 
-      {/* Image Editor Dialog */}
       {tempImageSrc && (
         <ImageEditorDialog
           open={editorOpen}
