@@ -73,7 +73,7 @@ export default function RiderHeader({
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
 
         {/* Avatar & Logo row – vertical center touching base of cover, no horizontal change */}
-        <div className="absolute inset-x-0 bottom-0 translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-40 pointer-events-none">
+        <div className="absolute inset-x-0 bottom-0 translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[100] pointer-events-none">
           {/* Avatar */}
           <div
             className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar pointer-events-auto"
