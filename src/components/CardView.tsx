@@ -182,6 +182,7 @@ export default function CardView({
 
   return (
     <Card
+      // <– make the whole card a stacking context and avoid clipping
       className="relative border-0 rounded-xl shadow-lg transition-all duration-500 ease-out overflow-visible"
       style={{
         ...getBackgroundStyle(),
@@ -189,22 +190,20 @@ export default function CardView({
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      {/* Header (avatar + logo on top of everything) */}
-      <div className="relative z-20">
-        <RiderHeader
-          coverUrl={card.cover_url}
-          avatarUrl={card.avatar_url}
-          companyLogoUrl={card.logo_url}
-          name={getLiveNameFromCard(card)}
-          title={card.title || undefined}
-          primaryColor={basePrimary}
-          avatarDisplayMode={theme.avatarDisplayMode}
-          logoDisplayMode={theme.logoDisplayMode}
-        />
-      </div>
+      {/* Header using RiderHeader component */}
+      <RiderHeader
+        coverUrl={card.cover_url}
+        avatarUrl={card.avatar_url}
+        companyLogoUrl={card.logo_url}
+        name={getLiveNameFromCard(card)}
+        title={card.title || undefined}
+        primaryColor={basePrimary}
+        avatarDisplayMode={theme.avatarDisplayMode}
+        logoDisplayMode={theme.logoDisplayMode}
+      />
 
-      {/* Rest of the card content below, in a lower z-index */}
-      <div className="relative z-10">
+      {/* Everything below the header – normal stacking, avatar/logo stay above because of z-index in RiderHeader */}
+      <div className="relative z-0">
         {/* Company and Bio */}
         <div className="px-4 pb-4 transition-colors duration-500">
           {card.company && (
@@ -337,7 +336,7 @@ export default function CardView({
               });
             }
 
-            // helpers for additional contacts
+            // helpers
             const getTypeLabel = (type: AdditionalContact["contactType"]) => {
               switch (type) {
                 case "work":
@@ -412,6 +411,7 @@ export default function CardView({
               });
             });
 
+            // sort contacts
             const kindRank = (kind: CombinedKind) => {
               switch (kind) {
                 case "email":
@@ -440,6 +440,7 @@ export default function CardView({
               return 0;
             });
 
+            // render contacts
             return contacts.map((item, index) => {
               const delay = 0.1 + index * 0.1;
 
