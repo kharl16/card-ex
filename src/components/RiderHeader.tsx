@@ -48,8 +48,8 @@ export default function RiderHeader({
   const darkerPrimary = adjustHexColor(basePrimary, -40);
 
   return (
-    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-visible z-10">
-      {/* Cover image (this is now the positioning context) */}
+    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-visible z-[999]">
+      {/* Cover image (positioning context) */}
       <div
         className="relative h-48 sm:h-56 w-full overflow-hidden"
         style={{
@@ -62,14 +62,11 @@ export default function RiderHeader({
       >
         {coverUrl && <img src={coverUrl} alt="Cover" className="h-full w-full object-cover" />}
 
-        {/* Gradient overlay for better contrast */}
+        {/* Contrast overlay */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none z-10" />
 
-        {/* Avatar + Company Logo row
-            - anchored to the *cover* bottom
-            - translate-y-1/2 => center on the base of the cover
-        */}
-        <div className="absolute inset-x-0 bottom-0 translate-y-1/2 px-8 sm:px-10 flex items-center justify-between pointer-events-none z-[60]">
+        {/* Avatar + Logo row: centers on cover bottom */}
+        <div className="absolute inset-x-0 bottom-0 translate-y-1/2 px-8 sm:px-10 flex items-center justify-between pointer-events-none z-[999]">
           {/* Avatar */}
           <div className="pointer-events-auto">
             <div
@@ -79,7 +76,6 @@ export default function RiderHeader({
                 boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
               }}
             >
-              {/* Hover glow effect */}
               <div
                 className="absolute inset-0 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 blur-xl -z-10"
                 style={{
@@ -87,7 +83,6 @@ export default function RiderHeader({
                   transform: "scale(1.5)",
                 }}
               />
-              {/* Inner dark plate */}
               <div className="absolute inset-[4px] rounded-full bg-black flex items-center justify-center">
                 <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
                   {avatarUrl && (
@@ -117,12 +112,12 @@ export default function RiderHeader({
         </div>
       </div>
 
-      {/* Spacer so content doesn't overlap avatar/logo (height ≈ half outside cover) */}
-      <div className="h-20 sm:h-24" />
+      {/* BIG spacer so nothing overlaps the lower half of avatar/logo */}
+      <div className="h-28 sm:h-32" />
 
-      {/* Name/title positioned below avatar area */}
+      {/* Name / Title */}
       {(name || title) && (
-        <div className="pl-8 sm:pl-10 pr-6 pt-2 pb-2 relative z-20">
+        <div className="pl-8 sm:pl-10 pr-6 pt-2 pb-2 relative z-[999]">
           <div className="flex flex-col space-y-1 leading-relaxed">
             {name && <h1 className="text-xl sm:text-2xl font-bold">{name}</h1>}
             {title && <p className="text-sm sm:text-base text-muted-foreground">{title}</p>}
