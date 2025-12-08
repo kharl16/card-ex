@@ -240,6 +240,7 @@ export type Database = {
           logo_url: string | null
           middle_name: string | null
           organization_id: string | null
+          owner_name: string | null
           phone: string | null
           prefix: string | null
           public_url: string | null
@@ -276,6 +277,7 @@ export type Database = {
           logo_url?: string | null
           middle_name?: string | null
           organization_id?: string | null
+          owner_name?: string | null
           phone?: string | null
           prefix?: string | null
           public_url?: string | null
@@ -312,6 +314,7 @@ export type Database = {
           logo_url?: string | null
           middle_name?: string | null
           organization_id?: string | null
+          owner_name?: string | null
           phone?: string | null
           prefix?: string | null
           public_url?: string | null
