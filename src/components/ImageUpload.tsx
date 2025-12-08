@@ -1,3 +1,6 @@
+// ===============================
+// ImageUpload.tsx
+// ===============================
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, X, Loader2, Crop, Maximize2, Minimize2, AlertTriangle } from "lucide-react";
@@ -20,13 +23,13 @@ interface ImageUploadProps {
   folderPrefix?: string;
 }
 
-export default function ImageUpload({
+export function ImageUpload({
   value,
   onChange,
   label,
-  aspectRatio,
+  aspectRatio = "aspect-square",
   maxSize = 5,
-  displayMode,
+  displayMode = "contain",
   onDisplayModeChange,
   showDisplayToggle = false,
   bucket = "media",
@@ -39,15 +42,12 @@ export default function ImageUpload({
   const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // 🔧 Smart defaults for "Cover" / "Banner" images
+  // 🔍 Detect cover / banner style fields from the label
   const lowerLabel = label.toLowerCase();
   const isCoverLike = lowerLabel.includes("cover") || lowerLabel.includes("banner") || lowerLabel.includes("header");
 
-  // If parent didn't specify aspectRatio, pick based on label
-  const effectiveAspectRatio = aspectRatio ?? (isCoverLike ? "aspect-[16/9]" : "aspect-square");
-
-  // If parent didn't specify displayMode, pick based on label
-  const effectiveDisplayMode = displayMode ?? (isCoverLike ? "cover" : "contain");
+  // Use wide 16:9 aspect for covers, square (1) otherwise
+  const editorAspectRatio = isCoverLike ? 16 / 9 : 1;
 
   // Validate image URL when value changes
   useEffect(() => {
@@ -108,13 +108,11 @@ export default function ImageUpload({
   };
 
   const openEditorWithFile = (file: File) => {
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file");
       return;
     }
 
-    // Validate file size
     if (file.size > maxSize * 1024 * 1024) {
       toast.error(`File size must be less than ${maxSize}MB`);
       return;
@@ -133,7 +131,6 @@ export default function ImageUpload({
     if (file) {
       openEditorWithFile(file);
     }
-    // Reset input so same file can be selected again
     e.target.value = "";
   };
 
@@ -176,8 +173,6 @@ export default function ImageUpload({
 
     try {
       const url = new URL(value);
-
-      // Public URL pattern: /storage/v1/object/public/{bucket}/{path}
       const parts = url.pathname.split(`/storage/v1/object/public/${bucket}/`);
       const path = parts[1];
 
@@ -189,19 +184,12 @@ export default function ImageUpload({
       toast.success("Image removed");
     } catch (error) {
       console.error("Remove error:", error);
-      // Even if delete fails, we still let user clear the UI
       onChange(null);
       toast.error("Failed to remove image from storage, but it was cleared locally.");
     }
   };
 
   const canToggleDisplayMode = showDisplayToggle && value && onDisplayModeChange && !imageError;
-
-  const handleToggleDisplayMode = () => {
-    if (!onDisplayModeChange) return;
-    const nextMode = effectiveDisplayMode === "contain" ? "cover" : "contain";
-    onDisplayModeChange(nextMode);
-  };
 
   return (
     <div className="space-y-2">
@@ -212,10 +200,10 @@ export default function ImageUpload({
             type="button"
             variant="ghost"
             size="sm"
-            onClick={handleToggleDisplayMode}
+            onClick={() => onDisplayModeChange!(displayMode === "contain" ? "cover" : "contain")}
             className="h-7 text-xs gap-1"
           >
-            {effectiveDisplayMode === "contain" ? (
+            {displayMode === "contain" ? (
               <>
                 <Maximize2 className="h-3 w-3" />
                 Fit
@@ -231,7 +219,7 @@ export default function ImageUpload({
       </div>
 
       <div
-        className={`relative ${effectiveAspectRatio} w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
+        className={`relative ${aspectRatio} w-full overflow-hidden rounded-lg border-2 border-dashed transition-colors ${
           isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
         }`}
         onDragOver={handleDragOver}
@@ -254,7 +242,7 @@ export default function ImageUpload({
               <img
                 src={value}
                 alt={label}
-                className={`h-full w-full ${effectiveDisplayMode === "contain" ? "object-contain" : "object-cover"}`}
+                className={`h-full w-full ${displayMode === "contain" ? "object-contain" : "object-cover"}`}
                 onError={() => setImageError(true)}
               />
             )}
@@ -331,8 +319,11 @@ export default function ImageUpload({
           onOpenChange={setEditorOpen}
           imageSrc={tempImageSrc}
           onSave={handleEditorSave}
+          aspectRatio={editorAspectRatio} // 👈 16:9 for cover/banner, 1:1 otherwise
         />
       )}
     </div>
   );
 }
+
+export default ImageUpload;
