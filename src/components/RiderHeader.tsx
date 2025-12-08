@@ -61,10 +61,10 @@ export default function RiderHeader({
         {coverUrl && <img src={coverUrl} alt="Cover" className="w-full h-auto object-contain object-top block" />}
 
         {/* Gradient overlay for better contrast at the bottom of the cover */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent z-10" />
 
         {/* Avatar + Logo row, centered on the base edge of the cover */}
-        <div className="absolute inset-x-0 top-full -translate-y-1/2 z-20 px-8 sm:px-10 flex items-center justify-between">
+        <div className="absolute inset-x-0 top-full -translate-y-1/2 z-50 px-8 sm:px-10 flex items-center justify-between">
           {/* Avatar */}
           <div
             className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar"
