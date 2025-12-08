@@ -9,7 +9,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SignOutButton from "@/components/auth/SignOutButton";
-import { ArrowLeft, Edit, Trash2, Search, Plus, User, CreditCard, Users, UserPlus, Key, Mail, Copy, MoreHorizontal } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Search,
+  Plus,
+  User,
+  CreditCard,
+  Users,
+  UserPlus,
+  Key,
+  Mail,
+  Copy,
+  MoreHorizontal,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -39,13 +53,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { AdminCreateCardDialog } from "@/components/admin/AdminCreateCardDialog";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
@@ -71,11 +79,11 @@ export default function AdminCards() {
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
-  
+
   // Admin Create Card Dialog state (with template support)
   const [showCreateCardDialog, setShowCreateCardDialog] = useState(false);
   const [selectedUserForCard, setSelectedUserForCard] = useState<UserProfile | null>(null);
-  
+
   // Create User Dialog state
   const [showCreateUserDialog, setShowCreateUserDialog] = useState(false);
   const [newUserName, setNewUserName] = useState("");
@@ -98,7 +106,7 @@ export default function AdminCards() {
 
   useEffect(() => {
     if (authLoading) return;
-    
+
     if (!session) {
       navigate("/auth");
       return;
@@ -119,10 +127,7 @@ export default function AdminCards() {
 
   const loadCards = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("cards")
-      .select("*")
-      .order("updated_at", { ascending: false });
+    const { data, error } = await supabase.from("cards").select("*").order("updated_at", { ascending: false });
 
     if (error) {
       toast.error("Failed to load cards");
@@ -145,9 +150,7 @@ export default function AdminCards() {
     }
 
     // Get card counts per user
-    const { data: cardCounts, error: cardsError } = await supabase
-      .from("cards")
-      .select("user_id");
+    const { data: cardCounts, error: cardsError } = await supabase.from("cards").select("user_id");
 
     if (cardsError) {
       console.error("Failed to load card counts:", cardsError);
@@ -155,25 +158,24 @@ export default function AdminCards() {
 
     // Count cards per user
     const countMap: Record<string, number> = {};
-    cardCounts?.forEach(card => {
+    cardCounts?.forEach((card) => {
       countMap[card.user_id] = (countMap[card.user_id] || 0) + 1;
     });
 
     // Fetch user emails from admin edge function
     let emailMap: Record<string, string> = {};
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (session) {
-        const response = await fetch(
-          `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-list-users`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          }
-        );
+        const response = await fetch(`https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-list-users`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
         if (response.ok) {
           const result = await response.json();
           emailMap = result.users || {};
@@ -184,10 +186,10 @@ export default function AdminCards() {
     }
 
     // Combine data
-    const usersWithCounts: UserProfile[] = (profiles || []).map(p => ({
+    const usersWithCounts: UserProfile[] = (profiles || []).map((p) => ({
       ...p,
       email: emailMap[p.id] || "",
-      card_count: countMap[p.id] || 0
+      card_count: countMap[p.id] || 0,
     }));
 
     setUsers(usersWithCounts);
@@ -196,10 +198,7 @@ export default function AdminCards() {
   const handleDelete = async () => {
     if (!deleteCardId) return;
 
-    const { error } = await supabase
-      .from("cards")
-      .delete()
-      .eq("id", deleteCardId);
+    const { error } = await supabase.from("cards").delete().eq("id", deleteCardId);
 
     if (error) {
       toast.error("Failed to delete card");
@@ -232,7 +231,7 @@ export default function AdminCards() {
 
   // Get the selected user profile for duplicate
   const getSelectedUserForDuplicate = () => {
-    return users.find(u => u.id === selectedUserForDuplicate);
+    return users.find((u) => u.id === selectedUserForDuplicate);
   };
 
   const handleCreateUser = async () => {
@@ -248,24 +247,23 @@ export default function AdminCards() {
 
     setCreatingUser(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const response = await fetch(
-        `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-create-user`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            email: newUserEmail.trim(),
-            password: newUserPassword,
-            full_name: newUserName.trim(),
-          }),
-        }
-      );
+      const response = await fetch(`https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-create-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          email: newUserEmail.trim(),
+          password: newUserPassword,
+          full_name: newUserName.trim(),
+        }),
+      });
 
       const result = await response.json();
 
@@ -291,20 +289,19 @@ export default function AdminCards() {
 
     setDeletingUser(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
-      const response = await fetch(
-        `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-delete-user`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ user_id: deleteUserId }),
-        }
-      );
+      const response = await fetch(`https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-delete-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ user_id: deleteUserId }),
+      });
 
       const result = await response.json();
 
@@ -338,7 +335,9 @@ export default function AdminCards() {
 
     setUpdatingUser(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) throw new Error("Not authenticated");
 
       const body: { user_id: string; email?: string; password?: string } = {
@@ -347,17 +346,14 @@ export default function AdminCards() {
       if (editUserEmail.trim()) body.email = editUserEmail.trim();
       if (editUserPassword.trim()) body.password = editUserPassword;
 
-      const response = await fetch(
-        `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-update-user`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      const response = await fetch(`https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-update-user`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify(body),
+      });
 
       const result = await response.json();
 
@@ -378,16 +374,23 @@ export default function AdminCards() {
     }
   };
 
-  const filteredCards = cards.filter(card =>
-    card.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    card.slug?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    card.company?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCards = cards.filter((card) => {
+    const q = searchTerm.toLowerCase();
 
-  const filteredUsers = users.filter(user =>
-    user.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
-    user.id.toLowerCase().includes(userSearchTerm.toLowerCase())
+    return (
+      card.full_name?.toLowerCase().includes(q) ||
+      card.slug?.toLowerCase().includes(q) ||
+      card.company?.toLowerCase().includes(q) ||
+      // owner_name is a new column; cast to any until Supabase types are regenerated
+      (card as any).owner_name?.toLowerCase().includes(q)
+    );
+  });
+
+  const filteredUsers = users.filter(
+    (user) =>
+      user.full_name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
+      user.id.toLowerCase().includes(userSearchTerm.toLowerCase()),
   );
 
   if (authLoading || !isAdmin) {
@@ -399,11 +402,7 @@ export default function AdminCards() {
       <header className="border-b border-border/50 bg-card/30 backdrop-blur">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/dashboard")}
-            >
+            <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2">
@@ -470,6 +469,7 @@ export default function AdminCards() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Name</TableHead>
+                          <TableHead>Owner</TableHead> {/* NEW */}
                           <TableHead>Company</TableHead>
                           <TableHead>Slug</TableHead>
                           <TableHead>Status</TableHead>
@@ -478,10 +478,11 @@ export default function AdminCards() {
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
+
                       <TableBody>
                         {filteredCards.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={7} className="text-center text-muted-foreground">
+                            <TableCell colSpan={8} className="text-center text-muted-foreground">
                               No cards found
                             </TableCell>
                           </TableRow>
@@ -489,6 +490,10 @@ export default function AdminCards() {
                           filteredCards.map((card) => (
                             <TableRow key={card.id}>
                               <TableCell className="font-medium">{card.full_name}</TableCell>
+
+                              {/* NEW: Owner column */}
+                              <TableCell>{(card as any).owner_name || "—"}</TableCell>
+
                               <TableCell>{card.company || "—"}</TableCell>
                               <TableCell className="font-mono text-xs">{card.slug}</TableCell>
                               <TableCell>
@@ -517,7 +522,7 @@ export default function AdminCards() {
                                       Duplicate Design to User
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
+                                    <DropdownMenuItem
                                       onClick={() => setDeleteCardId(card.id)}
                                       className="text-destructive focus:text-destructive"
                                     >
@@ -587,12 +592,8 @@ export default function AdminCards() {
                                 {user.full_name || "Unnamed User"}
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm">
-                              {user.email || "—"}
-                            </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              ••••••••
-                            </TableCell>
+                            <TableCell className="text-sm">{user.email || "—"}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">••••••••</TableCell>
                             <TableCell>
                               <Badge variant={user.card_count && user.card_count > 0 ? "default" : "secondary"}>
                                 {user.card_count || 0} card{user.card_count !== 1 ? "s" : ""}
@@ -626,11 +627,7 @@ export default function AdminCards() {
                                   <Plus className="h-4 w-4" />
                                   Card
                                 </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => setDeleteUserId(user.id)}
-                                >
+                                <Button variant="ghost" size="icon" onClick={() => setDeleteUserId(user.id)}>
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                               </div>
@@ -671,13 +668,14 @@ export default function AdminCards() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete User Account</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this user account? This will permanently remove the user and all their associated data. This action cannot be undone.
+              Are you sure you want to delete this user account? This will permanently remove the user and all their
+              associated data. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deletingUser}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteUser} 
+            <AlertDialogAction
+              onClick={handleDeleteUser}
               className="bg-destructive text-destructive-foreground"
               disabled={deletingUser}
             >
@@ -742,9 +740,7 @@ export default function AdminCards() {
                 value={newUserPassword}
                 onChange={(e) => setNewUserPassword(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                The user can change this password after signing in.
-              </p>
+              <p className="text-xs text-muted-foreground">The user can change this password after signing in.</p>
             </div>
           </div>
           <DialogFooter>
@@ -793,9 +789,7 @@ export default function AdminCards() {
                 value={editUserPassword}
                 onChange={(e) => setEditUserPassword(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
-                Leave empty to keep the current password.
-              </p>
+              <p className="text-xs text-muted-foreground">Leave empty to keep the current password.</p>
             </div>
           </div>
           <DialogFooter>
@@ -815,8 +809,8 @@ export default function AdminCards() {
           <DialogHeader>
             <DialogTitle>Duplicate Design to User</DialogTitle>
             <DialogDescription>
-              Select a user to receive a copy of the card design from "{duplicateSourceCard?.full_name}".
-              Only the design elements (theme, images, carousel) will be copied. Personal information will not be transferred.
+              Select a user to receive a copy of the card design from "{duplicateSourceCard?.full_name}". Only the
+              design elements (theme, images, carousel) will be copied. Personal information will not be transferred.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
