@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, X, Loader2, Crop, Maximize2, Minimize2 } from "lucide-react";
+import { Upload, X, Loader2, Crop, Maximize2, Minimize2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import ImageEditorDialog from "./ImageEditorDialog";
@@ -30,7 +30,24 @@ export default function ImageUpload({
   const [isDragging, setIsDragging] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [tempImageSrc, setTempImageSrc] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Validate image URL when value changes
+  useEffect(() => {
+    if (!value) {
+      setImageError(false);
+      return;
+    }
+
+    const img = new Image();
+    img.onload = () => setImageError(false);
+    img.onerror = () => {
+      setImageError(true);
+      toast.error("Image not found. Please re-upload your " + label.toLowerCase() + ".");
+    };
+    img.src = value;
+  }, [value, label]);
 
   const uploadBlob = async (blob: Blob) => {
     setUploading(true);
@@ -212,22 +229,36 @@ export default function ImageUpload({
       >
         {value ? (
           <div className="relative h-full w-full bg-muted/30">
-            <img
-              src={value}
-              alt={label}
-              className={`h-full w-full ${displayMode === "contain" ? "object-contain" : "object-cover"}`}
-            />
-            <div className="absolute right-2 top-2 flex gap-1">
-              <Button
-                type="button"
-                variant="secondary"
-                size="icon"
-                className="h-8 w-8"
-                onClick={handleEditExisting}
-                title="Crop & Adjust"
+            {imageError ? (
+              <div 
+                className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 p-4 text-center bg-destructive/10 border-2 border-destructive/30 rounded-lg"
+                onClick={() => fileInputRef.current?.click()}
               >
-                <Crop className="h-4 w-4" />
-              </Button>
+                <AlertTriangle className="h-8 w-8 text-destructive" />
+                <p className="text-sm font-medium text-destructive">Image not found</p>
+                <p className="text-xs text-muted-foreground">Click to re-upload</p>
+              </div>
+            ) : (
+              <img
+                src={value}
+                alt={label}
+                className={`h-full w-full ${displayMode === "contain" ? "object-contain" : "object-cover"}`}
+                onError={() => setImageError(true)}
+              />
+            )}
+            <div className="absolute right-2 top-2 flex gap-1">
+              {!imageError && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={handleEditExisting}
+                  title="Crop & Adjust"
+                >
+                  <Crop className="h-4 w-4" />
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="destructive"
