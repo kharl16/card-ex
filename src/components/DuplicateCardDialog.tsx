@@ -23,40 +23,59 @@ interface DuplicateCardDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDuplicated?: () => void;
+
+  /**
+   * When provided, duplicate the card to this specific user (admin flow).
+   * When not provided, duplicate to the currently logged-in user.
+   */
+  targetUserId?: string;
+  targetUserName?: string | null;
 }
 
-export function DuplicateCardDialog({ card, open, onOpenChange, onDuplicated }: DuplicateCardDialogProps) {
+export function DuplicateCardDialog({
+  card,
+  open,
+  onOpenChange,
+  onDuplicated,
+  targetUserId,
+  targetUserName,
+}: DuplicateCardDialogProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [duplicating, setDuplicating] = useState(false);
 
   const handleDuplicate = async () => {
-    if (!user) return;
+    // Decide who will own the new card
+    const effectiveUserId = targetUserId ?? user?.id;
+    if (!effectiveUserId) return;
 
     setDuplicating(true);
     try {
-      // Load current user profile to get full_name
+      // Load profile for the target owner (not always the logged-in user)
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("full_name")
-        .eq("id", user.id)
+        .eq("id", effectiveUserId)
         .single();
 
       if (profileError) {
         console.warn("Failed to load profile for duplicate:", profileError);
       }
 
-      const ownerName = profile?.full_name || card.owner_name || card.full_name || "New Card Owner";
+      const cardAny = card as any; // to access owner_name, which is a new column
+
+      const ownerName =
+        profile?.full_name || targetUserName || cardAny.owner_name || card.full_name || "New Card Owner";
 
       // Generate new unique slug
-      const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
+      const slug = `${effectiveUserId.slice(0, 8)}-${Date.now()}`;
 
-      // Copy all card fields except id, slug, share_url, public_url, qr_code_url, vcard_url
+      // Insert duplicated card
       const { data: newCard, error: cardError } = await supabase
         .from("cards")
         .insert({
-          user_id: user.id,
-          owner_name: ownerName, // 👈 NEW: store owner name on duplicate
+          user_id: effectiveUserId,
+          owner_name: ownerName,
           full_name: `${card.full_name || "Untitled Card"} (Copy)`,
           first_name: card.first_name,
           middle_name: card.middle_name,
@@ -75,9 +94,9 @@ export function DuplicateCardDialog({ card, open, onOpenChange, onDuplicated }: 
           logo_url: card.logo_url,
           theme: card.theme,
           carousel_enabled: card.carousel_enabled,
-          custom_slug: null, // Don't copy custom slug
+          custom_slug: null,
           slug,
-          is_published: false, // New card starts unpublished
+          is_published: false,
           views_count: 0,
           unique_views: 0,
         })
@@ -96,7 +115,7 @@ export function DuplicateCardDialog({ card, open, onOpenChange, onDuplicated }: 
       if (productImages && productImages.length > 0) {
         const productImageInserts = productImages.map((img, index) => ({
           card_id: newCard.id,
-          owner: user.id,
+          owner: effectiveUserId,
           image_url: img.image_url,
           alt_text: img.alt_text,
           description: img.description,
@@ -147,7 +166,6 @@ export function DuplicateCardDialog({ card, open, onOpenChange, onDuplicated }: 
       onOpenChange(false);
       onDuplicated?.();
 
-      // Navigate to edit the new card
       navigate(`/cards/${newCard.id}/edit`);
     } catch (error) {
       console.error("Error duplicating card:", error);
@@ -164,7 +182,8 @@ export function DuplicateCardDialog({ card, open, onOpenChange, onDuplicated }: 
           <AlertDialogTitle>Duplicate Card</AlertDialogTitle>
           <AlertDialogDescription>
             This will create a copy of &quot;{card.full_name}&quot; with all its design, content, images, and carousel.
-            The new card will belong to your account and will start unpublished with a new unique URL.
+            The new card will belong to {targetUserName || "the selected user"} and will start unpublished with a new
+            unique URL.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
