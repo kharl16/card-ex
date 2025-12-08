@@ -73,73 +73,64 @@ export function AdminCreateCardDialog({
     try {
       const slug = generateSlug();
 
-      // Normalize product / carousel images from layoutData
-      const templateProductImages =
-        (layoutData as any)?.product_images ??
-        (layoutData as any)?.carousel_images ??
-        (layoutData as any)?.carouselImages ??
-        [];
-
-      const hasTemplateImages = Array.isArray(templateProductImages) && templateProductImages.length > 0;
-
-      // Normalize card links from layoutData
-      const templateCardLinks = (layoutData as any)?.card_links ?? [];
-      const hasTemplateLinks = Array.isArray(templateCardLinks) && templateCardLinks.length > 0;
-
-      // Get theme from template - copy ALL settings including QR styling
-      const templateTheme: any = layoutData?.theme || {};
+      const templateTheme = layoutData?.theme || {};
       const theme = {
         ...DEFAULT_THEME,
         ...templateTheme,
+        qr: templateTheme.qr
+          ? {
+              pattern: templateTheme.qr.pattern,
+              eyeStyle: templateTheme.qr.eyeStyle,
+              darkColor: templateTheme.qr.darkColor,
+              lightColor: templateTheme.qr.lightColor,
+              size: templateTheme.qr.size,
+              logoPosition: templateTheme.qr.logoPosition,
+              logoOpacity: templateTheme.qr.logoOpacity,
+              logoUrl: templateTheme.qr.logoUrl,
+              gradientEnabled: templateTheme.qr.gradientEnabled,
+              gradientColor1: templateTheme.qr.gradientColor1,
+              gradientColor2: templateTheme.qr.gradientColor2,
+              gradientType: templateTheme.qr.gradientType,
+              frameStyle: templateTheme.qr.frameStyle,
+              frameColor: templateTheme.qr.frameColor,
+              frameWidth: templateTheme.qr.frameWidth,
+              frameBorderRadius: templateTheme.qr.frameBorderRadius,
+              framePadding: templateTheme.qr.framePadding,
+              frameShadow: templateTheme.qr.frameShadow,
+            }
+          : undefined,
       };
 
-      const carouselEnabled = layoutData?.carousel_enabled ?? hasTemplateImages ?? true;
+      const carouselEnabled = layoutData?.carousel_enabled ?? true;
 
-      // Create the card for the target user with ALL template data (no stripping)
       const { data, error } = await supabase
         .from("cards")
         .insert({
           user_id: targetUserId,
+          full_name: targetUserName || "New Card",
+          owner_name: targetUserName || null, // 👈 NEW: store owner name
           slug,
           is_published: false,
           theme,
           carousel_enabled: carouselEnabled,
-          // Design assets from template
           cover_url: layoutData?.cover_url || null,
           logo_url: layoutData?.logo_url || null,
-          avatar_url: layoutData?.avatar_url || null,
-          // Personal data from template (no longer stripped)
-          full_name: layoutData?.full_name || targetUserName || "New Card",
-          first_name: layoutData?.first_name || null,
-          middle_name: layoutData?.middle_name || null,
-          last_name: layoutData?.last_name || null,
-          prefix: layoutData?.prefix || null,
-          suffix: layoutData?.suffix || null,
-          title: layoutData?.title || null,
-          company: layoutData?.company || null,
-          bio: layoutData?.bio || null,
-          email: layoutData?.email || null,
-          phone: layoutData?.phone || null,
-          website: layoutData?.website || null,
-          location: layoutData?.location || null,
-          // Card type
-          card_type: 'publishable',
+          avatar_url: null,
+          email: null,
+          phone: null,
+          location: null,
+          bio: null,
+          title: null,
+          company: null,
+          website: null,
         })
         .select()
         .single();
 
-      if (error) {
-        // Check if it's a card limit error
-        if (error.message?.includes('Card limit reached')) {
-          toast.error(`Card limit reached for ${targetUserName}! Non-admin users can only have 2 cards.`);
-          return;
-        }
-        throw error;
-      }
+      if (error) throw error;
 
-      // Copy product images from template
-      if (hasTemplateImages) {
-        const productImageInserts = templateProductImages.map((img: any, index: number) => ({
+      if (layoutData?.product_images && layoutData.product_images.length > 0) {
+        const productImageInserts = layoutData.product_images.map((img: any, index: number) => ({
           card_id: data.id,
           owner: targetUserId,
           image_url: img.image_url,
@@ -148,29 +139,7 @@ export function AdminCreateCardDialog({
           sort_order: index,
         }));
 
-        const { error: imagesError } = await supabase.from("product_images").insert(productImageInserts);
-
-        if (imagesError) {
-          console.error("Error inserting product images:", imagesError);
-        }
-      }
-
-      // Copy card links from template
-      if (hasTemplateLinks) {
-        const cardLinkInserts = templateCardLinks.map((link: any, index: number) => ({
-          card_id: data.id,
-          kind: link.kind,
-          label: link.label,
-          value: link.value,
-          icon: link.icon || null,
-          sort_index: link.sort_index ?? index,
-        }));
-
-        const { error: linksError } = await supabase.from("card_links").insert(cardLinkInserts);
-
-        if (linksError) {
-          console.error("Error inserting card links:", linksError);
-        }
+        await supabase.from("product_images").insert(productImageInserts);
       }
 
       toast.success("Card created for " + targetUserName);
@@ -178,15 +147,10 @@ export function AdminCreateCardDialog({
       setStep("choice");
       onSuccess?.();
 
-      // Navigate to edit the new card
       navigate(`/cards/${data.id}/edit`);
     } catch (error: any) {
       console.error("Error creating card:", error);
-      if (error.message?.includes('Card limit reached')) {
-        toast.error(`Card limit reached for ${targetUserName}! Non-admin users can only have 2 cards.`);
-      } else {
-        toast.error(error.message || "Failed to create card");
-      }
+      toast.error(error.message || "Failed to create card");
     } finally {
       setCreating(false);
     }
@@ -284,7 +248,7 @@ export function AdminCreateCardDialog({
               </CardHeader>
               <CardContent>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Choose from professionally designed templates with all content included.
+                  Choose from professionally designed templates. Just add the member&apos;s details!
                 </p>
                 <Button variant="secondary" className="w-full gap-2">
                   Browse Templates
