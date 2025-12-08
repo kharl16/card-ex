@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
-type CardData = Tables<"cards">;
+type CardData = Tables<"cards"> & { owner_name?: string | null };
 
 interface DuplicateCardDialogProps {
   card: CardData;
@@ -62,10 +62,8 @@ export function DuplicateCardDialog({
         console.warn("Failed to load profile for duplicate:", profileError);
       }
 
-      const cardAny = card as any; // to access owner_name, which is a new column
-
       const ownerName =
-        profile?.full_name || targetUserName || cardAny.owner_name || card.full_name || "New Card Owner";
+        profile?.full_name || targetUserName || card.owner_name || card.full_name || "New Card Owner";
 
       // Generate new unique slug
       const slug = `${effectiveUserId.slice(0, 8)}-${Date.now()}`;
