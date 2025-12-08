@@ -71,52 +71,52 @@ export default function RiderHeader({
 
         {/* Gradient overlay for better contrast */}
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
+      </div>
 
-        {/* Avatar & Logo row – vertical center touching base of cover, no horizontal change */}
-        <div className="absolute inset-x-0 bottom-0 translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[100] pointer-events-none">
-          {/* Avatar */}
+      {/* Avatar & Logo row – positioned at cover bottom, OUTSIDE overflow-hidden container */}
+      <div className="absolute left-0 right-0 top-48 sm:top-56 -translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
+        {/* Avatar */}
+        <div
+          className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar pointer-events-auto"
+          style={{
+            background: `conic-gradient(from 180deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 120deg, ${darkerPrimary} 240deg, ${lighterPrimary} 360deg)`,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+          }}
+        >
           <div
-            className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar pointer-events-auto"
+            className="absolute inset-0 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 blur-xl -z-10"
             style={{
-              background: `conic-gradient(from 180deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 120deg, ${darkerPrimary} 240deg, ${lighterPrimary} 360deg)`,
-              boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+              background: `radial-gradient(circle, ${basePrimary}80 0%, transparent 70%)`,
+              transform: "scale(1.5)",
             }}
-          >
-            <div
-              className="absolute inset-0 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 blur-xl -z-10"
-              style={{
-                background: `radial-gradient(circle, ${basePrimary}80 0%, transparent 70%)`,
-                transform: "scale(1.5)",
-              }}
-            />
-            <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
-              <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
-                {avatarUrl && (
-                  <img
-                    src={avatarUrl}
-                    alt={name || "Profile"}
-                    className={`h-full w-full ${
-                      avatarDisplayMode === "contain" ? "object-contain" : "object-cover"
-                    }`}
-                  />
-                )}
-              </div>
+          />
+          <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
+            <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
+              {avatarUrl && (
+                <img
+                  src={avatarUrl}
+                  alt={name || "Profile"}
+                  className={`h-full w-full ${
+                    avatarDisplayMode === "contain" ? "object-contain" : "object-cover"
+                  }`}
+                />
+              )}
             </div>
           </div>
-
-          {/* Company logo – square */}
-          {companyLogoUrl && (
-            <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300 pointer-events-auto">
-              <img
-                src={companyLogoUrl}
-                alt="Company logo"
-                className={`h-full w-full ${
-                  logoDisplayMode === "contain" ? "object-contain" : "object-cover"
-                }`}
-              />
-            </div>
-          )}
         </div>
+
+        {/* Company logo – square */}
+        {companyLogoUrl && (
+          <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300 pointer-events-auto">
+            <img
+              src={companyLogoUrl}
+              alt="Company logo"
+              className={`h-full w-full ${
+                logoDisplayMode === "contain" ? "object-contain" : "object-cover"
+              }`}
+            />
+          </div>
+        )}
       </div>
 
       {/* Spacer so content doesn't overlap avatar/logo */}
