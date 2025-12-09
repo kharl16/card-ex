@@ -213,13 +213,13 @@ export default function SharedCard() {
 
   return (
     <div
-      className="min-h-screen bg-background transition-all duration-500"
+      className="min-h-screen bg-background transition-all duration-500 overflow-x-hidden max-w-[100vw]"
       style={{
         ...getBackgroundStyle(),
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      <div className="mx-auto max-w-2xl transition-all duration-500">
+      <div className="mx-auto max-w-2xl transition-all duration-500 overflow-x-hidden">
         <CardView
           card={cardWithEffectiveTheme}
           socialLinks={socialLinks}
