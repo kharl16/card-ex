@@ -49,7 +49,7 @@ export default function RiderHeader({
 
   return (
     // Higher z-index so header (and avatar/logo) sit above other content
-    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-visible z-30">
+    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-x-clip overflow-y-visible z-30">
       {/* Cover image is now the positioning parent for avatar/logo */}
       <div
         className="relative h-48 sm:h-56 w-full overflow-hidden"
