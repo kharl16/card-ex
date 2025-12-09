@@ -38,6 +38,7 @@ export function ImagesSection({ card, onCardChange, theme, onThemeChange }: Imag
         showDisplayToggle
         displayMode={avatarDisplayMode}
         onDisplayModeChange={handleAvatarDisplayModeChange}
+        imageType="avatar"
       />
       <ImageUpload
         value={card.logo_url}
@@ -48,13 +49,15 @@ export function ImagesSection({ card, onCardChange, theme, onThemeChange }: Imag
         showDisplayToggle
         displayMode={logoDisplayMode}
         onDisplayModeChange={handleLogoDisplayModeChange}
+        imageType="logo"
       />
       <ImageUpload
         value={card.cover_url}
         onChange={(url) => onCardChange({ cover_url: url })}
         label="Cover Photo"
-        aspectRatio="aspect-square"
+        aspectRatio="aspect-video"
         maxSize={5}
+        imageType="cover"
       />
     </div>
   );

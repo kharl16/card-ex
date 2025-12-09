@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Upload, X, Loader2, Crop, Maximize2, Minimize2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import ImageEditorDialog from "./ImageEditorDialog";
+import EnhancedImageEditorDialog, { type ImageType } from "./media/EnhancedImageEditorDialog";
 
 interface ImageUploadProps {
   value: string | null;
@@ -21,6 +21,8 @@ interface ImageUploadProps {
   bucket?: string;
   /** Optional: extra folder prefix inside bucket, ex: "avatars" */
   folderPrefix?: string;
+  /** Image type for the enhanced editor (avatar, logo, cover) */
+  imageType?: ImageType;
 }
 
 export function ImageUpload({
@@ -34,7 +36,22 @@ export function ImageUpload({
   showDisplayToggle = false,
   bucket = "media",
   folderPrefix,
+  imageType,
 }: ImageUploadProps) {
+  // Auto-detect image type from label if not provided
+  const detectedImageType: ImageType = imageType || (() => {
+    const lowerLabel = label.toLowerCase();
+    if (lowerLabel.includes("avatar") || lowerLabel.includes("photo") || lowerLabel.includes("profile")) {
+      return "avatar";
+    }
+    if (lowerLabel.includes("logo") || lowerLabel.includes("company")) {
+      return "logo";
+    }
+    if (lowerLabel.includes("cover") || lowerLabel.includes("banner") || lowerLabel.includes("header")) {
+      return "cover";
+    }
+    return "avatar";
+  })();
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -310,10 +327,11 @@ export function ImageUpload({
       </div>
 
       {tempImageSrc && (
-        <ImageEditorDialog
+        <EnhancedImageEditorDialog
           open={editorOpen}
           onOpenChange={setEditorOpen}
           imageSrc={tempImageSrc}
+          imageType={detectedImageType}
           onSave={handleEditorSave}
         />
       )}
