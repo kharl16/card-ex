@@ -123,23 +123,23 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
     // Apply filters
     ctx.filter = `brightness(${brightness}) contrast(${contrast})`;
 
-    // Calculate the scaled image size to fit within the canvas
+    // Calculate the base image size to fill the canvas
     const imgAspect = img.naturalWidth / img.naturalHeight;
-    let drawWidth: number, drawHeight: number;
+    let baseWidth: number, baseHeight: number;
 
     if (imgAspect > aspectRatio) {
-      // Image is wider than frame - fit height
-      drawHeight = canvasHeight / zoom;
-      drawWidth = drawHeight * imgAspect;
+      // Image is wider than frame - fit by height to fill
+      baseHeight = canvasHeight;
+      baseWidth = baseHeight * imgAspect;
     } else {
-      // Image is taller than frame - fit width
-      drawWidth = canvasWidth / zoom;
-      drawHeight = drawWidth / imgAspect;
+      // Image is taller than frame - fit by width to fill
+      baseWidth = canvasWidth;
+      baseHeight = baseWidth / imgAspect;
     }
 
-    // Scale by zoom
-    drawWidth *= zoom;
-    drawHeight *= zoom;
+    // Apply zoom scaling
+    const drawWidth = baseWidth * zoom;
+    const drawHeight = baseHeight * zoom;
 
     // Move to center and apply transforms
     ctx.translate(canvasWidth / 2 + offsetX, canvasHeight / 2 + offsetY);
@@ -239,20 +239,23 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       // Apply filters
       ctx.filter = `brightness(${brightness}) contrast(${contrast})`;
 
-      // Calculate the scaled image size
+      // Calculate the base image size to fill the output canvas
       const imgAspect = img.naturalWidth / img.naturalHeight;
-      let drawWidth: number, drawHeight: number;
+      let baseWidth: number, baseHeight: number;
 
       if (imgAspect > aspectRatio) {
-        drawHeight = outputHeight / zoom;
-        drawWidth = drawHeight * imgAspect;
+        // Image is wider than frame - fit by height to fill
+        baseHeight = outputHeight;
+        baseWidth = baseHeight * imgAspect;
       } else {
-        drawWidth = outputWidth / zoom;
-        drawHeight = drawWidth / imgAspect;
+        // Image is taller than frame - fit by width to fill
+        baseWidth = outputWidth;
+        baseHeight = baseWidth / imgAspect;
       }
 
-      drawWidth *= zoom;
-      drawHeight *= zoom;
+      // Apply zoom scaling
+      const drawWidth = baseWidth * zoom;
+      const drawHeight = baseHeight * zoom;
 
       // Scale offset from preview to output size
       const previewCanvas = canvasRef.current;
