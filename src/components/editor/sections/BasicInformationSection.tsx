@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
+import type { CardTheme } from "@/lib/theme";
+import ImageUpload from "@/components/ImageUpload";
 
 type CardData = Tables<"cards">;
 
@@ -13,6 +15,8 @@ interface BasicInformationSectionProps {
   validationErrors: Record<string, string>;
   onCardChange: (updates: Partial<CardData>) => void;
   onValidationErrorChange: (errors: Record<string, string>) => void;
+  theme?: CardTheme;
+  onThemeChange?: (theme: CardTheme) => void;
 }
 
 // Validate name fields for special characters
@@ -57,7 +61,23 @@ export function BasicInformationSection({
   validationErrors,
   onCardChange,
   onValidationErrorChange,
+  theme,
+  onThemeChange,
 }: BasicInformationSectionProps) {
+  const avatarDisplayMode = theme?.avatarDisplayMode || "contain";
+  const logoDisplayMode = theme?.logoDisplayMode || "contain";
+
+  const handleAvatarDisplayModeChange = (mode: "contain" | "cover") => {
+    if (onThemeChange && theme) {
+      onThemeChange({ ...theme, avatarDisplayMode: mode });
+    }
+  };
+
+  const handleLogoDisplayModeChange = (mode: "contain" | "cover") => {
+    if (onThemeChange && theme) {
+      onThemeChange({ ...theme, logoDisplayMode: mode });
+    }
+  };
   const handleNameFieldChange = (
     field: string,
     value: string,
@@ -94,7 +114,44 @@ export function BasicInformationSection({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Image Uploaders - Avatar, Logo, Cover */}
+      <div className="space-y-3">
+        <Label className="text-sm font-medium">Profile Images</Label>
+        <div className="grid grid-cols-3 gap-4">
+          <ImageUpload
+            value={card.avatar_url}
+            onChange={(url) => onCardChange({ avatar_url: url })}
+            label="Avatar"
+            aspectRatio="aspect-square"
+            maxSize={5}
+            showDisplayToggle
+            displayMode={avatarDisplayMode}
+            onDisplayModeChange={handleAvatarDisplayModeChange}
+            imageType="avatar"
+          />
+          <ImageUpload
+            value={card.logo_url}
+            onChange={(url) => onCardChange({ logo_url: url })}
+            label="Company Logo"
+            aspectRatio="aspect-square"
+            maxSize={2}
+            showDisplayToggle
+            displayMode={logoDisplayMode}
+            onDisplayModeChange={handleLogoDisplayModeChange}
+            imageType="logo"
+          />
+          <ImageUpload
+            value={card.cover_url}
+            onChange={(url) => onCardChange({ cover_url: url })}
+            label="Cover Photo"
+            aspectRatio="aspect-video"
+            maxSize={5}
+            imageType="cover"
+          />
+        </div>
+      </div>
+
       {/* Name Section */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">

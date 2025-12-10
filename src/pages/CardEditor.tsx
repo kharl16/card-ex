@@ -44,7 +44,7 @@ import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordio
 import { EditorWizard, WizardStep } from "@/components/editor/EditorWizard";
 import { BasicInformationSection } from "@/components/editor/sections/BasicInformationSection";
 import { ContactInformationSection, AdditionalContact } from "@/components/editor/sections/ContactInformationSection";
-import { ImagesSection } from "@/components/editor/sections/ImagesSection";
+
 import { CarouselSettingsSection } from "@/components/editor/sections/CarouselSettingsSection";
 import { CustomUrlSection } from "@/components/editor/sections/CustomUrlSection";
 
@@ -710,6 +710,8 @@ export default function CardEditor() {
             validationErrors={validationErrors}
             onCardChange={handleCardChange}
             onValidationErrorChange={setValidationErrors}
+            theme={(card.theme as any) || {}}
+            onThemeChange={(theme) => setCard({ ...card, theme: theme as any })}
           />
         ),
       },
@@ -743,17 +745,7 @@ export default function CardEditor() {
         icon: <Image className="h-4 w-4" />,
         progress: calculateProgress("products"),
         content: (
-          <div className="space-y-4">
-            <ImagesSection 
-              card={card} 
-              onCardChange={handleCardChange}
-              theme={(card.theme as any) || {}}
-              onThemeChange={(theme) => setCard({ ...card, theme: theme as any })}
-            />
-            <div className="pt-4 border-t border-border/50">
-              <ProductImageManager cardId={card.id} ownerId={card.user_id} onImagesChange={loadProductImages} />
-            </div>
-          </div>
+          <ProductImageManager cardId={card.id} ownerId={card.user_id} onImagesChange={loadProductImages} />
         ),
       },
       carousel: {
