@@ -867,65 +867,70 @@ export default function CardEditor() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background w-full max-w-full overflow-x-hidden">
       <header className="border-b border-border/50 bg-card/30 backdrop-blur sticky top-0 z-50">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/dashboard")} className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <AutosaveIndicator />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setSaveTemplateDialogOpen(true)} className="gap-2">
-              <FileDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Save Template</span>
-            </Button>
-            <Button variant="outline" onClick={() => navigate(`/cards/${card.id}/analytics`)} className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">Analytics</span>
-            </Button>
-            <Button variant="outline" onClick={() => setShareDialogOpen(true)} className="gap-2">
-              <Share2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Generate Card</span>
-            </Button>
-            <ShareCardDialog cardId={card.id} open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
-            <SaveTemplateDialog 
-              card={card} 
-              productImages={productImages} 
-              open={saveTemplateDialogOpen} 
-              onOpenChange={setSaveTemplateDialogOpen} 
-            />
-            <Button onClick={togglePublish} variant={card.is_published ? "secondary" : "default"}>
-              {card.is_published ? "Unpublish" : "Publish"}
-            </Button>
-            <Button onClick={handleSave} disabled={saving} className="gap-2">
-              <Save className="h-4 w-4" />
-              {saving ? "Saving..." : "Save"}
-            </Button>
+        <div className="w-full max-w-full px-3 sm:px-4 mx-auto">
+          {/* Top row: Back button and autosave */}
+          <div className="flex h-14 items-center justify-between">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")} className="gap-1 sm:gap-2 px-2 sm:px-3">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="hidden xs:inline">Back</span>
+              </Button>
+              <AutosaveIndicator />
+            </div>
+            {/* Action buttons - wrap on mobile */}
+            <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
+              <Button variant="outline" size="sm" onClick={() => setSaveTemplateDialogOpen(true)} className="gap-1 px-2 sm:px-3">
+                <FileDown className="h-4 w-4" />
+                <span className="hidden md:inline">Save Template</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => navigate(`/cards/${card.id}/analytics`)} className="gap-1 px-2 sm:px-3">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden md:inline">Analytics</span>
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShareDialogOpen(true)} className="gap-1 px-2 sm:px-3">
+                <Share2 className="h-4 w-4" />
+                <span className="hidden md:inline">Generate</span>
+              </Button>
+              <ShareCardDialog cardId={card.id} open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
+              <SaveTemplateDialog 
+                card={card} 
+                productImages={productImages} 
+                open={saveTemplateDialogOpen} 
+                onOpenChange={setSaveTemplateDialogOpen} 
+              />
+              <Button size="sm" onClick={togglePublish} variant={card.is_published ? "secondary" : "default"} className="px-2 sm:px-3">
+                <span className="hidden sm:inline">{card.is_published ? "Unpublish" : "Publish"}</span>
+                <span className="sm:hidden">{card.is_published ? "Off" : "On"}</span>
+              </Button>
+              <Button size="sm" onClick={handleSave} disabled={saving} className="gap-1 px-2 sm:px-3">
+                <Save className="h-4 w-4" />
+                <span className="hidden sm:inline">{saving ? "Saving..." : "Save"}</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto grid gap-6 px-4 py-6 lg:grid-cols-2">
+      <main className="w-full max-w-full overflow-x-hidden px-3 sm:px-4 py-4 sm:py-6 mx-auto grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Editor Column */}
-        <div className="space-y-4">
+        <div className="w-full max-w-full overflow-x-hidden space-y-4">
           {/* Mode Switcher & Admin Controls */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border/50">
+          <div className="flex flex-col gap-3 pb-4 border-b border-border/50">
             <ToggleGroup
               type="single"
               value={layoutMode}
               onValueChange={(value) => value && setLayoutMode(value as "accordion" | "wizard")}
-              className="justify-start"
+              className="justify-start w-full"
             >
-              <ToggleGroupItem value="accordion" className="gap-2">
+              <ToggleGroupItem value="accordion" className="gap-1.5 sm:gap-2 flex-1 sm:flex-none">
                 <Layers className="h-4 w-4" />
-                <span className="hidden sm:inline">Accordion</span>
+                <span className="text-xs sm:text-sm">Accordion</span>
               </ToggleGroupItem>
-              <ToggleGroupItem value="wizard" className="gap-2">
+              <ToggleGroupItem value="wizard" className="gap-1.5 sm:gap-2 flex-1 sm:flex-none">
                 <ListOrdered className="h-4 w-4" />
-                <span className="hidden sm:inline">Step-by-Step</span>
+                <span className="text-xs sm:text-sm">Step-by-Step</span>
               </ToggleGroupItem>
             </ToggleGroup>
 
@@ -964,13 +969,13 @@ export default function CardEditor() {
         </div>
 
         {/* Live Preview */}
-        <div className="lg:sticky lg:top-24 lg:h-fit">
-          <Card className="overflow-hidden border-border/50 transition-all duration-300">
+        <div className="w-full max-w-full overflow-x-hidden lg:sticky lg:top-24 lg:h-fit">
+          <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full">
             <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3">
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
-            <CardContent className="p-4">
-              <div className="transition-all duration-500 ease-out">
+            <CardContent className="p-2 sm:p-4">
+              <div className="transition-all duration-500 ease-out w-full max-w-full overflow-x-hidden">
                 <CardView
                   card={card}
                   socialLinks={socialLinks}

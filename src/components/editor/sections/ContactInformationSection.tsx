@@ -534,11 +534,11 @@ export function ContactInformationSection({
   // ----- render -----------------------------------------------------
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-x-hidden">
       {/* Primary Contact Fields (now draggable rows) */}
-      <div className="space-y-2">
+      <div className="space-y-2 w-full">
         <Label className="text-sm font-medium text-muted-foreground">Contact Information</Label>
-        <div className="space-y-2">
+        <div className="space-y-2 w-full">
           {primaryOrder.map((field) => {
             const error = getPrimaryError(field);
             return (
@@ -548,20 +548,20 @@ export function ContactInformationSection({
                 onDragStart={() => handlePrimaryDragStart(field)}
                 onDragOver={(e) => handlePrimaryDragOver(e, field)}
                 onDragEnd={handlePrimaryDragEnd}
-                className={`flex items-center gap-2 rounded-lg bg-muted/20 border border-border/40 px-2 py-1.5 cursor-grab ${
+                className={`flex items-center gap-1.5 sm:gap-2 rounded-lg bg-muted/20 border border-border/40 px-1.5 sm:px-2 py-1.5 cursor-grab w-full ${
                   primaryDraggingId === field ? "ring-1 ring-primary/60 bg-muted/40" : ""
                 }`}
               >
                 {/* Drag handle */}
-                <div className="flex items-center justify-center text-muted-foreground flex-shrink-0">
+                <div className="flex items-center justify-center text-muted-foreground shrink-0">
                   <GripVertical className="h-4 w-4 opacity-70" />
                 </div>
 
                 {/* Icon */}
-                <div className="flex items-center justify-center flex-shrink-0">{getPrimaryIcon(field)}</div>
+                <div className="flex items-center justify-center shrink-0">{getPrimaryIcon(field)}</div>
 
                 {/* Label + input */}
-                <div className="flex-1 flex flex-col gap-0.5">
+                <div className="flex-1 flex flex-col gap-0.5 min-w-0">
                   <span className="text-xs font-medium text-muted-foreground">{getPrimaryLabel(field)}</span>
                   <Input
                     type={getInputType(field)}
@@ -569,7 +569,7 @@ export function ContactInformationSection({
                     onChange={(e) => setPrimaryValue(field, e.target.value)}
                     placeholder={getPlaceholder(field)}
                     maxLength={field === "phone" ? 30 : 255}
-                    className={`h-8 text-sm ${error ? "border-destructive" : ""}`}
+                    className={`h-8 text-sm w-full ${error ? "border-destructive" : ""}`}
                   />
                   {error && <p className="text-xs text-destructive mt-0.5">{error}</p>}
                 </div>
@@ -581,9 +581,9 @@ export function ContactInformationSection({
 
       {/* Additional Contacts Section (drag, group by kind) */}
       {additionalContacts.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 w-full">
           <Label className="text-sm font-medium text-muted-foreground">Additional Contacts</Label>
-          <div className="space-y-2">
+          <div className="space-y-2 w-full">
             {additionalContacts.map((contact) => (
               <div
                 key={contact.id}
@@ -591,22 +591,22 @@ export function ContactInformationSection({
                 onDragStart={() => handleDragStart(contact.id)}
                 onDragOver={(e) => handleDragOver(e, contact.id)}
                 onDragEnd={handleDragEnd}
-                className={`flex items-center gap-2 rounded-lg bg-muted/30 border border-border/40 px-2 py-1.5 cursor-grab ${
+                className={`flex items-center gap-1.5 sm:gap-2 rounded-lg bg-muted/30 border border-border/40 px-1.5 sm:px-2 py-1.5 cursor-grab w-full ${
                   draggingId === contact.id ? "ring-1 ring-primary/60 bg-muted/50" : ""
                 }`}
               >
                 {/* Drag handle */}
-                <div className="flex items-center justify-center text-muted-foreground flex-shrink-0">
+                <div className="flex items-center justify-center text-muted-foreground shrink-0">
                   <GripVertical className="h-4 w-4 opacity-70" />
                 </div>
 
                 {/* Icon */}
-                <div className="flex-shrink-0">{getContactIcon(contact.kind)}</div>
+                <div className="shrink-0">{getContactIcon(contact.kind)}</div>
 
                 {/* Type + value */}
-                <div className="flex-1 flex flex-col sm:flex-row items-stretch gap-1.5 sm:gap-2">
+                <div className="flex-1 flex flex-col sm:flex-row items-stretch gap-1.5 sm:gap-2 min-w-0">
                   {/* Type selector with custom arrow */}
-                  <div className="relative w-28 sm:w-32 flex-shrink-0">
+                  <div className="relative w-full sm:w-28 md:w-32 shrink-0">
                     <select
                       value={contact.contactType}
                       onChange={(e) => updateContactType(contact.id, e.target.value as ContactType)}
@@ -629,7 +629,7 @@ export function ContactInformationSection({
                     value={contact.value}
                     onChange={(e) => updateContactValue(contact.id, e.target.value)}
                     placeholder={getPlaceholder(contact.kind)}
-                    className="text-xs sm:text-sm flex-1 min-w-0 h-8 sm:h-9"
+                    className="text-xs sm:text-sm flex-1 min-w-0 h-8 sm:h-9 w-full"
                   />
                 </div>
 
@@ -637,7 +637,7 @@ export function ContactInformationSection({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-destructive flex-shrink-0"
+                  className="h-7 w-7 sm:h-8 sm:w-8 text-muted-foreground hover:text-destructive shrink-0"
                   onClick={() => removeContact(contact.id)}
                 >
                   <X className="h-3.5 w-3.5" />
