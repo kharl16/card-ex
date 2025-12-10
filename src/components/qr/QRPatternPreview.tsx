@@ -100,6 +100,28 @@ export function QRPatternPreview({ pattern, isSelected, onClick, label }: QRPatt
             <circle cx="26" cy="36" r="3" fill="currentColor" />
           </svg>
         );
+      case 'triangle-grid':
+        return (
+          <svg viewBox="0 0 40 40" className={baseClass}>
+            {/* 4x4 grid of upward-pointing triangles */}
+            <polygon points="5,10 10,2 0,2" fill="currentColor" />
+            <polygon points="15,10 20,2 10,2" fill="currentColor" />
+            <polygon points="25,10 30,2 20,2" fill="currentColor" />
+            <polygon points="35,10 40,2 30,2" fill="currentColor" />
+            <polygon points="5,20 10,12 0,12" fill="currentColor" />
+            <polygon points="15,20 20,12 10,12" fill="currentColor" />
+            <polygon points="25,20 30,12 20,12" fill="currentColor" />
+            <polygon points="35,20 40,12 30,12" fill="currentColor" />
+            <polygon points="5,30 10,22 0,22" fill="currentColor" />
+            <polygon points="15,30 20,22 10,22" fill="currentColor" />
+            <polygon points="25,30 30,22 20,22" fill="currentColor" />
+            <polygon points="35,30 40,22 30,22" fill="currentColor" />
+            <polygon points="5,40 10,32 0,32" fill="currentColor" />
+            <polygon points="15,40 20,32 10,32" fill="currentColor" />
+            <polygon points="25,40 30,32 20,32" fill="currentColor" />
+            <polygon points="35,40 40,32 30,32" fill="currentColor" />
+          </svg>
+        );
       default:
         return null;
     }
