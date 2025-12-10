@@ -1,5 +1,5 @@
 interface QREyeStylePreviewProps {
-  eyeStyle: string;
+  eyeStyle: "square" | "extra-rounded" | "dot" | "leaf" | "diamond" | "star" | "heart" | "shield" | "soft-corner";
   isSelected: boolean;
   onClick: () => void;
   label: string;
