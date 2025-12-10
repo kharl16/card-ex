@@ -19,8 +19,8 @@ export interface QRSettings {
   logoUrl?: string;
   logoPosition?: "center" | "background";
   logoOpacity?: number;
-  pattern?: "squares" | "classy" | "rounded" | "classy-rounded" | "extra-rounded" | "dots";
-  eyeStyle?: "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield" | "soft-corner"; // <--- NEW EYE STYLE
+  pattern?: "squares" | "classy" | "rounded" | "classy-rounded" | "extra-rounded" | "dots" | "triangle-grid";
+  eyeStyle?: "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield" | "soft-corner";
   useGradient?: boolean;
   gradientColor1?: string;
   gradientColor2?: string;
@@ -183,6 +183,7 @@ const patternOptions: { value: QRSettings["pattern"]; label: string }[] = [
   { value: "classy-rounded", label: "Classy Rounded" },
   { value: "extra-rounded", label: "Extra Rounded" },
   { value: "dots", label: "Dots" },
+  { value: "triangle-grid", label: "Triangles" },
 ];
 
 const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [

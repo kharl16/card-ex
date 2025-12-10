@@ -5,6 +5,8 @@ interface QREyeStylePreviewProps {
   label: string;
 }
 
+// NOTE: The "soft-corner" case is already implemented below in the renderEyeStyle switch
+
 export function QREyeStylePreview({ eyeStyle, isSelected, onClick, label }: QREyeStylePreviewProps) {
   const renderEyeStyle = () => {
     const baseClass = "w-full h-full";
