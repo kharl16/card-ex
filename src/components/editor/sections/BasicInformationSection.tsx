@@ -114,11 +114,11 @@ export function BasicInformationSection({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full max-w-full overflow-x-hidden">
       {/* Image Uploaders - Avatar, Logo, Cover */}
-      <div className="space-y-3">
+      <div className="space-y-3 w-full">
         <Label className="text-sm font-medium">Profile Images</Label>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 w-full">
           <ImageUpload
             value={card.avatar_url}
             onChange={(url) => onCardChange({ avatar_url: url })}
@@ -153,8 +153,8 @@ export function BasicInformationSection({
       </div>
 
       {/* Name Section */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
+      <div className="space-y-2 w-full">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Label>Name * (Left to Right)</Label>
           <Button
             type="button"
@@ -169,13 +169,13 @@ export function BasicInformationSection({
         </div>
 
         {/* Name Preview */}
-        <div className="text-sm text-muted-foreground mb-2 p-2 bg-muted/50 rounded-md">
+        <div className="text-sm text-muted-foreground mb-2 p-2 bg-muted/50 rounded-md break-words">
           <span className="font-medium">Preview: </span>
           {getFormattedName(card)}
         </div>
 
-        {/* Name Fields Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {/* Name Fields Grid - responsive wrap */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 w-full">
           <div className="space-y-1">
             <Label htmlFor="prefix" className="text-xs text-muted-foreground">
               Prefix
@@ -264,8 +264,8 @@ export function BasicInformationSection({
       </div>
 
       {/* Title & Company */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
+        <div className="space-y-2 w-full">
           <Label htmlFor="title">Title</Label>
           <Input
             id="title"
@@ -273,20 +273,20 @@ export function BasicInformationSection({
             onChange={(e) => onCardChange({ title: e.target.value })}
             placeholder="e.g. CEO, Designer"
             maxLength={100}
-            className={validationErrors.title ? "border-destructive" : ""}
+            className={cn("w-full", validationErrors.title && "border-destructive")}
           />
           {validationErrors.title && (
             <p className="text-sm text-destructive">{validationErrors.title}</p>
           )}
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 w-full">
           <Label htmlFor="company">Company</Label>
           <Input
             id="company"
             value={card.company || ""}
             onChange={(e) => onCardChange({ company: e.target.value })}
             maxLength={100}
-            className={validationErrors.company ? "border-destructive" : ""}
+            className={cn("w-full", validationErrors.company && "border-destructive")}
           />
           {validationErrors.company && (
             <p className="text-sm text-destructive">{validationErrors.company}</p>

@@ -70,26 +70,26 @@ function SortableAccordionItem({ section, isOpen, enableDragDrop }: SortableAcco
   };
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div ref={setNodeRef} style={style} className="w-full max-w-full overflow-x-hidden">
       <AccordionItem
         value={section.id}
         className={cn(
-          "border border-border/60 rounded-lg mb-3 overflow-hidden transition-all duration-200",
+          "border border-border/60 rounded-lg mb-3 overflow-hidden transition-all duration-200 w-full",
           "bg-card/50 hover:bg-card/80",
           isOpen && "border-l-4 border-l-[#D4AF37] bg-card"
         )}
       >
         <AccordionTrigger
           className={cn(
-            "px-4 py-3 hover:no-underline hover:bg-muted/40 transition-colors",
+            "px-3 sm:px-4 py-3 hover:no-underline hover:bg-muted/40 transition-colors w-full",
             "[&[data-state=open]>div]:text-foreground",
-            "[&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-muted-foreground"
+            "[&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-muted-foreground [&>svg]:shrink-0"
           )}
         >
-          <div className="flex items-center gap-3 flex-1 text-left">
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 text-left min-w-0">
             {enableDragDrop && (
               <button
-                className="cursor-grab active:cursor-grabbing touch-none p-1 -ml-1 hover:bg-muted rounded"
+                className="cursor-grab active:cursor-grabbing touch-none p-1 -ml-1 hover:bg-muted rounded shrink-0"
                 {...attributes}
                 {...listeners}
                 onClick={(e) => e.stopPropagation()}
@@ -98,24 +98,24 @@ function SortableAccordionItem({ section, isOpen, enableDragDrop }: SortableAcco
               </button>
             )}
             {section.icon && (
-              <span className="text-muted-foreground">{section.icon}</span>
+              <span className="text-muted-foreground shrink-0">{section.icon}</span>
             )}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <span className={cn("font-medium", isOpen && "text-foreground font-semibold")}>
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <span className={cn("font-medium text-sm sm:text-base truncate", isOpen && "text-foreground font-semibold")}>
                   {section.title}
                 </span>
                 {section.isPremium && (
                   <Badge
                     variant="outline"
-                    className="text-[10px] uppercase tracking-wide px-2 py-0.5 bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/40 font-medium"
+                    className="text-[9px] sm:text-[10px] uppercase tracking-wide px-1.5 sm:px-2 py-0.5 bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/40 font-medium shrink-0"
                   >
                     Premium
                   </Badge>
                 )}
                 {section.progress === 100 && (
-                  <span className="flex items-center justify-center w-5 h-5 rounded-full bg-green-500/20 text-green-500">
-                    <Check className="h-3 w-3" />
+                  <span className="flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-green-500/20 text-green-500 shrink-0">
+                    <Check className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                   </span>
                 )}
               </div>
@@ -124,7 +124,7 @@ function SortableAccordionItem({ section, isOpen, enableDragDrop }: SortableAcco
                   <p className="text-xs text-muted-foreground truncate">{section.description}</p>
                 )}
                 {section.progress !== undefined && section.progress < 100 && (
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0">
                     {section.progress}%
                   </span>
                 )}
@@ -144,8 +144,10 @@ function SortableAccordionItem({ section, isOpen, enableDragDrop }: SortableAcco
             </div>
           </div>
         </AccordionTrigger>
-        <AccordionContent className="px-4 pb-4 pt-2">
-          {section.content}
+        <AccordionContent className="px-3 sm:px-4 pb-4 pt-2 w-full max-w-full overflow-x-hidden">
+          <div className="w-full max-w-full overflow-x-hidden">
+            {section.content}
+          </div>
         </AccordionContent>
       </AccordionItem>
     </div>
