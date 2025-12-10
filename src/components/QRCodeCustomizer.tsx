@@ -10,13 +10,7 @@ import { toast } from "sonner";
 import { QRPatternPreview } from "./qr/QRPatternPreview";
 import { QREyeStylePreview } from "./qr/QREyeStylePreview";
 import { QRLivePreview } from "./qr/QRLivePreview";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export interface QRSettings {
   size?: number;
@@ -26,7 +20,7 @@ export interface QRSettings {
   logoPosition?: "center" | "background";
   logoOpacity?: number;
   pattern?: "squares" | "classy" | "rounded" | "classy-rounded" | "extra-rounded" | "dots";
-  eyeStyle?: "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield";
+  eyeStyle?: "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield" | "soft-corner"; // <--- NEW EYE STYLE
   useGradient?: boolean;
   gradientColor1?: string;
   gradientColor2?: string;
@@ -200,6 +194,7 @@ const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [
   { value: "star", label: "Star" },
   { value: "heart", label: "Heart" },
   { value: "shield", label: "Shield" },
+  { value: "soft-corner", label: "Soft Corner" }, // <--- NEW OPTION
 ];
 
 // Helper functions for presets
@@ -361,7 +356,7 @@ export default function QRCodeCustomizer({
     toast.success("Preset deleted");
   };
 
-  const handleLoadTemplate = (template: typeof BUILT_IN_TEMPLATES[0]) => {
+  const handleLoadTemplate = (template: (typeof BUILT_IN_TEMPLATES)[0]) => {
     onChange({ ...settings, ...template.settings });
     toast.success(`Template "${template.name}" applied`);
   };
@@ -468,11 +463,7 @@ export default function QRCodeCustomizer({
                               </p>
                             </div>
                             <div className="flex gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleLoadPreset(preset)}
-                              >
+                              <Button size="sm" variant="ghost" onClick={() => handleLoadPreset(preset)}>
                                 Load
                               </Button>
                               <Button
@@ -622,9 +613,7 @@ export default function QRCodeCustomizer({
                       type="button"
                       onClick={() => onChange({ ...settings, gradientType: "linear" })}
                       className={`flex items-center justify-center gap-2 p-2 rounded border-2 transition-all ${
-                        gradientType === "linear"
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:bg-muted/50"
+                        gradientType === "linear" ? "border-primary bg-primary/10" : "border-border hover:bg-muted/50"
                       }`}
                     >
                       <div
@@ -639,9 +628,7 @@ export default function QRCodeCustomizer({
                       type="button"
                       onClick={() => onChange({ ...settings, gradientType: "radial" })}
                       className={`flex items-center justify-center gap-2 p-2 rounded border-2 transition-all ${
-                        gradientType === "radial"
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:bg-muted/50"
+                        gradientType === "radial" ? "border-primary bg-primary/10" : "border-border hover:bg-muted/50"
                       }`}
                     >
                       <div
@@ -797,7 +784,9 @@ export default function QRCodeCustomizer({
                       }
                       className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                     />
-                    <p className="text-xs text-muted-foreground">Lower values create a subtle watermark, higher values make the logo more visible.</p>
+                    <p className="text-xs text-muted-foreground">
+                      Lower values create a subtle watermark, higher values make the logo more visible.
+                    </p>
                   </div>
                 )}
               </div>
@@ -917,7 +906,12 @@ export default function QRCodeCustomizer({
                     max={32}
                     step={2}
                     value={settings.frameBorderRadius || 12}
-                    onChange={(e) => onChange({ ...settings, frameBorderRadius: parseInt(e.target.value) })}
+                    onChange={(e) =>
+                      onChange({
+                        ...settings,
+                        frameBorderRadius: parseInt(e.target.value),
+                      })
+                    }
                     className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                   />
                 </div>
@@ -959,10 +953,10 @@ export default function QRCodeCustomizer({
                             shadow === "none"
                               ? "none"
                               : shadow === "soft"
-                              ? "0 2px 8px rgba(0,0,0,0.15)"
-                              : shadow === "medium"
-                              ? "0 4px 16px rgba(0,0,0,0.25)"
-                              : "0 8px 24px rgba(0,0,0,0.4)",
+                                ? "0 2px 8px rgba(0,0,0,0.15)"
+                                : shadow === "medium"
+                                  ? "0 4px 16px rgba(0,0,0,0.25)"
+                                  : "0 8px 24px rgba(0,0,0,0.4)",
                         }}
                       />
                       <span className="text-[10px] mt-1 capitalize">{shadow}</span>
