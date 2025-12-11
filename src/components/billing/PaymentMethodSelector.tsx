@@ -128,7 +128,7 @@ export function PaymentMethodSelector({
               placeholder="Enter reference number..."
               value={providerReference}
               onChange={(e) => onProviderReferenceChange(e.target.value)}
-              required={selectedMethod !== "CASH"}
+              required
             />
           )}
         </div>
