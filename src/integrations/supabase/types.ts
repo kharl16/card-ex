@@ -184,6 +184,51 @@ export type Database = {
           },
         ]
       }
+      card_plans: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          has_reseller_access: boolean
+          id: string
+          is_active: boolean
+          name: string
+          profit: number
+          referral_eligible: boolean
+          retail_price: number
+          updated_at: string
+          wholesale_price: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          has_reseller_access?: boolean
+          id?: string
+          is_active?: boolean
+          name: string
+          profit: number
+          referral_eligible?: boolean
+          retail_price: number
+          updated_at?: string
+          wholesale_price: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          has_reseller_access?: boolean
+          id?: string
+          is_active?: boolean
+          name?: string
+          profit?: number
+          referral_eligible?: boolean
+          retail_price?: number
+          updated_at?: string
+          wholesale_price?: number
+        }
+        Relationships: []
+      }
       card_templates: {
         Row: {
           created_at: string
@@ -234,6 +279,7 @@ export type Database = {
           first_name: string | null
           full_name: string
           id: string
+          is_paid: boolean
           is_published: boolean | null
           last_name: string | null
           location: string | null
@@ -241,9 +287,13 @@ export type Database = {
           middle_name: string | null
           organization_id: string | null
           owner_name: string | null
+          paid_at: string | null
+          paid_overridden_by_admin: boolean
           phone: string | null
+          plan_id: string | null
           prefix: string | null
           public_url: string | null
+          published_at: string | null
           qr_code_url: string | null
           share_url: string | null
           slug: string
@@ -271,6 +321,7 @@ export type Database = {
           first_name?: string | null
           full_name: string
           id?: string
+          is_paid?: boolean
           is_published?: boolean | null
           last_name?: string | null
           location?: string | null
@@ -278,9 +329,13 @@ export type Database = {
           middle_name?: string | null
           organization_id?: string | null
           owner_name?: string | null
+          paid_at?: string | null
+          paid_overridden_by_admin?: boolean
           phone?: string | null
+          plan_id?: string | null
           prefix?: string | null
           public_url?: string | null
+          published_at?: string | null
           qr_code_url?: string | null
           share_url?: string | null
           slug: string
@@ -308,6 +363,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string
           id?: string
+          is_paid?: boolean
           is_published?: boolean | null
           last_name?: string | null
           location?: string | null
@@ -315,9 +371,13 @@ export type Database = {
           middle_name?: string | null
           organization_id?: string | null
           owner_name?: string | null
+          paid_at?: string | null
+          paid_overridden_by_admin?: boolean
           phone?: string | null
+          plan_id?: string | null
           prefix?: string | null
           public_url?: string | null
+          published_at?: string | null
           qr_code_url?: string | null
           share_url?: string | null
           slug?: string
@@ -333,6 +393,13 @@ export type Database = {
           website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cards_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cards_user_id_fkey"
             columns: ["user_id"]
@@ -449,6 +516,73 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          amount: number
+          card_id: string
+          created_at: string
+          currency: string
+          evidence_url: string | null
+          id: string
+          payment_method: string
+          plan_id: string
+          provider_reference: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          card_id: string
+          created_at?: string
+          currency?: string
+          evidence_url?: string | null
+          id?: string
+          payment_method: string
+          plan_id: string
+          provider_reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          card_id?: string
+          created_at?: string
+          currency?: string
+          evidence_url?: string | null
+          id?: string
+          payment_method?: string
+          plan_id?: string
+          provider_reference?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_images: {
         Row: {
           alt_text: string | null
@@ -495,27 +629,33 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           full_name: string | null
+          has_referral_access: boolean
           id: string
           phone: string | null
           phone_verified: boolean | null
+          referral_code: string | null
           updated_at: string
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
+          has_referral_access?: boolean
           id: string
           phone?: string | null
           phone_verified?: boolean | null
+          referral_code?: string | null
           updated_at?: string
         }
         Update: {
           avatar_url?: string | null
           created_at?: string
           full_name?: string | null
+          has_referral_access?: boolean
           id?: string
           phone?: string | null
           phone_verified?: boolean | null
+          referral_code?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -549,6 +689,75 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          payment_id: string | null
+          plan_id: string | null
+          referred_card_id: string | null
+          referred_user_id: string
+          referrer_user_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          plan_id?: string | null
+          referred_card_id?: string | null
+          referred_user_id: string
+          referrer_user_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          plan_id?: string | null
+          referred_card_id?: string | null
+          referred_user_id?: string
+          referrer_user_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referred_card_id_fkey"
+            columns: ["referred_card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_user_id_fkey"
+            columns: ["referrer_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       share_links: {
         Row: {
@@ -617,6 +826,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_referral_access: {
+        Args: { p_plan_id: string; p_user_id: string }
+        Returns: undefined
+      }
       assemble_display_name: {
         Args: {
           p_first_name: string
@@ -628,6 +841,7 @@ export type Database = {
         Returns: string
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -640,6 +854,19 @@ export type Database = {
         Returns: boolean
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      process_card_payment: {
+        Args: {
+          p_amount: number
+          p_card_id: string
+          p_evidence_url?: string
+          p_is_admin_override?: boolean
+          p_payment_method: string
+          p_plan_id: string
+          p_provider_reference?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"

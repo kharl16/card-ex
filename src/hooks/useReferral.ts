@@ -1,0 +1,108 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+export interface Referral {
+  id: string;
+  referrer_user_id: string;
+  referred_user_id: string;
+  referred_card_id: string | null;
+  payment_id: string | null;
+  plan_id: string | null;
+  status: string;
+  created_at: string;
+  referred_profile?: {
+    full_name: string | null;
+  };
+  plan?: {
+    name: string;
+    profit: number;
+  };
+  payment?: {
+    status: string;
+    amount: number;
+  };
+}
+
+export function useReferralProfile() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["referral-profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("referral_code, has_referral_access")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+}
+
+export function useMyReferrals() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["my-referrals", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      // Get referrals where I am the referrer
+      const { data: referrals, error } = await supabase
+        .from("referrals")
+        .select(`
+          *,
+          plan:card_plans(name, profit)
+        `)
+        .eq("referrer_user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch referred user profiles separately
+      const referredUserIds = referrals?.map(r => r.referred_user_id) || [];
+      if (referredUserIds.length === 0) return [];
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", referredUserIds);
+
+      // Fetch payment statuses
+      const paymentIds = referrals?.filter(r => r.payment_id).map(r => r.payment_id) || [];
+      const { data: payments } = await supabase
+        .from("payments")
+        .select("id, status, amount")
+        .in("id", paymentIds);
+
+      // Combine data
+      return referrals?.map(ref => ({
+        ...ref,
+        referred_profile: profiles?.find(p => p.id === ref.referred_user_id),
+        payment: payments?.find(p => p.id === ref.payment_id),
+      })) as Referral[];
+    },
+    enabled: !!user?.id,
+  });
+}
+
+// Store referral code from URL in localStorage
+export function storeReferralCode(code: string) {
+  localStorage.setItem("cardex_referral_code", code);
+}
+
+// Get stored referral code
+export function getStoredReferralCode(): string | null {
+  return localStorage.getItem("cardex_referral_code");
+}
+
+// Clear stored referral code after use
+export function clearStoredReferralCode() {
+  localStorage.removeItem("cardex_referral_code");
+}

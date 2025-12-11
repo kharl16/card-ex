@@ -16,6 +16,8 @@ import AdminCards from "./pages/AdminCards";
 import AdminDataTools from "./pages/AdminDataTools";
 import Gallery from "./pages/Gallery";
 import Analytics from "./pages/Analytics";
+import Billing from "./pages/Billing";
+import BillingSuccess from "./pages/BillingSuccess";
 import RequireAuth from "./components/auth/RequireAuth";
 import NotFound from "./pages/NotFound";
 import PageTransition from "./components/PageTransition";
@@ -59,6 +61,26 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <Analytics />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/billing/:cardId"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <Billing />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/billing/:cardId/success"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <BillingSuccess />
               </RequireAuth>
             </PageTransition>
           }
