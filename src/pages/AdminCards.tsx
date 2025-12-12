@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import SignOutButton from "@/components/auth/SignOutButton";
 import {
   ArrowLeft,
@@ -23,6 +25,7 @@ import {
   Mail,
   Copy,
   MoreHorizontal,
+  DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -57,6 +60,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { AdminCreateCardDialog } from "@/components/admin/AdminCreateCardDialog";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
+import { useAdminOverridePayment } from "@/hooks/usePayments";
+import { useCardPlans } from "@/hooks/useCardPlans";
 
 type CardData = Tables<"cards">;
 
@@ -469,10 +474,11 @@ export default function AdminCards() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Name</TableHead>
-                          <TableHead>Owner</TableHead> {/* NEW */}
+                          <TableHead>Owner</TableHead>
                           <TableHead>Company</TableHead>
                           <TableHead>Slug</TableHead>
-                          <TableHead>Status</TableHead>
+                          <TableHead>Paid</TableHead>
+                          <TableHead>Published</TableHead>
                           <TableHead>Views</TableHead>
                           <TableHead>Updated</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
@@ -482,57 +488,20 @@ export default function AdminCards() {
                       <TableBody>
                         {filteredCards.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={8} className="text-center text-muted-foreground">
+                            <TableCell colSpan={9} className="text-center text-muted-foreground">
                               No cards found
                             </TableCell>
                           </TableRow>
                         ) : (
                           filteredCards.map((card) => (
-                            <TableRow key={card.id}>
-                              <TableCell className="font-medium">{card.full_name}</TableCell>
-
-                              {/* NEW: Owner column */}
-                              <TableCell>{(card as any).owner_name || "—"}</TableCell>
-
-                              <TableCell>{card.company || "—"}</TableCell>
-                              <TableCell className="font-mono text-xs">{card.slug}</TableCell>
-                              <TableCell>
-                                <Badge variant={card.is_published ? "default" : "secondary"}>
-                                  {card.is_published ? "Published" : "Draft"}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>{card.views_count || 0}</TableCell>
-                              <TableCell className="text-sm text-muted-foreground">
-                                {new Date(card.updated_at).toLocaleDateString()}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => navigate(`/cards/${card.id}/edit`)}>
-                                      <Edit className="mr-2 h-4 w-4" />
-                                      Edit Card
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => openDuplicateCardFlow(card)}>
-                                      <Copy className="mr-2 h-4 w-4" />
-                                      Duplicate Design to User
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      onClick={() => setDeleteCardId(card.id)}
-                                      className="text-destructive focus:text-destructive"
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Delete Card
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </TableCell>
-                            </TableRow>
+                            <AdminCardRow
+                              key={card.id}
+                              card={card}
+                              onEdit={() => navigate(`/cards/${card.id}/edit`)}
+                              onDuplicate={() => openDuplicateCardFlow(card)}
+                              onDelete={() => setDeleteCardId(card.id)}
+                              onPaymentChange={loadCards}
+                            />
                           ))
                         )}
                       </TableBody>

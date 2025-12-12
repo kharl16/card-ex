@@ -598,6 +598,13 @@ export default function CardEditor() {
   const togglePublish = async () => {
     if (!card) return;
 
+    // If card is unpaid and trying to publish, redirect to billing
+    if (!card.is_paid && !card.is_published) {
+      toast.info("Please complete payment to publish your card");
+      navigate(`/billing/${card.id}`);
+      return;
+    }
+
     const newStatus = !card.is_published;
 
     let qrCodeUrl = card.qr_code_url;
