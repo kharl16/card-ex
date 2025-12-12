@@ -73,6 +73,104 @@ interface UserProfile {
   card_count?: number;
 }
 
+// Admin Card Row Component with payment controls
+function AdminCardRow({ card, onEdit, onDuplicate, onDelete, onPaymentChange }: {
+  card: CardData;
+  onEdit: () => void;
+  onDuplicate: () => void;
+  onDelete: () => void;
+  onPaymentChange: () => void;
+}) {
+  const navigate = useNavigate();
+  const adminOverride = useAdminOverridePayment();
+  const { data: plans } = useCardPlans();
+  const defaultPlan = plans?.find(p => p.code === "ESSENTIAL") || plans?.[0];
+
+  const handlePaidChange = async (checked: boolean) => {
+    const planId = card.plan_id || defaultPlan?.id;
+    const amount = defaultPlan?.retail_price || 599;
+    
+    if (!planId) {
+      toast.error("No plan available");
+      return;
+    }
+
+    await adminOverride.mutateAsync({
+      cardId: card.id,
+      userId: card.user_id,
+      planId,
+      amount,
+      isPaid: checked,
+    });
+    onPaymentChange();
+  };
+
+  const handlePublishedChange = async (checked: boolean) => {
+    const { error } = await supabase
+      .from("cards")
+      .update({ is_published: checked })
+      .eq("id", card.id);
+    
+    if (error) {
+      toast.error("Failed to update");
+    } else {
+      toast.success(checked ? "Published" : "Unpublished");
+      onPaymentChange();
+    }
+  };
+
+  return (
+    <TableRow>
+      <TableCell className="font-medium">{card.full_name}</TableCell>
+      <TableCell>{(card as any).owner_name || "—"}</TableCell>
+      <TableCell>{card.company || "—"}</TableCell>
+      <TableCell className="font-mono text-xs">{card.slug}</TableCell>
+      <TableCell>
+        <Checkbox
+          checked={card.is_paid}
+          onCheckedChange={handlePaidChange}
+          disabled={adminOverride.isPending}
+        />
+      </TableCell>
+      <TableCell>
+        <Switch
+          checked={card.is_published || false}
+          onCheckedChange={handlePublishedChange}
+          disabled={!card.is_paid}
+        />
+      </TableCell>
+      <TableCell>{card.views_count || 0}</TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {new Date(card.updated_at).toLocaleDateString()}
+      </TableCell>
+      <TableCell className="text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onEdit}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Card
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onDuplicate}>
+              <Copy className="mr-2 h-4 w-4" />
+              Duplicate Design to User
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Card
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export default function AdminCards() {
   const navigate = useNavigate();
   const { isAdmin, loading: authLoading, session } = useAuth();
