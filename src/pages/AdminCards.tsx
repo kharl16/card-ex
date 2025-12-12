@@ -60,8 +60,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { AdminCreateCardDialog } from "@/components/admin/AdminCreateCardDialog";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
+import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
 import { useAdminOverridePayment } from "@/hooks/usePayments";
 import { useCardPlans } from "@/hooks/useCardPlans";
+import { LayoutTemplate } from "lucide-react";
 
 type CardData = Tables<"cards">;
 
@@ -74,10 +76,11 @@ interface UserProfile {
 }
 
 // Admin Card Row Component with payment controls
-function AdminCardRow({ card, onEdit, onDuplicate, onDelete, onPaymentChange }: {
+function AdminCardRow({ card, onEdit, onDuplicate, onSaveAsTemplate, onDelete, onPaymentChange }: {
   card: CardData;
   onEdit: () => void;
   onDuplicate: () => void;
+  onSaveAsTemplate: () => void;
   onDelete: () => void;
   onPaymentChange: () => void;
 }) {
@@ -196,6 +199,10 @@ function AdminCardRow({ card, onEdit, onDuplicate, onDelete, onPaymentChange }: 
               <Copy className="mr-2 h-4 w-4" />
               Duplicate Design to User
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={onSaveAsTemplate}>
+              <LayoutTemplate className="mr-2 h-4 w-4" />
+              Save as Template
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
@@ -243,6 +250,11 @@ export default function AdminCards() {
   const [duplicateSourceCard, setDuplicateSourceCard] = useState<CardData | null>(null);
   const [showSelectUserForDuplicateDialog, setShowSelectUserForDuplicateDialog] = useState(false);
   const [selectedUserForDuplicate, setSelectedUserForDuplicate] = useState<string>("");
+
+  // Save as Template Dialog state
+  const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
+  const [templateSourceCard, setTemplateSourceCard] = useState<CardData | null>(null);
+  const [templateProductImages, setTemplateProductImages] = useState<Array<{ image_url: string; alt_text?: string | null; description?: string | null }>>([]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -367,6 +379,20 @@ export default function AdminCards() {
     if (!selectedUserForDuplicate || !duplicateSourceCard) return;
     setShowSelectUserForDuplicateDialog(false);
     setShowDuplicateDialog(true);
+  };
+
+  // Open the save as template flow for a specific card
+  const openSaveAsTemplateFlow = async (card: CardData) => {
+    // Fetch product images for this card
+    const { data: productImages } = await supabase
+      .from("product_images")
+      .select("image_url, alt_text, description")
+      .eq("card_id", card.id)
+      .order("sort_order");
+    
+    setTemplateSourceCard(card);
+    setTemplateProductImages(productImages || []);
+    setShowSaveTemplateDialog(true);
   };
 
   // Get the selected user profile for duplicate
@@ -634,6 +660,7 @@ export default function AdminCards() {
                               card={card}
                               onEdit={() => navigate(`/cards/${card.id}/edit`)}
                               onDuplicate={() => openDuplicateCardFlow(card)}
+                              onSaveAsTemplate={() => openSaveAsTemplateFlow(card)}
                               onDelete={() => setDeleteCardId(card.id)}
                               onPaymentChange={loadCards}
                             />
@@ -966,6 +993,30 @@ export default function AdminCards() {
           onDuplicated={() => {
             loadCards();
             loadUsers();
+          }}
+        />
+      )}
+
+      {/* Save as Template Dialog */}
+      {templateSourceCard && (
+        <SaveTemplateDialog
+          open={showSaveTemplateDialog}
+          onOpenChange={(open) => {
+            setShowSaveTemplateDialog(open);
+            if (!open) {
+              setTemplateSourceCard(null);
+              setTemplateProductImages([]);
+            }
+          }}
+          card={{
+            ...templateSourceCard,
+            // Pre-fill template name with card name
+          }}
+          productImages={templateProductImages}
+          onSaved={() => {
+            toast.success(`Template created from '${templateSourceCard.full_name}' and added to your Templates list.`);
+            setTemplateSourceCard(null);
+            setTemplateProductImages([]);
           }}
         />
       )}
