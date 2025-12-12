@@ -124,7 +124,9 @@ function AdminCardRow({ card, onEdit, onDuplicate, onDelete, onPaymentChange }: 
       <TableCell className="font-medium">{card.full_name}</TableCell>
       <TableCell>{(card as any).owner_name || "—"}</TableCell>
       <TableCell>{card.company || "—"}</TableCell>
-      <TableCell className="font-mono text-xs">{card.slug}</TableCell>
+      <TableCell className="text-xs">
+        {plans?.find(p => p.id === card.plan_id)?.name || "—"}
+      </TableCell>
       <TableCell>
         <Checkbox
           checked={card.is_paid}
@@ -574,7 +576,7 @@ export default function AdminCards() {
                           <TableHead>Name</TableHead>
                           <TableHead>Owner</TableHead>
                           <TableHead>Company</TableHead>
-                          <TableHead>Slug</TableHead>
+                          <TableHead>Plan</TableHead>
                           <TableHead>Paid</TableHead>
                           <TableHead>Published</TableHead>
                           <TableHead>Views</TableHead>
