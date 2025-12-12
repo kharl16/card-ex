@@ -36,8 +36,15 @@ export function SaveTemplateDialog({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
-  const [saveAsGlobal, setSaveAsGlobal] = useState(false);
+  const [saveAsGlobal, setSaveAsGlobal] = useState(isAdmin); // Default to global for admins
   const [cardLinks, setCardLinks] = useState<Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>>([]);
+
+  // Pre-fill name from card when dialog opens
+  useEffect(() => {
+    if (open && card.full_name) {
+      setName(`${card.full_name} Template`);
+    }
+  }, [open, card.full_name]);
 
   // Fetch card links when dialog opens
   useEffect(() => {
