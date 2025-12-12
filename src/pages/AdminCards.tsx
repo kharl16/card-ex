@@ -125,38 +125,42 @@ function AdminCardRow({ card, onEdit, onDuplicate, onDelete, onPaymentChange }: 
       <TableCell>{(card as any).owner_name || "—"}</TableCell>
       <TableCell>{card.company || "—"}</TableCell>
       <TableCell>
-        <Select
-          value={card.plan_id || ""}
-          onValueChange={async (newPlanId) => {
-            const { error } = await supabase
-              .from("cards")
-              .update({ plan_id: newPlanId })
-              .eq("id", card.id);
-            if (error) {
-              toast.error("Failed to update plan");
-            } else {
-              toast.success("Plan updated");
-              onPaymentChange();
-            }
-          }}
-        >
-          <SelectTrigger className="w-[160px] h-8 text-xs">
-            <SelectValue placeholder="Select plan">
-              {(() => {
-                const plan = plans?.find(p => p.id === card.plan_id);
-                return plan ? `${plan.name} • ₱${plan.retail_price.toLocaleString()}` : "—";
-              })()}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent className="bg-popover z-50">
-            {plans?.map((plan) => (
-              <SelectItem key={plan.id} value={plan.id} className="text-xs">
-                <span className="font-medium">{plan.name}</span>
-                <span className="ml-2 text-muted-foreground">₱{plan.retail_price.toLocaleString()}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {plans && plans.length > 0 ? (
+          <Select
+            value={card.plan_id ?? undefined}
+            onValueChange={async (newPlanId) => {
+              const { error } = await supabase
+                .from("cards")
+                .update({ plan_id: newPlanId })
+                .eq("id", card.id);
+              if (error) {
+                toast.error("Failed to update plan");
+              } else {
+                toast.success("Plan updated");
+                onPaymentChange();
+              }
+            }}
+          >
+            <SelectTrigger className="w-[160px] h-8 text-xs">
+              <SelectValue placeholder="No plan">
+                {(() => {
+                  const plan = plans?.find(p => p.id === card.plan_id);
+                  return plan ? `${plan.name} • ₱${plan.retail_price.toLocaleString()}` : "No plan";
+                })()}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent className="bg-popover z-50">
+              {plans.map((plan) => (
+                <SelectItem key={plan.id} value={plan.id} className="text-xs">
+                  <span className="font-medium">{plan.name}</span>
+                  <span className="ml-2 text-muted-foreground">₱{plan.retail_price.toLocaleString()}</span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <span className="text-xs text-muted-foreground">Loading...</span>
+        )}
       </TableCell>
       <TableCell>
         <Checkbox
