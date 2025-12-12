@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo } from "react"; // Force rebuild
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy, Trash2, Pencil, Search } from "lucide-react";
+import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy, Trash2, Pencil, Search, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -23,6 +24,7 @@ import ShareCardDialog from "@/components/ShareCardDialog";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
+import { ReferralPanel } from "@/components/referral/ReferralPanel";
 import { useAuth } from "@/contexts/AuthContext";
 
 type CardData = Tables<"cards">;
@@ -373,6 +375,12 @@ export default function Dashboard() {
                       </Button>
                     </div>
                     <div className="flex items-center gap-2">
+                      {!card.is_paid && (
+                        <Badge variant="outline" className="text-xs gap-1">
+                          <DollarSign className="h-3 w-3" />
+                          Unpaid
+                        </Badge>
+                      )}
                       <div
                         className={`h-2 w-2 rounded-full ${card.is_published ? "bg-primary" : "bg-muted"}`}
                         title={card.is_published ? "Published" : "Unpublished"}
@@ -426,6 +434,13 @@ export default function Dashboard() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Referral Panel */}
+        {profile && (
+          <div className="mt-8">
+            <ReferralPanel userPlanCode={null} />
           </div>
         )}
       </main>
