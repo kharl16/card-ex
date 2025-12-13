@@ -20,7 +20,7 @@ interface SaveTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   card: Record<string, any>;
-  productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>;
+  productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null; sort_order?: number | null }>;
   onSaved?: () => void;
 }
 

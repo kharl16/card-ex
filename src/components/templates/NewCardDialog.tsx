@@ -128,7 +128,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
           image_url: img.image_url,
           alt_text: img.alt_text || null,
           description: img.description || null,
-          sort_order: index,
+          sort_order: img.sort_order ?? index,
         }));
 
         await supabase.from("product_images").insert(productImageInserts);

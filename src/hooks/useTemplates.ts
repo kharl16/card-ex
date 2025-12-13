@@ -16,13 +16,16 @@ export interface CardTemplate {
 }
 
 export interface LayoutData {
+  // Theme includes all styling: colors, gradients, patterns, fonts, AND QR settings
   theme: Record<string, any>;
   carousel_enabled: boolean;
-  // Design assets
+  
+  // Design assets (images)
   cover_url?: string | null;
   logo_url?: string | null;
   avatar_url?: string | null;
-  // Personal data - now included in templates
+  
+  // Personal/contact data - fully included in templates
   full_name?: string | null;
   first_name?: string | null;
   middle_name?: string | null;
@@ -36,13 +39,16 @@ export interface LayoutData {
   phone?: string | null;
   website?: string | null;
   location?: string | null;
-  // Product/carousel images
+  
+  // Product/carousel images with metadata
   product_images?: Array<{
     image_url: string;
     alt_text?: string | null;
     description?: string | null;
+    sort_order?: number | null;
   }>;
-  // Card links (social media, etc.)
+  
+  // Card links (social media, additional contacts, custom links)
   card_links?: Array<{
     kind: string;
     label: string;
@@ -50,6 +56,10 @@ export interface LayoutData {
     icon?: string | null;
     sort_index?: number | null;
   }>;
+  
+  // Source card reference (for tracking where template came from)
+  source_card_id?: string | null;
+  
   [key: string]: any; // Allow additional properties for JSON compatibility
 }
 
@@ -111,20 +121,36 @@ export function useTemplates() {
    */
   const extractLayoutData = (
     card: Record<string, any>, 
-    productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>,
+    productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null; sort_order?: number | null }>,
     cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>
   ): LayoutData => {
-    // Copy theme as-is including all QR settings
-    const theme = card.theme ? { ...card.theme } : {};
+    // Copy theme as-is including ALL settings:
+    // - Colors (primary, accent, background, foreground, buttonColor)
+    // - Typography (fontFamily)
+    // - Background config (backgroundType, gradient settings, pattern settings)
+    // - QR settings (qrSettings object with pattern, eye styles, colors, logo overlay, frame settings)
+    // - Variant data (variantA, variantB, activeVariant)
+    // - Display modes (avatarDisplayMode, logoDisplayMode)
+    // - Carousel speed
+    const theme = card.theme ? JSON.parse(JSON.stringify(card.theme)) : {};
+    
+    // IMPORTANT: Remove any QR payload/value/link from theme - new cards must generate new QR
+    if (theme.qrSettings) {
+      // Keep all styling but ensure no QR data/URL is preserved
+      delete theme.qrSettings.data;
+      delete theme.qrSettings.url;
+    }
 
     return {
       theme,
       carousel_enabled: card.carousel_enabled ?? true,
-      // Design assets
+      
+      // Design assets (image URLs)
       cover_url: card.cover_url || null,
       logo_url: card.logo_url || null,
       avatar_url: card.avatar_url || null,
-      // Personal data - now included
+      
+      // Personal/contact data - fully included
       full_name: card.full_name || null,
       first_name: card.first_name || null,
       middle_name: card.middle_name || null,
@@ -138,10 +164,26 @@ export function useTemplates() {
       phone: card.phone || null,
       website: card.website || null,
       location: card.location || null,
-      // Product/portfolio images
-      product_images: productImages || [],
-      // Card links (social media, contact links)
-      card_links: cardLinks || [],
+      
+      // Product/portfolio images with sort order
+      product_images: (productImages || []).map((img, idx) => ({
+        image_url: img.image_url,
+        alt_text: img.alt_text || null,
+        description: img.description || null,
+        sort_order: img.sort_order ?? idx,
+      })),
+      
+      // Card links (social media, contact links) with sort order
+      card_links: (cardLinks || []).map((link, idx) => ({
+        kind: link.kind,
+        label: link.label,
+        value: link.value,
+        icon: link.icon || null,
+        sort_index: link.sort_index ?? idx,
+      })),
+      
+      // Track source card for reference
+      source_card_id: card.id || null,
     };
   };
 
