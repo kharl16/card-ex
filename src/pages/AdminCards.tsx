@@ -259,7 +259,7 @@ export default function AdminCards() {
   // Save as Template Dialog state
   const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
   const [templateSourceCard, setTemplateSourceCard] = useState<CardData | null>(null);
-  const [templateProductImages, setTemplateProductImages] = useState<Array<{ image_url: string; alt_text?: string | null; description?: string | null }>>([]);
+  const [templateProductImages, setTemplateProductImages] = useState<Array<{ image_url: string; alt_text?: string | null; description?: string | null; sort_order?: number | null }>>([]);
 
   // Templates management state
   const { getAllTemplatesForAdmin, updateTemplate, deleteTemplate } = useTemplates();
@@ -439,10 +439,10 @@ export default function AdminCards() {
 
   // Open the save as template flow for a specific card
   const openSaveAsTemplateFlow = async (card: CardData) => {
-    // Fetch product images for this card
+    // Fetch product images for this card with sort_order
     const { data: productImages } = await supabase
       .from("product_images")
-      .select("image_url, alt_text, description")
+      .select("image_url, alt_text, description, sort_order")
       .eq("card_id", card.id)
       .order("sort_order");
     
