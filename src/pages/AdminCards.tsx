@@ -26,6 +26,8 @@ import {
   Copy,
   MoreHorizontal,
   DollarSign,
+  Palette,
+  Globe,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -64,6 +66,9 @@ import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
 import { useAdminOverridePayment } from "@/hooks/usePayments";
 import { useCardPlans } from "@/hooks/useCardPlans";
 import { LayoutTemplate } from "lucide-react";
+import { useTemplates, CardTemplate } from "@/hooks/useTemplates";
+import { Textarea } from "@/components/ui/textarea";
+import { format } from "date-fns";
 
 type CardData = Tables<"cards">;
 
@@ -256,6 +261,16 @@ export default function AdminCards() {
   const [templateSourceCard, setTemplateSourceCard] = useState<CardData | null>(null);
   const [templateProductImages, setTemplateProductImages] = useState<Array<{ image_url: string; alt_text?: string | null; description?: string | null }>>([]);
 
+  // Templates management state
+  const { getAllTemplatesForAdmin, updateTemplate, deleteTemplate } = useTemplates();
+  const [templates, setTemplates] = useState<CardTemplate[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
+  const [editingTemplate, setEditingTemplate] = useState<CardTemplate | null>(null);
+  const [deletingTemplate, setDeletingTemplate] = useState<CardTemplate | null>(null);
+  const [editTemplateName, setEditTemplateName] = useState("");
+  const [editTemplateDescription, setEditTemplateDescription] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
+
   useEffect(() => {
     if (authLoading) return;
 
@@ -274,7 +289,48 @@ export default function AdminCards() {
   }, [authLoading, session, isAdmin, navigate]);
 
   const loadData = async () => {
-    await Promise.all([loadCards(), loadUsers()]);
+    await Promise.all([loadCards(), loadUsers(), loadTemplates()]);
+  };
+
+  const loadTemplates = async () => {
+    setTemplatesLoading(true);
+    const data = await getAllTemplatesForAdmin();
+    setTemplates(data);
+    setTemplatesLoading(false);
+  };
+
+  const handleEditTemplate = (template: CardTemplate) => {
+    setEditingTemplate(template);
+    setEditTemplateName(template.name);
+    setEditTemplateDescription(template.description || "");
+  };
+
+  const handleSaveTemplateEdit = async () => {
+    if (!editingTemplate || !editTemplateName.trim()) return;
+
+    setSavingTemplate(true);
+    const success = await updateTemplate(editingTemplate.id, {
+      name: editTemplateName.trim(),
+      description: editTemplateDescription.trim() || undefined,
+    });
+
+    if (success) {
+      setEditingTemplate(null);
+      await loadTemplates();
+    }
+    setSavingTemplate(false);
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!deletingTemplate) return;
+
+    setSavingTemplate(true);
+    const success = await deleteTemplate(deletingTemplate.id);
+    if (success) {
+      setDeletingTemplate(null);
+      await loadTemplates();
+    }
+    setSavingTemplate(false);
   };
 
   const loadCards = async () => {
@@ -604,6 +660,10 @@ export default function AdminCards() {
               <Users className="h-4 w-4" />
               All Users
             </TabsTrigger>
+            <TabsTrigger value="templates" className="gap-2">
+              <Palette className="h-4 w-4" />
+              Templates
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="cards">
@@ -769,6 +829,96 @@ export default function AdminCards() {
                     </TableBody>
                   </Table>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="templates">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Templates ({templates.length})</span>
+                  <Badge variant="destructive">Super Admin</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {templatesLoading ? (
+                  <LoadingAnimation />
+                ) : templates.length === 0 ? (
+                  <div className="rounded-lg border border-dashed p-8 text-center">
+                    <Palette className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                    <h3 className="mb-2 font-semibold">No templates yet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Save a card as a template from the All Cards tab to get started.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {templates.map((template) => (
+                      <Card key={template.id} className="overflow-hidden">
+                        <CardHeader className="py-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
+                                <Palette className="h-5 w-5 text-primary" />
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <CardTitle className="text-base">{template.name}</CardTitle>
+                                </div>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge
+                                    variant={template.is_global ? "default" : "secondary"}
+                                    className="text-xs"
+                                  >
+                                    {template.is_global ? (
+                                      <>
+                                        <Globe className="mr-1 h-3 w-3" />
+                                        Global
+                                      </>
+                                    ) : (
+                                      <>
+                                        <User className="mr-1 h-3 w-3" />
+                                        Personal
+                                      </>
+                                    )}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    {format(new Date(template.created_at), "MMM d, yyyy")}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="py-2 pt-0">
+                          {template.description && (
+                            <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditTemplate(template)}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => setDeletingTemplate(template)}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -1017,9 +1167,73 @@ export default function AdminCards() {
             toast.success(`Template created from '${templateSourceCard.full_name}' and added to your Templates list.`);
             setTemplateSourceCard(null);
             setTemplateProductImages([]);
+            loadTemplates();
           }}
         />
       )}
+
+      {/* Edit Template Dialog */}
+      <Dialog open={!!editingTemplate} onOpenChange={() => setEditingTemplate(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Template</DialogTitle>
+            <DialogDescription>Update the template name and description.</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-template-name">Name</Label>
+              <Input
+                id="edit-template-name"
+                value={editTemplateName}
+                onChange={(e) => setEditTemplateName(e.target.value)}
+                maxLength={100}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-template-description">Description</Label>
+              <Textarea
+                id="edit-template-description"
+                value={editTemplateDescription}
+                onChange={(e) => setEditTemplateDescription(e.target.value)}
+                maxLength={500}
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingTemplate(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveTemplateEdit} disabled={!editTemplateName.trim() || savingTemplate}>
+              {savingTemplate ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Template Confirmation */}
+      <AlertDialog open={!!deletingTemplate} onOpenChange={() => setDeletingTemplate(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingTemplate?.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteTemplate}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={savingTemplate}
+            >
+              {savingTemplate ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
