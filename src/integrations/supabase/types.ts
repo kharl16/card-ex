@@ -240,6 +240,7 @@ export type Database = {
           owner_id: string
           thumbnail_url: string | null
           updated_at: string
+          visibility: string
         }
         Insert: {
           created_at?: string
@@ -251,6 +252,7 @@ export type Database = {
           owner_id: string
           thumbnail_url?: string | null
           updated_at?: string
+          visibility?: string
         }
         Update: {
           created_at?: string
@@ -262,6 +264,7 @@ export type Database = {
           owner_id?: string
           thumbnail_url?: string | null
           updated_at?: string
+          visibility?: string
         }
         Relationships: []
       }
@@ -634,6 +637,7 @@ export type Database = {
           phone: string | null
           phone_verified: boolean | null
           referral_code: string | null
+          referred_by_user_id: string | null
           updated_at: string
         }
         Insert: {
@@ -645,6 +649,7 @@ export type Database = {
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
+          referred_by_user_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -656,9 +661,18 @@ export type Database = {
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
+          referred_by_user_id?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_user_id_fkey"
+            columns: ["referred_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limits: {
         Row: {

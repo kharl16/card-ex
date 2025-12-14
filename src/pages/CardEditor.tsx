@@ -38,6 +38,7 @@ import ProductImageManager from "@/components/ProductImageManager";
 import CardView, { SocialLink, ProductImage } from "@/components/CardView";
 import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePublishLimit } from "@/hooks/usePublishLimit";
 
 // Editor section components
 import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
@@ -595,6 +596,8 @@ export default function CardEditor() {
     setSaving(false);
   };
 
+  const { canPublish: checkCanPublish, isAdmin: publishLimitIsAdmin } = usePublishLimit();
+
   const togglePublish = async () => {
     if (!card) return;
 
@@ -606,6 +609,15 @@ export default function CardEditor() {
     }
 
     const newStatus = !card.is_published;
+
+    // Check publish limit for non-admins when trying to publish
+    if (newStatus && !publishLimitIsAdmin) {
+      const { allowed, message } = await checkCanPublish(card.id);
+      if (!allowed) {
+        toast.error(message || "You can only publish one card.");
+        return;
+      }
+    }
 
     let qrCodeUrl = card.qr_code_url;
     const hasOldQRFormat = qrCodeUrl && !qrCodeUrl.includes("tagex.app");
