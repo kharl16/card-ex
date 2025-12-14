@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Copy, Share2, Users, TrendingUp, AlertCircle } from "lucide-react";
-import { useReferralProfile, useMyReferrals } from "@/hooks/useReferral";
+import { Copy, Share2, Users, TrendingUp, AlertCircle, UserCheck } from "lucide-react";
+import { useReferralProfile, useMyReferrals, useMyReferrer } from "@/hooks/useReferral";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ interface ReferralPanelProps {
 export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
   const { data: referralProfile, isLoading: profileLoading } = useReferralProfile();
   const { data: referrals, isLoading: referralsLoading } = useMyReferrals();
+  const { data: myReferrer } = useMyReferrer();
   const [copying, setCopying] = useState(false);
 
   // Check if user is on Personal plan (no referral access)
@@ -143,6 +144,16 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Referred By Indicator */}
+        {myReferrer && (
+          <Alert className="border-primary/30 bg-primary/5">
+            <UserCheck className="h-4 w-4 text-primary" />
+            <AlertDescription className="text-sm">
+              You were referred by <strong className="text-primary">{myReferrer.full_name || "a Card-Ex user"}</strong>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center p-3 bg-muted rounded-lg">
