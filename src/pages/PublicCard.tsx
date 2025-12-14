@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import CardView, { SocialLink, ProductImage, AdditionalContact } from "@/components/CardView";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 type CardData = Tables<"cards">;
 
@@ -26,11 +28,14 @@ interface PublicCardProps {
 
 export default function PublicCard({ customSlug = false }: PublicCardProps) {
   const { slug, customSlug: customSlugParam } = useParams();
+  const navigate = useNavigate();
   const [card, setCard] = useState<CardData | null>(null);
   const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
   const [productImages, setProductImages] = useState<ProductImage[]>([]);
   const [additionalContacts, setAdditionalContacts] = useState<AdditionalContact[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ownerReferralCode, setOwnerReferralCode] = useState<string | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Get the effective theme (with A/B variant support)
   const rawTheme = (card?.theme ?? null) as unknown as CardTheme | null;
@@ -67,6 +72,10 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
 
   useEffect(() => {
     loadCard();
+    // Check if user is logged in
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUser(session?.user || null);
+    });
   }, [slug]);
 
   const loadCard = async () => {
@@ -82,6 +91,18 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
 
     if (!error && data) {
       setCard(data);
+      
+      // Fetch owner's referral code for the "Create Card" button
+      const { data: ownerProfile } = await supabase
+        .from("profiles")
+        .select("referral_code")
+        .eq("id", data.user_id)
+        .single();
+      
+      if (ownerProfile?.referral_code) {
+        setOwnerReferralCode(ownerProfile.referral_code);
+      }
+      
       // Track view through Edge Function (with rate limiting)
       supabase.functions
         .invoke("track-card-event", {
@@ -197,6 +218,20 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
     theme: theme as any,
   };
 
+  // Handle "Create your own Card-Ex" button click
+  const handleCreateCard = () => {
+    if (currentUser) {
+      // Already logged in, go to dashboard
+      navigate("/dashboard");
+    } else if (ownerReferralCode) {
+      // Not logged in, go to signup with referral
+      navigate(`/signup?ref=${ownerReferralCode}`);
+    } else {
+      // Fallback: go to signup without referral
+      navigate("/signup");
+    }
+  };
+
   return (
     <div
       className="min-h-screen bg-background transition-all duration-500 overflow-x-hidden max-w-[100vw]"
@@ -216,6 +251,23 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           showQRCode={true}
           showVCardButtons={true}
         />
+        
+        {/* Create your own Card-Ex button */}
+        <div className="px-4 pb-8 pt-4">
+          <Button
+            onClick={handleCreateCard}
+            className="w-full gap-2 h-12 text-base font-semibold"
+            style={{
+              backgroundColor: theme?.primary || "#D4AF37",
+            }}
+          >
+            <Plus className="h-5 w-5" />
+            Create your own Card-Ex
+          </Button>
+          <p className="text-center text-xs text-muted-foreground mt-2">
+            Get your professional digital business card
+          </p>
+        </div>
       </div>
     </div>
   );

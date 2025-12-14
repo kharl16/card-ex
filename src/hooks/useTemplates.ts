@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+export type TemplateVisibility = 'global' | 'team' | 'private';
+
 export interface CardTemplate {
   id: string;
   owner_id: string;
@@ -11,6 +13,7 @@ export interface CardTemplate {
   thumbnail_url: string | null;
   layout_data: Record<string, any>;
   is_global: boolean;
+  visibility: TemplateVisibility;
   created_at: string;
   updated_at: string;
 }
@@ -77,30 +80,24 @@ export function useTemplates() {
 
     setLoading(true);
     try {
-      // Fetch global templates
-      const { data: globalTemplates, error: globalError } = await supabase
+      // Fetch all accessible templates using the new RLS policy
+      // This includes: global, own templates, and team templates from referrer
+      const { data: accessibleTemplates, error } = await supabase
         .from("card_templates")
         .select("*")
-        .eq("is_global", true)
         .order("created_at", { ascending: false });
 
-      if (globalError) throw globalError;
-
-      // Fetch user's personal template
-      const { data: personalTemplates, error: personalError } = await supabase
-        .from("card_templates")
-        .select("*")
-        .eq("owner_id", user.id)
-        .eq("is_global", false);
-
-      if (personalError) throw personalError;
+      if (error) throw error;
 
       // Type cast the data to our interface
-      const typedGlobalTemplates = (globalTemplates || []) as unknown as CardTemplate[];
-      const typedPersonalTemplates = (personalTemplates || []) as unknown as CardTemplate[];
+      const typedTemplates = (accessibleTemplates || []) as unknown as CardTemplate[];
 
-      setTemplates(typedGlobalTemplates);
-      setUserTemplate(typedPersonalTemplates[0] || null);
+      // Separate global/team templates from personal templates
+      const globalAndTeam = typedTemplates.filter(t => t.visibility === 'global' || t.visibility === 'team');
+      const personal = typedTemplates.filter(t => t.visibility === 'private' && t.owner_id === user.id);
+
+      setTemplates([...globalAndTeam, ...personal]);
+      setUserTemplate(personal[0] || null);
     } catch (error) {
       console.error("Error loading templates:", error);
       toast.error("Failed to load templates");
@@ -193,9 +190,10 @@ export function useTemplates() {
     description?: string,
     thumbnailUrl?: string,
     productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>,
-    cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>
+    cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>,
+    visibility: TemplateVisibility = 'global'
   ): Promise<boolean> => {
-    if (!user || !isAdmin) {
+    if (!user || (!isAdmin && visibility === 'global')) {
       toast.error("Only admins can create global templates");
       return false;
     }
@@ -209,7 +207,8 @@ export function useTemplates() {
         description: description || null,
         thumbnail_url: thumbnailUrl || null,
         layout_data: layoutData as any,
-        is_global: true,
+        is_global: visibility === 'global',
+        visibility,
       }]);
 
       if (error) throw error;
@@ -218,7 +217,7 @@ export function useTemplates() {
       await loadTemplates();
       return true;
     } catch (error) {
-      console.error("Error saving global template:", error);
+      console.error("Error saving template:", error);
       toast.error("Failed to save template");
       return false;
     }
@@ -229,7 +228,8 @@ export function useTemplates() {
     name: string,
     description?: string,
     productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>,
-    cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>
+    cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>,
+    visibility: TemplateVisibility = 'private'
   ): Promise<boolean> => {
     if (!user) {
       toast.error("You must be logged in to save a template");
@@ -239,7 +239,7 @@ export function useTemplates() {
     try {
       const layoutData = extractLayoutData(card, productImages, cardLinks);
 
-      if (userTemplate) {
+      if (userTemplate && visibility === 'private') {
         // Update existing personal template
         const { error } = await supabase
           .from("card_templates")
@@ -247,19 +247,21 @@ export function useTemplates() {
             name,
             description: description || null,
             layout_data: layoutData as any,
+            visibility,
           })
           .eq("id", userTemplate.id);
 
         if (error) throw error;
         toast.success("Your template has been updated!");
       } else {
-        // Create new personal template
+        // Create new template
         const { error } = await supabase.from("card_templates").insert([{
           owner_id: user.id,
           name,
           description: description || null,
           layout_data: layoutData as any,
-          is_global: false,
+          is_global: visibility === 'global',
+          visibility,
         }]);
 
         if (error) throw error;
@@ -269,7 +271,7 @@ export function useTemplates() {
       await loadTemplates();
       return true;
     } catch (error: any) {
-      console.error("Error saving personal template:", error);
+      console.error("Error saving template:", error);
       if (error.code === "23505") {
         toast.error("You already have a personal template. Update it instead.");
       } else {
