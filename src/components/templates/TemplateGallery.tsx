@@ -2,9 +2,15 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Palette, Sparkles, User } from "lucide-react";
-import { useTemplates, CardTemplate } from "@/hooks/useTemplates";
+import { Loader2, Palette, Sparkles, User, Globe, Users, Lock } from "lucide-react";
+import { useTemplates, CardTemplate, TemplateVisibility } from "@/hooks/useTemplates";
 import { cn } from "@/lib/utils";
+
+const visibilityConfig: Record<TemplateVisibility, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "outline" }> = {
+  global: { label: "Global", icon: <Globe className="h-3 w-3" />, variant: "default" },
+  team: { label: "Team", icon: <Users className="h-3 w-3" />, variant: "secondary" },
+  private: { label: "Private", icon: <Lock className="h-3 w-3" />, variant: "outline" },
+};
 
 interface TemplateGalleryProps {
   onSelectTemplate: (template: CardTemplate) => void;
@@ -126,8 +132,16 @@ export function TemplateGallery({
                         <Palette className="h-6 w-6 text-primary" />
                       </div>
                     )}
-                    <div>
-                      <CardTitle className="text-lg">{template.name}</CardTitle>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <CardTitle className="text-lg">{template.name}</CardTitle>
+                        {template.visibility && visibilityConfig[template.visibility as TemplateVisibility] && (
+                          <Badge variant={visibilityConfig[template.visibility as TemplateVisibility].variant} className="text-xs flex items-center gap-1">
+                            {visibilityConfig[template.visibility as TemplateVisibility].icon}
+                            {visibilityConfig[template.visibility as TemplateVisibility].label}
+                          </Badge>
+                        )}
+                      </div>
                       <CardDescription>Pre-designed template</CardDescription>
                     </div>
                   </div>
