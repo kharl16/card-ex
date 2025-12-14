@@ -34,12 +34,43 @@ export function useReferralProfile() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("referral_code, has_referral_access")
+        .select("referral_code, has_referral_access, referred_by_user_id")
         .eq("id", user.id)
         .single();
 
       if (error) throw error;
       return data;
+    },
+    enabled: !!user?.id,
+  });
+}
+
+export function useMyReferrer() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ["my-referrer", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+
+      // First get the current user's referred_by_user_id
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("referred_by_user_id")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError || !profile?.referred_by_user_id) return null;
+
+      // Then fetch the referrer's profile
+      const { data: referrer, error: referrerError } = await supabase
+        .from("profiles")
+        .select("id, full_name, referral_code")
+        .eq("id", profile.referred_by_user_id)
+        .single();
+
+      if (referrerError) return null;
+      return referrer;
     },
     enabled: !!user?.id,
   });
