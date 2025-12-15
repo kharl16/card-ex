@@ -10,15 +10,17 @@ interface CardLimitInfo {
   currentCount: number;
   maxCards: number;
   isAdmin: boolean;
+  publishedCount?: number;
+  templateCount?: number;
   message?: string;
 }
 
 /**
  * Card limit logic for Card-Ex / Tagex.app.
- *
- * Testing note:
- * - Test the full card duplication by duplicating a card with carousel images
- *   to another user and verify the carousel displays correctly.
+ * 
+ * Rules:
+ * - Non-admin users can have max 2 cards: 1 published + 1 template
+ * - Admin users have no limits
  */
 export function useCardLimits() {
   const { user, isAdmin, session } = useAuth();
@@ -50,10 +52,10 @@ export function useCardLimits() {
 
     setChecking(true);
     try {
-      // Count user's current cards
-      const { count, error } = await supabase
+      // Get user's cards with their status
+      const { data: cards, error } = await supabase
         .from("cards")
-        .select("*", { count: "exact", head: true })
+        .select("id, is_published, is_template")
         .eq("user_id", user.id);
 
       if (error) {
@@ -67,7 +69,9 @@ export function useCardLimits() {
         };
       }
 
-      const currentCount = count || 0;
+      const currentCount = cards?.length || 0;
+      const publishedCount = cards?.filter(c => c.is_published && !c.is_template).length || 0;
+      const templateCount = cards?.filter(c => c.is_template).length || 0;
       const canCreate = currentCount < MAX_CARDS_FOR_MEMBERS;
 
       return {
@@ -75,9 +79,11 @@ export function useCardLimits() {
         currentCount,
         maxCards: MAX_CARDS_FOR_MEMBERS,
         isAdmin: false,
+        publishedCount,
+        templateCount,
         message: canCreate
           ? undefined
-          : `You can only have ${MAX_CARDS_FOR_MEMBERS} cards (1 publishable + 1 transferable). Please delete an existing card first.`,
+          : "You can only have one published card and one template card per account.",
       };
     } finally {
       setChecking(false);
