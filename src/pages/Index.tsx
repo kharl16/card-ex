@@ -4,21 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Users, Shield } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
-
 const Index = () => {
   const navigate = useNavigate();
-
   useEffect(() => {
     // Redirect to dashboard if already authenticated
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (session) {
-        navigate("/dashboard", { replace: true });
+        navigate("/dashboard", {
+          replace: true
+        });
       }
     });
   }, [navigate]);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <header className="border-b border-border/50 bg-card/30 backdrop-blur">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
@@ -27,9 +29,7 @@ const Index = () => {
             </div>
             <span className="text-xl font-bold">Card-Ex</span>
           </div>
-          <Button onClick={() => navigate("/auth")} variant="default">
-            Get Started
-          </Button>
+          
         </div>
       </header>
 
@@ -98,8 +98,6 @@ const Index = () => {
           <p>© 2025 Card-Ex. Built with React, Supabase & Tailwind CSS.</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
