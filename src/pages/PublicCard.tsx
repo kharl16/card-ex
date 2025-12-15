@@ -110,24 +110,38 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         })
         .catch((err) => console.error("Failed to track view:", err));
 
-      // Load social links
-      const { data: links } = await supabase
-        .from("card_links")
-        .select("*")
-        .eq("card_id", data.id)
-        .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok", "url"])
-        .order("sort_index");
-
-      if (links) {
+      // Load social links from JSON field or fallback to card_links table
+      if (data.social_links && Array.isArray(data.social_links)) {
+        const socialLinksData = data.social_links as unknown as SocialLink[];
         setSocialLinks(
-          links.map((link) => ({
-            id: link.id,
+          socialLinksData.map((link, index) => ({
+            id: link.id || `link-${index}`,
             kind: link.kind,
             label: link.label,
             value: link.value,
             icon: link.icon || "",
           }))
         );
+      } else {
+        // Fallback: load from card_links table for backward compatibility
+        const { data: links } = await supabase
+          .from("card_links")
+          .select("*")
+          .eq("card_id", data.id)
+          .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok", "url"])
+          .order("sort_index");
+
+        if (links) {
+          setSocialLinks(
+            links.map((link) => ({
+              id: link.id,
+              kind: link.kind,
+              label: link.label,
+              value: link.value,
+              icon: link.icon || "",
+            }))
+          );
+        }
       }
 
       // Load product images

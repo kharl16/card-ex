@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trash2, GripVertical, Globe } from "lucide-react";
+import { Plus, Trash2, GripVertical, Globe, Pencil, Check, X } from "lucide-react";
 import { z } from "zod";
 import {
   DndContext,
@@ -57,8 +57,6 @@ const linkSchema = z.object({
       message: "URL must start with http:// or https://"
     }),
 });
-
-import { Pencil, Check, X } from "lucide-react";
 
 interface SortableLinkProps {
   link: SocialLink;
@@ -204,24 +202,59 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
     loadLinks();
   }, [cardId]);
 
+  // Load social links from the card's social_links JSON field
   const loadLinks = async () => {
-    const { data, error } = await supabase
-      .from("card_links")
-      .select("*")
-      .eq("card_id", cardId)
-      .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok", "url"])
-      .order("sort_index");
+    const { data: card, error } = await supabase
+      .from("cards")
+      .select("social_links")
+      .eq("id", cardId)
+      .single();
 
-    if (!error && data) {
-      const mappedLinks = data.map(link => ({
-        id: link.id,
-        kind: link.kind,
-        label: link.label,
-        value: link.value,
-        icon: link.icon || "",
+    if (!error && card?.social_links) {
+      const socialLinksData = card.social_links as unknown as SocialLink[];
+      // Ensure each link has an id
+      const linksWithIds = (Array.isArray(socialLinksData) ? socialLinksData : []).map((link, index) => ({
+        ...link,
+        id: link.id || `link-${index}-${Date.now()}`,
       }));
-      updateLinksState(mappedLinks);
+      updateLinksState(linksWithIds);
+    } else {
+      // Fallback: try to load from card_links table for backward compatibility
+      const { data: legacyLinks } = await supabase
+        .from("card_links")
+        .select("*")
+        .eq("card_id", cardId)
+        .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok", "url"])
+        .order("sort_index");
+
+      if (legacyLinks && legacyLinks.length > 0) {
+        const mappedLinks = legacyLinks.map(link => ({
+          id: link.id,
+          kind: link.kind,
+          label: link.label,
+          value: link.value,
+          icon: link.icon || "",
+        }));
+        updateLinksState(mappedLinks);
+        // Migrate to JSON field
+        await saveSocialLinksToCard(mappedLinks);
+      }
     }
+  };
+
+  // Save social links to the card's social_links JSON field
+  const saveSocialLinksToCard = async (linksToSave: SocialLink[]) => {
+    // Cast to any to bypass strict Json typing - data is valid JSON
+    const { error } = await supabase
+      .from("cards")
+      .update({ social_links: JSON.parse(JSON.stringify(linksToSave)) })
+      .eq("id", cardId);
+
+    if (error) {
+      console.error("Error saving social links:", error);
+      return false;
+    }
+    return true;
   };
 
   const addLink = async () => {
@@ -243,57 +276,56 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
     }
 
     setLoading(true);
-    const { error } = await supabase
-      .from("card_links")
-      .insert({
-        card_id: cardId,
-        kind: platform.value as any,
-        label: platform.label,
-        value: newLink.url,
-        icon: platform.icon,
-        sort_index: links.length,
-      });
+    
+    const newLinkData: SocialLink = {
+      id: `link-${Date.now()}`,
+      kind: platform.value,
+      label: platform.label,
+      value: newLink.url,
+      icon: platform.icon,
+    };
 
-    if (error) {
-      toast.error(error.message);
-    } else {
+    const updatedLinks = [...links, newLinkData];
+    
+    const success = await saveSocialLinksToCard(updatedLinks);
+    
+    if (success) {
+      updateLinksState(updatedLinks);
       toast.success("Social link added");
       setNewLink({ platform: "", url: "" });
-      await loadLinks();
+    } else {
+      toast.error("Failed to add social link");
     }
+    
     setLoading(false);
   };
 
   const deleteLink = async (id: string) => {
-    const { error } = await supabase
-      .from("card_links")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      toast.error(error.message);
-    } else {
+    const updatedLinks = links.filter(link => link.id !== id);
+    
+    const success = await saveSocialLinksToCard(updatedLinks);
+    
+    if (success) {
+      updateLinksState(updatedLinks);
       toast.success("Link deleted");
-      await loadLinks();
+    } else {
+      toast.error("Failed to delete link");
     }
   };
 
   const editLink = async (id: string, label: string, value: string) => {
-    const { error } = await supabase
-      .from("card_links")
-      .update({ label, value })
-      .eq("id", id);
-
-    if (error) {
-      toast.error(error.message);
-    } else {
-      // Update local state immediately for real-time preview
-      const updatedLinks = links.map(link => 
-        link.id === id ? { ...link, label, value } : link
-      );
+    const updatedLinks = links.map(link => 
+      link.id === id ? { ...link, label, value } : link
+    );
+    
+    const success = await saveSocialLinksToCard(updatedLinks);
+    
+    if (success) {
       updateLinksState(updatedLinks);
       setEditingId(null);
       toast.success("Link updated");
+    } else {
+      toast.error("Failed to update link");
     }
   };
 
@@ -310,20 +342,12 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
     const newLinks = arrayMove(links, oldIndex, newIndex);
     updateLinksState(newLinks);
 
-    // Update sort_index in database
-    const updates = newLinks.map((link, index) => ({
-      id: link.id,
-      sort_index: index,
-    }));
-
-    for (const update of updates) {
-      await supabase
-        .from("card_links")
-        .update({ sort_index: update.sort_index })
-        .eq("id", update.id);
+    // Save reordered links to database
+    const success = await saveSocialLinksToCard(newLinks);
+    
+    if (success) {
+      toast.success("Links reordered");
     }
-
-    toast.success("Links reordered");
   };
 
   return (

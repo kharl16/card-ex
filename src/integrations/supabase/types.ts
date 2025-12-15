@@ -284,6 +284,7 @@ export type Database = {
           id: string
           is_paid: boolean
           is_published: boolean | null
+          is_template: boolean
           last_name: string | null
           location: string | null
           logo_url: string | null
@@ -300,6 +301,7 @@ export type Database = {
           qr_code_url: string | null
           share_url: string | null
           slug: string
+          social_links: Json | null
           suffix: string | null
           theme: Json | null
           title: string | null
@@ -326,6 +328,7 @@ export type Database = {
           id?: string
           is_paid?: boolean
           is_published?: boolean | null
+          is_template?: boolean
           last_name?: string | null
           location?: string | null
           logo_url?: string | null
@@ -342,6 +345,7 @@ export type Database = {
           qr_code_url?: string | null
           share_url?: string | null
           slug: string
+          social_links?: Json | null
           suffix?: string | null
           theme?: Json | null
           title?: string | null
@@ -368,6 +372,7 @@ export type Database = {
           id?: string
           is_paid?: boolean
           is_published?: boolean | null
+          is_template?: boolean
           last_name?: string | null
           location?: string | null
           logo_url?: string | null
@@ -384,6 +389,7 @@ export type Database = {
           qr_code_url?: string | null
           share_url?: string | null
           slug?: string
+          social_links?: Json | null
           suffix?: string | null
           theme?: Json | null
           title?: string | null

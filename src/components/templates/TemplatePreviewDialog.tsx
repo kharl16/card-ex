@@ -63,6 +63,8 @@ export function TemplatePreviewDialog({
     views_count: null,
     unique_views: null,
     published_at: null,
+    is_template: false,
+    social_links: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

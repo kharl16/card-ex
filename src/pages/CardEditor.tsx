@@ -284,23 +284,44 @@ export default function CardEditor() {
   const loadSocialLinks = async () => {
     if (!id) return;
 
-    const { data } = await supabase
-      .from("card_links")
-      .select("*")
-      .eq("card_id", id)
-      .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok", "url"])
-      .order("sort_index");
+    // First try to load from card's social_links JSON field
+    const { data: cardData } = await supabase
+      .from("cards")
+      .select("social_links")
+      .eq("id", id)
+      .single();
 
-    if (data) {
+    if (cardData?.social_links && Array.isArray(cardData.social_links)) {
+      const socialLinksData = cardData.social_links as unknown as SocialLink[];
       setSocialLinks(
-        data.map((link) => ({
-          id: link.id,
+        socialLinksData.map((link, index) => ({
+          id: link.id || `link-${index}`,
           kind: link.kind,
           label: link.label,
           value: link.value,
           icon: link.icon || "",
         })),
       );
+    } else {
+      // Fallback: load from card_links table for backward compatibility
+      const { data } = await supabase
+        .from("card_links")
+        .select("*")
+        .eq("card_id", id)
+        .in("kind", ["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok", "url"])
+        .order("sort_index");
+
+      if (data) {
+        setSocialLinks(
+          data.map((link) => ({
+            id: link.id,
+            kind: link.kind,
+            label: link.label,
+            value: link.value,
+            icon: link.icon || "",
+          })),
+        );
+      }
     }
   };
 
