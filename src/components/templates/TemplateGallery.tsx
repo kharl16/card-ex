@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Palette, Sparkles, User, Globe, Users, Lock } from "lucide-react";
+import { Loader2, Palette, Sparkles, User, Globe, Users, Lock, Eye } from "lucide-react";
 import { useTemplates, CardTemplate, TemplateVisibility } from "@/hooks/useTemplates";
+import { TemplatePreviewDialog } from "./TemplatePreviewDialog";
 import { cn } from "@/lib/utils";
 
 const visibilityConfig: Record<TemplateVisibility, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "outline" }> = {
@@ -25,10 +26,16 @@ export function TemplateGallery({
 }: TemplateGalleryProps) {
   const { templates, userTemplate, loading } = useTemplates();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<CardTemplate | null>(null);
 
   const handleSelect = (template: CardTemplate) => {
     setSelectedId(template.id);
     onSelectTemplate(template);
+  };
+
+  const handlePreview = (e: React.MouseEvent, template: CardTemplate) => {
+    e.stopPropagation();
+    setPreviewTemplate(template);
   };
 
   if (loading) {
@@ -91,6 +98,14 @@ export function TemplateGallery({
                   </div>
                   <CardDescription>Your saved personal template</CardDescription>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={(e) => handlePreview(e, userTemplate)}
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -144,6 +159,14 @@ export function TemplateGallery({
                       </div>
                       <CardDescription>Pre-designed template</CardDescription>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={(e) => handlePreview(e, template)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -166,6 +189,14 @@ export function TemplateGallery({
           </p>
         </div>
       )}
+
+      {/* Template Preview Dialog */}
+      <TemplatePreviewDialog
+        template={previewTemplate}
+        open={!!previewTemplate}
+        onOpenChange={(open) => !open && setPreviewTemplate(null)}
+        onSelect={handleSelect}
+      />
     </div>
   );
 }
