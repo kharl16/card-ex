@@ -283,12 +283,19 @@ export function useTemplates() {
 
   const updateTemplate = async (
     templateId: string,
-    updates: { name?: string; description?: string; thumbnail_url?: string }
+    updates: { name?: string; description?: string; thumbnail_url?: string; visibility?: TemplateVisibility }
   ): Promise<boolean> => {
     try {
+      const updateData: Record<string, any> = { ...updates };
+      
+      // If visibility is being changed to global, also update is_global flag
+      if (updates.visibility) {
+        updateData.is_global = updates.visibility === 'global';
+      }
+      
       const { error } = await supabase
         .from("card_templates")
-        .update(updates)
+        .update(updateData)
         .eq("id", templateId);
 
       if (error) throw error;
