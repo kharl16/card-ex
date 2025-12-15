@@ -17,16 +17,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Pencil, Trash2, Globe, User, Palette } from "lucide-react";
-import { useTemplates, CardTemplate } from "@/hooks/useTemplates";
+import { Loader2, Pencil, Trash2, Globe, Users, Lock, Palette } from "lucide-react";
+import { useTemplates, CardTemplate, TemplateVisibility } from "@/hooks/useTemplates";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
+
+const visibilityConfig: Record<TemplateVisibility, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "outline" }> = {
+  global: { label: "Global", icon: <Globe className="h-3 w-3" />, variant: "default" },
+  team: { label: "Team", icon: <Users className="h-3 w-3" />, variant: "secondary" },
+  private: { label: "Private", icon: <Lock className="h-3 w-3" />, variant: "outline" },
+};
 
 interface AdminTemplateManagerProps {
   open: boolean;
@@ -42,6 +55,7 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
   const [deletingTemplate, setDeletingTemplate] = useState<CardTemplate | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
+  const [editVisibility, setEditVisibility] = useState<TemplateVisibility>("private");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -61,6 +75,7 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
     setEditingTemplate(template);
     setEditName(template.name);
     setEditDescription(template.description || "");
+    setEditVisibility(template.visibility || (template.is_global ? "global" : "private"));
   };
 
   const handleSaveEdit = async () => {
@@ -70,6 +85,7 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
     const success = await updateTemplate(editingTemplate.id, {
       name: editName.trim(),
       description: editDescription.trim() || undefined,
+      visibility: editVisibility,
     });
 
     if (success) {
@@ -133,22 +149,16 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
                           <div>
                             <div className="flex items-center gap-2">
                               <CardTitle className="text-base">{template.name}</CardTitle>
-                              <Badge
-                                variant={template.is_global ? "default" : "secondary"}
-                                className="text-xs"
-                              >
-                                {template.is_global ? (
-                                  <>
-                                    <Globe className="mr-1 h-3 w-3" />
-                                    Global
-                                  </>
-                                ) : (
-                                  <>
-                                    <User className="mr-1 h-3 w-3" />
-                                    Personal
-                                  </>
-                                )}
-                              </Badge>
+                              {(() => {
+                                const visibility = (template.visibility || (template.is_global ? "global" : "private")) as TemplateVisibility;
+                                const config = visibilityConfig[visibility];
+                                return (
+                                  <Badge variant={config.variant} className="text-xs flex items-center gap-1">
+                                    {config.icon}
+                                    {config.label}
+                                  </Badge>
+                                );
+                              })()}
                             </div>
                             <p className="text-xs text-muted-foreground">
                               Created {format(new Date(template.created_at), "MMM d, yyyy")}
@@ -192,7 +202,7 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Edit Template</DialogTitle>
-            <DialogDescription>Update the template name and description.</DialogDescription>
+            <DialogDescription>Update the template name, description, and visibility.</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-4">
@@ -214,6 +224,37 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
                 maxLength={500}
                 rows={3}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-visibility">Visibility</Label>
+              <Select value={editVisibility} onValueChange={(v) => setEditVisibility(v as TemplateVisibility)}>
+                <SelectTrigger id="edit-visibility">
+                  <SelectValue placeholder="Select visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="global">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      <span>Global</span>
+                      <span className="text-xs text-muted-foreground">- Visible to all users</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="team">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span>Team</span>
+                      <span className="text-xs text-muted-foreground">- Visible to your referrals</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="private">
+                    <div className="flex items-center gap-2">
+                      <Lock className="h-4 w-4" />
+                      <span>Private</span>
+                      <span className="text-xs text-muted-foreground">- Only you</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
