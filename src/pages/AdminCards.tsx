@@ -138,16 +138,9 @@ function AdminCardRow({
       isPaid: checked,
     });
 
-    // 🔹 NEW: auto-generate referral code when card becomes PAID
-    if (checked) {
-      // Find the effective plan for this card
-      const currentPlan = plans?.find((p) => p.id === planId);
-
-      // Only generate for referral-eligible plans (e.g. NOT Card-Ex Personal)
-      // Make sure CardPlan type includes `referral_eligible: boolean`
-      if (currentPlan?.referral_eligible && (!referralData?.has_referral_access || !referralData?.referral_code)) {
-        onGenerateReferralCode(card.user_id);
-      }
+    // Auto-generate referral code when card becomes PAID
+    if (checked && (!referralData?.has_referral_access || !referralData?.referral_code)) {
+      onGenerateReferralCode(card.user_id);
     }
 
     onPaymentChange();
