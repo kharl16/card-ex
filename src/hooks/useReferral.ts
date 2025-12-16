@@ -42,6 +42,10 @@ export function useReferralProfile() {
       return data;
     },
     enabled: !!user?.id,
+    // Ensure fresh data on mount and focus - important after admin override
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always consider data stale
   });
 }
 
