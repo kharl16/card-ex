@@ -410,6 +410,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cards_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cards_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -581,6 +588,13 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "card_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans_public"
             referencedColumns: ["id"]
           },
           {
@@ -757,6 +771,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "referrals_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "referrals_referred_card_id_fkey"
             columns: ["referred_card_id"]
             isOneToOne: false
@@ -843,7 +864,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      card_plans_public: {
+        Row: {
+          code: string | null
+          created_at: string | null
+          description: string | null
+          has_reseller_access: boolean | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          referral_eligible: boolean | null
+          retail_price: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          has_reseller_access?: boolean | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          referral_eligible?: boolean | null
+          retail_price?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string | null
+          created_at?: string | null
+          description?: string | null
+          has_reseller_access?: boolean | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          referral_eligible?: boolean | null
+          retail_price?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       activate_referral_access: {
