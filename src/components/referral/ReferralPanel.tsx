@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Share2, Users, TrendingUp, AlertCircle, UserCheck } from "lucide-react";
+import { Copy, Share2, Users, TrendingUp, AlertCircle, UserCheck, Clock, CheckCircle2, Wallet, DollarSign } from "lucide-react";
 import { useReferralProfile, useMyReferrals, useMyReferrer } from "@/hooks/useReferral";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
 interface ReferralPanelProps {
@@ -94,24 +95,26 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
     }
   };
 
-  const totalEarnings = referrals?.reduce((sum, ref) => {
-    if (ref.status === "qualified" || ref.status === "paid_out") {
-      return sum + (ref.plan?.profit || 0);
-    }
-    return sum;
-  }, 0) || 0;
+  // Calculate earnings breakdown
+  const pendingReferrals = referrals?.filter(r => r.status === "pending") || [];
+  const qualifiedReferrals = referrals?.filter(r => r.status === "qualified") || [];
+  const paidOutReferrals = referrals?.filter(r => r.status === "paid_out") || [];
+  const cancelledReferrals = referrals?.filter(r => r.status === "cancelled") || [];
 
-  const pendingReferrals = referrals?.filter(r => r.status === "pending").length || 0;
-  const qualifiedReferrals = referrals?.filter(r => r.status === "qualified" || r.status === "paid_out").length || 0;
+  const pendingCommission = pendingReferrals.reduce((sum, ref) => sum + (ref.plan?.profit || 0), 0);
+  const qualifiedCommission = qualifiedReferrals.reduce((sum, ref) => sum + (ref.plan?.profit || 0), 0);
+  const paidOutCommission = paidOutReferrals.reduce((sum, ref) => sum + (ref.plan?.profit || 0), 0);
+  const totalEarnings = qualifiedCommission + paidOutCommission;
+  const totalReferrals = referrals?.length || 0;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline">Pending</Badge>;
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Pending</Badge>;
       case "qualified":
-        return <Badge className="bg-green-500">Qualified</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-600">Qualified</Badge>;
       case "paid_out":
-        return <Badge className="bg-blue-500">Paid Out</Badge>;
+        return <Badge className="bg-blue-500 hover:bg-blue-600">Paid Out</Badge>;
       case "cancelled":
         return <Badge variant="destructive">Cancelled</Badge>;
       default:
@@ -154,20 +157,65 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
           </Alert>
         )}
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-3 bg-muted rounded-lg">
-            <div className="text-2xl font-bold text-primary">{qualifiedReferrals}</div>
-            <div className="text-xs text-muted-foreground">Qualified</div>
+        {/* Commission Dashboard */}
+        <div className="space-y-4">
+          <h4 className="text-sm font-medium flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-primary" />
+            Commission Dashboard
+          </h4>
+          
+          {/* Main Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="p-3 bg-muted/50 rounded-lg border">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="h-3.5 w-3.5 text-yellow-600" />
+                <span className="text-xs text-muted-foreground">Pending</span>
+              </div>
+              <div className="text-xl font-bold text-yellow-600">{pendingReferrals.length}</div>
+              <div className="text-xs text-muted-foreground">₱{pendingCommission.toLocaleString()}</div>
+            </div>
+            
+            <div className="p-3 bg-muted/50 rounded-lg border">
+              <div className="flex items-center gap-2 mb-1">
+                <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                <span className="text-xs text-muted-foreground">Qualified</span>
+              </div>
+              <div className="text-xl font-bold text-green-600">{qualifiedReferrals.length}</div>
+              <div className="text-xs text-muted-foreground">₱{qualifiedCommission.toLocaleString()}</div>
+            </div>
+            
+            <div className="p-3 bg-muted/50 rounded-lg border">
+              <div className="flex items-center gap-2 mb-1">
+                <Wallet className="h-3.5 w-3.5 text-blue-600" />
+                <span className="text-xs text-muted-foreground">Paid Out</span>
+              </div>
+              <div className="text-xl font-bold text-blue-600">{paidOutReferrals.length}</div>
+              <div className="text-xs text-muted-foreground">₱{paidOutCommission.toLocaleString()}</div>
+            </div>
+            
+            <div className="p-3 bg-primary/10 rounded-lg border border-primary/30">
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs text-muted-foreground">Total Earned</span>
+              </div>
+              <div className="text-xl font-bold text-primary">₱{totalEarnings.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">{qualifiedReferrals.length + paidOutReferrals.length} referrals</div>
+            </div>
           </div>
-          <div className="text-center p-3 bg-muted rounded-lg">
-            <div className="text-2xl font-bold text-yellow-600">{pendingReferrals}</div>
-            <div className="text-xs text-muted-foreground">Pending</div>
-          </div>
-          <div className="text-center p-3 bg-muted rounded-lg">
-            <div className="text-2xl font-bold text-green-600">₱{totalEarnings.toLocaleString()}</div>
-            <div className="text-xs text-muted-foreground">Earnings</div>
-          </div>
+
+          {/* Progress visualization when there are referrals */}
+          {totalReferrals > 0 && (
+            <div className="space-y-2 p-3 bg-muted/30 rounded-lg">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Conversion Progress</span>
+                <span>{qualifiedReferrals.length + paidOutReferrals.length}/{totalReferrals} qualified</span>
+              </div>
+              <Progress 
+                value={totalReferrals > 0 ? ((qualifiedReferrals.length + paidOutReferrals.length) / totalReferrals) * 100 : 0} 
+                className="h-2"
+              />
+            </div>
+          )}
         </div>
 
         {/* Referral Code & Link */}
@@ -218,11 +266,11 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
         </div>
 
         {/* Referrals Table */}
-        {referrals && referrals.length > 0 && (
+        {referrals && referrals.length > 0 ? (
           <div>
             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Your Referrals
+              <Users className="h-4 w-4" />
+              Your Referrals ({referrals.length})
             </h4>
             <div className="border rounded-lg overflow-hidden">
               <Table>
@@ -230,7 +278,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
                   <TableRow>
                     <TableHead>User</TableHead>
                     <TableHead>Plan</TableHead>
-                    <TableHead>Commission</TableHead>
+                    <TableHead className="text-right">Commission</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -240,14 +288,24 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
                       <TableCell className="font-medium">
                         {ref.referred_profile?.full_name || "User"}
                       </TableCell>
-                      <TableCell>{ref.plan?.name || "-"}</TableCell>
-                      <TableCell>₱{ref.plan?.profit?.toLocaleString() || 0}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {ref.plan?.name || "-"}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        ₱{ref.plan?.profit?.toLocaleString() || 0}
+                      </TableCell>
                       <TableCell>{getStatusBadge(ref.status)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </div>
+          </div>
+        ) : (
+          <div className="text-center py-6 bg-muted/30 rounded-lg">
+            <Users className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
+            <p className="text-sm text-muted-foreground">No referrals yet</p>
+            <p className="text-xs text-muted-foreground mt-1">Share your link to start earning commissions!</p>
           </div>
         )}
       </CardContent>
