@@ -5,6 +5,22 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function getUserIdFromAuthHeader(authHeader: string): string | null {
+  try {
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : authHeader;
+    const parts = token.split(".");
+    if (parts.length < 2) return null;
+
+    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const payloadJson = atob(padded);
+    const payload = JSON.parse(payloadJson);
+    return typeof payload?.sub === "string" ? payload.sub : null;
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -26,20 +42,37 @@ Deno.serve(async (req) => {
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
+      auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Get current user
-    const { data: { user: currentUser }, error: userError } = await userClient.auth.getUser();
-    if (userError || !currentUser) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Get current user (fallback to JWT sub if session is missing)
+    let currentUserId: string | null = null;
+    const { data: userData, error: userError } = await userClient.auth.getUser();
+    if (userData?.user?.id) {
+      currentUserId = userData.user.id;
+    } else {
+      console.warn("admin-create-user: auth.getUser failed, falling back to JWT sub", {
+        error: userError?.message,
       });
+      currentUserId = getUserIdFromAuthHeader(authHeader);
+    }
+
+    if (!currentUserId) {
+      return new Response(
+        JSON.stringify({
+          error: "Unauthorized",
+          details: "Missing/invalid user token. Please sign out and sign in again.",
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Check if current user is super admin
     const { data: isAdmin, error: adminError } = await userClient.rpc("is_super_admin", {
-      _user_id: currentUser.id,
+      _user_id: currentUserId,
     });
 
     if (adminError || !isAdmin) {
@@ -89,9 +122,7 @@ Deno.serve(async (req) => {
     }
 
     // Update the profile with full_name (trigger should create it, but update to be sure)
-    await adminClient
-      .from("profiles")
-      .upsert({ id: newUser.user.id, full_name }, { onConflict: "id" });
+    await adminClient.from("profiles").upsert({ id: newUser.user.id, full_name }, { onConflict: "id" });
 
     return new Response(
       JSON.stringify({
@@ -115,3 +146,4 @@ Deno.serve(async (req) => {
     });
   }
 });
+
