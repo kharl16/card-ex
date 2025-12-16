@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { CardPlan } from "@/hooks/useCardPlans";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import cardExLogo from "@/assets/cardex-logo.png"; // 👈 your logo
 
 interface PlanSelectorProps {
   plans: CardPlan[];
