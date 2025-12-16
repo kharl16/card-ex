@@ -92,15 +92,13 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
     if (!error && data) {
       setCard(data);
       
-      // Fetch owner's referral code for the "Create Card" button
-      const { data: ownerProfile } = await supabase
-        .from("profiles")
-        .select("referral_code")
-        .eq("id", data.user_id)
-        .single();
+      // Fetch owner's referral code using the secure database function
+      // This works for anonymous users and returns the code only if the owner has referral access
+      const { data: referralCodeResult } = await supabase
+        .rpc("get_referral_code_for_user", { p_user_id: data.user_id });
       
-      if (ownerProfile?.referral_code) {
-        setOwnerReferralCode(ownerProfile.referral_code);
+      if (referralCodeResult) {
+        setOwnerReferralCode(referralCodeResult);
       }
       
       // Track view through Edge Function (with rate limiting)

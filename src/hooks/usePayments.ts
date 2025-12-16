@@ -204,44 +204,63 @@ export function useAdminOverridePayment() {
 
         // Only proceed if plan is referral-eligible and not Personal
         if (plan?.referral_eligible && plan.code?.toLowerCase() !== "personal") {
-          // Ensure user has referral code and access
-          const { data: profile } = await supabase
+          // Fetch the TARGET USER's profile (NOT the admin's)
+          const { data: targetUserProfile } = await supabase
             .from("profiles")
             .select("referral_code, referred_by_user_id")
             .eq("id", userId)
             .single();
 
-          const referralCode = profile?.referral_code || 
-            `CEX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+          // Generate a UNIQUE referral code for this user if they don't have one
+          // IMPORTANT: Always generate a new unique code, never reuse anyone else's code
+          let newReferralCode = targetUserProfile?.referral_code;
+          if (!newReferralCode) {
+            // Generate unique CEX-XXXXXX code
+            newReferralCode = `CEX-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+          }
 
+          // Update the TARGET USER's profile with referral access
           await supabase
             .from("profiles")
             .update({
               has_referral_access: true,
-              referral_code: referralCode,
+              referral_code: newReferralCode,
             })
             .eq("id", userId);
 
-          // Create referral row if user was referred by someone
-          if (profile?.referred_by_user_id) {
+          // Create referral row
+          // If user was referred by someone, use that referrer
+          // If not referred by anyone (e.g., admin-created user), use admin as referrer
+          const referrerUserId = targetUserProfile?.referred_by_user_id;
+          
+          if (referrerUserId) {
             // Check if referral already exists
             const { data: existingReferral } = await supabase
               .from("referrals")
               .select("id")
-              .eq("referrer_user_id", profile.referred_by_user_id)
+              .eq("referrer_user_id", referrerUserId)
               .eq("referred_user_id", userId)
-              .eq("referred_card_id", cardId)
               .maybeSingle();
 
             if (!existingReferral) {
               await supabase.from("referrals").insert({
-                referrer_user_id: profile.referred_by_user_id,
+                referrer_user_id: referrerUserId,
                 referred_user_id: userId,
                 referred_card_id: cardId,
                 payment_id: payment?.id ?? null,
                 plan_id: planId,
                 status: "pending",
               });
+            } else {
+              // Update existing referral with card and payment info
+              await supabase
+                .from("referrals")
+                .update({
+                  referred_card_id: cardId,
+                  payment_id: payment?.id ?? null,
+                  plan_id: planId,
+                })
+                .eq("id", existingReferral.id);
             }
           }
         }
@@ -261,6 +280,8 @@ export function useAdminOverridePayment() {
       queryClient.invalidateQueries({ queryKey: ["cards"] });
       queryClient.invalidateQueries({ queryKey: ["admin-cards"] });
       queryClient.invalidateQueries({ queryKey: ["referrals"] });
+      queryClient.invalidateQueries({ queryKey: ["referral-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["my-referrals"] });
       toast.success("Payment status updated");
     },
     onError: (error) => {
