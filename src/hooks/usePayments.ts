@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { getStoredReferralCode, clearStoredReferralCode } from "./useReferral";
+import { clearStoredReferralCode } from "./useReferral";
 
 export interface Payment {
   id: string;
@@ -116,20 +116,19 @@ export function useSubmitPayment() {
           .eq("id", user.id);
       }
 
-      // Handle referral tracking
-      const referralCode = getStoredReferralCode();
-      if (referralCode) {
-        // Find referrer by code
-        const { data: referrer } = await supabase
+      // Handle referral tracking - use referred_by_user_id from profile (set at signup)
+      // Only create referral if plan is referral-eligible
+      if (plan?.referral_eligible) {
+        const { data: buyerProfile } = await supabase
           .from("profiles")
-          .select("id")
-          .eq("referral_code", referralCode)
+          .select("referred_by_user_id")
+          .eq("id", user.id)
           .single();
 
-        if (referrer && referrer.id !== user.id) {
-          // Create referral record
+        if (buyerProfile?.referred_by_user_id) {
+          // Create referral record linking referrer to this purchase
           await supabase.from("referrals").insert({
-            referrer_user_id: referrer.id,
+            referrer_user_id: buyerProfile.referred_by_user_id,
             referred_user_id: user.id,
             referred_card_id: cardId,
             payment_id: payment.id,
@@ -137,9 +136,10 @@ export function useSubmitPayment() {
             status: "pending",
           });
         }
-
-        clearStoredReferralCode();
       }
+
+      // Clear any stored referral code from localStorage (cleanup)
+      clearStoredReferralCode();
 
       return payment;
     },
