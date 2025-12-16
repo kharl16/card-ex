@@ -18,7 +18,7 @@ const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const MAX_EVENTS_PER_WINDOW = 10;
 
 function hashIP(ip: string): string {
-  // Simple hash function for IP addresses
+  // Simple hash function for IP addresses - produces non-reversible hash
   let hash = 0;
   for (let i = 0; i < ip.length; i++) {
     const char = ip.charCodeAt(i);
@@ -26,6 +26,32 @@ function hashIP(ip: string): string {
     hash = hash & hash;
   }
   return Math.abs(hash).toString(36);
+}
+
+// Anonymize user agent to just browser category - prevents user fingerprinting
+function anonymizeUserAgent(ua: string | null): string | null {
+  if (!ua) return null;
+  const uaLower = ua.toLowerCase();
+  
+  // Return only browser category, not version or OS details
+  if (uaLower.includes('chrome') && !uaLower.includes('edg')) return 'Chrome';
+  if (uaLower.includes('firefox')) return 'Firefox';
+  if (uaLower.includes('safari') && !uaLower.includes('chrome')) return 'Safari';
+  if (uaLower.includes('edg')) return 'Edge';
+  if (uaLower.includes('opera') || uaLower.includes('opr')) return 'Opera';
+  if (uaLower.includes('bot') || uaLower.includes('crawler') || uaLower.includes('spider')) return 'Bot';
+  return 'Other';
+}
+
+// Anonymize referrer to just domain - prevents tracking full URLs
+function anonymizeReferrer(ref: string | null): string | null {
+  if (!ref) return null;
+  try {
+    const url = new URL(ref);
+    return url.hostname; // Only store domain, not full path
+  } catch {
+    return null;
+  }
 }
 
 async function checkRateLimit(supabase: any, ipHash: string, cardId: string): Promise<boolean> {
@@ -113,11 +139,13 @@ serve(async (req) => {
                      'unknown';
     const ipHash = hashIP(clientIP);
     
-    // Validate and truncate user agent
-    const userAgent = req.headers.get('user-agent')?.substring(0, 500) || null;
+    // Anonymize user agent to browser category only (prevents fingerprinting)
+    const rawUserAgent = req.headers.get('user-agent');
+    const userAgent = anonymizeUserAgent(rawUserAgent);
     
-    // Validate and truncate referrer
-    const referrer = req.headers.get('referer')?.substring(0, 500) || null;
+    // Anonymize referrer to domain only (prevents tracking full URLs)
+    const rawReferrer = req.headers.get('referer');
+    const referrer = anonymizeReferrer(rawReferrer);
 
     // Create Supabase client with service role to bypass RLS
     const supabase = createClient(
