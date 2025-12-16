@@ -1,4 +1,4 @@
-import cardExLogo from "@/assets/cardex-logo.png";
+import cardExLogo from "@/assets/Card-Ex-Logo.png";
 import { Check, Crown, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CardPlan } from "@/hooks/useCardPlans";
