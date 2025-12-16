@@ -28,6 +28,7 @@ import {
   DollarSign,
   Palette,
   Globe,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -85,8 +86,18 @@ interface UserReferralData {
   has_referral_access: boolean;
 }
 
+// Generate unique referral code
+function generateReferralCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = 'CEX-';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
 // Admin Card Row Component with payment controls
-function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplate, onDelete, onPaymentChange }: {
+function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplate, onDelete, onPaymentChange, onGenerateReferralCode }: {
   card: CardData;
   referralData?: UserReferralData;
   onEdit: () => void;
@@ -94,6 +105,7 @@ function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplat
   onSaveAsTemplate: () => void;
   onDelete: () => void;
   onPaymentChange: () => void;
+  onGenerateReferralCode: (userId: string) => void;
 }) {
   const navigate = useNavigate();
   const adminOverride = useAdminOverridePayment();
@@ -204,16 +216,27 @@ function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplat
         />
       </TableCell>
       <TableCell>
-        {referralData?.has_referral_access ? (
-          <div className="flex flex-col gap-0.5">
-            <Badge variant="default" className="text-xs w-fit">Active</Badge>
-            {referralData.referral_code && (
-              <span className="text-xs text-muted-foreground font-mono">{referralData.referral_code}</span>
-            )}
-          </div>
-        ) : (
-          <Badge variant="secondary" className="text-xs">No Access</Badge>
-        )}
+        <div className="flex items-center gap-2">
+          {referralData?.has_referral_access ? (
+            <div className="flex flex-col gap-0.5">
+              <Badge variant="default" className="text-xs w-fit">Active</Badge>
+              {referralData.referral_code && (
+                <span className="text-xs text-muted-foreground font-mono">{referralData.referral_code}</span>
+              )}
+            </div>
+          ) : (
+            <Badge variant="secondary" className="text-xs">No Access</Badge>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6"
+            onClick={() => onGenerateReferralCode(card.user_id)}
+            title={referralData?.referral_code ? "Regenerate code" : "Generate code"}
+          >
+            <RefreshCw className="h-3 w-3" />
+          </Button>
+        </div>
       </TableCell>
       <TableCell>{card.views_count || 0}</TableCell>
       <TableCell className="text-sm text-muted-foreground">
@@ -393,6 +416,34 @@ export default function AdminCards() {
       }
     }
     setLoading(false);
+  };
+
+  const handleGenerateReferralCode = async (userId: string) => {
+    const newCode = generateReferralCode();
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        referral_code: newCode,
+        has_referral_access: true,
+      })
+      .eq("id", userId);
+
+    if (error) {
+      toast.error("Failed to generate referral code");
+      return;
+    }
+
+    toast.success(`Referral code generated: ${newCode}`);
+    
+    // Update local state
+    setUserReferrals(prev => ({
+      ...prev,
+      [userId]: {
+        referral_code: newCode,
+        has_referral_access: true,
+      }
+    }));
   };
 
   const loadUsers = async () => {
@@ -779,6 +830,7 @@ export default function AdminCards() {
                               onSaveAsTemplate={() => openSaveAsTemplateFlow(card)}
                               onDelete={() => setDeleteCardId(card.id)}
                               onPaymentChange={loadCards}
+                              onGenerateReferralCode={handleGenerateReferralCode}
                             />
                           ))
                         )}
