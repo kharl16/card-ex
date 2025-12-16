@@ -1,8 +1,10 @@
+import cardExLogo from "@/assets/cardex-logo.png";
 import { Check, Crown, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CardPlan } from "@/hooks/useCardPlans";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import cardExLogo from "@/assets/cardex-logo.png"; // 👈 your logo
 
 interface PlanSelectorProps {
   plans: CardPlan[];
@@ -25,6 +27,9 @@ export function PlanSelector({ plans, selectedPlanId, onSelectPlan }: PlanSelect
         return <Crown className="h-5 w-5 text-yellow-500" />;
       case "ELITE_FRODO":
         return <Sparkles className="h-5 w-5 text-purple-500" />;
+      // 🔥 Card-Ex Ultimate -> use logo
+      case "ULTIMATE": // ⬅️ change this to your actual code if different
+        return <img src={cardExLogo} alt="Card-Ex Ultimate" className="h-6 w-6 rounded-md object-contain" />;
       default:
         return null;
     }
@@ -35,7 +40,9 @@ export function PlanSelector({ plans, selectedPlanId, onSelectPlan }: PlanSelect
       {plans.map((plan) => {
         const isSelected = selectedPlanId === plan.id;
         const isPopular = plan.code === "ESSENTIAL";
-        const isPremium = plan.code.includes("ELITE");
+
+        // Premium = Elite plans + Ultimate
+        const isPremium = plan.code.includes("ELITE") || plan.code === "ULTIMATE";
 
         return (
           <Card
@@ -43,20 +50,12 @@ export function PlanSelector({ plans, selectedPlanId, onSelectPlan }: PlanSelect
             className={cn(
               "relative cursor-pointer transition-all hover:shadow-lg",
               isSelected && "ring-2 ring-primary border-primary",
-              isPremium && "border-yellow-500/50"
+              isPremium && "border-yellow-500/50",
             )}
             onClick={() => onSelectPlan(plan.id)}
           >
-            {isPopular && (
-              <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary">
-                Most Popular
-              </Badge>
-            )}
-            {isPremium && (
-              <Badge className="absolute -top-2 right-2 bg-yellow-500 text-black">
-                Premium
-              </Badge>
-            )}
+            {isPopular && <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary">Most Popular</Badge>}
+            {isPremium && <Badge className="absolute -top-2 right-2 bg-yellow-500 text-black">Premium</Badge>}
 
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -70,16 +69,12 @@ export function PlanSelector({ plans, selectedPlanId, onSelectPlan }: PlanSelect
                   </div>
                 )}
               </div>
-              <CardDescription className="text-sm">
-                {plan.description}
-              </CardDescription>
+              <CardDescription className="text-sm">{plan.description}</CardDescription>
             </CardHeader>
 
             <CardContent>
               <div className="space-y-2">
-                <div className="text-2xl font-bold text-primary">
-                  {formatPrice(plan.retail_price)}
-                </div>
+                <div className="text-2xl font-bold text-primary">{formatPrice(plan.retail_price)}</div>
 
                 <div className="flex flex-wrap gap-1">
                   {plan.has_reseller_access && (
