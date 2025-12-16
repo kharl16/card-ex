@@ -80,9 +80,15 @@ interface UserProfile {
   card_count?: number;
 }
 
+interface UserReferralData {
+  referral_code: string | null;
+  has_referral_access: boolean;
+}
+
 // Admin Card Row Component with payment controls
-function AdminCardRow({ card, onEdit, onDuplicate, onSaveAsTemplate, onDelete, onPaymentChange }: {
+function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplate, onDelete, onPaymentChange }: {
   card: CardData;
+  referralData?: UserReferralData;
   onEdit: () => void;
   onDuplicate: () => void;
   onSaveAsTemplate: () => void;
@@ -197,6 +203,18 @@ function AdminCardRow({ card, onEdit, onDuplicate, onSaveAsTemplate, onDelete, o
           disabled={!card.is_paid}
         />
       </TableCell>
+      <TableCell>
+        {referralData?.has_referral_access ? (
+          <div className="flex flex-col gap-0.5">
+            <Badge variant="default" className="text-xs w-fit">Active</Badge>
+            {referralData.referral_code && (
+              <span className="text-xs text-muted-foreground font-mono">{referralData.referral_code}</span>
+            )}
+          </div>
+        ) : (
+          <Badge variant="secondary" className="text-xs">No Access</Badge>
+        )}
+      </TableCell>
       <TableCell>{card.views_count || 0}</TableCell>
       <TableCell className="text-sm text-muted-foreground">
         {new Date(card.updated_at).toLocaleDateString()}
@@ -238,6 +256,7 @@ export default function AdminCards() {
   const { isAdmin, loading: authLoading, session } = useAuth();
   const [cards, setCards] = useState<CardData[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [userReferrals, setUserReferrals] = useState<Record<string, UserReferralData>>({});
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [userSearchTerm, setUserSearchTerm] = useState("");
@@ -354,6 +373,24 @@ export default function AdminCards() {
       toast.error("Failed to load cards");
     } else {
       setCards(data || []);
+      
+      // Fetch referral data for all card owners
+      const userIds = [...new Set((data || []).map(c => c.user_id))];
+      if (userIds.length > 0) {
+        const { data: referralProfiles } = await supabase
+          .from("profiles")
+          .select("id, referral_code, has_referral_access")
+          .in("id", userIds);
+        
+        const referralMap: Record<string, UserReferralData> = {};
+        referralProfiles?.forEach(p => {
+          referralMap[p.id] = {
+            referral_code: p.referral_code,
+            has_referral_access: p.has_referral_access,
+          };
+        });
+        setUserReferrals(referralMap);
+      }
     }
     setLoading(false);
   };
@@ -717,6 +754,7 @@ export default function AdminCards() {
                           <TableHead>Plan</TableHead>
                           <TableHead>Paid</TableHead>
                           <TableHead>Published</TableHead>
+                          <TableHead>Referral</TableHead>
                           <TableHead>Views</TableHead>
                           <TableHead>Updated</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
@@ -726,7 +764,7 @@ export default function AdminCards() {
                       <TableBody>
                         {filteredCards.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} className="text-center text-muted-foreground">
+                            <TableCell colSpan={10} className="text-center text-muted-foreground">
                               No cards found
                             </TableCell>
                           </TableRow>
@@ -735,6 +773,7 @@ export default function AdminCards() {
                             <AdminCardRow
                               key={card.id}
                               card={card}
+                              referralData={userReferrals[card.user_id]}
                               onEdit={() => navigate(`/cards/${card.id}/edit`)}
                               onDuplicate={() => openDuplicateCardFlow(card)}
                               onSaveAsTemplate={() => openSaveAsTemplateFlow(card)}
