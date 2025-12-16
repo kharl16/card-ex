@@ -643,6 +643,10 @@ export default function AdminCards() {
           <Button onClick={() => navigate("/admin/data-tools")} variant="outline">
             Data Tools & Migration
           </Button>
+          <Button onClick={() => navigate("/admin/referrals")} variant="outline" className="gap-2">
+            <DollarSign className="h-4 w-4" />
+            Referrals
+          </Button>
           <Button onClick={() => setShowCreateUserDialog(true)} variant="outline" className="gap-2">
             <UserPlus className="h-4 w-4" />
             Create New User

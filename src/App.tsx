@@ -15,6 +15,7 @@ import PublicCard from "./pages/PublicCard";
 import SharedCard from "./pages/SharedCard";
 import AdminCards from "./pages/AdminCards";
 import AdminDataTools from "./pages/AdminDataTools";
+import AdminReferrals from "./pages/AdminReferrals";
 import Gallery from "./pages/Gallery";
 import Analytics from "./pages/Analytics";
 import Billing from "./pages/Billing";
@@ -107,6 +108,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <AdminDataTools />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/referrals"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminReferrals />
               </RequireAuth>
             </PageTransition>
           }
