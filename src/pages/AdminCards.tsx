@@ -133,20 +133,33 @@ function AdminCardRow({ card, onEdit, onDuplicate, onSaveAsTemplate, onDelete, o
       <TableCell>{(card as any).owner_name || "—"}</TableCell>
       <TableCell>{card.company || "—"}</TableCell>
       <TableCell>
-        {plans && plans.length > 0 ? (
+      {plans && plans.length > 0 ? (
           <Select
             value={card.plan_id ?? undefined}
             onValueChange={async (newPlanId) => {
-              const { error } = await supabase
+              // Update card's plan
+              const { error: cardError } = await supabase
                 .from("cards")
                 .update({ plan_id: newPlanId })
                 .eq("id", card.id);
-              if (error) {
+              
+              if (cardError) {
                 toast.error("Failed to update plan");
-              } else {
-                toast.success("Plan updated");
-                onPaymentChange();
+                return;
               }
+              
+              // Also update any referral that links to this card
+              const { error: referralError } = await supabase
+                .from("referrals")
+                .update({ plan_id: newPlanId })
+                .eq("referred_card_id", card.id);
+              
+              if (referralError) {
+                console.error("Failed to sync referral plan:", referralError);
+              }
+              
+              toast.success("Plan updated");
+              onPaymentChange();
             }}
           >
             <SelectTrigger className="w-[160px] h-8 text-xs">
