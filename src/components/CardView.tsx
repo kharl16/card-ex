@@ -123,6 +123,32 @@ export default function CardView({
   showQRCode = false,
   showVCardButtons = false,
 }: CardViewProps) {
+  // Normalize social links whether passed as a prop or loaded from Supabase JSON
+  const resolvedSocialLinks: SocialLink[] = React.useMemo(() => {
+    // If socialLinks prop exists and has items, use it
+    if (socialLinks && socialLinks.length > 0) {
+      return socialLinks;
+    }
+
+    // Otherwise read from Supabase column card.social_links
+    const raw = (card as any).social_links;
+
+    if (!raw) return [];
+
+    // Supabase returns parsed JSON (array)
+    if (Array.isArray(raw)) {
+      return raw as SocialLink[];
+    }
+
+    // If stored as string JSON
+    try {
+      return JSON.parse(raw) as SocialLink[];
+    } catch {
+      console.warn("Could not parse card.social_links JSON:", raw);
+      return [];
+    }
+  }, [card, socialLinks]);
+
   // Use getActiveTheme for A/B variant support
   const theme = getActiveTheme((card.theme ?? null) as unknown as CardTheme | null) || {
     primary: "#D4AF37",
@@ -228,9 +254,9 @@ export default function CardView({
         )}
 
         {/* Social Media Links */}
-        {socialLinks.length > 0 && (
+        {resolvedSocialLinks.length > 0 && (
           <div className="flex flex-wrap gap-3 justify-center px-4 pb-4">
-            {socialLinks.map((link, index) => {
+            {resolvedSocialLinks.map((link, index) => {
               const IconComponent = iconMap[link.icon] || Globe;
               const brandColor = socialBrandColors[link.kind] || "bg-primary";
               const bounceDelay = `${index * 0.1}s`;
