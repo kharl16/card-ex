@@ -88,8 +88,8 @@ interface UserReferralData {
 
 // Generate unique referral code
 function generateReferralCode(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = 'CEX-';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "CEX-";
   for (let i = 0; i < 6; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -97,7 +97,16 @@ function generateReferralCode(): string {
 }
 
 // Admin Card Row Component with payment controls
-function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplate, onDelete, onPaymentChange, onGenerateReferralCode }: {
+function AdminCardRow({
+  card,
+  referralData,
+  onEdit,
+  onDuplicate,
+  onSaveAsTemplate,
+  onDelete,
+  onPaymentChange,
+  onGenerateReferralCode,
+}: {
   card: CardData;
   referralData?: UserReferralData;
   onEdit: () => void;
@@ -110,12 +119,12 @@ function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplat
   const navigate = useNavigate();
   const adminOverride = useAdminOverridePayment();
   const { data: plans } = useCardPlans();
-  const defaultPlan = plans?.find(p => p.code === "ESSENTIAL") || plans?.[0];
+  const defaultPlan = plans?.find((p) => p.code === "ESSENTIAL") || plans?.[0];
 
   const handlePaidChange = async (checked: boolean) => {
     const planId = card.plan_id || defaultPlan?.id;
     const amount = defaultPlan?.retail_price || 599;
-    
+
     if (!planId) {
       toast.error("No plan available");
       return;
@@ -128,15 +137,25 @@ function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplat
       amount,
       isPaid: checked,
     });
+
+    // 🔹 NEW: auto-generate referral code when card becomes PAID
+    if (checked) {
+      // Find the effective plan for this card
+      const currentPlan = plans?.find((p) => p.id === planId);
+
+      // Only generate for referral-eligible plans (e.g. NOT Card-Ex Personal)
+      // Make sure CardPlan type includes `referral_eligible: boolean`
+      if (currentPlan?.referral_eligible && (!referralData?.has_referral_access || !referralData?.referral_code)) {
+        onGenerateReferralCode(card.user_id);
+      }
+    }
+
     onPaymentChange();
   };
 
   const handlePublishedChange = async (checked: boolean) => {
-    const { error } = await supabase
-      .from("cards")
-      .update({ is_published: checked })
-      .eq("id", card.id);
-    
+    const { error } = await supabase.from("cards").update({ is_published: checked }).eq("id", card.id);
+
     if (error) {
       toast.error("Failed to update");
     } else {
@@ -151,7 +170,7 @@ function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplat
       <TableCell>{(card as any).owner_name || "—"}</TableCell>
       <TableCell>{card.company || "—"}</TableCell>
       <TableCell>
-      {plans && plans.length > 0 ? (
+        {plans && plans.length > 0 ? (
           <Select
             value={card.plan_id ?? undefined}
             onValueChange={async (newPlanId) => {
@@ -160,22 +179,22 @@ function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplat
                 .from("cards")
                 .update({ plan_id: newPlanId })
                 .eq("id", card.id);
-              
+
               if (cardError) {
                 toast.error("Failed to update plan");
                 return;
               }
-              
+
               // Also update any referral that links to this card
               const { error: referralError } = await supabase
                 .from("referrals")
                 .update({ plan_id: newPlanId })
                 .eq("referred_card_id", card.id);
-              
+
               if (referralError) {
                 console.error("Failed to sync referral plan:", referralError);
               }
-              
+
               toast.success("Plan updated");
               onPaymentChange();
             }}
@@ -183,7 +202,7 @@ function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplat
             <SelectTrigger className="w-[160px] h-8 text-xs">
               <SelectValue placeholder="No plan">
                 {(() => {
-                  const plan = plans?.find(p => p.id === card.plan_id);
+                  const plan = plans?.find((p) => p.id === card.plan_id);
                   return plan ? `${plan.name} • ₱${plan.retail_price.toLocaleString()}` : "No plan";
                 })()}
               </SelectValue>
@@ -202,30 +221,26 @@ function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplat
         )}
       </TableCell>
       <TableCell>
-        <Checkbox
-          checked={card.is_paid}
-          onCheckedChange={handlePaidChange}
-          disabled={adminOverride.isPending}
-        />
+        <Checkbox checked={card.is_paid} onCheckedChange={handlePaidChange} disabled={adminOverride.isPending} />
       </TableCell>
       <TableCell>
-        <Switch
-          checked={card.is_published || false}
-          onCheckedChange={handlePublishedChange}
-          disabled={!card.is_paid}
-        />
+        <Switch checked={card.is_published || false} onCheckedChange={handlePublishedChange} disabled={!card.is_paid} />
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
           {referralData?.has_referral_access ? (
             <div className="flex flex-col gap-0.5">
-              <Badge variant="default" className="text-xs w-fit">Active</Badge>
+              <Badge variant="default" className="text-xs w-fit">
+                Active
+              </Badge>
               {referralData.referral_code && (
                 <span className="text-xs text-muted-foreground font-mono">{referralData.referral_code}</span>
               )}
             </div>
           ) : (
-            <Badge variant="secondary" className="text-xs">No Access</Badge>
+            <Badge variant="secondary" className="text-xs">
+              No Access
+            </Badge>
           )}
           <Button
             variant="ghost"
@@ -239,9 +254,7 @@ function AdminCardRow({ card, referralData, onEdit, onDuplicate, onSaveAsTemplat
         </div>
       </TableCell>
       <TableCell>{card.views_count || 0}</TableCell>
-      <TableCell className="text-sm text-muted-foreground">
-        {new Date(card.updated_at).toLocaleDateString()}
-      </TableCell>
+      <TableCell className="text-sm text-muted-foreground">{new Date(card.updated_at).toLocaleDateString()}</TableCell>
       <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -314,7 +327,9 @@ export default function AdminCards() {
   // Save as Template Dialog state
   const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
   const [templateSourceCard, setTemplateSourceCard] = useState<CardData | null>(null);
-  const [templateProductImages, setTemplateProductImages] = useState<Array<{ image_url: string; alt_text?: string | null; description?: string | null; sort_order?: number | null }>>([]);
+  const [templateProductImages, setTemplateProductImages] = useState<
+    Array<{ image_url: string; alt_text?: string | null; description?: string | null; sort_order?: number | null }>
+  >([]);
 
   // Templates management state
   const { getAllTemplatesForAdmin, updateTemplate, deleteTemplate } = useTemplates();
@@ -396,17 +411,17 @@ export default function AdminCards() {
       toast.error("Failed to load cards");
     } else {
       setCards(data || []);
-      
+
       // Fetch referral data for all card owners
-      const userIds = [...new Set((data || []).map(c => c.user_id))];
+      const userIds = [...new Set((data || []).map((c) => c.user_id))];
       if (userIds.length > 0) {
         const { data: referralProfiles } = await supabase
           .from("profiles")
           .select("id, referral_code, has_referral_access")
           .in("id", userIds);
-        
+
         const referralMap: Record<string, UserReferralData> = {};
-        referralProfiles?.forEach(p => {
+        referralProfiles?.forEach((p) => {
           referralMap[p.id] = {
             referral_code: p.referral_code,
             has_referral_access: p.has_referral_access,
@@ -420,7 +435,7 @@ export default function AdminCards() {
 
   const handleGenerateReferralCode = async (userId: string) => {
     const newCode = generateReferralCode();
-    
+
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -435,14 +450,14 @@ export default function AdminCards() {
     }
 
     toast.success(`Referral code generated: ${newCode}`);
-    
+
     // Update local state
-    setUserReferrals(prev => ({
+    setUserReferrals((prev) => ({
       ...prev,
       [userId]: {
         referral_code: newCode,
         has_referral_access: true,
-      }
+      },
     }));
   };
 
@@ -546,7 +561,7 @@ export default function AdminCards() {
       .select("image_url, alt_text, description, sort_order")
       .eq("card_id", card.id)
       .order("sort_order");
-    
+
     setTemplateSourceCard(card);
     setTemplateProductImages(productImages || []);
     setShowSaveTemplateDialog(true);
@@ -975,10 +990,7 @@ export default function AdminCards() {
                                   <CardTitle className="text-base">{template.name}</CardTitle>
                                 </div>
                                 <div className="flex items-center gap-2 mt-1">
-                                  <Badge
-                                    variant={template.is_global ? "default" : "secondary"}
-                                    className="text-xs"
-                                  >
+                                  <Badge variant={template.is_global ? "default" : "secondary"} className="text-xs">
                                     {template.is_global ? (
                                       <>
                                         <Globe className="mr-1 h-3 w-3" />
@@ -1004,11 +1016,7 @@ export default function AdminCards() {
                             <p className="text-sm text-muted-foreground mb-3">{template.description}</p>
                           )}
                           <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditTemplate(template)}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => handleEditTemplate(template)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </Button>
