@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ import {
   rectSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import type { CardProductImage } from '@/lib/theme';
 
 interface ProductImage {
   id: string;
@@ -33,7 +34,7 @@ interface ProductImage {
 interface ProductImageManagerProps {
   cardId: string;
   ownerId: string;
-  onImagesChange?: () => void;
+  onImagesChange?: (images: CardProductImage[]) => void;
 }
 
 interface SortableImageProps {
@@ -115,27 +116,68 @@ export default function ProductImageManager({ cardId, ownerId, onImagesChange }:
     })
   );
 
-  const loadImages = async () => {
+  const loadImages = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('product_images')
-        .select('id, image_url, alt_text, description, sort_order')
-        .eq('card_id', cardId)
-        .order('sort_order', { ascending: true });
+      // Load from cards.product_images JSONB column
+      const { data: card, error } = await supabase
+        .from('cards')
+        .select('product_images')
+        .eq('id', cardId)
+        .single();
 
       if (error) throw error;
-      setImages(data || []);
+      
+      const rawProductImages = (card as any)?.product_images;
+      if (rawProductImages && Array.isArray(rawProductImages)) {
+        const loadedImages = rawProductImages.map((img: any, index: number) => ({
+          id: `product-${index}`,
+          image_url: img.image_url,
+          alt_text: img.alt_text || null,
+          description: img.description || null,
+          sort_order: img.sort_order ?? index,
+        }));
+        setImages(loadedImages);
+      } else {
+        setImages([]);
+      }
     } catch (error) {
       console.error('Error loading product images:', error);
       toast.error('Failed to load product images');
     } finally {
       setLoading(false);
     }
-  };
+  }, [cardId]);
 
   useEffect(() => {
     loadImages();
-  }, [cardId]);
+  }, [loadImages]);
+
+  // Convert images to CardProductImage format for saving
+  const imagesToJsonb = useCallback((imgs: ProductImage[]): CardProductImage[] => {
+    return imgs.map((img, index) => ({
+      image_url: img.image_url,
+      alt_text: img.alt_text || null,
+      description: img.description || null,
+      sort_order: index,
+    }));
+  }, []);
+
+  // Save images to cards.product_images JSONB column
+  const saveImages = useCallback(async (newImages: ProductImage[]) => {
+    const jsonbData = imagesToJsonb(newImages);
+    
+    const { error } = await supabase
+      .from('cards')
+      .update({ product_images: jsonbData as unknown as any })
+      .eq('id', cardId);
+
+    if (error) {
+      console.error('Error saving product images:', error);
+      throw error;
+    }
+
+    onImagesChange?.(jsonbData);
+  }, [cardId, imagesToJsonb, onImagesChange]);
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -145,23 +187,17 @@ export default function ProductImageManager({ cardId, ownerId, onImagesChange }:
       const newIndex = images.findIndex((img) => img.id === over.id);
 
       const newImages = arrayMove(images, oldIndex, newIndex);
-      setImages(newImages);
+      // Update sort_order for each image
+      const updatedImages = newImages.map((img, index) => ({
+        ...img,
+        sort_order: index,
+      }));
+      
+      setImages(updatedImages);
 
-      // Update sort_order in database
+      // Save to database
       try {
-        const updates = newImages.map((img, index) => ({
-          id: img.id,
-          sort_order: index,
-        }));
-
-        for (const update of updates) {
-          await supabase
-            .from('product_images')
-            .update({ sort_order: update.sort_order })
-            .eq('id', update.id);
-        }
-
-        onImagesChange?.();
+        await saveImages(updatedImages);
       } catch (error) {
         console.error('Error updating sort order:', error);
         toast.error('Failed to update image order');
@@ -188,22 +224,53 @@ export default function ProductImageManager({ cardId, ownerId, onImagesChange }:
         await supabase.storage.from('cardex-products').remove([filePath]);
       }
 
-      // Delete from database
-      const { error } = await supabase
-        .from('product_images')
-        .delete()
-        .eq('id', imageId);
-
-      if (error) throw error;
+      // Remove from local state and save
+      const newImages = images.filter(img => img.id !== imageId);
+      const updatedImages = newImages.map((img, index) => ({
+        ...img,
+        sort_order: index,
+      }));
+      
+      setImages(updatedImages);
+      await saveImages(updatedImages);
 
       toast.success('Product image deleted successfully');
-      await loadImages();
-      onImagesChange?.();
     } catch (error) {
       console.error('Error deleting image:', error);
       toast.error('Failed to delete product image');
+      loadImages(); // Reload on error
     } finally {
       setDeleting(null);
+    }
+  };
+
+  // Handle new images uploaded
+  const handleUploadComplete = async (newImageData: CardProductImage[]) => {
+    // Merge new images with existing
+    const existingJsonb = imagesToJsonb(images);
+    const allImages = [...existingJsonb, ...newImageData];
+    
+    // Update sort_order
+    const sortedImages = allImages.map((img, index) => ({
+      ...img,
+      sort_order: index,
+    }));
+
+    // Save to database
+    try {
+      const { error } = await supabase
+        .from('cards')
+        .update({ product_images: sortedImages as unknown as any })
+        .eq('id', cardId);
+
+      if (error) throw error;
+
+      // Reload images to get fresh state
+      await loadImages();
+      onImagesChange?.(sortedImages);
+    } catch (error) {
+      console.error('Error saving uploaded images:', error);
+      toast.error('Failed to save uploaded images');
     }
   };
 
@@ -251,10 +318,7 @@ export default function ProductImageManager({ cardId, ownerId, onImagesChange }:
         cardId={cardId}
         ownerId={ownerId}
         nextSortOrder={images.length}
-        onUploadComplete={() => {
-          loadImages();
-          onImagesChange?.();
-        }}
+        onUploadComplete={handleUploadComplete}
       />
     </div>
   );

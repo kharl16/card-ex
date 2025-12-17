@@ -328,16 +328,28 @@ export default function CardEditor() {
   const loadProductImages = async () => {
     if (!id) return;
 
-    const { data } = await supabase
-      .from("product_images")
-      .select("id, image_url, alt_text, description, sort_order")
-      .eq("card_id", id)
-      .order("sort_order", { ascending: true });
-
-    if (data) {
-      setProductImages(data);
-    }
+    // Load from cards.product_images JSONB - already loaded with card
+    // This function is now called after loadCard, card should have product_images
   };
+
+  // Update productImages state when card is loaded
+  useEffect(() => {
+    if (card) {
+      const rawProductImages = (card as any).product_images;
+      if (rawProductImages && Array.isArray(rawProductImages)) {
+        const images = rawProductImages.map((img: any, index: number) => ({
+          id: `product-${index}`,
+          image_url: img.image_url,
+          alt_text: img.alt_text || null,
+          description: img.description || null,
+          sort_order: img.sort_order ?? index,
+        }));
+        setProductImages(images);
+      } else {
+        setProductImages([]);
+      }
+    }
+  }, [card?.id]);
 
   const generateQRCode = async (shareUrl: string, cardSlug: string, customSettings?: any) => {
     try {

@@ -68,7 +68,18 @@ export function DuplicateCardDialog({
       // Generate new unique slug
       const slug = `${effectiveUserId.slice(0, 8)}-${Date.now()}`;
 
-      // Insert duplicated card
+      // Get product images from source card's JSONB column
+      const rawProductImages = (card as any).product_images;
+      const productImagesArray = Array.isArray(rawProductImages)
+        ? rawProductImages.map((img: any, index: number) => ({
+            image_url: img.image_url,
+            alt_text: img.alt_text || null,
+            description: img.description || null,
+            sort_order: img.sort_order ?? index,
+          }))
+        : [];
+
+      // Insert duplicated card with product_images in the JSONB column
       const { data: newCard, error: cardError } = await supabase
         .from("cards")
         .insert({
@@ -97,31 +108,16 @@ export function DuplicateCardDialog({
           is_published: false,
           views_count: 0,
           unique_views: 0,
+          social_links: card.social_links,
+          product_images: productImagesArray,
         })
         .select()
         .single();
 
       if (cardError) throw cardError;
 
-      // Copy product images
-      const { data: productImages } = await supabase
-        .from("product_images")
-        .select("*")
-        .eq("card_id", card.id)
-        .order("sort_order");
-
-      if (productImages && productImages.length > 0) {
-        const productImageInserts = productImages.map((img, index) => ({
-          card_id: newCard.id,
-          owner: effectiveUserId,
-          image_url: img.image_url,
-          alt_text: img.alt_text,
-          description: img.description,
-          sort_order: index,
-        }));
-
-        await supabase.from("product_images").insert(productImageInserts);
-      }
+      // NOTE: Product images are now copied via the JSONB column above
+      // No need to query/insert into product_images table
 
       // Copy card links (social media, additional contacts)
       const { data: cardLinks } = await supabase

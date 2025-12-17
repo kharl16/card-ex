@@ -64,7 +64,8 @@ export function TemplatePreviewDialog({
     unique_views: null,
     published_at: null,
     is_template: false,
-    social_links: null,
+    social_links: layoutData.social_links || null,
+    product_images: layoutData.product_images || [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

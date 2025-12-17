@@ -1,3 +1,11 @@
+// Product image stored in cards.product_images JSONB column
+export interface CardProductImage {
+  image_url: string;
+  alt_text?: string | null;
+  description?: string | null;
+  sort_order?: number | null;
+}
+
 // QR Settings interface
 export interface QRSettings {
   pattern?: string;
