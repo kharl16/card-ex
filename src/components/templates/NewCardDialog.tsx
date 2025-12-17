@@ -107,6 +107,8 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
           location: layoutData?.location || null,
           // Card type for new cards
           card_type: 'publishable',
+          // Social links from template
+          social_links: layoutData?.social_links || null,
         })
         .select()
         .single();
