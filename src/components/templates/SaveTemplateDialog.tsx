@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +16,7 @@ import { Loader2, Save, Globe, Users, Lock } from "lucide-react";
 import { useTemplates, TemplateVisibility } from "@/hooks/useTemplates";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+
 interface SaveTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -21,33 +29,17 @@ interface SaveTemplateDialogProps {
   }>;
   onSaved?: () => void;
 }
-export function SaveTemplateDialog({
-  open,
-  onOpenChange,
-  card,
-  productImages,
-  onSaved
-}: SaveTemplateDialogProps) {
-  const {
-    isAdmin
-  } = useAuth();
-  const {
-    saveAsGlobalTemplate,
-    savePersonalTemplate,
-    hasPersonalTemplate,
-    userTemplate
-  } = useTemplates();
+
+export function SaveTemplateDialog({ open, onOpenChange, card, productImages, onSaved }: SaveTemplateDialogProps) {
+  const { isAdmin } = useAuth();
+  const { saveAsGlobalTemplate, savePersonalTemplate, hasPersonalTemplate, userTemplate } = useTemplates();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
-  const [visibility, setVisibility] = useState<TemplateVisibility>(isAdmin ? 'global' : 'private');
-  const [cardLinks, setCardLinks] = useState<Array<{
-    kind: string;
-    label: string;
-    value: string;
-    icon?: string | null;
-    sort_index?: number | null;
-  }>>([]);
+  const [visibility, setVisibility] = useState<TemplateVisibility>(isAdmin ? "global" : "private");
+  const [cardLinks, setCardLinks] = useState<
+    Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>
+  >([]);
 
   // Pre-fill name from card when dialog opens
   useEffect(() => {
@@ -62,30 +54,53 @@ export function SaveTemplateDialog({
       fetchCardLinks();
     }
   }, [open, card.id]);
+
   const fetchCardLinks = async () => {
     if (!card.id) return;
-    const {
-      data,
-      error
-    } = await supabase.from("card_links").select("kind, label, value, icon, sort_index").eq("card_id", card.id).order("sort_index");
+
+    const { data, error } = await supabase
+      .from("card_links")
+      .select("kind, label, value, icon, sort_index")
+      .eq("card_id", card.id)
+      .order("sort_index");
+
     if (!error && data) {
       setCardLinks(data);
     }
   };
+
   const handleSave = async () => {
     if (!name.trim()) return;
+
     setSaving(true);
     try {
       let success = false;
-      if (visibility === 'global' || visibility === 'team') {
-        success = await saveAsGlobalTemplate(card, name.trim(), description.trim(), undefined, productImages, cardLinks, visibility);
+
+      if (visibility === "global" || visibility === "team") {
+        success = await saveAsGlobalTemplate(
+          card,
+          name.trim(),
+          description.trim(),
+          undefined,
+          productImages,
+          cardLinks,
+          visibility,
+        );
       } else {
-        success = await savePersonalTemplate(card, name.trim(), description.trim(), productImages, cardLinks, visibility);
+        success = await savePersonalTemplate(
+          card,
+          name.trim(),
+          description.trim(),
+          productImages,
+          cardLinks,
+          visibility,
+        );
       }
+
       if (success) {
         setName("");
         setDescription("");
-        setVisibility(isAdmin ? 'global' : 'private');
+        setVisibility(isAdmin ? "global" : "private");
         setCardLinks([]);
         onOpenChange(false);
         onSaved?.();
@@ -94,16 +109,19 @@ export function SaveTemplateDialog({
       setSaving(false);
     }
   };
+
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setName("");
       setDescription("");
-      setVisibility(isAdmin ? 'global' : 'private');
+      setVisibility(isAdmin ? "global" : "private");
       setCardLinks([]);
     }
     onOpenChange(newOpen);
   };
-  return <Dialog open={open} onOpenChange={handleOpenChange}>
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -111,27 +129,52 @@ export function SaveTemplateDialog({
             Save as Template
           </DialogTitle>
           <DialogDescription>
-            {hasPersonalTemplate && !isAdmin ? "You already have a personal template. This will overwrite it." : "Save this card as a reusable template with all content included."}
+            {hasPersonalTemplate && !isAdmin
+              ? "You already have a personal template. This will overwrite it."
+              : "Save this card as a reusable template with all content included."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="template-name">Template Name</Label>
-            <Input id="template-name" value={name} onChange={e => setName(e.target.value)} placeholder="My Business Card Template" maxLength={100} />
+            <Input
+              id="template-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="My Business Card Template"
+              maxLength={100}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="template-description">Description (optional)</Label>
-            <Textarea id="template-description" value={description} onChange={e => setDescription(e.target.value)} placeholder="A professional template with gold accents..." maxLength={500} rows={3} />
+            <Textarea
+              id="template-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="A professional template with gold accents..."
+              maxLength={500}
+              rows={2}
+            />
           </div>
 
-          
+          <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm">
+            <p className="font-medium text-primary">Full Card Template</p>
+            <p className="text-muted-foreground">
+              This template will include all content: design, personal info, images, and links.
+            </p>
+          </div>
 
           <div className="space-y-2">
             <Label>Template Visibility</Label>
-            <RadioGroup value={visibility} onValueChange={v => setVisibility(v as TemplateVisibility)} className="space-y-2">
-              {isAdmin && <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-muted/50">
+            <RadioGroup
+              value={visibility}
+              onValueChange={(v) => setVisibility(v as TemplateVisibility)}
+              className="space-y-2"
+            >
+              {isAdmin && (
+                <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-muted/50">
                   <RadioGroupItem value="global" id="visibility-global" />
                   <Label htmlFor="visibility-global" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
@@ -140,7 +183,8 @@ export function SaveTemplateDialog({
                     </div>
                     <p className="text-xs text-muted-foreground">Available to all users</p>
                   </Label>
-                </div>}
+                </div>
+              )}
               <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-muted/50">
                 <RadioGroupItem value="team" id="visibility-team" />
                 <Label htmlFor="visibility-team" className="flex-1 cursor-pointer">
@@ -164,14 +208,12 @@ export function SaveTemplateDialog({
             </RadioGroup>
           </div>
 
-          {hasPersonalTemplate && userTemplate && visibility === 'private' && <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
-              <p className="font-medium text-amber-600 dark:text-amber-400">
-                Overwriting existing template
-              </p>
-              <p className="text-muted-foreground">
-                Your current template "{userTemplate.name}" will be replaced.
-              </p>
-            </div>}
+          {hasPersonalTemplate && userTemplate && visibility === "private" && (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+              <p className="font-medium text-amber-600 dark:text-amber-400">Overwriting existing template</p>
+              <p className="text-muted-foreground">Your current template "{userTemplate.name}" will be replaced.</p>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
@@ -180,9 +222,10 @@ export function SaveTemplateDialog({
           </Button>
           <Button onClick={handleSave} disabled={!name.trim() || saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {hasPersonalTemplate && visibility === 'private' ? "Overwrite Template" : "Save Template"}
+            {hasPersonalTemplate && visibility === "private" ? "Overwrite Template" : "Save Template"}
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 }
