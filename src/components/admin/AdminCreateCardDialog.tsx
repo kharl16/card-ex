@@ -111,6 +111,8 @@ export function AdminCreateCardDialog({
           location: layoutData?.location || null,
           owner_name: targetUserName || null,
           card_type: 'publishable',
+          // Social links from template
+          social_links: layoutData?.social_links || null,
         })
         .select()
         .single();

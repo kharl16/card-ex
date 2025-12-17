@@ -60,6 +60,13 @@ export interface LayoutData {
     sort_index?: number | null;
   }>;
   
+  // Social links stored directly on card (JSONB field)
+  social_links?: Array<{
+    kind: string;
+    label: string;
+    url: string;
+  }> | null;
+  
   // Source card reference (for tracking where template came from)
   source_card_id?: string | null;
   
@@ -178,6 +185,9 @@ export function useTemplates() {
         icon: link.icon || null,
         sort_index: link.sort_index ?? idx,
       })),
+      
+      // Social links from card's JSONB field
+      social_links: card.social_links || null,
       
       // Track source card for reference
       source_card_id: card.id || null,
