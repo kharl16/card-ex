@@ -83,6 +83,16 @@ export function AdminCreateCardDialog({
       const carouselEnabled = layoutData?.carousel_enabled ?? true;
 
       // Create card with ALL data from template
+      // Product images now stored in JSONB column on cards table
+      const productImagesArray = layoutData?.product_images
+        ? layoutData.product_images.map((img: any, index: number) => ({
+            image_url: img.image_url,
+            alt_text: img.alt_text || null,
+            description: img.description || null,
+            sort_order: img.sort_order ?? index,
+          }))
+        : [];
+
       const { data, error } = await supabase
         .from("cards")
         .insert({
@@ -113,25 +123,16 @@ export function AdminCreateCardDialog({
           card_type: 'publishable',
           // Social links from template
           social_links: layoutData?.social_links || null,
+          // Product images from template (JSONB column)
+          product_images: productImagesArray,
         })
         .select()
         .single();
 
       if (error) throw error;
 
-      // If template has product images, copy them to the new card
-      if (layoutData?.product_images && layoutData.product_images.length > 0) {
-        const productImageInserts = layoutData.product_images.map((img: any, index: number) => ({
-          card_id: data.id,
-          owner: targetUserId,
-          image_url: img.image_url,
-          alt_text: img.alt_text || null,
-          description: img.description || null,
-          sort_order: img.sort_order ?? index,
-        }));
-
-        await supabase.from("product_images").insert(productImageInserts);
-      }
+      // NOTE: Product images are now stored in the JSONB column above
+      // No need to insert into product_images table
 
       // If template has card links, copy them to the new card
       if (layoutData?.card_links && layoutData.card_links.length > 0) {

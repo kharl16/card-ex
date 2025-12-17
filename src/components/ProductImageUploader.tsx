@@ -8,12 +8,13 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Upload, X, Edit } from "lucide-react";
 import ImageEditorDialog from "./ImageEditorDialog";
+import type { CardProductImage } from "@/lib/theme";
 
 interface ProductImageUploaderProps {
   cardId: string;
   ownerId: string;
   nextSortOrder: number;
-  onUploadComplete: () => void;
+  onUploadComplete: (images: CardProductImage[]) => void;
 }
 
 interface PendingImage {
@@ -73,7 +74,7 @@ export default function ProductImageUploader({
     }
 
     setUploading(true);
-    let successCount = 0;
+    const uploadedImages: CardProductImage[] = [];
     let currentSort = nextSortOrder;
 
     try {
@@ -106,40 +107,30 @@ export default function ProductImageUploader({
           // Get public URL
           const { data: urlData } = supabase.storage.from("cardex-products").getPublicUrl(filePath);
 
-          setUploadProgress((prev) => ({ ...prev, [i]: 80 }));
+          setUploadProgress((prev) => ({ ...prev, [i]: 100 }));
 
-          // Insert database record
-          const { error: dbError } = await supabase.from("product_images").insert({
-            card_id: cardId,
+          // Add to uploaded images array (will be saved to JSONB column)
+          uploadedImages.push({
             image_url: urlData.publicUrl,
             alt_text: pending.altText.trim() || null,
             description: pending.description.trim() || null,
             sort_order: currentSort++,
-            owner: ownerId,
           });
-
-          if (dbError) {
-            console.error("Database error:", dbError);
-            // Clean up uploaded file
-            await supabase.storage.from("cardex-products").remove([filePath]);
-            throw new Error(`Failed to save ${pending.file.name}`);
-          }
-
-          setUploadProgress((prev) => ({ ...prev, [i]: 100 }));
-          successCount++;
         } catch (error) {
           console.error(`Error uploading ${pending.file.name}:`, error);
           toast.error(error instanceof Error ? error.message : `Failed to upload ${pending.file.name}`);
         }
       }
 
-      if (successCount > 0) {
-        toast.success(`Successfully uploaded ${successCount} image${successCount > 1 ? "s" : ""}!`);
+      if (uploadedImages.length > 0) {
+        toast.success(`Successfully uploaded ${uploadedImages.length} image${uploadedImages.length > 1 ? "s" : ""}!`);
         // Clean up previews
         pendingImages.forEach((img) => URL.revokeObjectURL(img.preview));
         setPendingImages([]);
         setUploadProgress({});
-        onUploadComplete();
+        
+        // Notify parent component with the uploaded images
+        onUploadComplete(uploadedImages);
       }
     } catch (error) {
       console.error("Upload error:", error);

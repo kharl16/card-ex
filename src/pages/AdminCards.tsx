@@ -548,15 +548,19 @@ export default function AdminCards() {
 
   // Open the save as template flow for a specific card
   const openSaveAsTemplateFlow = async (card: CardData) => {
-    // Fetch product images for this card with sort_order
-    const { data: productImages } = await supabase
-      .from("product_images")
-      .select("image_url, alt_text, description, sort_order")
-      .eq("card_id", card.id)
-      .order("sort_order");
+    // Get product images from cards.product_images JSONB column
+    const rawProductImages = (card as any).product_images;
+    const productImages = Array.isArray(rawProductImages)
+      ? rawProductImages.map((img: any, index: number) => ({
+          image_url: img.image_url,
+          alt_text: img.alt_text || null,
+          description: img.description || null,
+          sort_order: img.sort_order ?? index,
+        }))
+      : [];
 
     setTemplateSourceCard(card);
-    setTemplateProductImages(productImages || []);
+    setTemplateProductImages(productImages);
     setShowSaveTemplateDialog(true);
   };
 

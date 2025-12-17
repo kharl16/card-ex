@@ -154,14 +154,16 @@ export default function SharedCard() {
         }
       }
 
-      // Load product images
-      const { data: images } = await supabase
-        .from("product_images")
-        .select("id, image_url, alt_text, description, sort_order")
-        .eq("card_id", data.id)
-        .order("sort_order", { ascending: true });
-      
-      if (images) {
+      // Load product images from cards.product_images JSONB column
+      const rawProductImages = (data as any).product_images;
+      if (rawProductImages && Array.isArray(rawProductImages)) {
+        const images = rawProductImages.map((img: any, index: number) => ({
+          id: `product-${index}`,
+          image_url: img.image_url,
+          alt_text: img.alt_text || null,
+          description: img.description || null,
+          sort_order: img.sort_order ?? index,
+        }));
         setProductImages(images);
       }
 
