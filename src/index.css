@@ -128,4 +128,27 @@ All colors MUST be HSL.
   .preserve-3d {
     transform-style: preserve-3d;
   }
+
+  /* Carousel spotlight slide styles */
+  .cardex-slide-active {
+    filter: brightness(1.2) saturate(1.1);
+    opacity: 1;
+  }
+  
+  .cardex-slide-inactive {
+    filter: brightness(0.85);
+    opacity: 0.8;
+  }
+  
+  .cardex-slide-active,
+  .cardex-slide-inactive {
+    transition: filter 250ms ease, opacity 250ms ease, transform 250ms ease;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardex-slide-active,
+  .cardex-slide-inactive {
+    transition: none;
+  }
 }
