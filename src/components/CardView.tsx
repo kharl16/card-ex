@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import ProductRingCarousel from "@/components/ProductRingCarousel";
+import CardExCarousel from "@/components/CardExCarousel";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
@@ -241,14 +241,18 @@ export default function CardView({
         {/* Product Carousel */}
         {card.carousel_enabled !== false && productImages.length > 0 && (
           <div className="my-4 transition-opacity duration-500">
-            <ProductRingCarousel
-              images={productImages.map((img) => ({
+            <CardExCarousel
+              items={productImages.map((img) => ({
                 id: img.id,
                 url: img.image_url,
                 alt: img.alt_text || undefined,
                 description: img.description || undefined,
               }))}
-              autoPlayMs={theme?.carouselSpeed || 4000}
+              mode={theme?.carouselMode || "roulette"}
+              autoPlayMs={theme?.carouselAutoPlay === false ? null : (theme?.carouselSpeedMs || theme?.carouselSpeed || 4000)}
+              depth={theme?.carouselDepth || "medium"}
+              spotlightEnabled={theme?.carouselSpotlight ?? true}
+              showLightbox={true}
             />
           </div>
         )}

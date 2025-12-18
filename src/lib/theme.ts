@@ -47,6 +47,12 @@ export interface ThemeVariant {
   qr?: QRSettings;
   avatarDisplayMode?: "contain" | "cover";
   logoDisplayMode?: "contain" | "cover";
+  // New carousel settings
+  carouselSpeedMs?: number;
+  carouselMode?: "roulette" | "ring3d" | "flat";
+  carouselDepth?: "soft" | "medium" | "strong";
+  carouselAutoPlay?: boolean;
+  carouselSpotlight?: boolean;
 }
 
 // Full card theme with A/B variants
