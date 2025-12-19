@@ -2,10 +2,17 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Palette, Sparkles, User, Globe, Users, Lock, Eye } from "lucide-react";
+import { Loader2, Palette, Sparkles, User, Globe, Users, Lock, Eye, Image } from "lucide-react";
 import { useTemplates, CardTemplate, TemplateVisibility } from "@/hooks/useTemplates";
 import { TemplatePreviewDialog } from "./TemplatePreviewDialog";
 import { cn } from "@/lib/utils";
+import { CardProductImage } from "@/lib/theme";
+
+// Helper to get image count from template layout_data
+const getTemplateImageCount = (template: CardTemplate): number => {
+  const layoutData = template.layout_data as { productImages?: CardProductImage[] } | null;
+  return layoutData?.productImages?.length ?? 0;
+};
 
 const visibilityConfig: Record<TemplateVisibility, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "outline" }> = {
   global: { label: "Global", icon: <Globe className="h-3 w-3" />, variant: "default" },
@@ -97,6 +104,12 @@ export function TemplateGallery({
                     <Badge variant="secondary" className="text-xs">My Template</Badge>
                   </div>
                   <CardDescription>Your saved personal template</CardDescription>
+                  {getTemplateImageCount(userTemplate) > 0 && (
+                    <Badge variant="outline" className="text-xs flex items-center gap-1">
+                      <Image className="h-3 w-3" />
+                      {getTemplateImageCount(userTemplate)}
+                    </Badge>
+                  )}
                 </div>
                 <Button
                   variant="ghost"
@@ -154,6 +167,12 @@ export function TemplateGallery({
                           <Badge variant={visibilityConfig[template.visibility as TemplateVisibility].variant} className="text-xs flex items-center gap-1">
                             {visibilityConfig[template.visibility as TemplateVisibility].icon}
                             {visibilityConfig[template.visibility as TemplateVisibility].label}
+                          </Badge>
+                        )}
+                        {getTemplateImageCount(template) > 0 && (
+                          <Badge variant="outline" className="text-xs flex items-center gap-1">
+                            <Image className="h-3 w-3" />
+                            {getTemplateImageCount(template)}
                           </Badge>
                         )}
                       </div>
