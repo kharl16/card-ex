@@ -948,7 +948,6 @@ export default function CardEditor() {
               <ShareCardDialog cardId={card.id} open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
               <SaveTemplateDialog 
                 card={card} 
-                productImages={productImages} 
                 open={saveTemplateDialogOpen} 
                 onOpenChange={setSaveTemplateDialogOpen} 
               />

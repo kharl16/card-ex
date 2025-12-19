@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,25 +9,35 @@ import { Loader2, Save, Globe, Users, Lock } from "lucide-react";
 import { useTemplates, TemplateVisibility } from "@/hooks/useTemplates";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import type { CardProductImage } from "@/lib/theme";
+
 interface SaveTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   card: Record<string, any>;
-  productImages?: Array<{
-    image_url: string;
-    alt_text?: string | null;
-    description?: string | null;
-    sort_order?: number | null;
-  }>;
+  // productImages prop is now deprecated - we read from card.product_images directly
+  productImages?: CardProductImage[];
   onSaved?: () => void;
 }
+
 export function SaveTemplateDialog({
   open,
   onOpenChange,
   card,
-  productImages,
+  productImages: _productImagesProp, // Deprecated - kept for backward compatibility
   onSaved
 }: SaveTemplateDialogProps) {
+  // Read product images from card.product_images JSONB column (source of truth)
+  const productImages = useMemo<CardProductImage[]>(() => {
+    const raw = card?.product_images;
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw as CardProductImage[];
+    try {
+      return JSON.parse(raw) as CardProductImage[];
+    } catch {
+      return [];
+    }
+  }, [card?.product_images]);
   const {
     isAdmin
   } = useAuth();

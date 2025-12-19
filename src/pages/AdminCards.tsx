@@ -1271,11 +1271,7 @@ export default function AdminCards() {
               setTemplateProductImages([]);
             }
           }}
-          card={{
-            ...templateSourceCard,
-            // Pre-fill template name with card name
-          }}
-          productImages={templateProductImages}
+          card={templateSourceCard}
           onSaved={() => {
             toast.success(`Template created from '${templateSourceCard.full_name}' and added to your Templates list.`);
             setTemplateSourceCard(null);

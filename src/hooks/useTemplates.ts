@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import type { CardProductImage } from "@/lib/theme";
 
 export type TemplateVisibility = 'global' | 'team' | 'private';
 
@@ -43,13 +44,8 @@ export interface LayoutData {
   website?: string | null;
   location?: string | null;
   
-  // Product/carousel images with metadata
-  product_images?: Array<{
-    image_url: string;
-    alt_text?: string | null;
-    description?: string | null;
-    sort_order?: number | null;
-  }>;
+  // Product/carousel images with metadata (from JSONB column)
+  product_images?: CardProductImage[];
   
   // Card links (social media, additional contacts, custom links)
   card_links?: Array<{
@@ -122,10 +118,12 @@ export function useTemplates() {
    * 
    * NO LONGER STRIPS PERSONAL DATA - copies everything as-is.
    * This enables full card duplication via templates.
+   * 
+   * Product images are now read directly from card.product_images JSONB column.
    */
   const extractLayoutData = (
     card: Record<string, any>, 
-    productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null; sort_order?: number | null }>,
+    productImages?: CardProductImage[],
     cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>
   ): LayoutData => {
     // Copy theme as-is including ALL settings:
@@ -135,7 +133,7 @@ export function useTemplates() {
     // - QR settings (qrSettings object with pattern, eye styles, colors, logo overlay, frame settings)
     // - Variant data (variantA, variantB, activeVariant)
     // - Display modes (avatarDisplayMode, logoDisplayMode)
-    // - Carousel speed
+    // - Carousel speed and settings
     const theme = card.theme ? JSON.parse(JSON.stringify(card.theme)) : {};
     
     // IMPORTANT: Remove any QR payload/value/link from theme - new cards must generate new QR
@@ -143,6 +141,15 @@ export function useTemplates() {
       // Keep all styling but ensure no QR data/URL is preserved
       delete theme.qrSettings.data;
       delete theme.qrSettings.url;
+    }
+
+    // Get product images from card.product_images JSONB column (source of truth)
+    // Falls back to passed productImages parameter for backward compatibility
+    let resolvedProductImages: CardProductImage[] = [];
+    if (card.product_images && Array.isArray(card.product_images)) {
+      resolvedProductImages = card.product_images as CardProductImage[];
+    } else if (productImages && productImages.length > 0) {
+      resolvedProductImages = productImages;
     }
 
     return {
@@ -169,8 +176,8 @@ export function useTemplates() {
       website: card.website || null,
       location: card.location || null,
       
-      // Product/portfolio images with sort order
-      product_images: (productImages || []).map((img, idx) => ({
+      // Product/portfolio images with sort order (from JSONB column)
+      product_images: resolvedProductImages.map((img, idx) => ({
         image_url: img.image_url,
         alt_text: img.alt_text || null,
         description: img.description || null,
@@ -199,7 +206,7 @@ export function useTemplates() {
     name: string,
     description?: string,
     thumbnailUrl?: string,
-    productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>,
+    productImages?: CardProductImage[],
     cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>,
     visibility: TemplateVisibility = 'global'
   ): Promise<boolean> => {
@@ -237,7 +244,7 @@ export function useTemplates() {
     card: Record<string, any>,
     name: string,
     description?: string,
-    productImages?: Array<{ image_url: string; alt_text?: string | null; description?: string | null }>,
+    productImages?: CardProductImage[],
     cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>,
     visibility: TemplateVisibility = 'private'
   ): Promise<boolean> => {
