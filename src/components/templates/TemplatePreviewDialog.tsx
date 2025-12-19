@@ -65,7 +65,7 @@ export function TemplatePreviewDialog({
     published_at: null,
     is_template: false,
     social_links: layoutData.social_links || null,
-    product_images: layoutData.product_images || [],
+    product_images: (layoutData.product_images || []) as unknown as import("@/integrations/supabase/types").Json,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
