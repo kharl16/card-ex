@@ -42,13 +42,11 @@ export default function CarouselSectionRenderer({
   const cta = section?.cta ?? { enabled: false, label: "", action: "link" as const, placement: "below" as const, style: { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const } };
   const title = section?.title ?? carouselKey.charAt(0).toUpperCase() + carouselKey.slice(1);
 
-  // Don't render if no images or explicitly disabled
-  const isEnabled = settings.enabled !== false; // Default to true if undefined
-  if (!isEnabled || images.length === 0) {
-    return null;
-  }
+  // Check if should render
+  const isEnabled = settings.enabled !== false;
+  const shouldRender = isEnabled && images.length > 0;
 
-  // Handle CTA actions
+  // Handle CTA actions - must be defined before any early return
   const handleCTAClick = useCallback(() => {
     if (!isInteractive) return;
 
@@ -88,6 +86,11 @@ export default function CarouselSectionRenderer({
         break;
     }
   }, [cta, contactInfo, isInteractive]);
+
+  // Don't render if no images or explicitly disabled - AFTER all hooks
+  if (!shouldRender) {
+    return null;
+  }
 
   // Convert images to CardExCarousel format
   const carouselItems = images
