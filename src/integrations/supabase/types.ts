@@ -274,6 +274,7 @@ export type Database = {
           bio: string | null
           card_type: string | null
           carousel_enabled: boolean
+          carousel_settings: Json | null
           company: string | null
           cover_url: string | null
           created_at: string
@@ -319,6 +320,7 @@ export type Database = {
           bio?: string | null
           card_type?: string | null
           carousel_enabled?: boolean
+          carousel_settings?: Json | null
           company?: string | null
           cover_url?: string | null
           created_at?: string
@@ -364,6 +366,7 @@ export type Database = {
           bio?: string | null
           card_type?: string | null
           carousel_enabled?: boolean
+          carousel_settings?: Json | null
           company?: string | null
           cover_url?: string | null
           created_at?: string
