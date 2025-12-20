@@ -35,18 +35,24 @@ export default function CarouselSectionRenderer({
 }: CarouselSectionRendererProps) {
   const [modalOpen, setModalOpen] = React.useState(false);
 
-  // Don't render if no images or disabled
-  if (!section.settings.enabled || section.images.length === 0) {
+  // Safe access with defaults - handle missing/incomplete data gracefully
+  const images = section?.images ?? [];
+  const settings = section?.settings ?? { enabled: true, autoPlayMs: 4000, direction: "ltr" as const, maxImages: 50 };
+  const background = section?.background ?? { enabled: false, type: "transparent" as const };
+  const cta = section?.cta ?? { enabled: false, label: "", action: "link" as const, placement: "below" as const, style: { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const } };
+  const title = section?.title ?? carouselKey.charAt(0).toUpperCase() + carouselKey.slice(1);
+
+  // Don't render if no images or explicitly disabled
+  const isEnabled = settings.enabled !== false; // Default to true if undefined
+  if (!isEnabled || images.length === 0) {
     return null;
   }
-
-  const { cta, background, settings, images, title } = section;
 
   // Handle CTA actions
   const handleCTAClick = useCallback(() => {
     if (!isInteractive) return;
 
-    switch (cta.action) {
+    switch (cta?.action) {
       case "link":
         if (cta.href) {
           window.open(cta.href, cta.target || "_blank");
@@ -86,7 +92,7 @@ export default function CarouselSectionRenderer({
   // Convert images to CardExCarousel format
   const carouselItems = images
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-    .slice(0, settings.maxImages)
+    .slice(0, settings.maxImages ?? 50)
     .map((img, idx) => ({
       id: `${carouselKey}-${idx}`,
       url: img.url,
@@ -95,14 +101,15 @@ export default function CarouselSectionRenderer({
 
   // Background styles
   const backgroundStyle = getCarouselBackgroundCSS(background);
-  const hasBackground = background.enabled && background.type !== "transparent";
+  const hasBackground = background?.enabled && background?.type !== "transparent";
 
-  // CTA button classes
-  const ctaClasses = getCTAButtonClasses(cta.style);
-  const showCTA = cta.enabled && images.length > 0;
+  // CTA button classes - with safe defaults
+  const ctaStyle = cta?.style ?? { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const };
+  const ctaClasses = getCTAButtonClasses(ctaStyle);
+  const showCTA = cta?.enabled && images.length > 0;
 
   // CTA variant mapping
-  const buttonVariant = cta.style.variant === "solid" ? "default" : cta.style.variant;
+  const buttonVariant = ctaStyle.variant === "solid" ? "default" : ctaStyle.variant;
 
   return (
     <section
@@ -112,18 +119,18 @@ export default function CarouselSectionRenderer({
       {/* Header with title and optional CTA */}
       <div className="flex items-center justify-between px-4 mb-2">
         <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        {showCTA && cta.placement === "header_right" && (
+        {showCTA && cta?.placement === "header_right" && (
           <Button
             variant={buttonVariant}
             className={ctaClasses}
             onClick={handleCTAClick}
             style={{
-              backgroundColor: cta.style.background,
-              color: cta.style.text,
-              borderColor: cta.style.border,
+              backgroundColor: ctaStyle.background,
+              color: ctaStyle.text,
+              borderColor: ctaStyle.border,
             }}
           >
-            {cta.label}
+            {cta?.label || "Click"}
           </Button>
         )}
       </div>
@@ -146,38 +153,38 @@ export default function CarouselSectionRenderer({
         />
 
         {/* Overlay CTA */}
-        {showCTA && cta.placement === "overlay_bottom" && (
+        {showCTA && cta?.placement === "overlay_bottom" && (
           <div className="absolute bottom-4 right-4 z-10">
             <Button
               variant={buttonVariant}
               className={cn(ctaClasses, "backdrop-blur-sm bg-opacity-90")}
               onClick={handleCTAClick}
               style={{
-                backgroundColor: cta.style.background,
-                color: cta.style.text,
-                borderColor: cta.style.border,
+                backgroundColor: ctaStyle.background,
+                color: ctaStyle.text,
+                borderColor: ctaStyle.border,
               }}
             >
-              {cta.label}
+              {cta?.label || "Click"}
             </Button>
           </div>
         )}
       </div>
 
       {/* Below CTA */}
-      {showCTA && cta.placement === "below" && (
+      {showCTA && cta?.placement === "below" && (
         <div className="flex justify-center mt-4 px-4">
           <Button
             variant={buttonVariant}
             className={ctaClasses}
             onClick={handleCTAClick}
             style={{
-              backgroundColor: cta.style.background,
-              color: cta.style.text,
-              borderColor: cta.style.border,
+              backgroundColor: ctaStyle.background,
+              color: ctaStyle.text,
+              borderColor: ctaStyle.border,
             }}
           >
-            {cta.label}
+            {cta?.label || "Click"}
           </Button>
         </div>
       )}
@@ -186,10 +193,10 @@ export default function CarouselSectionRenderer({
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{cta.label}</DialogTitle>
+            <DialogTitle>{cta?.label || "Details"}</DialogTitle>
           </DialogHeader>
           <div className="prose dark:prose-invert max-w-none">
-            {cta.modal_content}
+            {cta?.modal_content}
           </div>
         </DialogContent>
       </Dialog>

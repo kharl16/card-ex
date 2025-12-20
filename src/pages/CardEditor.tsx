@@ -270,6 +270,7 @@ export default function CardEditor() {
         theme: card.theme,
         slug: card.slug,
         custom_slug: card.custom_slug,
+        carousel_settings: (card as any).carousel_settings,
       })
       .eq("id", card.id);
 

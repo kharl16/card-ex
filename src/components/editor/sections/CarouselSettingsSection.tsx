@@ -9,11 +9,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick } from "lucide-react";
+import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload } from "lucide-react";
 import {
   type CarouselKey,
   type CarouselSection,
   type CarouselSettingsData,
+  type CarouselImage,
   type CTAAction,
   type CTAPlacement,
   type CTAContactMethod,
@@ -25,6 +26,7 @@ import {
   type CarouselGradientDirection,
   mergeCarouselSettings,
 } from "@/lib/carouselTypes";
+import CarouselImageUploader from "@/components/carousel/CarouselImageUploader";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
@@ -94,6 +96,16 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
         style: { ...current.cta.style, ...updates },
       },
     });
+  };
+
+  const updateImages = (key: CarouselKey, images: CarouselImage[]) => {
+    updateCarouselSection(key, { images });
+  };
+
+  const MAX_IMAGES: Record<CarouselKey, number> = {
+    products: 50,
+    packages: 50,
+    testimonies: 200,
   };
 
   return (
@@ -550,13 +562,28 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
               </CardContent>
             </Card>
 
-            {/* Info about image upload */}
-            <div className="p-3 bg-muted/50 rounded-lg">
-              <p className="text-sm text-muted-foreground">
-                💡 <strong>Tip:</strong> Upload images for this carousel in the "Product Images" section.
-                Images will only appear when the carousel is enabled and has at least one image.
-              </p>
-            </div>
+            {/* Image Upload Section */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Images
+                </CardTitle>
+                <CardDescription>
+                  Upload and manage images for this carousel. Drag to reorder.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CarouselImageUploader
+                  carouselKey={key}
+                  cardId={card.id}
+                  ownerId={card.user_id}
+                  images={carouselSettings[key].images || []}
+                  maxImages={MAX_IMAGES[key]}
+                  onImagesChange={(images) => updateImages(key, images)}
+                />
+              </CardContent>
+            </Card>
           </TabsContent>
         ))}
       </Tabs>
