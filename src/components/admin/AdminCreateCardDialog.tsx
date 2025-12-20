@@ -125,6 +125,8 @@ export function AdminCreateCardDialog({
           social_links: layoutData?.social_links || null,
           // Product images from template (JSONB column)
           product_images: productImagesArray,
+          // Carousel settings from template (products, packages, testimonies)
+          carousel_settings: layoutData?.carousel_settings || null,
         })
         .select()
         .single();
