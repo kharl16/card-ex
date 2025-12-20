@@ -17,10 +17,12 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import CardExCarousel from "@/components/CardExCarousel";
+import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRenderer";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
+import { mergeCarouselSettings, type CarouselSettingsData } from "@/lib/carouselTypes";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
@@ -238,24 +240,39 @@ export default function CardView({
           {card.bio && <p className="mt-3 text-sm text-muted-foreground transition-colors duration-500">{card.bio}</p>}
         </div>
 
-        {/* Product Carousel */}
-        {card.carousel_enabled !== false && productImages.length > 0 && (
-          <div className="my-4 transition-opacity duration-500">
-            <CardExCarousel
-              items={productImages.map((img) => ({
-                id: img.id,
-                url: img.image_url,
-                alt: img.alt_text || undefined,
-                description: img.description || undefined,
-              }))}
-              mode={theme?.carouselMode || "roulette"}
-              autoPlayMs={theme?.carouselAutoPlay === false ? null : (theme?.carouselSpeedMs || theme?.carouselSpeed || 4000)}
-              depth={theme?.carouselDepth || "medium"}
-              spotlightEnabled={theme?.carouselSpotlight ?? true}
-              showLightbox={true}
-            />
-          </div>
-        )}
+        {/* Three Carousel Sections */}
+        {(() => {
+          const carouselSettings = mergeCarouselSettings(
+            (card as any).carousel_settings as Partial<CarouselSettingsData> | null
+          );
+          const contactInfo = { phone: card.phone, email: card.email, website: card.website };
+          
+          return (
+            <>
+              <CarouselSectionRenderer
+                carouselKey="products"
+                section={carouselSettings.products}
+                contactInfo={contactInfo}
+                isInteractive={isInteractive}
+                className="my-4"
+              />
+              <CarouselSectionRenderer
+                carouselKey="packages"
+                section={carouselSettings.packages}
+                contactInfo={contactInfo}
+                isInteractive={isInteractive}
+                className="my-4"
+              />
+              <CarouselSectionRenderer
+                carouselKey="testimonies"
+                section={carouselSettings.testimonies}
+                contactInfo={contactInfo}
+                isInteractive={isInteractive}
+                className="my-4"
+              />
+            </>
+          );
+        })()}
 
         {/* Social Media Links */}
         {resolvedSocialLinks.length > 0 && (

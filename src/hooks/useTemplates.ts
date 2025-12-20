@@ -63,6 +63,9 @@ export interface LayoutData {
     url: string;
   }> | null;
   
+  // Carousel settings (three carousel sections)
+  carousel_settings?: Record<string, any> | null;
+  
   // Source card reference (for tracking where template came from)
   source_card_id?: string | null;
   
@@ -195,6 +198,9 @@ export function useTemplates() {
       
       // Social links from card's JSONB field
       social_links: card.social_links || null,
+      
+      // Carousel settings (products, packages, testimonies)
+      carousel_settings: card.carousel_settings || null,
       
       // Track source card for reference
       source_card_id: card.id || null,

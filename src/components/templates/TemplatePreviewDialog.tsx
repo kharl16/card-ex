@@ -45,6 +45,7 @@ export function TemplatePreviewDialog({
     cover_url: layoutData.cover_url || null,
     logo_url: layoutData.logo_url || null,
     carousel_enabled: layoutData.carousel_enabled ?? true,
+    carousel_settings: (layoutData as any).carousel_settings || {},
     theme: layoutData.theme || null,
     is_published: false,
     is_paid: false,
