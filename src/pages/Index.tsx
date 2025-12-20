@@ -52,7 +52,7 @@ const Index = () => {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" onClick={() => navigate("/auth")} className="gap-2">
-              Create Your Card
+              ​Welcome!  
             </Button>
             <Button size="lg" variant="outline" onClick={() => navigate("/c/demo")}>
               View Demo
