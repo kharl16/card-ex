@@ -99,7 +99,13 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
   };
 
   const updateImages = (key: CarouselKey, images: CarouselImage[]) => {
-    updateCarouselSection(key, { images });
+    // Save images to the new dedicated columns
+    const columnMap: Record<CarouselKey, string> = {
+      products: "product_images",
+      packages: "package_images",
+      testimonies: "testimony_images",
+    };
+    onCardChange({ [columnMap[key]]: images } as any);
   };
 
   const MAX_IMAGES: Record<CarouselKey, number> = {
@@ -188,6 +194,22 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                       onChange={(e) => updateSettings(key, { autoPlayMs: parseInt(e.target.value) || 4000 })}
                     />
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Image Size</Label>
+                  <Select
+                    value={carouselSettings[key].settings.imageSize || "md"}
+                    onValueChange={(v) => updateSettings(key, { imageSize: v as "sm" | "md" | "lg" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sm">Small</SelectItem>
+                      <SelectItem value="md">Medium</SelectItem>
+                      <SelectItem value="lg">Large</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -578,7 +600,15 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                   carouselKey={key}
                   cardId={card.id}
                   ownerId={card.user_id}
-                  images={carouselSettings[key].images || []}
+                  images={(() => {
+                    // Read images from the new dedicated columns
+                    const columnMap: Record<CarouselKey, string> = {
+                      products: "product_images",
+                      packages: "package_images",
+                      testimonies: "testimony_images",
+                    };
+                    return ((card as any)[columnMap[key]] || []) as CarouselImage[];
+                  })()}
                   maxImages={MAX_IMAGES[key]}
                   onImagesChange={(images) => updateImages(key, images)}
                 />
