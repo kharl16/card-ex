@@ -271,6 +271,9 @@ export default function CardEditor() {
         slug: card.slug,
         custom_slug: card.custom_slug,
         carousel_settings: (card as any).carousel_settings,
+        product_images: (card as any).product_images,
+        package_images: (card as any).package_images,
+        testimony_images: (card as any).testimony_images,
       })
       .eq("id", card.id);
 

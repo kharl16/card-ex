@@ -292,6 +292,7 @@ export type Database = {
           middle_name: string | null
           organization_id: string | null
           owner_name: string | null
+          package_images: Json
           paid_at: string | null
           paid_overridden_by_admin: boolean
           phone: string | null
@@ -305,6 +306,7 @@ export type Database = {
           slug: string
           social_links: Json | null
           suffix: string | null
+          testimony_images: Json
           theme: Json | null
           title: string | null
           unique_views: number | null
@@ -338,6 +340,7 @@ export type Database = {
           middle_name?: string | null
           organization_id?: string | null
           owner_name?: string | null
+          package_images?: Json
           paid_at?: string | null
           paid_overridden_by_admin?: boolean
           phone?: string | null
@@ -351,6 +354,7 @@ export type Database = {
           slug: string
           social_links?: Json | null
           suffix?: string | null
+          testimony_images?: Json
           theme?: Json | null
           title?: string | null
           unique_views?: number | null
@@ -384,6 +388,7 @@ export type Database = {
           middle_name?: string | null
           organization_id?: string | null
           owner_name?: string | null
+          package_images?: Json
           paid_at?: string | null
           paid_overridden_by_admin?: boolean
           phone?: string | null
@@ -397,6 +402,7 @@ export type Database = {
           slug?: string
           social_links?: Json | null
           suffix?: string | null
+          testimony_images?: Json
           theme?: Json | null
           title?: string | null
           unique_views?: number | null

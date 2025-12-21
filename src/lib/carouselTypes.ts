@@ -50,11 +50,14 @@ export interface CarouselCTA {
   style: CTAStyle;
 }
 
+export type ImageSize = "sm" | "md" | "lg";
+
 export interface CarouselSettings {
   enabled: boolean;
   autoPlayMs: number;
   direction: "ltr" | "rtl";
   maxImages: number;
+  imageSize?: ImageSize;
 }
 
 export interface CarouselImage {
@@ -127,6 +130,7 @@ export function createDefaultCarouselSection(key: CarouselKey): CarouselSection 
       autoPlayMs: 4000,
       direction,
       maxImages,
+      imageSize: "md" as ImageSize,
     },
     cta: {
       enabled: false,

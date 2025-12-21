@@ -1,10 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
+export type CarouselDirection = "rtl" | "ltr";
+
 export interface UseRouletteCarouselOptions {
   count: number;
   autoPlayMs?: number | null;
   visibleSlides?: number;
   prefersReducedMotion?: boolean;
+  /** Direction of carousel scroll: "rtl" (right-to-left) or "ltr" (left-to-right) */
+  direction?: CarouselDirection;
 }
 
 export interface UseRouletteCarouselResult {
@@ -30,6 +34,7 @@ export function useRouletteCarousel({
   autoPlayMs = 4000,
   visibleSlides = 5,
   prefersReducedMotion = false,
+  direction = "rtl",
 }: UseRouletteCarouselOptions): UseRouletteCarouselResult {
   // Position in "slides" (can be fractional), always kept in [0, count)
   const [position, setPosition] = useState(0);
@@ -56,13 +61,18 @@ export function useRouletteCarousel({
     [count]
   );
 
+  // Direction multiplier: RTL = positive (move forward), LTR = negative (move backward)
+  const directionMultiplier = direction === "rtl" ? 1 : -1;
+
   // Animation: continuous movement using requestAnimationFrame
   useEffect(() => {
     if (count === 0) return;
     if (prefersReducedMotion && autoPlayMs === null) return;
 
-    // Base speed from autoPlayMs (slides per ms)
-    const baseSpeedSlidesPerMs = autoPlayMs && !prefersReducedMotion ? 1 / autoPlayMs : 0;
+    // Base speed from autoPlayMs (slides per ms), apply direction
+    const baseSpeedSlidesPerMs = autoPlayMs && !prefersReducedMotion 
+      ? (1 / autoPlayMs) * directionMultiplier 
+      : 0;
     let lastTime = performance.now();
     let frameId: number;
 
@@ -105,7 +115,7 @@ export function useRouletteCarousel({
 
     frameId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frameId);
-  }, [count, autoPlayMs, prefersReducedMotion]);
+  }, [count, autoPlayMs, prefersReducedMotion, direction, directionMultiplier]);
 
   // Touch handlers with momentum
   const handleTouchStart = useCallback((e: React.TouchEvent) => {

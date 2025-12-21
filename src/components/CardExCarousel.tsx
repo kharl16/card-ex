@@ -43,6 +43,8 @@ export interface CardExCarouselEvent {
 
 export type CarouselDepth = "soft" | "medium" | "strong";
 
+export type CarouselDirection = "rtl" | "ltr";
+
 export interface CardExCarouselProps {
   items: CardExCarouselItem[];
   mode?: CardExCarouselMode;
@@ -53,6 +55,10 @@ export interface CardExCarouselProps {
   onEvent?: (event: CardExCarouselEvent) => void;
   depth?: CarouselDepth;
   spotlightEnabled?: boolean;
+  /** Direction of carousel scroll: "rtl" (right-to-left) or "ltr" (left-to-right) */
+  direction?: CarouselDirection;
+  /** Image size: "sm" | "md" | "lg" */
+  imageSize?: "sm" | "md" | "lg";
 }
 
 // Check for reduced motion preference
@@ -77,7 +83,16 @@ interface RouletteModeProps {
   onEvent?: (event: CardExCarouselEvent) => void;
   depth: CarouselDepth;
   spotlightEnabled: boolean;
+  direction: CarouselDirection;
+  imageSize: "sm" | "md" | "lg";
 }
+
+// Image size configurations
+const imageSizeConfig = {
+  sm: { height: "h-[140px] sm:h-[160px]" },
+  md: { height: "h-[200px] sm:h-[220px]" },
+  lg: { height: "h-[260px] sm:h-[300px]" },
+};
 
 function RouletteMode({
   items,
@@ -87,6 +102,8 @@ function RouletteMode({
   onEvent,
   depth,
   spotlightEnabled,
+  direction,
+  imageSize,
 }: RouletteModeProps) {
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
@@ -107,7 +124,10 @@ function RouletteMode({
     autoPlayMs: reducedMotion ? null : autoPlayMs,
     visibleSlides,
     prefersReducedMotion: reducedMotion,
+    direction,
   });
+
+  const sizeClasses = imageSizeConfig[imageSize] || imageSizeConfig.md;
 
   const lightboxImages: LightboxImage[] = useMemo(
     () => items.map((item) => ({ url: item.url, alt: item.alt })),
@@ -160,7 +180,10 @@ function RouletteMode({
       >
         <div className="flex w-full justify-center">
           <div
-            className="relative h-[200px] sm:h-[220px] w-full overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-background via-background to-muted shadow-xl"
+            className={cn(
+              "relative w-full overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-background via-background to-muted shadow-xl",
+              sizeClasses.height
+            )}
             style={{ perspective: "1200px" }}
             {...bindTouchHandlers}
           >
@@ -456,6 +479,8 @@ export default function CardExCarousel({
   onEvent,
   depth = "medium",
   spotlightEnabled = true,
+  direction = "rtl",
+  imageSize = "md",
 }: CardExCarouselProps) {
   const safeItems = (items || []).slice(0, 20);
   const count = safeItems.length;
@@ -492,6 +517,8 @@ export default function CardExCarousel({
           onEvent={onEvent}
           depth={depth}
           spotlightEnabled={spotlightEnabled}
+          direction={direction}
+          imageSize={imageSize}
         />
       )}
       {mode === "ring3d" && (

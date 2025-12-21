@@ -7,6 +7,7 @@ import {
   type CarouselSection,
   type CarouselKey,
   type CTAContactMethod,
+  type CarouselImage,
   getCarouselBackgroundCSS,
   getCTAButtonClasses,
 } from "@/lib/carouselTypes";
@@ -21,6 +22,8 @@ interface ContactInfo {
 interface CarouselSectionRendererProps {
   carouselKey: CarouselKey;
   section: CarouselSection;
+  /** Images array - now passed directly from the card's image columns */
+  images?: CarouselImage[];
   contactInfo?: ContactInfo;
   isInteractive?: boolean;
   className?: string;
@@ -29,6 +32,7 @@ interface CarouselSectionRendererProps {
 export default function CarouselSectionRenderer({
   carouselKey,
   section,
+  images: imagesProp,
   contactInfo = {},
   isInteractive = true,
   className,
@@ -36,11 +40,17 @@ export default function CarouselSectionRenderer({
   const [modalOpen, setModalOpen] = React.useState(false);
 
   // Safe access with defaults - handle missing/incomplete data gracefully
-  const images = section?.images ?? [];
-  const settings = section?.settings ?? { enabled: true, autoPlayMs: 4000, direction: "ltr" as const, maxImages: 50 };
+  // Use imagesProp if provided, otherwise fall back to section.images
+  const images = imagesProp ?? section?.images ?? [];
+  const settings = section?.settings ?? { enabled: true, autoPlayMs: 4000, direction: "ltr" as const, maxImages: 50, imageSize: "md" as const };
   const background = section?.background ?? { enabled: false, type: "transparent" as const };
   const cta = section?.cta ?? { enabled: false, label: "", action: "link" as const, placement: "below" as const, style: { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const } };
   const title = section?.title ?? carouselKey.charAt(0).toUpperCase() + carouselKey.slice(1);
+
+  // Direction defaults by carousel key
+  const defaultDirection = carouselKey === "packages" ? "ltr" : "rtl";
+  const direction = settings.direction ?? defaultDirection;
+  const imageSize = settings.imageSize ?? "md";
 
   // Check if should render
   const isEnabled = settings.enabled !== false;
@@ -153,6 +163,8 @@ export default function CarouselSectionRenderer({
           showLightbox={true}
           depth="medium"
           spotlightEnabled={true}
+          direction={direction}
+          imageSize={imageSize}
         />
 
         {/* Overlay CTA */}

@@ -139,8 +139,8 @@ export default function CarouselImageUploader({
         toast.error(`${file.name} is not an image`);
         continue;
       }
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} exceeds 5MB limit`);
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} exceeds 10MB limit`);
         continue;
       }
 
@@ -288,7 +288,7 @@ export default function CarouselImageUploader({
           className="file:mr-4 file:px-3 file:py-1 file:rounded-md file:bg-primary file:text-primary-foreground file:font-medium file:border-0 file:cursor-pointer hover:file:opacity-90"
         />
         <p className="text-xs text-muted-foreground">
-          Max 5MB per image. {maxImages - images.length} slots remaining.
+          Max 10MB per image. {maxImages - images.length} slots remaining.
         </p>
       </div>
 

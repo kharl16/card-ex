@@ -247,11 +247,17 @@ export default function CardView({
           );
           const contactInfo = { phone: card.phone, email: card.email, website: card.website };
           
+          // Extract images from the new dedicated columns
+          const productImagesData = ((card as any).product_images || []) as { url: string; alt?: string; order?: number }[];
+          const packageImagesData = ((card as any).package_images || []) as { url: string; alt?: string; order?: number }[];
+          const testimonyImagesData = ((card as any).testimony_images || []) as { url: string; alt?: string; order?: number }[];
+          
           return (
             <>
               <CarouselSectionRenderer
                 carouselKey="products"
                 section={carouselSettings.products}
+                images={productImagesData}
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
                 className="my-4"
@@ -259,6 +265,7 @@ export default function CardView({
               <CarouselSectionRenderer
                 carouselKey="packages"
                 section={carouselSettings.packages}
+                images={packageImagesData}
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
                 className="my-4"
@@ -266,6 +273,7 @@ export default function CardView({
               <CarouselSectionRenderer
                 carouselKey="testimonies"
                 section={carouselSettings.testimonies}
+                images={testimonyImagesData}
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
                 className="my-4"

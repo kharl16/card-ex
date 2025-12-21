@@ -66,7 +66,9 @@ export function TemplatePreviewDialog({
     published_at: null,
     is_template: false,
     social_links: layoutData.social_links || null,
-    product_images: (layoutData.product_images || []) as unknown as import("@/integrations/supabase/types").Json,
+    product_images: ((layoutData as any).product_images || []) as unknown as import("@/integrations/supabase/types").Json,
+    package_images: ((layoutData as any).package_images || []) as unknown as import("@/integrations/supabase/types").Json,
+    testimony_images: ((layoutData as any).testimony_images || []) as unknown as import("@/integrations/supabase/types").Json,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
