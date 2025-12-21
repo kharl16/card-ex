@@ -48,9 +48,9 @@ export default function ProductImageUploader({
         toast.error(`${file.name} is not an image file`);
         return;
       }
-      // Validate file size (5MB max)
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error(`${file.name} is larger than 5MB`);
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 10MB. Max file size is 10MB.`);
         return;
       }
 
@@ -177,7 +177,7 @@ export default function ProductImageUploader({
             multiple
             className="flex items-center file:mr-4 file:px-3 file:py-0 file:rounded-md file:bg-[hsl(var(--gold))] file:text-[hsl(var(--primary-foreground))] file:font-medium file:border-0 file:cursor-pointer hover:file:bg-[hsl(var(--gold-hover))] disabled:opacity-50"
           />
-          <p className="text-xs text-muted-foreground">Select multiple images to upload at once. Max 5MB per image.</p>
+          <p className="text-xs text-muted-foreground">Select multiple images to upload at once. Max 10MB per image.</p>
         </div>
 
         {pendingImages.length > 0 && (

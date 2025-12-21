@@ -260,7 +260,7 @@ export default function CardView({
                 images={productImagesData}
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
-                className="my-4"
+                className="mt-2 mb-3"
               />
               <CarouselSectionRenderer
                 carouselKey="packages"
@@ -268,7 +268,7 @@ export default function CardView({
                 images={packageImagesData}
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
-                className="my-4"
+                className="my-3"
               />
               <CarouselSectionRenderer
                 carouselKey="testimonies"
@@ -276,7 +276,7 @@ export default function CardView({
                 images={testimonyImagesData}
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
-                className="my-4"
+                className="my-3"
               />
             </>
           );

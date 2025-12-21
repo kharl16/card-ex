@@ -127,7 +127,7 @@ export default function CarouselSectionRenderer({
   return (
     <section
       id={`carousel-${carouselKey}`}
-      className={cn("relative w-full", className)}
+      className={cn("relative w-full py-2", className)}
     >
       {/* Header with title and optional CTA */}
       <div className="flex items-center justify-between px-4 mb-2">
@@ -151,7 +151,7 @@ export default function CarouselSectionRenderer({
       {/* Carousel container with background */}
       <div
         className={cn(
-          "relative w-full py-4",
+          "relative w-full py-3",
           hasBackground && "rounded-xl"
         )}
         style={backgroundStyle}
