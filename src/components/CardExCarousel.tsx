@@ -68,10 +68,11 @@ const prefersReducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Depth configuration for 3D effects
+// Depth configuration - scales are reduced to prevent overlap
 const depthConfig: Record<CarouselDepth, { scale: number; translateZ: number; rotateY: number }> = {
-  soft: { scale: 1.2, translateZ: 50, rotateY: 10 },
-  medium: { scale: 1.4, translateZ: 70, rotateY: 14 },
-  strong: { scale: 1.6, translateZ: 90, rotateY: 18 },
+  soft: { scale: 1.05, translateZ: 30, rotateY: 8 },
+  medium: { scale: 1.1, translateZ: 40, rotateY: 10 },
+  strong: { scale: 1.15, translateZ: 50, rotateY: 12 },
 };
 
 // ============== ROULETTE MODE ==============
@@ -197,24 +198,27 @@ function RouletteMode({
                 const isActive = cyclicDistance(logicalIndex, Math.round(logicalCenter)) === 0;
                 const slideClass = getSlideActiveClass(logicalIndex, Math.round(logicalCenter), count, spotlightEnabled);
 
-                return (
-                  <div
-                    key={`${img.id}-${i}`}
-                    className={cn(
-                      "relative h-full flex-shrink-0 transform-gpu px-2 sm:px-3",
-                      slideClass
-                    )}
-                    style={{
-                      width: `${slideWidthPercent}%`,
-                      transformStyle: "preserve-3d",
-                      transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
-                      opacity,
-                      transition: reducedMotion ? "none" : "transform 220ms linear, opacity 220ms linear, filter 250ms ease",
-                    }}
-                    role="group"
-                    aria-roledescription="slide"
-                    aria-label={`Slide ${logicalIndex + 1} of ${count}`}
-                  >
+                  // Clamp scale to prevent overlap - max 1.15 for center item
+                  const clampedScale = Math.min(scale, 1.15);
+
+                  return (
+                    <div
+                      key={`${img.id}-${i}`}
+                      className={cn(
+                        "relative h-full flex-shrink-0 transform-gpu px-3 sm:px-4",
+                        slideClass
+                      )}
+                      style={{
+                        width: `${slideWidthPercent}%`,
+                        transformStyle: "preserve-3d",
+                        transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${clampedScale})`,
+                        opacity,
+                        transition: reducedMotion ? "none" : "transform 220ms linear, opacity 220ms linear, filter 250ms ease",
+                      }}
+                      role="group"
+                      aria-roledescription="slide"
+                      aria-label={`Slide ${logicalIndex + 1} of ${count}`}
+                    >
                     <button
                       type="button"
                       className="h-full w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
