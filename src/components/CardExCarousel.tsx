@@ -182,7 +182,7 @@ function RouletteMode({
         <div className="flex w-full justify-center">
           <div
             className={cn(
-              "relative w-full overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-background via-background to-muted shadow-xl",
+              "relative w-full overflow-hidden rounded-2xl border border-primary/30 shadow-xl",
               sizeClasses.height
             )}
             style={{ perspective: "1200px" }}
