@@ -112,7 +112,7 @@ export default function CarouselSectionRenderer({
       alt: img.alt,
     }));
 
-  // Background styles
+  // Background styles - always generate CSS if enabled, regardless of type
   const backgroundStyle = getCarouselBackgroundCSS(background);
   const hasBackground = background?.enabled && background?.type !== "transparent";
 
@@ -151,10 +151,10 @@ export default function CarouselSectionRenderer({
       {/* Carousel container with background */}
       <div
         className={cn(
-          "relative w-full py-3",
-          hasBackground && "rounded-xl"
+          "relative w-full py-3 rounded-xl",
+          hasBackground && "shadow-inner"
         )}
-        style={backgroundStyle}
+        style={hasBackground ? backgroundStyle : undefined}
       >
         <CardExCarousel
           items={carouselItems}
