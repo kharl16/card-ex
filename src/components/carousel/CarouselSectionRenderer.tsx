@@ -112,9 +112,10 @@ export default function CarouselSectionRenderer({
       alt: img.alt,
     }));
 
-  // Background styles - always generate CSS if enabled, regardless of type
+  // Background styles - generate CSS including padding and border
   const backgroundStyle = getCarouselBackgroundCSS(background);
   const hasBackground = background?.enabled && background?.type !== "transparent";
+  const hasAnyBackgroundStyling = background?.enabled || (background?.innerPadding && background.innerPadding > 0) || (background?.borderWidth && background.borderWidth > 0);
 
   // CTA button classes - with safe defaults
   const ctaStyle = cta?.style ?? { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const };
@@ -154,7 +155,7 @@ export default function CarouselSectionRenderer({
           "relative w-full py-3 rounded-xl overflow-hidden",
           hasBackground && "shadow-inner"
         )}
-        style={hasBackground ? backgroundStyle : undefined}
+        style={hasAnyBackgroundStyling ? backgroundStyle : undefined}
       >
         <CardExCarousel
           items={carouselItems}
