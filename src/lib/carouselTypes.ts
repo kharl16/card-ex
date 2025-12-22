@@ -15,6 +15,9 @@ export interface CarouselBackground {
     direction: CarouselGradientDirection;
   };
   solid_color?: string;
+  innerPadding?: number; // pixels (0-32), default 8
+  borderWidth?: number;  // pixels (0-8), default 0
+  borderColor?: string;  // hex color for border
 }
 
 export type CTAAction = "link" | "scroll" | "contact" | "modal";
@@ -197,12 +200,26 @@ function mergeSection(
 
 // Get CSS for carousel background
 export function getCarouselBackgroundCSS(background: CarouselBackground): React.CSSProperties {
+  const styles: React.CSSProperties = {};
+  
+  // Add border if configured
+  if (background.borderWidth && background.borderWidth > 0) {
+    styles.borderWidth = `${background.borderWidth}px`;
+    styles.borderStyle = "solid";
+    styles.borderColor = background.borderColor || "hsl(var(--border))";
+  }
+  
+  // Add inner padding if configured
+  if (background.innerPadding && background.innerPadding > 0) {
+    styles.padding = `${background.innerPadding}px`;
+  }
+
   if (!background.enabled || background.type === "transparent") {
-    return {};
+    return styles;
   }
 
   if (background.type === "solid" && background.solid_color) {
-    return { backgroundColor: background.solid_color };
+    return { ...styles, backgroundColor: background.solid_color };
   }
 
   if (background.type === "gradient" && background.gradient) {
@@ -218,11 +235,12 @@ export function getCarouselBackgroundCSS(background: CarouselBackground): React.
       "to-bl": "to bottom left",
     };
     return {
+      ...styles,
       background: `linear-gradient(${directionMap[direction]}, ${from}, ${to})`,
     };
   }
 
-  return {};
+  return styles;
 }
 
 // Get Tailwind classes for CTA button

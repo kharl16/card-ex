@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload } from "lucide-react";
 import {
   type CarouselKey,
@@ -340,6 +341,59 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                               <SelectItem value="to-tr">Bottom-Left → Top-Right</SelectItem>
                             </SelectContent>
                           </Select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Inner Padding */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Inner Padding</Label>
+                        <span className="text-xs text-muted-foreground">
+                          {carouselSettings[key].background.innerPadding ?? 8}px
+                        </span>
+                      </div>
+                      <Slider
+                        value={[carouselSettings[key].background.innerPadding ?? 8]}
+                        onValueChange={([v]) => updateBackground(key, { innerPadding: v })}
+                        min={0}
+                        max={32}
+                        step={4}
+                      />
+                    </div>
+
+                    {/* Border Settings */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label>Border Width</Label>
+                        <span className="text-xs text-muted-foreground">
+                          {carouselSettings[key].background.borderWidth ?? 0}px
+                        </span>
+                      </div>
+                      <Slider
+                        value={[carouselSettings[key].background.borderWidth ?? 0]}
+                        onValueChange={([v]) => updateBackground(key, { borderWidth: v })}
+                        min={0}
+                        max={8}
+                        step={1}
+                      />
+                    </div>
+
+                    {(carouselSettings[key].background.borderWidth ?? 0) > 0 && (
+                      <div className="space-y-2">
+                        <Label>Border Color</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="color"
+                            value={carouselSettings[key].background.borderColor || "#ffffff"}
+                            onChange={(e) => updateBackground(key, { borderColor: e.target.value })}
+                            className="w-12 h-10 p-1"
+                          />
+                          <Input
+                            value={carouselSettings[key].background.borderColor || "#ffffff"}
+                            onChange={(e) => updateBackground(key, { borderColor: e.target.value })}
+                            placeholder="#ffffff"
+                          />
                         </div>
                       </div>
                     )}
