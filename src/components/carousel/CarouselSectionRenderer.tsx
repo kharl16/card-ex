@@ -151,7 +151,7 @@ export default function CarouselSectionRenderer({
       {/* Carousel container with background */}
       <div
         className={cn(
-          "relative w-full py-3 rounded-xl",
+          "relative w-full py-3 rounded-xl overflow-hidden",
           hasBackground && "shadow-inner"
         )}
         style={hasBackground ? backgroundStyle : undefined}
