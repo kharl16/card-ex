@@ -59,6 +59,8 @@ export interface CardExCarouselProps {
   direction?: CarouselDirection;
   /** Image size: "sm" | "md" | "lg" */
   imageSize?: "sm" | "md" | "lg";
+  /** Gap between images in pixels (0-32), default 12 */
+  imageGap?: number;
 }
 
 // Check for reduced motion preference
@@ -86,6 +88,7 @@ interface RouletteModeProps {
   spotlightEnabled: boolean;
   direction: CarouselDirection;
   imageSize: "sm" | "md" | "lg";
+  imageGap?: number;
 }
 
 // Image size configurations
@@ -105,6 +108,7 @@ function RouletteMode({
   spotlightEnabled,
   direction,
   imageSize,
+  imageGap = 12,
 }: RouletteModeProps) {
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
@@ -205,11 +209,13 @@ function RouletteMode({
                     <div
                       key={`${img.id}-${i}`}
                       className={cn(
-                        "relative h-full flex-shrink-0 transform-gpu px-3 sm:px-4",
+                        "relative h-full flex-shrink-0 transform-gpu",
                         slideClass
                       )}
                       style={{
                         width: `${slideWidthPercent}%`,
+                        paddingLeft: `${imageGap / 2}px`,
+                        paddingRight: `${imageGap / 2}px`,
                         transformStyle: "preserve-3d",
                         transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${clampedScale})`,
                         opacity,
@@ -485,6 +491,7 @@ export default function CardExCarousel({
   spotlightEnabled = true,
   direction = "rtl",
   imageSize = "md",
+  imageGap = 12,
 }: CardExCarouselProps) {
   const safeItems = (items || []).slice(0, 20);
   const count = safeItems.length;
@@ -523,6 +530,7 @@ export default function CardExCarousel({
           spotlightEnabled={spotlightEnabled}
           direction={direction}
           imageSize={imageSize}
+          imageGap={imageGap}
         />
       )}
       {mode === "ring3d" && (

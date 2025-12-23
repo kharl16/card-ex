@@ -212,6 +212,23 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Image Gap Slider */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label>Image Gap</Label>
+                    <span className="text-xs text-muted-foreground">
+                      {carouselSettings[key].settings.imageGap ?? 12}px
+                    </span>
+                  </div>
+                  <Slider
+                    value={[carouselSettings[key].settings.imageGap ?? 12]}
+                    onValueChange={([v]) => updateSettings(key, { imageGap: v })}
+                    min={0}
+                    max={32}
+                    step={4}
+                  />
+                </div>
               </CardContent>
             </Card>
 
