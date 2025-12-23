@@ -61,6 +61,7 @@ export interface CarouselSettings {
   direction: "ltr" | "rtl";
   maxImages: number;
   imageSize?: ImageSize;
+  imageGap?: number; // pixels (0-32), default 12
 }
 
 export interface CarouselImage {
