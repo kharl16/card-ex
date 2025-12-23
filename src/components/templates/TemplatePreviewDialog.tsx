@@ -69,6 +69,11 @@ export function TemplatePreviewDialog({
     product_images: ((layoutData as any).product_images || []) as unknown as import("@/integrations/supabase/types").Json,
     package_images: ((layoutData as any).package_images || []) as unknown as import("@/integrations/supabase/types").Json,
     testimony_images: ((layoutData as any).testimony_images || []) as unknown as import("@/integrations/supabase/types").Json,
+    // Referral fields (new columns)
+    owner_referral_code: null,
+    referred_by_code: null,
+    referred_by_name: null,
+    referred_by_user_id: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

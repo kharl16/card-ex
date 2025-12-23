@@ -292,6 +292,7 @@ export type Database = {
           middle_name: string | null
           organization_id: string | null
           owner_name: string | null
+          owner_referral_code: string | null
           package_images: Json
           paid_at: string | null
           paid_overridden_by_admin: boolean
@@ -302,6 +303,9 @@ export type Database = {
           public_url: string | null
           published_at: string | null
           qr_code_url: string | null
+          referred_by_code: string | null
+          referred_by_name: string | null
+          referred_by_user_id: string | null
           share_url: string | null
           slug: string
           social_links: Json | null
@@ -340,6 +344,7 @@ export type Database = {
           middle_name?: string | null
           organization_id?: string | null
           owner_name?: string | null
+          owner_referral_code?: string | null
           package_images?: Json
           paid_at?: string | null
           paid_overridden_by_admin?: boolean
@@ -350,6 +355,9 @@ export type Database = {
           public_url?: string | null
           published_at?: string | null
           qr_code_url?: string | null
+          referred_by_code?: string | null
+          referred_by_name?: string | null
+          referred_by_user_id?: string | null
           share_url?: string | null
           slug: string
           social_links?: Json | null
@@ -388,6 +396,7 @@ export type Database = {
           middle_name?: string | null
           organization_id?: string | null
           owner_name?: string | null
+          owner_referral_code?: string | null
           package_images?: Json
           paid_at?: string | null
           paid_overridden_by_admin?: boolean
@@ -398,6 +407,9 @@ export type Database = {
           public_url?: string | null
           published_at?: string | null
           qr_code_url?: string | null
+          referred_by_code?: string | null
+          referred_by_name?: string | null
+          referred_by_user_id?: string | null
           share_url?: string | null
           slug?: string
           social_links?: Json | null
@@ -669,6 +681,8 @@ export type Database = {
           phone: string | null
           phone_verified: boolean | null
           referral_code: string | null
+          referred_by_code: string | null
+          referred_by_name: string | null
           referred_by_user_id: string | null
           updated_at: string
         }
@@ -681,6 +695,8 @@ export type Database = {
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
+          referred_by_code?: string | null
+          referred_by_name?: string | null
           referred_by_user_id?: string | null
           updated_at?: string
         }
@@ -693,6 +709,8 @@ export type Database = {
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
+          referred_by_code?: string | null
+          referred_by_name?: string | null
           referred_by_user_id?: string | null
           updated_at?: string
         }
@@ -932,6 +950,10 @@ export type Database = {
         Returns: string
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      ensure_user_referral_code: {
+        Args: { p_user_id: string }
+        Returns: string
+      }
       generate_referral_code: { Args: never; Returns: string }
       get_referral_code_for_user: {
         Args: { p_user_id: string }

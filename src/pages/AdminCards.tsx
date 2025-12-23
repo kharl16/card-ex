@@ -221,14 +221,19 @@ function AdminCardRow({
       </TableCell>
       <TableCell>
         <div className="flex items-center gap-2">
-          {referralData?.has_referral_access ? (
+          {card.is_paid && card.is_published && (card as any).owner_referral_code ? (
             <div className="flex flex-col gap-0.5">
               <Badge variant="default" className="text-xs w-fit">
                 Active
               </Badge>
-              {referralData.referral_code && (
-                <span className="text-xs text-muted-foreground font-mono">{referralData.referral_code}</span>
-              )}
+              <span className="text-xs text-muted-foreground font-mono">{(card as any).owner_referral_code}</span>
+            </div>
+          ) : referralData?.has_referral_access && referralData.referral_code ? (
+            <div className="flex flex-col gap-0.5">
+              <Badge variant="secondary" className="text-xs w-fit">
+                Has Code
+              </Badge>
+              <span className="text-xs text-muted-foreground font-mono">{referralData.referral_code}</span>
             </div>
           ) : (
             <Badge variant="secondary" className="text-xs">
@@ -240,7 +245,7 @@ function AdminCardRow({
             size="icon"
             className="h-6 w-6"
             onClick={() => onGenerateReferralCode(card.user_id)}
-            title={referralData?.referral_code ? "Regenerate code" : "Generate code"}
+            title={referralData?.referral_code ? "Copy code" : "Generate code"}
           >
             <RefreshCw className="h-3 w-3" />
           </Button>
@@ -427,22 +432,37 @@ export default function AdminCards() {
   };
 
   const handleGenerateReferralCode = async (userId: string) => {
-    const newCode = generateReferralCode();
+    // Check if user already has a referral code
+    const existingData = userReferrals[userId];
+    
+    if (existingData?.referral_code) {
+      // Code exists - copy to clipboard instead of regenerating
+      await navigator.clipboard.writeText(existingData.referral_code);
+      toast.success("Referral code copied to clipboard");
+      return;
+    }
 
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        referral_code: newCode,
-        has_referral_access: true,
-      })
-      .eq("id", userId);
+    // No code exists - call the database function to generate one
+    const { data, error } = await supabase.rpc("ensure_user_referral_code", {
+      p_user_id: userId,
+    });
 
     if (error) {
       toast.error("Failed to generate referral code");
       return;
     }
 
+    const newCode = data as string;
     toast.success(`Referral code generated: ${newCode}`);
+
+    // Also update the card's owner_referral_code
+    const userCards = cards.filter((c) => c.user_id === userId);
+    for (const card of userCards) {
+      await supabase
+        .from("cards")
+        .update({ owner_referral_code: newCode })
+        .eq("id", card.id);
+    }
 
     // Update local state
     setUserReferrals((prev) => ({
@@ -452,6 +472,9 @@ export default function AdminCards() {
         has_referral_access: true,
       },
     }));
+
+    // Refresh cards to get updated owner_referral_code
+    await loadCards();
   };
 
   const loadUsers = async () => {
