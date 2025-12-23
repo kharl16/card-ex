@@ -251,6 +251,16 @@ function AdminCardRow({
           </Button>
         </div>
       </TableCell>
+      <TableCell>
+        {(card as any).referred_by_name || (card as any).referred_by_code ? (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-medium">{(card as any).referred_by_name || "Unknown"}</span>
+            <span className="text-xs text-muted-foreground font-mono">{(card as any).referred_by_code || "—"}</span>
+          </div>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        )}
+      </TableCell>
       <TableCell>{card.views_count || 0}</TableCell>
       <TableCell className="text-sm text-muted-foreground">{new Date(card.updated_at).toLocaleDateString()}</TableCell>
       <TableCell className="text-right">
@@ -841,6 +851,7 @@ export default function AdminCards() {
                           <TableHead>Paid</TableHead>
                           <TableHead>Published</TableHead>
                           <TableHead>Referral</TableHead>
+                          <TableHead>Referred By</TableHead>
                           <TableHead>Views</TableHead>
                           <TableHead>Updated</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
@@ -850,7 +861,7 @@ export default function AdminCards() {
                       <TableBody>
                         {filteredCards.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={10} className="text-center text-muted-foreground">
+                            <TableCell colSpan={11} className="text-center text-muted-foreground">
                               No cards found
                             </TableCell>
                           </TableRow>
