@@ -177,13 +177,27 @@ function mergeSection(
 ): CarouselSection {
   if (!existing) return defaultSection;
 
+  // Deep merge background with gradient defaults
+  const existingBackground = existing.background as Partial<CarouselBackground> | undefined;
+  const mergedBackground: CarouselBackground = {
+    enabled: existingBackground?.enabled ?? defaultSection.background.enabled,
+    type: existingBackground?.type ?? defaultSection.background.type,
+    solid_color: existingBackground?.solid_color ?? defaultSection.background.solid_color,
+    innerPadding: existingBackground?.innerPadding ?? defaultSection.background.innerPadding ?? 8,
+    borderWidth: existingBackground?.borderWidth ?? defaultSection.background.borderWidth ?? 0,
+    borderColor: existingBackground?.borderColor ?? defaultSection.background.borderColor ?? "#ffffff",
+    // Always ensure gradient object exists with proper defaults
+    gradient: {
+      from: existingBackground?.gradient?.from ?? "#000000",
+      to: existingBackground?.gradient?.to ?? "#333333",
+      direction: existingBackground?.gradient?.direction ?? "to-b",
+    },
+  };
+
   return {
     title: existing.title ?? defaultSection.title,
     images: existing.images ?? defaultSection.images,
-    background: {
-      ...defaultSection.background,
-      ...existing.background,
-    },
+    background: mergedBackground,
     settings: {
       ...defaultSection.settings,
       ...existing.settings,
