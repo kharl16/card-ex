@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,17 +27,6 @@ export function SaveTemplateDialog({
   productImages: _productImagesProp, // Deprecated - kept for backward compatibility
   onSaved
 }: SaveTemplateDialogProps) {
-  // Read product images from card.product_images JSONB column (source of truth)
-  const productImages = useMemo<CardProductImage[]>(() => {
-    const raw = card?.product_images;
-    if (!raw) return [];
-    if (Array.isArray(raw)) return raw as CardProductImage[];
-    try {
-      return JSON.parse(raw) as CardProductImage[];
-    } catch {
-      return [];
-    }
-  }, [card?.product_images]);
   const {
     isAdmin
   } = useAuth();
@@ -58,6 +47,7 @@ export function SaveTemplateDialog({
     icon?: string | null;
     sort_index?: number | null;
   }>>([]);
+  const [productImages, setProductImages] = useState<CardProductImage[]>([]);
 
   // Pre-fill name from card when dialog opens
   useEffect(() => {
@@ -66,12 +56,14 @@ export function SaveTemplateDialog({
     }
   }, [open, card.full_name]);
 
-  // Fetch card links when dialog opens
+  // Fetch card links and product images when dialog opens
   useEffect(() => {
     if (open && card.id) {
       fetchCardLinks();
+      fetchProductImages();
     }
   }, [open, card.id]);
+
   const fetchCardLinks = async () => {
     if (!card.id) return;
     const {
@@ -80,6 +72,25 @@ export function SaveTemplateDialog({
     } = await supabase.from("card_links").select("kind, label, value, icon, sort_index").eq("card_id", card.id).order("sort_index");
     if (!error && data) {
       setCardLinks(data);
+    }
+  };
+
+  // Fetch product images from the product_images table (source of truth for Products carousel)
+  const fetchProductImages = async () => {
+    if (!card.id) return;
+    const { data, error } = await supabase
+      .from("product_images")
+      .select("image_url, alt_text, description, sort_order")
+      .eq("card_id", card.id)
+      .order("sort_order");
+    
+    if (!error && data) {
+      setProductImages(data.map((img, idx) => ({
+        image_url: img.image_url,
+        alt_text: img.alt_text || null,
+        description: img.description || null,
+        sort_order: img.sort_order ?? idx,
+      })));
     }
   };
   const handleSave = async () => {

@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { TemplateGallery } from "@/components/templates/TemplateGallery";
 import { CardTemplate, LayoutData } from "@/hooks/useTemplates";
 import { cn } from "@/lib/utils";
-import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
+import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, buildProductImagesInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
 
 interface AdminCreateCardDialogProps {
   open: boolean;
@@ -112,6 +112,12 @@ export function AdminCreateCardDialog({
       if (layoutData?.card_links && layoutData.card_links.length > 0) {
         const cardLinkInserts = buildCardLinksInsertFromSnapshot(layoutData as CardSnapshot, data.id);
         await supabase.from("card_links").insert(cardLinkInserts);
+      }
+
+      // If template has product images, copy them to the product_images table
+      if (layoutData?.product_images && layoutData.product_images.length > 0) {
+        const productImageInserts = buildProductImagesInsertFromSnapshot(layoutData as CardSnapshot, data.id, targetUserId);
+        await supabase.from("product_images").insert(productImageInserts);
       }
 
       toast.success("Card created for " + targetUserName);

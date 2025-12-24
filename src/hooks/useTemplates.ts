@@ -71,14 +71,16 @@ export function useTemplates() {
    * Extract ALL layout/design data from a card for template storage.
    * Uses the unified buildCardSnapshot utility.
    * 
-   * Product images are read directly from card.product_images JSONB column.
+   * @param card - The card object from the database
+   * @param productImagesFromTable - Product images fetched from the product_images table
+   * @param cardLinks - Card links fetched from the card_links table
    */
   const extractLayoutData = (
     card: Record<string, any>, 
-    _productImages?: CardProductImage[], // Deprecated - read from card.product_images
+    productImagesFromTable?: CardProductImage[],
     cardLinks?: CardLink[]
   ): LayoutData => {
-    return buildCardSnapshot(card, cardLinks);
+    return buildCardSnapshot(card, cardLinks, productImagesFromTable);
   };
 
   const saveAsGlobalTemplate = async (
