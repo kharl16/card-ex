@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { TemplateGallery } from "./TemplateGallery";
 import { CardTemplate, LayoutData } from "@/hooks/useTemplates";
 import { cn } from "@/lib/utils";
-import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, buildProductImagesInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
+import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
 
 interface NewCardDialogProps {
   open: boolean;
@@ -115,11 +115,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
         await supabase.from("card_links").insert(cardLinkInserts);
       }
 
-      // If template has product images, copy them to the product_images table
-      if (layoutData?.product_images && layoutData.product_images.length > 0) {
-        const productImageInserts = buildProductImagesInsertFromSnapshot(layoutData as CardSnapshot, data.id, user.id);
-        await supabase.from("product_images").insert(productImageInserts);
-      }
+      // Product images are already in cards.product_images JSON via buildCardInsertFromSnapshot
 
       toast.success("Card created!");
       onOpenChange(false);
