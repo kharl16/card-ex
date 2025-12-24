@@ -103,16 +103,20 @@ export function buildCardSnapshot(
     delete theme.qrSettings.url;
   }
   
-  // Extract product images from cards.product_images JSONB
+  // Extract product images from cards.product_images JSONB (supports both {image_url} and {url} shapes)
   const productImages: CardProductImage[] = [];
   const rawProductImages = card.product_images;
   if (rawProductImages && Array.isArray(rawProductImages)) {
     rawProductImages.forEach((img: any, idx: number) => {
+      const imageUrl =
+        (typeof img?.image_url === "string" && img.image_url) || (typeof img?.url === "string" && img.url) || null;
+      if (!imageUrl) return;
+
       productImages.push({
-        image_url: img.image_url,
-        alt_text: img.alt_text || null,
-        description: img.description || null,
-        sort_order: img.sort_order ?? idx,
+        image_url: imageUrl,
+        alt_text: (img?.alt_text ?? img?.alt ?? null) as string | null,
+        description: (img?.description ?? null) as string | null,
+        sort_order: (img?.sort_order ?? img?.order ?? idx) as number,
       });
     });
   }
