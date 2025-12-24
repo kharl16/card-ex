@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Check, X } from "lucide-react";
 import CardView from "@/components/CardView";
 import type { CardTemplate, LayoutData } from "@/hooks/useTemplates";
-import type { Tables } from "@/integrations/supabase/types";
+import type { Tables, Json } from "@/integrations/supabase/types";
 
 interface TemplatePreviewDialogProps {
   template: CardTemplate | null;
@@ -45,8 +45,8 @@ export function TemplatePreviewDialog({
     cover_url: layoutData.cover_url || null,
     logo_url: layoutData.logo_url || null,
     carousel_enabled: layoutData.carousel_enabled ?? true,
-    carousel_settings: (layoutData as any).carousel_settings || {},
-    theme: layoutData.theme || null,
+    carousel_settings: (layoutData.carousel_settings || {}) as Json,
+    theme: (layoutData.theme || null) as Json,
     is_published: false,
     is_paid: false,
     paid_at: null,
@@ -65,10 +65,10 @@ export function TemplatePreviewDialog({
     unique_views: null,
     published_at: null,
     is_template: false,
-    social_links: layoutData.social_links || null,
-    product_images: ((layoutData as any).product_images || []) as unknown as import("@/integrations/supabase/types").Json,
-    package_images: ((layoutData as any).package_images || []) as unknown as import("@/integrations/supabase/types").Json,
-    testimony_images: ((layoutData as any).testimony_images || []) as unknown as import("@/integrations/supabase/types").Json,
+    social_links: (layoutData.social_links as unknown) as Json || null,
+    product_images: (layoutData.product_images as unknown) as Json || [],
+    package_images: (layoutData.package_images as unknown) as Json || [],
+    testimony_images: (layoutData.testimony_images as unknown) as Json || [],
     // Referral fields (new columns)
     owner_referral_code: null,
     referred_by_code: null,

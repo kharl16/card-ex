@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { buildCardSnapshot, buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot } from "@/lib/cardSnapshot";
 
 type CardData = Tables<"cards"> & { owner_name?: string | null };
 
@@ -65,77 +66,38 @@ export function DuplicateCardDialog({
       const ownerName =
         profile?.full_name || targetUserName || card.owner_name || card.full_name || "New Card Owner";
 
+      // Fetch card_links from source card
+      const { data: cardLinks } = await supabase
+        .from("card_links")
+        .select("kind, label, value, icon, sort_index")
+        .eq("card_id", card.id)
+        .order("sort_index");
+
+      // Build unified snapshot from source card
+      const snapshot = buildCardSnapshot(card as Record<string, any>, cardLinks || []);
+
       // Generate new unique slug
       const slug = `${effectiveUserId.slice(0, 8)}-${Date.now()}`;
 
-      // Get product images from source card's JSONB column
-      const rawProductImages = (card as any).product_images;
-      const productImagesArray = Array.isArray(rawProductImages)
-        ? rawProductImages.map((img: any, index: number) => ({
-            image_url: img.image_url,
-            alt_text: img.alt_text || null,
-            description: img.description || null,
-            sort_order: img.sort_order ?? index,
-          }))
-        : [];
+      // Build insert data using unified snapshot builder
+      const insertData = buildCardInsertFromSnapshot(snapshot, effectiveUserId, slug, {
+        full_name: `${card.full_name || "Untitled Card"} (Copy)`,
+        owner_name: ownerName,
+        is_published: false,
+      });
 
-      // Insert duplicated card with product_images in the JSONB column
+      // Insert duplicated card with full snapshot data
       const { data: newCard, error: cardError } = await supabase
         .from("cards")
-        .insert({
-          user_id: effectiveUserId,
-          owner_name: ownerName,
-          full_name: `${card.full_name || "Untitled Card"} (Copy)`,
-          first_name: card.first_name,
-          middle_name: card.middle_name,
-          last_name: card.last_name,
-          prefix: card.prefix,
-          suffix: card.suffix,
-          title: card.title,
-          company: card.company,
-          bio: card.bio,
-          email: card.email,
-          phone: card.phone,
-          website: card.website,
-          location: card.location,
-          avatar_url: card.avatar_url,
-          cover_url: card.cover_url,
-          logo_url: card.logo_url,
-          theme: card.theme,
-          carousel_enabled: card.carousel_enabled,
-          custom_slug: null,
-          slug,
-          is_published: false,
-          views_count: 0,
-          unique_views: 0,
-          social_links: card.social_links,
-          product_images: productImagesArray,
-        })
+        .insert(insertData as any)
         .select()
         .single();
 
       if (cardError) throw cardError;
 
-      // NOTE: Product images are now copied via the JSONB column above
-      // No need to query/insert into product_images table
-
-      // Copy card links (social media, additional contacts)
-      const { data: cardLinks } = await supabase
-        .from("card_links")
-        .select("*")
-        .eq("card_id", card.id)
-        .order("sort_index");
-
-      if (cardLinks && cardLinks.length > 0) {
-        const cardLinkInserts = cardLinks.map((link) => ({
-          card_id: newCard.id,
-          kind: link.kind,
-          label: link.label,
-          value: link.value,
-          icon: link.icon,
-          sort_index: link.sort_index,
-        }));
-
+      // Copy card links using unified builder
+      if (snapshot.card_links.length > 0) {
+        const cardLinkInserts = buildCardLinksInsertFromSnapshot(snapshot, newCard.id);
         await supabase.from("card_links").insert(cardLinkInserts);
       }
 
