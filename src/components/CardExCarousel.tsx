@@ -493,10 +493,21 @@ export default function CardExCarousel({
   imageSize = "md",
   imageGap = 12,
 }: CardExCarouselProps) {
-  const safeItems = items || [];
-  const count = safeItems.length;
+  const allItems = items || [];
+  const totalCount = allItems.length;
+  const INITIAL_LOAD = 50;
+  const LOAD_MORE_COUNT = 25;
 
-  if (!count) return null;
+  const [displayCount, setDisplayCount] = useState(INITIAL_LOAD);
+  const safeItems = allItems.slice(0, displayCount);
+  const count = safeItems.length;
+  const hasMore = displayCount < totalCount;
+
+  const handleLoadMore = () => {
+    setDisplayCount(prev => Math.min(prev + LOAD_MORE_COUNT, totalCount));
+  };
+
+  if (!totalCount) return null;
 
   // Adjust visible slides for mobile
   const [responsiveVisibleSlides, setResponsiveVisibleSlides] = useState(visibleSlides);
@@ -551,6 +562,16 @@ export default function CardExCarousel({
           onEvent={onEvent}
           spotlightEnabled={spotlightEnabled}
         />
+      )}
+      {hasMore && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={handleLoadMore}
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-primary/10 hover:bg-primary/20 text-primary transition-colors"
+          >
+            Load More ({count} of {totalCount})
+          </button>
+        </div>
       )}
     </div>
   );
