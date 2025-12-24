@@ -9,14 +9,11 @@ import { Loader2, Save, Globe, Users, Lock } from "lucide-react";
 import { useTemplates, TemplateVisibility } from "@/hooks/useTemplates";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import type { CardProductImage } from "@/lib/theme";
 
 interface SaveTemplateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   card: Record<string, any>;
-  // productImages prop is now deprecated - we read from card.product_images directly
-  productImages?: CardProductImage[];
   onSaved?: () => void;
 }
 
@@ -24,12 +21,9 @@ export function SaveTemplateDialog({
   open,
   onOpenChange,
   card,
-  productImages: _productImagesProp, // Deprecated - kept for backward compatibility
   onSaved
 }: SaveTemplateDialogProps) {
-  const {
-    isAdmin
-  } = useAuth();
+  const { isAdmin } = useAuth();
   const {
     saveAsGlobalTemplate,
     savePersonalTemplate,
@@ -47,7 +41,6 @@ export function SaveTemplateDialog({
     icon?: string | null;
     sort_index?: number | null;
   }>>([]);
-  const [productImages, setProductImages] = useState<CardProductImage[]>([]);
 
   // Pre-fill name from card when dialog opens
   useEffect(() => {
@@ -56,52 +49,35 @@ export function SaveTemplateDialog({
     }
   }, [open, card.full_name]);
 
-  // Fetch card links and product images when dialog opens
+  // Fetch card links when dialog opens (product_images come from card JSON directly)
   useEffect(() => {
     if (open && card.id) {
       fetchCardLinks();
-      fetchProductImages();
     }
   }, [open, card.id]);
 
   const fetchCardLinks = async () => {
     if (!card.id) return;
-    const {
-      data,
-      error
-    } = await supabase.from("card_links").select("kind, label, value, icon, sort_index").eq("card_id", card.id).order("sort_index");
+    const { data, error } = await supabase
+      .from("card_links")
+      .select("kind, label, value, icon, sort_index")
+      .eq("card_id", card.id)
+      .order("sort_index");
     if (!error && data) {
       setCardLinks(data);
     }
   };
 
-  // Fetch product images from the product_images table (source of truth for Products carousel)
-  const fetchProductImages = async () => {
-    if (!card.id) return;
-    const { data, error } = await supabase
-      .from("product_images")
-      .select("image_url, alt_text, description, sort_order")
-      .eq("card_id", card.id)
-      .order("sort_order");
-    
-    if (!error && data) {
-      setProductImages(data.map((img, idx) => ({
-        image_url: img.image_url,
-        alt_text: img.alt_text || null,
-        description: img.description || null,
-        sort_order: img.sort_order ?? idx,
-      })));
-    }
-  };
   const handleSave = async () => {
     if (!name.trim()) return;
     setSaving(true);
     try {
       let success = false;
+      // Product images are now read directly from card.product_images JSON via extractLayoutData
       if (visibility === 'global' || visibility === 'team') {
-        success = await saveAsGlobalTemplate(card, name.trim(), description.trim(), undefined, productImages, cardLinks, visibility);
+        success = await saveAsGlobalTemplate(card, name.trim(), description.trim(), undefined, cardLinks, visibility);
       } else {
-        success = await savePersonalTemplate(card, name.trim(), description.trim(), productImages, cardLinks, visibility);
+        success = await savePersonalTemplate(card, name.trim(), description.trim(), cardLinks, visibility);
       }
       if (success) {
         setName("");
@@ -115,6 +91,7 @@ export function SaveTemplateDialog({
       setSaving(false);
     }
   };
+
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setName("");
@@ -124,7 +101,9 @@ export function SaveTemplateDialog({
     }
     onOpenChange(newOpen);
   };
-  return <Dialog open={open} onOpenChange={handleOpenChange}>
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -132,36 +111,54 @@ export function SaveTemplateDialog({
             Save as Template
           </DialogTitle>
           <DialogDescription>
-            {hasPersonalTemplate && !isAdmin ? "You already have a personal template. This will overwrite it." : "Save this card as a reusable template with all content included."}
+            {hasPersonalTemplate && !isAdmin
+              ? "You already have a personal template. This will overwrite it."
+              : "Save this card as a reusable template with all content included."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="template-name">Template Name</Label>
-            <Input id="template-name" value={name} onChange={e => setName(e.target.value)} placeholder="My Business Card Template" maxLength={100} />
+            <Input
+              id="template-name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="My Business Card Template"
+              maxLength={100}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="template-description">Description (optional)</Label>
-            <Textarea id="template-description" value={description} onChange={e => setDescription(e.target.value)} placeholder="A professional template with gold accents..." maxLength={500} rows={3} />
+            <Textarea
+              id="template-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="A professional template with gold accents..."
+              maxLength={500}
+              rows={3}
+            />
           </div>
-
-          
 
           <div className="space-y-2">
             <Label>Template Visibility</Label>
-            <RadioGroup value={visibility} onValueChange={v => setVisibility(v as TemplateVisibility)} className="space-y-2">
-              {isAdmin && <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-muted/50">
+            <RadioGroup
+              value={visibility}
+              onValueChange={(v) => setVisibility(v as TemplateVisibility)}
+              className="space-y-2"
+            >
+              {isAdmin && (
+                <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-muted/50">
                   <RadioGroupItem value="global" id="visibility-global" />
                   <Label htmlFor="visibility-global" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
                       <Globe className="h-4 w-4 text-primary" />
-                      
                     </div>
                     <p className="text-xs text-muted-foreground">Available to all users</p>
                   </Label>
-                </div>}
+                </div>
+              )}
               <div className="flex items-center space-x-2 rounded-lg border p-3 hover:bg-muted/50">
                 <RadioGroupItem value="team" id="visibility-team" />
                 <Label htmlFor="visibility-team" className="flex-1 cursor-pointer">
@@ -185,14 +182,16 @@ export function SaveTemplateDialog({
             </RadioGroup>
           </div>
 
-          {hasPersonalTemplate && userTemplate && visibility === 'private' && <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+          {hasPersonalTemplate && userTemplate && visibility === 'private' && (
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
               <p className="font-medium text-amber-600 dark:text-amber-400">
                 Overwriting existing template
               </p>
               <p className="text-muted-foreground">
                 Your current template "{userTemplate.name}" will be replaced.
               </p>
-            </div>}
+            </div>
+          )}
         </div>
 
         <DialogFooter>
@@ -205,5 +204,6 @@ export function SaveTemplateDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 }

@@ -76,7 +76,7 @@ export interface CardSnapshot {
   // Carousel settings (full object with all 3 sections)
   carousel_settings: Partial<CarouselSettingsData> | null;
   
-  // Carousel images (stored in JSONB columns)
+  // Carousel images (stored in JSONB columns on cards table)
   product_images: CardProductImage[];
   package_images: CarouselImage[];
   testimony_images: CarouselImage[];
@@ -86,16 +86,15 @@ export interface CardSnapshot {
 }
 
 /**
- * Build a complete snapshot from a card object
+ * Build a complete snapshot from a card object.
+ * All data comes from the card row JSON columns (product_images, package_images, testimony_images).
  * 
  * @param card - The card row from database
  * @param cardLinks - Optional card_links fetched from the card_links table
- * @param productImagesFromTable - Optional product_images fetched from the product_images table
  */
 export function buildCardSnapshot(
   card: Record<string, any>,
-  cardLinks?: CardLink[],
-  productImagesFromTable?: CardProductImage[]
+  cardLinks?: CardLink[]
 ): CardSnapshot {
   // Deep copy theme to avoid mutations, remove QR data/URL (new cards generate their own)
   const theme = card.theme ? JSON.parse(JSON.stringify(card.theme)) : {};
@@ -104,11 +103,11 @@ export function buildCardSnapshot(
     delete theme.qrSettings.url;
   }
   
-  // Extract product images - prefer table data over JSONB column
+  // Extract product images from cards.product_images JSONB
   const productImages: CardProductImage[] = [];
-  if (productImagesFromTable && productImagesFromTable.length > 0) {
-    // Use images from the product_images table
-    productImagesFromTable.forEach((img: any, idx: number) => {
+  const rawProductImages = card.product_images;
+  if (rawProductImages && Array.isArray(rawProductImages)) {
+    rawProductImages.forEach((img: any, idx: number) => {
       productImages.push({
         image_url: img.image_url,
         alt_text: img.alt_text || null,
@@ -116,19 +115,6 @@ export function buildCardSnapshot(
         sort_order: img.sort_order ?? idx,
       });
     });
-  } else {
-    // Fallback to JSONB column
-    const rawProductImages = card.product_images;
-    if (rawProductImages && Array.isArray(rawProductImages)) {
-      rawProductImages.forEach((img: any, idx: number) => {
-        productImages.push({
-          image_url: img.image_url,
-          alt_text: img.alt_text || null,
-          description: img.description || null,
-          sort_order: img.sort_order ?? idx,
-        });
-      });
-    }
   }
   
   // Extract package images from JSONB
@@ -320,34 +306,5 @@ export function buildCardLinksInsertFromSnapshot(
     value: link.value,
     icon: link.icon || null,
     sort_index: link.sort_index ?? index,
-  }));
-}
-
-/**
- * Build product_images insert data from a snapshot
- * 
- * @param snapshot - The card snapshot
- * @param newCardId - The ID of the newly created card
- * @param ownerId - The owner user ID for the new card
- */
-export function buildProductImagesInsertFromSnapshot(
-  snapshot: CardSnapshot,
-  newCardId: string,
-  ownerId: string
-): Array<{
-  card_id: string;
-  owner: string;
-  image_url: string;
-  alt_text: string | null;
-  description: string | null;
-  sort_order: number;
-}> {
-  return snapshot.product_images.map((img, index) => ({
-    card_id: newCardId,
-    owner: ownerId,
-    image_url: img.image_url,
-    alt_text: img.alt_text || null,
-    description: img.description || null,
-    sort_order: img.sort_order ?? index,
   }));
 }

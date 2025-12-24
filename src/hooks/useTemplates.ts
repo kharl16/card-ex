@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import type { CardProductImage } from "@/lib/theme";
 import { buildCardSnapshot, type CardSnapshot, type CardLink } from "@/lib/cardSnapshot";
 
 export type TemplateVisibility = 'global' | 'team' | 'private';
@@ -70,17 +69,16 @@ export function useTemplates() {
   /**
    * Extract ALL layout/design data from a card for template storage.
    * Uses the unified buildCardSnapshot utility.
+   * Product images are read directly from card.product_images JSON.
    * 
    * @param card - The card object from the database
-   * @param productImagesFromTable - Product images fetched from the product_images table
    * @param cardLinks - Card links fetched from the card_links table
    */
   const extractLayoutData = (
-    card: Record<string, any>, 
-    productImagesFromTable?: CardProductImage[],
+    card: Record<string, any>,
     cardLinks?: CardLink[]
   ): LayoutData => {
-    return buildCardSnapshot(card, cardLinks, productImagesFromTable);
+    return buildCardSnapshot(card, cardLinks);
   };
 
   const saveAsGlobalTemplate = async (
@@ -88,7 +86,6 @@ export function useTemplates() {
     name: string,
     description?: string,
     thumbnailUrl?: string,
-    productImages?: CardProductImage[],
     cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>,
     visibility: TemplateVisibility = 'global'
   ): Promise<boolean> => {
@@ -98,7 +95,7 @@ export function useTemplates() {
     }
 
     try {
-      const layoutData = extractLayoutData(card, productImages, cardLinks);
+      const layoutData = extractLayoutData(card, cardLinks);
 
       const { error } = await supabase.from("card_templates").insert([{
         owner_id: user.id,
@@ -126,7 +123,6 @@ export function useTemplates() {
     card: Record<string, any>,
     name: string,
     description?: string,
-    productImages?: CardProductImage[],
     cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>,
     visibility: TemplateVisibility = 'private'
   ): Promise<boolean> => {
@@ -136,7 +132,7 @@ export function useTemplates() {
     }
 
     try {
-      const layoutData = extractLayoutData(card, productImages, cardLinks);
+      const layoutData = extractLayoutData(card, cardLinks);
 
       if (userTemplate && visibility === 'private') {
         // Update existing personal template
