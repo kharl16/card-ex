@@ -134,9 +134,27 @@ export default function CarouselImageUploader({
     let completed = 0;
 
     for (const file of filesToUpload) {
-      // Validate
-      if (!file.type.startsWith("image/")) {
-        toast.error(`${file.name} is not an image`);
+      // Validate - check MIME type or file extension for images
+      const validImageTypes = [
+        "image/jpeg",
+        "image/jpg", 
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/svg+xml",
+        "image/bmp",
+        "image/tiff",
+        "image/heic",
+        "image/heif",
+      ];
+      const fileExtension = file.name.split(".").pop()?.toLowerCase() || "";
+      const validExtensions = ["jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "tiff", "heic", "heif"];
+      
+      const isValidType = file.type.startsWith("image/") || validImageTypes.includes(file.type);
+      const isValidExtension = validExtensions.includes(fileExtension);
+      
+      if (!isValidType && !isValidExtension) {
+        toast.error(`${file.name} is not a supported image format`);
         continue;
       }
       if (file.size > 10 * 1024 * 1024) {
@@ -281,14 +299,14 @@ export default function CarouselImageUploader({
       <div className="space-y-2">
         <Input
           type="file"
-          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+          accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.svg,.bmp,.tiff,.heic,.heif"
           onChange={handleFileChange}
           disabled={uploading || images.length >= maxImages}
           multiple
           className="file:mr-4 file:px-3 file:py-1 file:rounded-md file:bg-primary file:text-primary-foreground file:font-medium file:border-0 file:cursor-pointer hover:file:opacity-90"
         />
         <p className="text-xs text-muted-foreground">
-          Max 10MB per image. {maxImages - images.length} slots remaining.
+          Supports JPG, PNG, WebP, GIF, SVG, BMP, HEIC. Max 10MB per image. {maxImages - images.length} slots remaining.
         </p>
       </div>
 
