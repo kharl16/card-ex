@@ -9,7 +9,6 @@
  * This ensures complete fidelity between Editor → Preview → Actual Card
  */
 
-import type { CardProductImage } from "@/lib/theme";
 import type { CarouselSettingsData } from "@/lib/carouselTypes";
 
 export interface CardLink {
@@ -27,9 +26,13 @@ export interface SocialLink {
   value?: string;
 }
 
+/**
+ * Unified carousel image shape used for ALL carousel sections
+ * (products, packages, testimonies)
+ */
 export interface CarouselImage {
   url: string;
-  alt?: string;
+  alt?: string | null;
   order?: number;
 }
 
@@ -76,8 +79,8 @@ export interface CardSnapshot {
   // Carousel settings (full object with all 3 sections)
   carousel_settings: Partial<CarouselSettingsData> | null;
   
-  // Carousel images (stored in JSONB columns on cards table)
-  product_images: CardProductImage[];
+  // Carousel images - ALL use unified CarouselImage shape {url, alt, order}
+  product_images: CarouselImage[];
   package_images: CarouselImage[];
   testimony_images: CarouselImage[];
   
@@ -103,49 +106,38 @@ export function buildCardSnapshot(
     delete theme.qrSettings.url;
   }
   
-  // Extract product images from cards.product_images JSONB (supports both {image_url} and {url} shapes)
-  const productImages: CardProductImage[] = [];
-  const rawProductImages = card.product_images;
-  if (rawProductImages && Array.isArray(rawProductImages)) {
-    rawProductImages.forEach((img: any, idx: number) => {
-      const imageUrl =
-        (typeof img?.image_url === "string" && img.image_url) || (typeof img?.url === "string" && img.url) || null;
+  /**
+   * Normalize any carousel image array to unified {url, alt, order} shape
+   * Supports legacy shapes: {image_url, alt_text, sort_order} and {url, alt, order}
+   */
+  const normalizeCarouselImages = (raw: unknown): CarouselImage[] => {
+    if (!raw || !Array.isArray(raw)) return [];
+    
+    const result: CarouselImage[] = [];
+    
+    raw.forEach((img: any, idx: number) => {
+      // Support both {url} and {image_url} shapes
+      const imageUrl = 
+        (typeof img?.url === "string" && img.url) || 
+        (typeof img?.image_url === "string" && img.image_url) || 
+        null;
+      
       if (!imageUrl) return;
+      
+      result.push({
+        url: imageUrl,
+        alt: (img?.alt ?? img?.alt_text ?? null) as string | null,
+        order: (img?.order ?? img?.sort_order ?? idx) as number,
+      });
+    });
+    
+    return result;
+  };
 
-      productImages.push({
-        image_url: imageUrl,
-        alt_text: (img?.alt_text ?? img?.alt ?? null) as string | null,
-        description: (img?.description ?? null) as string | null,
-        sort_order: (img?.sort_order ?? img?.order ?? idx) as number,
-      });
-    });
-  }
-  
-  // Extract package images from JSONB
-  const packageImages: CarouselImage[] = [];
-  const rawPackageImages = card.package_images;
-  if (rawPackageImages && Array.isArray(rawPackageImages)) {
-    rawPackageImages.forEach((img: any, idx: number) => {
-      packageImages.push({
-        url: img.url,
-        alt: img.alt || undefined,
-        order: img.order ?? idx,
-      });
-    });
-  }
-  
-  // Extract testimony images from JSONB
-  const testimonyImages: CarouselImage[] = [];
-  const rawTestimonyImages = card.testimony_images;
-  if (rawTestimonyImages && Array.isArray(rawTestimonyImages)) {
-    rawTestimonyImages.forEach((img: any, idx: number) => {
-      testimonyImages.push({
-        url: img.url,
-        alt: img.alt || undefined,
-        order: img.order ?? idx,
-      });
-    });
-  }
+  // Extract all carousel images using unified normalizer
+  const productImages = normalizeCarouselImages(card.product_images);
+  const packageImages = normalizeCarouselImages(card.package_images);
+  const testimonyImages = normalizeCarouselImages(card.testimony_images);
   
   // Extract social links from JSONB
   let socialLinks: SocialLink[] | null = null;
