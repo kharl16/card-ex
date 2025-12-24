@@ -240,15 +240,6 @@ function AdminCardRow({
               No Access
             </Badge>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6"
-            onClick={() => onGenerateReferralCode(card.user_id)}
-            title={referralData?.referral_code ? "Copy code" : "Generate code"}
-          >
-            <RefreshCw className="h-3 w-3" />
-          </Button>
         </div>
       </TableCell>
       <TableCell>
@@ -261,8 +252,6 @@ function AdminCardRow({
           <span className="text-xs text-muted-foreground">—</span>
         )}
       </TableCell>
-      <TableCell>{card.views_count || 0}</TableCell>
-      <TableCell className="text-sm text-muted-foreground">{new Date(card.updated_at).toLocaleDateString()}</TableCell>
       <TableCell className="text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -852,8 +841,6 @@ export default function AdminCards() {
                           <TableHead>Published</TableHead>
                           <TableHead>Referral</TableHead>
                           <TableHead>Referred By</TableHead>
-                          <TableHead>Views</TableHead>
-                          <TableHead>Updated</TableHead>
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
@@ -861,7 +848,7 @@ export default function AdminCards() {
                       <TableBody>
                         {filteredCards.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={11} className="text-center text-muted-foreground">
+                            <TableCell colSpan={9} className="text-center text-muted-foreground">
                               No cards found
                             </TableCell>
                           </TableRow>
