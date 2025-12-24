@@ -93,6 +93,7 @@ export const DEFAULT_CTA_STYLES: Record<CarouselKey, CTAStyle> = {
     size: "md",
     width: "fit",
     glow: true,
+    glowIntensity: 25,
   },
   packages: {
     variant: "outline",
@@ -100,6 +101,7 @@ export const DEFAULT_CTA_STYLES: Record<CarouselKey, CTAStyle> = {
     size: "md",
     width: "fit",
     glow: false,
+    glowIntensity: 25,
   },
   testimonies: {
     variant: "solid",
@@ -107,6 +109,7 @@ export const DEFAULT_CTA_STYLES: Record<CarouselKey, CTAStyle> = {
     size: "md",
     width: "fit",
     glow: true,
+    glowIntensity: 25,
   },
 };
 

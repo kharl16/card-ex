@@ -131,13 +131,56 @@ export default function CarouselSectionRenderer({
   if (ctaStyle.background) ctaInlineStyle.backgroundColor = ctaStyle.background;
   if (ctaStyle.text) ctaInlineStyle.color = ctaStyle.text;
   if (ctaStyle.border) ctaInlineStyle.borderColor = ctaStyle.border;
-  
-  // Add glow effect using custom background color if glow is enabled
-  if (ctaStyle.glow && ctaStyle.background) {
+
+  const withAlpha = (color: string, alpha: number) => {
+    const a = Math.max(0, Math.min(1, alpha));
+    const pct = Math.round(a * 100);
+
+    // #rgb, #rrggbb, #rrggbbaa
+    if (color.startsWith("#")) {
+      const hex = color.replace("#", "").trim();
+      const norm =
+        hex.length === 3
+          ? hex
+              .split("")
+              .map((c) => c + c)
+              .join("")
+          : hex.length === 6 || hex.length === 8
+            ? hex.slice(0, 6)
+            : null;
+
+      if (norm) {
+        const r = parseInt(norm.slice(0, 2), 16);
+        const g = parseInt(norm.slice(2, 4), 16);
+        const b = parseInt(norm.slice(4, 6), 16);
+        return `rgb(${r} ${g} ${b} / ${pct}%)`;
+      }
+    }
+
+    // hsl(...) can accept alpha as a slash value
+    if (color.startsWith("hsl(") && color.endsWith(")")) {
+      const inner = color.slice(4, -1).trim();
+      if (!inner.includes("/")) {
+        return `hsl(${inner} / ${pct}%)`;
+      }
+    }
+
+    // Fallback for other valid CSS colors (var(), named colors, etc.)
+    return `color-mix(in srgb, ${color} ${pct}%, transparent)`;
+  };
+
+  // Glow effect (use inline box-shadow so it works even with custom Tailwind shadow tokens)
+  if (ctaStyle.glow) {
     const intensity = ctaStyle.glowIntensity ?? 25;
-    // Convert intensity (10-100) to hex opacity (1a-ff roughly)
-    const opacityHex = Math.round((intensity / 100) * 255).toString(16).padStart(2, '0');
-    ctaInlineStyle.boxShadow = `0 10px 15px -3px ${ctaStyle.background}${opacityHex}, 0 4px 6px -4px ${ctaStyle.background}${opacityHex}`;
+    const base = ctaStyle.background ?? "hsl(var(--primary))";
+
+    const glowAlpha = Math.max(0.08, Math.min(0.7, (intensity / 100) * 0.6));
+    const rimAlpha = Math.max(0.06, Math.min(0.35, (intensity / 100) * 0.25));
+
+    ctaInlineStyle.boxShadow = [
+      `0 14px 28px -12px ${withAlpha(base, glowAlpha)}`,
+      `0 0 0 1px ${withAlpha(base, rimAlpha)}`,
+    ].join(", ");
   }
 
   return (
@@ -161,26 +204,28 @@ export default function CarouselSectionRenderer({
       </div>
 
       {/* Carousel container with background */}
-      <div
-        className={cn(
-          "relative w-full py-3 rounded-xl overflow-hidden",
-          hasBackground && "shadow-inner"
-        )}
-        style={hasAnyBackgroundStyling ? backgroundStyle : undefined}
-      >
-        <CardExCarousel
-          items={carouselItems}
-          mode="roulette"
-          autoPlayMs={settings.autoPlayMs}
-          showLightbox={true}
-          depth="medium"
-          spotlightEnabled={true}
-          direction={direction}
-          imageSize={imageSize}
-          imageGap={imageGap}
-        />
+      <div className="relative w-full">
+        <div
+          className={cn(
+            "relative w-full py-3 rounded-xl overflow-hidden",
+            hasBackground && "shadow-inner"
+          )}
+          style={hasAnyBackgroundStyling ? backgroundStyle : undefined}
+        >
+          <CardExCarousel
+            items={carouselItems}
+            mode="roulette"
+            autoPlayMs={settings.autoPlayMs}
+            showLightbox={true}
+            depth="medium"
+            spotlightEnabled={true}
+            direction={direction}
+            imageSize={imageSize}
+            imageGap={imageGap}
+          />
+        </div>
 
-        {/* Overlay CTA */}
+        {/* Overlay CTA (outside overflow-hidden so glow isn't clipped) */}
         {showCTA && cta?.placement === "overlay_bottom" && (
           <div className="absolute bottom-4 right-4 z-10">
             <Button
