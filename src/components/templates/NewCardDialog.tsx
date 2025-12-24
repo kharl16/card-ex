@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { TemplateGallery } from "./TemplateGallery";
 import { CardTemplate, LayoutData } from "@/hooks/useTemplates";
 import { cn } from "@/lib/utils";
+import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
 
 interface NewCardDialogProps {
   open: boolean;
@@ -69,59 +70,33 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
     try {
       const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
       
-      // Get theme from template - copy ALL settings including QR
-      const templateTheme = layoutData?.theme || {};
-      const theme = {
-        ...DEFAULT_THEME,
-        ...templateTheme,
-      };
-      
-      const carouselEnabled = layoutData?.carousel_enabled ?? true;
+      let insertData: Record<string, any>;
 
-      // Create card with ALL data from template (no stripping)
-      // Product images now stored in JSONB column on cards table
-      const productImagesArray = layoutData?.product_images
-        ? layoutData.product_images.map((img: any, index: number) => ({
-            image_url: img.image_url,
-            alt_text: img.alt_text || null,
-            description: img.description || null,
-            sort_order: img.sort_order ?? index,
-          }))
-        : [];
-
-      const { data, error } = await supabase
-        .from("cards")
-        .insert({
+      if (layoutData) {
+        // Use the unified snapshot builder for template-based cards
+        const snapshot = layoutData as CardSnapshot;
+        insertData = buildCardInsertFromSnapshot(snapshot, user.id, slug, {
+          full_name: layoutData.full_name || profileName || "New Card",
+          is_published: false,
+        });
+        // Merge DEFAULT_THEME with template theme
+        insertData.theme = { ...DEFAULT_THEME, ...snapshot.theme };
+      } else {
+        // Build from scratch - minimal card
+        insertData = {
           user_id: user.id,
           slug,
           is_published: false,
-          theme,
-          carousel_enabled: carouselEnabled,
-          // Design assets from template
-          cover_url: layoutData?.cover_url || null,
-          logo_url: layoutData?.logo_url || null,
-          avatar_url: layoutData?.avatar_url || null,
-          // Personal data from template (no longer stripped)
-          full_name: layoutData?.full_name || profileName || "New Card",
-          first_name: layoutData?.first_name || null,
-          middle_name: layoutData?.middle_name || null,
-          last_name: layoutData?.last_name || null,
-          prefix: layoutData?.prefix || null,
-          suffix: layoutData?.suffix || null,
-          title: layoutData?.title || null,
-          company: layoutData?.company || null,
-          bio: layoutData?.bio || null,
-          email: layoutData?.email || null,
-          phone: layoutData?.phone || null,
-          website: layoutData?.website || null,
-          location: layoutData?.location || null,
-          // Card type for new cards
+          theme: DEFAULT_THEME,
+          carousel_enabled: true,
+          full_name: profileName || "New Card",
           card_type: 'publishable',
-          // Social links from template
-          social_links: layoutData?.social_links || null,
-          // Product images from template (JSONB column)
-          product_images: productImagesArray,
-        })
+        };
+      }
+
+      const { data, error } = await supabase
+        .from("cards")
+        .insert(insertData as any)
         .select()
         .single();
 
@@ -134,20 +109,9 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
         throw error;
       }
 
-      // NOTE: Product images are now stored in the JSONB column above
-      // No need to insert into product_images table
-
       // If template has card links, copy them to the new card
       if (layoutData?.card_links && layoutData.card_links.length > 0) {
-        const cardLinkInserts = layoutData.card_links.map((link: any, index: number) => ({
-          card_id: data.id,
-          kind: link.kind,
-          label: link.label,
-          value: link.value,
-          icon: link.icon || null,
-          sort_index: link.sort_index ?? index,
-        }));
-
+        const cardLinkInserts = buildCardLinksInsertFromSnapshot(layoutData as CardSnapshot, data.id);
         await supabase.from("card_links").insert(cardLinkInserts);
       }
 
