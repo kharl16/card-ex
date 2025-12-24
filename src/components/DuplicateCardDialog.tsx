@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
-import { buildCardSnapshot, buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, buildProductImagesInsertFromSnapshot } from "@/lib/cardSnapshot";
+import { buildCardSnapshot, buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot } from "@/lib/cardSnapshot";
 
 type CardData = Tables<"cards"> & { owner_name?: string | null };
 
@@ -66,6 +66,15 @@ export function DuplicateCardDialog({
       const ownerName =
         profile?.full_name || targetUserName || card.owner_name || card.full_name || "New Card Owner";
 
+      // Load full source card row to ensure we have ALL JSON fields (incl. product_images)
+      const { data: sourceCard, error: sourceCardError } = await supabase
+        .from("cards")
+        .select("*")
+        .eq("id", card.id)
+        .single();
+
+      if (sourceCardError || !sourceCard) throw sourceCardError;
+
       // Fetch card_links from source card
       const { data: cardLinks } = await supabase
         .from("card_links")
@@ -73,15 +82,8 @@ export function DuplicateCardDialog({
         .eq("card_id", card.id)
         .order("sort_index");
 
-      // Fetch product_images from source card (from the product_images table)
-      const { data: productImagesFromTable } = await supabase
-        .from("product_images")
-        .select("image_url, alt_text, description, sort_order")
-        .eq("card_id", card.id)
-        .order("sort_order");
-
-      // Build unified snapshot from source card (includes product_images from table)
-      const snapshot = buildCardSnapshot(card as Record<string, any>, cardLinks || [], productImagesFromTable || []);
+      // Build unified snapshot from source card (JSON columns are the source-of-truth)
+      const snapshot = buildCardSnapshot(sourceCard as Record<string, any>, cardLinks || []);
 
       // Generate new unique slug
       const slug = `${effectiveUserId.slice(0, 8)}-${Date.now()}`;
@@ -106,12 +108,6 @@ export function DuplicateCardDialog({
       if (snapshot.card_links.length > 0) {
         const cardLinkInserts = buildCardLinksInsertFromSnapshot(snapshot, newCard.id);
         await supabase.from("card_links").insert(cardLinkInserts);
-      }
-
-      // Copy product images to the product_images table
-      if (snapshot.product_images.length > 0) {
-        const productImageInserts = buildProductImagesInsertFromSnapshot(snapshot, newCard.id, effectiveUserId);
-        await supabase.from("product_images").insert(productImageInserts);
       }
 
       // Copy card images (gallery)
