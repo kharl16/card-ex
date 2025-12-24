@@ -29,6 +29,8 @@ export type CTAWidth = "fit" | "full";
 export type CTAScrollTarget = "top" | "contact" | "carousel_products" | "carousel_packages" | "carousel_testimonies";
 export type CTAContactMethod = "messenger" | "whatsapp" | "viber" | "sms" | "email" | "phone";
 
+export type CTAGlowColorMode = "primary" | "background" | "custom";
+
 export interface CTAStyle {
   variant: CTAVariant;
   shape: CTAShape;
@@ -39,6 +41,8 @@ export interface CTAStyle {
   border?: string;
   glow?: boolean;
   glowIntensity?: number; // 0-100, default 25
+  glowColorMode?: CTAGlowColorMode; // default "primary"
+  glowCustomColor?: string; // hex color when glowColorMode is "custom"
 }
 
 export interface CarouselCTA {
