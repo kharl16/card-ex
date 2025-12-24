@@ -127,6 +127,42 @@ export function DuplicateCardDialog({
         await supabase.from("card_images").insert(cardImageInserts);
       }
 
+      // Hard guarantee: product_images must be copied if source has them
+      const sourceProductCount = (snapshot.product_images || []).filter((img) => !!img?.image_url).length;
+      if (sourceProductCount > 0) {
+        const { data: checkCard, error: checkError } = await supabase
+          .from("cards")
+          .select("product_images")
+          .eq("id", newCard.id)
+          .maybeSingle();
+
+        if (checkError) {
+          console.warn("Duplicate verify failed:", checkError);
+        } else {
+          const targetProductCount = Array.isArray((checkCard as any)?.product_images)
+            ? ((checkCard as any).product_images as any[]).filter((img) => !!(img?.image_url || img?.url)).length
+            : 0;
+
+          if (targetProductCount === 0) {
+            console.warn("Duplicate created with missing product_images; re-applying snapshot data.", {
+              sourceCardId: card.id,
+              newCardId: newCard.id,
+            });
+
+            const { error: fixError } = await supabase
+              .from("cards")
+              .update({ product_images: snapshot.product_images as any })
+              .eq("id", newCard.id);
+
+            if (fixError) {
+              console.warn("Failed to re-apply product_images:", fixError);
+            } else {
+              toast.warning("Product images were missing after duplication and were re-applied.");
+            }
+          }
+        }
+      }
+
       toast.success("Card duplicated successfully!");
       onOpenChange(false);
       onDuplicated?.();
