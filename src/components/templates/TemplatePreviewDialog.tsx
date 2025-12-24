@@ -69,11 +69,14 @@ export function TemplatePreviewDialog({
     product_images: (layoutData.product_images as unknown) as Json || [],
     package_images: (layoutData.package_images as unknown) as Json || [],
     testimony_images: (layoutData.testimony_images as unknown) as Json || [],
-    // Referral fields (new columns)
+    // Referral fields
     owner_referral_code: null,
     referred_by_code: null,
     referred_by_name: null,
     referred_by_user_id: null,
+    // Design versioning
+    design_version: 1,
+    last_design_patch_id: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
