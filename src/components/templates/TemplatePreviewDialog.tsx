@@ -89,13 +89,13 @@ export function TemplatePreviewDialog({
       icon: link.icon || "Globe",
     }));
 
-  // Build product images
+  // Build product images (supports unified {url, alt, order} shape)
   const productImages = (layoutData.product_images || []).map((img, index) => ({
     id: `img-${index}`,
-    image_url: img.image_url,
-    alt_text: img.alt_text,
-    description: img.description,
-    sort_order: img.sort_order ?? index,
+    image_url: img.url,
+    alt_text: img.alt ?? null,
+    description: null,
+    sort_order: img.order ?? index,
   }));
 
   const handleSelect = () => {

@@ -128,7 +128,7 @@ export function DuplicateCardDialog({
       }
 
       // Hard guarantee: product_images must be copied if source has them
-      const sourceProductCount = (snapshot.product_images || []).filter((img) => !!img?.image_url).length;
+      const sourceProductCount = (snapshot.product_images || []).filter((img) => !!img?.url).length;
       if (sourceProductCount > 0) {
         const { data: checkCard, error: checkError } = await supabase
           .from("cards")
