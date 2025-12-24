@@ -251,6 +251,139 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
 
                 {carouselSettings[key].background.enabled && (
                   <>
+                    {/* Preset Background Styles */}
+                    <div className="space-y-2">
+                      <Label>Quick Presets</Label>
+                      <div className="grid grid-cols-4 gap-2">
+                        {/* Dark Theme */}
+                        <button
+                          type="button"
+                          onClick={() => updateBackground(key, {
+                            type: "gradient",
+                            gradient: { from: "#0f0f0f", to: "#1a1a2e", direction: "to-b" },
+                            borderWidth: 1,
+                            borderColor: "#333333",
+                          })}
+                          className="group relative h-12 rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-all"
+                          title="Dark Theme"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#0f0f0f] to-[#1a1a2e]" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-white/80 group-hover:text-white">Dark</span>
+                        </button>
+
+                        {/* Light Theme */}
+                        <button
+                          type="button"
+                          onClick={() => updateBackground(key, {
+                            type: "gradient",
+                            gradient: { from: "#ffffff", to: "#f1f5f9", direction: "to-b" },
+                            borderWidth: 1,
+                            borderColor: "#e2e8f0",
+                          })}
+                          className="group relative h-12 rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-all"
+                          title="Light Theme"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#ffffff] to-[#f1f5f9]" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-gray-600 group-hover:text-gray-900">Light</span>
+                        </button>
+
+                        {/* Ocean Blue */}
+                        <button
+                          type="button"
+                          onClick={() => updateBackground(key, {
+                            type: "gradient",
+                            gradient: { from: "#0c4a6e", to: "#164e63", direction: "to-br" },
+                            borderWidth: 1,
+                            borderColor: "#0ea5e9",
+                          })}
+                          className="group relative h-12 rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-all"
+                          title="Ocean Blue"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#0c4a6e] to-[#164e63]" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-white/80 group-hover:text-white">Ocean</span>
+                        </button>
+
+                        {/* Sunset */}
+                        <button
+                          type="button"
+                          onClick={() => updateBackground(key, {
+                            type: "gradient",
+                            gradient: { from: "#7c2d12", to: "#9f1239", direction: "to-r" },
+                            borderWidth: 1,
+                            borderColor: "#f97316",
+                          })}
+                          className="group relative h-12 rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-all"
+                          title="Sunset"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#7c2d12] to-[#9f1239]" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-white/80 group-hover:text-white">Sunset</span>
+                        </button>
+
+                        {/* Forest */}
+                        <button
+                          type="button"
+                          onClick={() => updateBackground(key, {
+                            type: "gradient",
+                            gradient: { from: "#14532d", to: "#1e3a2f", direction: "to-b" },
+                            borderWidth: 1,
+                            borderColor: "#22c55e",
+                          })}
+                          className="group relative h-12 rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-all"
+                          title="Forest"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#14532d] to-[#1e3a2f]" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-white/80 group-hover:text-white">Forest</span>
+                        </button>
+
+                        {/* Purple */}
+                        <button
+                          type="button"
+                          onClick={() => updateBackground(key, {
+                            type: "gradient",
+                            gradient: { from: "#4c1d95", to: "#581c87", direction: "to-br" },
+                            borderWidth: 1,
+                            borderColor: "#a855f7",
+                          })}
+                          className="group relative h-12 rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-all"
+                          title="Purple"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-br from-[#4c1d95] to-[#581c87]" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-white/80 group-hover:text-white">Purple</span>
+                        </button>
+
+                        {/* Gold */}
+                        <button
+                          type="button"
+                          onClick={() => updateBackground(key, {
+                            type: "gradient",
+                            gradient: { from: "#78350f", to: "#451a03", direction: "to-b" },
+                            borderWidth: 1,
+                            borderColor: "#fbbf24",
+                          })}
+                          className="group relative h-12 rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-all"
+                          title="Gold"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-b from-[#78350f] to-[#451a03]" />
+                          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-amber-200/80 group-hover:text-amber-200">Gold</span>
+                        </button>
+
+                        {/* Transparent */}
+                        <button
+                          type="button"
+                          onClick={() => updateBackground(key, {
+                            type: "transparent",
+                            borderWidth: 0,
+                            borderColor: "#ffffff",
+                          })}
+                          className="group relative h-12 rounded-lg overflow-hidden border border-border hover:ring-2 hover:ring-primary transition-all bg-[repeating-conic-gradient(#80808020_0%_25%,transparent_0%_50%)] bg-[length:12px_12px]"
+                          title="Transparent"
+                        >
+                          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-muted-foreground group-hover:text-foreground">None</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <Separator />
                     <div className="space-y-2">
                       <Label>Type</Label>
                       <Select
