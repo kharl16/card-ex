@@ -29,6 +29,8 @@ import {
   Palette,
   Globe,
   RefreshCw,
+  Wand2,
+  Settings,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -337,6 +339,10 @@ export default function AdminCards() {
   const [editTemplateName, setEditTemplateName] = useState("");
   const [editTemplateDescription, setEditTemplateDescription] = useState("");
   const [savingTemplate, setSavingTemplate] = useState(false);
+  
+  // Default template for new cards
+  const [defaultTemplateId, setDefaultTemplateId] = useState<string>("");
+  const [savingDefaultTemplate, setSavingDefaultTemplate] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -356,7 +362,34 @@ export default function AdminCards() {
   }, [authLoading, session, isAdmin, navigate]);
 
   const loadData = async () => {
-    await Promise.all([loadCards(), loadUsers(), loadTemplates()]);
+    await Promise.all([loadCards(), loadUsers(), loadTemplates(), loadDefaultTemplate()]);
+  };
+
+  const loadDefaultTemplate = async () => {
+    const { data } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "default_template_id")
+      .single();
+    if (data?.value) {
+      setDefaultTemplateId(data.value);
+    }
+  };
+
+  const handleSetDefaultTemplate = async (templateId: string) => {
+    setSavingDefaultTemplate(true);
+    const { error } = await supabase
+      .from("app_settings")
+      .update({ value: templateId })
+      .eq("key", "default_template_id");
+
+    if (error) {
+      toast.error("Failed to set default template");
+    } else {
+      setDefaultTemplateId(templateId);
+      toast.success(templateId ? "Default template set" : "Default template cleared");
+    }
+    setSavingDefaultTemplate(false);
   };
 
   const loadTemplates = async () => {
@@ -782,6 +815,10 @@ export default function AdminCards() {
             <DollarSign className="h-4 w-4" />
             Referrals
           </Button>
+          <Button onClick={() => navigate("/admin/design-patcher")} variant="outline" className="gap-2">
+            <Wand2 className="h-4 w-4" />
+            Design Patcher
+          </Button>
           <Button onClick={() => setShowCreateUserDialog(true)} variant="outline" className="gap-2">
             <UserPlus className="h-4 w-4" />
             Create New User
@@ -982,7 +1019,50 @@ export default function AdminCards() {
                   <Badge variant="destructive">Super Admin</Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
+                {/* Default Template Setting */}
+                <div className="rounded-lg border bg-muted/30 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Settings className="h-4 w-4 text-primary" />
+                    <h4 className="font-medium">Default Theme for New Cards</h4>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    When users create a new card, this template will be applied automatically.
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <Select
+                      value={defaultTemplateId || "none"}
+                      onValueChange={(value) => handleSetDefaultTemplate(value === "none" ? "" : value)}
+                      disabled={savingDefaultTemplate}
+                    >
+                      <SelectTrigger className="w-[280px]">
+                        <SelectValue placeholder="Select default template">
+                          {defaultTemplateId
+                            ? templates.find((t) => t.id === defaultTemplateId)?.name || "Unknown template"
+                            : "No default (blank card)"}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover z-50">
+                        <SelectItem value="none">No default (blank card)</SelectItem>
+                        {templates.map((template) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{template.name}</span>
+                              {template.is_global && (
+                                <Badge variant="outline" className="text-xs">Global</Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {savingDefaultTemplate && (
+                      <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+
+                {/* Templates Grid */}
                 {templatesLoading ? (
                   <LoadingAnimation />
                 ) : templates.length === 0 ? (
