@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Upload, X, GripVertical, Trash2 } from "lucide-react";
+import { Upload, X, GripVertical, Trash2, ImagePlus } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -24,6 +24,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { CarouselKey, CarouselImage } from "@/lib/carouselTypes";
+import ImagePreviewEditor from "./ImagePreviewEditor";
+import { createPreviewUrl, revokePreviewUrl, formatFileSize } from "@/lib/imageCompression";
 
 interface CarouselImageUploaderProps {
   carouselKey: CarouselKey;
@@ -38,6 +40,11 @@ interface SortableImageItemProps {
   image: CarouselImage;
   index: number;
   onDelete: (index: number) => void;
+}
+
+interface PendingImage {
+  file: File;
+  previewUrl: string;
 }
 
 function SortableImageItem({ image, index, onDelete }: SortableImageItemProps) {
@@ -104,6 +111,8 @@ export default function CarouselImageUploader({
 }: CarouselImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+  const [showEditor, setShowEditor] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -112,7 +121,37 @@ export default function CarouselImageUploader({
     })
   );
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const validateFile = (file: File): boolean => {
+    const validImageTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/svg+xml",
+      "image/bmp",
+      "image/tiff",
+      "image/heic",
+      "image/heif",
+    ];
+    const fileExtension = file.name.split(".").pop()?.toLowerCase() || "";
+    const validExtensions = ["jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "tiff", "heic", "heif"];
+
+    const isValidType = file.type.startsWith("image/") || validImageTypes.includes(file.type);
+    const isValidExtension = validExtensions.includes(fileExtension);
+
+    if (!isValidType && !isValidExtension) {
+      toast.error(`${file.name} is not a supported image format`);
+      return false;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error(`${file.name} exceeds 10MB limit`);
+      return false;
+    }
+    return true;
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
@@ -122,54 +161,53 @@ export default function CarouselImageUploader({
       return;
     }
 
-    const filesToUpload = Array.from(files).slice(0, remainingSlots);
-    if (filesToUpload.length < files.length) {
-      toast.warning(`Only uploading first ${filesToUpload.length} images (max ${maxImages})`);
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
+    if (filesToProcess.length < files.length) {
+      toast.warning(`Only processing first ${filesToProcess.length} images (max ${maxImages})`);
     }
+
+    // Validate files
+    const validFiles = filesToProcess.filter(validateFile);
+    if (validFiles.length === 0) return;
+
+    // Create preview URLs
+    const pending = validFiles.map((file) => ({
+      file,
+      previewUrl: createPreviewUrl(file),
+    }));
+
+    setPendingImages(pending);
+    setShowEditor(true);
+    e.target.value = "";
+  };
+
+  const handleEditorConfirm = async (processedBlobs: { blob: Blob; fileName: string }[]) => {
+    // Clean up preview URLs
+    pendingImages.forEach((img) => revokePreviewUrl(img.previewUrl));
+    setPendingImages([]);
+
+    if (processedBlobs.length === 0) return;
 
     setUploading(true);
     setUploadProgress(0);
 
     const newImages: CarouselImage[] = [];
     let completed = 0;
+    let totalOriginalSize = 0;
+    let totalCompressedSize = 0;
 
-    for (const file of filesToUpload) {
-      // Validate - check MIME type or file extension for images
-      const validImageTypes = [
-        "image/jpeg",
-        "image/jpg", 
-        "image/png",
-        "image/webp",
-        "image/gif",
-        "image/svg+xml",
-        "image/bmp",
-        "image/tiff",
-        "image/heic",
-        "image/heif",
-      ];
-      const fileExtension = file.name.split(".").pop()?.toLowerCase() || "";
-      const validExtensions = ["jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "tiff", "heic", "heif"];
-      
-      const isValidType = file.type.startsWith("image/") || validImageTypes.includes(file.type);
-      const isValidExtension = validExtensions.includes(fileExtension);
-      
-      if (!isValidType && !isValidExtension) {
-        toast.error(`${file.name} is not a supported image format`);
-        continue;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error(`${file.name} exceeds 10MB limit`);
-        continue;
-      }
-
+    for (const { blob, fileName } of processedBlobs) {
       try {
-        const fileExt = file.name.split(".").pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `${ownerId}/${cardId}/${carouselKey}/${fileName}`;
+        const fileExt = fileName.split(".").pop() || "jpg";
+        const uniqueFileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `${ownerId}/${cardId}/${carouselKey}/${uniqueFileName}`;
+
+        totalOriginalSize += blob.size;
+        totalCompressedSize += blob.size;
 
         const { error: uploadError } = await supabase.storage
           .from("cardex-products")
-          .upload(filePath, file, { cacheControl: "3600", upsert: false });
+          .upload(filePath, blob, { cacheControl: "3600", upsert: false });
 
         if (uploadError) throw uploadError;
 
@@ -179,15 +217,15 @@ export default function CarouselImageUploader({
 
         newImages.push({
           url: urlData.publicUrl,
-          alt: file.name.replace(/\.[^/.]+$/, ""),
+          alt: fileName.replace(/\.[^/.]+$/, ""),
           order: images.length + newImages.length,
         });
 
         completed++;
-        setUploadProgress(Math.round((completed / filesToUpload.length) * 100));
+        setUploadProgress(Math.round((completed / processedBlobs.length) * 100));
       } catch (error) {
-        console.error(`Error uploading ${file.name}:`, error);
-        toast.error(`Failed to upload ${file.name}`);
+        console.error(`Error uploading ${fileName}:`, error);
+        toast.error(`Failed to upload ${fileName}`);
       }
     }
 
@@ -197,12 +235,22 @@ export default function CarouselImageUploader({
         order: i,
       }));
       onImagesChange(updatedImages);
-      toast.success(`Uploaded ${newImages.length} image${newImages.length > 1 ? "s" : ""}`);
+      toast.success(
+        `Uploaded ${newImages.length} image${newImages.length > 1 ? "s" : ""} (${formatFileSize(totalCompressedSize)})`
+      );
     }
 
     setUploading(false);
     setUploadProgress(0);
-    e.target.value = "";
+  };
+
+  const handleEditorClose = (open: boolean) => {
+    if (!open) {
+      // Clean up preview URLs
+      pendingImages.forEach((img) => revokePreviewUrl(img.previewUrl));
+      setPendingImages([]);
+    }
+    setShowEditor(open);
   };
 
   const handleDragEnd = useCallback(
@@ -226,7 +274,7 @@ export default function CarouselImageUploader({
   const handleDelete = useCallback(
     async (index: number) => {
       const imageToDelete = images[index];
-      
+
       // Try to delete from storage
       try {
         const urlParts = imageToDelete.url.split("/");
@@ -290,6 +338,7 @@ export default function CarouselImageUploader({
 
       {images.length === 0 && (
         <div className="text-center py-6 border border-dashed border-border rounded-lg">
+          <ImagePlus className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
             No images yet. Upload images to display in the {carouselLabels[carouselKey].toLowerCase()} carousel.
           </p>
@@ -306,7 +355,7 @@ export default function CarouselImageUploader({
           className="file:mr-4 file:px-3 file:py-1 file:rounded-md file:bg-primary file:text-primary-foreground file:font-medium file:border-0 file:cursor-pointer hover:file:opacity-90"
         />
         <p className="text-xs text-muted-foreground">
-          Supports JPG, PNG, WebP, GIF, SVG, BMP, HEIC. Max 10MB per image. {maxImages - images.length} slots remaining.
+          Images are automatically compressed. Crop/edit before upload. Max 10MB per image. {maxImages - images.length} slots remaining.
         </p>
       </div>
 
@@ -316,6 +365,13 @@ export default function CarouselImageUploader({
           <p className="text-xs text-muted-foreground">Uploading... {uploadProgress}%</p>
         </div>
       )}
+
+      <ImagePreviewEditor
+        open={showEditor}
+        onOpenChange={handleEditorClose}
+        pendingImages={pendingImages}
+        onConfirm={handleEditorConfirm}
+      />
     </div>
   );
 }
