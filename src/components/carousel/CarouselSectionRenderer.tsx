@@ -134,7 +134,10 @@ export default function CarouselSectionRenderer({
   
   // Add glow effect using custom background color if glow is enabled
   if (ctaStyle.glow && ctaStyle.background) {
-    ctaInlineStyle.boxShadow = `0 10px 15px -3px ${ctaStyle.background}40, 0 4px 6px -4px ${ctaStyle.background}40`;
+    const intensity = ctaStyle.glowIntensity ?? 25;
+    // Convert intensity (10-100) to hex opacity (1a-ff roughly)
+    const opacityHex = Math.round((intensity / 100) * 255).toString(16).padStart(2, '0');
+    ctaInlineStyle.boxShadow = `0 10px 15px -3px ${ctaStyle.background}${opacityHex}, 0 4px 6px -4px ${ctaStyle.background}${opacityHex}`;
   }
 
   return (
