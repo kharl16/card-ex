@@ -131,6 +131,11 @@ export default function CarouselSectionRenderer({
   if (ctaStyle.background) ctaInlineStyle.backgroundColor = ctaStyle.background;
   if (ctaStyle.text) ctaInlineStyle.color = ctaStyle.text;
   if (ctaStyle.border) ctaInlineStyle.borderColor = ctaStyle.border;
+  
+  // Add glow effect using custom background color if glow is enabled
+  if (ctaStyle.glow && ctaStyle.background) {
+    ctaInlineStyle.boxShadow = `0 10px 15px -3px ${ctaStyle.background}40, 0 4px 6px -4px ${ctaStyle.background}40`;
+  }
 
   return (
     <section
