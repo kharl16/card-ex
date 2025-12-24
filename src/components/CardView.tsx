@@ -246,11 +246,23 @@ export default function CardView({
             (card as any).carousel_settings as Partial<CarouselSettingsData> | null
           );
           const contactInfo = { phone: card.phone, email: card.email, website: card.website };
-          
-          // Extract images from the new dedicated columns
-          const productImagesData = ((card as any).product_images || []) as { url: string; alt?: string; order?: number }[];
-          const packageImagesData = ((card as any).package_images || []) as { url: string; alt?: string; order?: number }[];
-          const testimonyImagesData = ((card as any).testimony_images || []) as { url: string; alt?: string; order?: number }[];
+
+          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number }[] => {
+            if (!raw || !Array.isArray(raw)) return [];
+
+            return raw
+              .map((img: any, idx: number) => ({
+                url: (typeof img?.url === "string" ? img.url : img?.image_url) as string | undefined,
+                alt: (img?.alt ?? img?.alt_text) as string | undefined,
+                order: (img?.order ?? img?.sort_order ?? idx) as number,
+              }))
+              .filter((img) => !!img.url);
+          };
+
+          // Extract images from the dedicated JSON columns (supports both legacy shapes)
+          const productImagesData = normalizeCarouselImages((card as any).product_images);
+          const packageImagesData = normalizeCarouselImages((card as any).package_images);
+          const testimonyImagesData = normalizeCarouselImages((card as any).testimony_images);
           
           return (
             <>
