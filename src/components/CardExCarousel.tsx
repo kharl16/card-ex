@@ -493,7 +493,7 @@ export default function CardExCarousel({
   imageSize = "md",
   imageGap = 12,
 }: CardExCarouselProps) {
-  const safeItems = (items || []).slice(0, 20);
+  const safeItems = items || [];
   const count = safeItems.length;
 
   if (!count) return null;
