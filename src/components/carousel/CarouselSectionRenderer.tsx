@@ -126,6 +126,12 @@ export default function CarouselSectionRenderer({
   // CTA variant mapping
   const buttonVariant = ctaStyle.variant === "solid" ? "default" : ctaStyle.variant;
 
+  // Build inline style object only with defined values - prevents undefined from overriding CSS
+  const ctaInlineStyle: React.CSSProperties = {};
+  if (ctaStyle.background) ctaInlineStyle.backgroundColor = ctaStyle.background;
+  if (ctaStyle.text) ctaInlineStyle.color = ctaStyle.text;
+  if (ctaStyle.border) ctaInlineStyle.borderColor = ctaStyle.border;
+
   return (
     <section
       id={`carousel-${carouselKey}`}
@@ -139,11 +145,7 @@ export default function CarouselSectionRenderer({
             variant={buttonVariant}
             className={ctaClasses}
             onClick={handleCTAClick}
-            style={{
-              backgroundColor: ctaStyle.background,
-              color: ctaStyle.text,
-              borderColor: ctaStyle.border,
-            }}
+            style={Object.keys(ctaInlineStyle).length > 0 ? ctaInlineStyle : undefined}
           >
             {cta?.label || "Click"}
           </Button>
@@ -177,11 +179,7 @@ export default function CarouselSectionRenderer({
               variant={buttonVariant}
               className={cn(ctaClasses, "backdrop-blur-sm bg-opacity-90")}
               onClick={handleCTAClick}
-              style={{
-                backgroundColor: ctaStyle.background,
-                color: ctaStyle.text,
-                borderColor: ctaStyle.border,
-              }}
+              style={Object.keys(ctaInlineStyle).length > 0 ? ctaInlineStyle : undefined}
             >
               {cta?.label || "Click"}
             </Button>
@@ -196,11 +194,7 @@ export default function CarouselSectionRenderer({
             variant={buttonVariant}
             className={ctaClasses}
             onClick={handleCTAClick}
-            style={{
-              backgroundColor: ctaStyle.background,
-              color: ctaStyle.text,
-              borderColor: ctaStyle.border,
-            }}
+            style={Object.keys(ctaInlineStyle).length > 0 ? ctaInlineStyle : undefined}
           >
             {cta?.label || "Click"}
           </Button>
