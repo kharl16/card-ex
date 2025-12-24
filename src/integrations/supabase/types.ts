@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_patches: {
+        Row: {
+          admin_user_id: string
+          before_states: Json | null
+          cards_affected: number
+          created_at: string
+          id: string
+          patch_options: Json
+          results: Json
+          snapshot_template: Json | null
+          status: string
+          target_card_ids: Json
+          target_mode: string
+          template_id: string | null
+        }
+        Insert: {
+          admin_user_id: string
+          before_states?: Json | null
+          cards_affected?: number
+          created_at?: string
+          id?: string
+          patch_options?: Json
+          results?: Json
+          snapshot_template?: Json | null
+          status?: string
+          target_card_ids?: Json
+          target_mode: string
+          template_id?: string | null
+        }
+        Update: {
+          admin_user_id?: string
+          before_states?: Json | null
+          cards_affected?: number
+          created_at?: string
+          id?: string
+          patch_options?: Json
+          results?: Json
+          snapshot_template?: Json | null
+          status?: string
+          target_card_ids?: Json
+          target_mode?: string
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_patches_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "card_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_daily: {
         Row: {
           card_id: string
@@ -279,6 +332,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           custom_slug: string | null
+          design_version: number
           email: string | null
           first_name: string | null
           full_name: string
@@ -286,6 +340,7 @@ export type Database = {
           is_paid: boolean
           is_published: boolean | null
           is_template: boolean
+          last_design_patch_id: string | null
           last_name: string | null
           location: string | null
           logo_url: string | null
@@ -331,6 +386,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           custom_slug?: string | null
+          design_version?: number
           email?: string | null
           first_name?: string | null
           full_name: string
@@ -338,6 +394,7 @@ export type Database = {
           is_paid?: boolean
           is_published?: boolean | null
           is_template?: boolean
+          last_design_patch_id?: string | null
           last_name?: string | null
           location?: string | null
           logo_url?: string | null
@@ -383,6 +440,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           custom_slug?: string | null
+          design_version?: number
           email?: string | null
           first_name?: string | null
           full_name?: string
@@ -390,6 +448,7 @@ export type Database = {
           is_paid?: boolean
           is_published?: boolean | null
           is_template?: boolean
+          last_design_patch_id?: string | null
           last_name?: string | null
           location?: string | null
           logo_url?: string | null
@@ -426,6 +485,13 @@ export type Database = {
           website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "cards_last_design_patch_id_fkey"
+            columns: ["last_design_patch_id"]
+            isOneToOne: false
+            referencedRelation: "admin_patches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "cards_plan_id_fkey"
             columns: ["plan_id"]
