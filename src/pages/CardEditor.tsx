@@ -103,7 +103,6 @@ const DEFAULT_SECTION_ORDER = [
   "basic",
   "contact",
   "social",
-  "products",
   "carousel",
   "qr",
   "theme",
@@ -793,16 +792,6 @@ export default function CardEditor() {
         icon: <Share className="h-4 w-4" />,
         progress: calculateProgress("social"),
         content: <SocialMediaLinks cardId={card.id} onLinksChange={setSocialLinks} />,
-      },
-      products: {
-        id: "products",
-        title: "Product Images",
-        description: "Showcase your products or services",
-        icon: <Image className="h-4 w-4" />,
-        progress: calculateProgress("products"),
-        content: (
-          <ProductImageManager cardId={card.id} ownerId={card.user_id} onImagesChange={loadProductImages} />
-        ),
       },
       carousel: {
         id: "carousel",
