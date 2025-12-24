@@ -23,6 +23,7 @@ import {
   type CTAShape,
   type CTASize,
   type CTAWidth,
+  type CTAGlowColorMode,
   type CarouselBackgroundType,
   type CarouselGradientDirection,
   mergeCarouselSettings,
@@ -785,21 +786,60 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                     </div>
 
                     {carouselSettings[key].cta.style.glow && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Label>Glow Intensity</Label>
-                          <span className="text-xs text-muted-foreground">
-                            {carouselSettings[key].cta.style.glowIntensity ?? 25}%
-                          </span>
+                      <>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label>Glow Intensity</Label>
+                            <span className="text-xs text-muted-foreground">
+                              {carouselSettings[key].cta.style.glowIntensity ?? 25}%
+                            </span>
+                          </div>
+                          <Slider
+                            value={[carouselSettings[key].cta.style.glowIntensity ?? 25]}
+                            onValueChange={([v]) => updateCTAStyle(key, { glowIntensity: v })}
+                            min={10}
+                            max={100}
+                            step={5}
+                          />
                         </div>
-                        <Slider
-                          value={[carouselSettings[key].cta.style.glowIntensity ?? 25]}
-                          onValueChange={([v]) => updateCTAStyle(key, { glowIntensity: v })}
-                          min={10}
-                          max={100}
-                          step={5}
-                        />
-                      </div>
+
+                        <div className="space-y-2">
+                          <Label>Glow Color</Label>
+                          <Select
+                            value={carouselSettings[key].cta.style.glowColorMode || "primary"}
+                            onValueChange={(v) => updateCTAStyle(key, { glowColorMode: v as CTAGlowColorMode })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="primary">Primary (Gold)</SelectItem>
+                              <SelectItem value="background">Button Background</SelectItem>
+                              <SelectItem value="custom">Custom Color</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {carouselSettings[key].cta.style.glowColorMode === "custom" && (
+                          <div className="space-y-2">
+                            <Label>Custom Glow Color</Label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={carouselSettings[key].cta.style.glowCustomColor || "#d4a51a"}
+                                onChange={(e) => updateCTAStyle(key, { glowCustomColor: e.target.value })}
+                                className="w-10 h-10 rounded-md border border-input cursor-pointer"
+                              />
+                              <Input
+                                value={carouselSettings[key].cta.style.glowCustomColor || "#d4a51a"}
+                                onChange={(e) => updateCTAStyle(key, { glowCustomColor: e.target.value })}
+                                placeholder="#d4a51a"
+                                className="flex-1"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </>
                     )}
                   </>
                 )}

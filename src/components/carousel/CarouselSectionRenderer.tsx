@@ -172,14 +172,29 @@ export default function CarouselSectionRenderer({
   // Glow effect (use inline box-shadow so it works even with custom Tailwind shadow tokens)
   if (ctaStyle.glow) {
     const intensity = ctaStyle.glowIntensity ?? 25;
-    const base = ctaStyle.background ?? "hsl(var(--primary))";
+    const glowMode = ctaStyle.glowColorMode ?? "primary";
+    
+    // Determine glow color based on mode
+    let glowColor: string;
+    switch (glowMode) {
+      case "background":
+        glowColor = ctaStyle.background ?? "hsl(var(--primary))";
+        break;
+      case "custom":
+        glowColor = ctaStyle.glowCustomColor ?? "hsl(var(--primary))";
+        break;
+      case "primary":
+      default:
+        glowColor = "hsl(var(--primary))";
+        break;
+    }
 
     const glowAlpha = Math.max(0.08, Math.min(0.7, (intensity / 100) * 0.6));
     const rimAlpha = Math.max(0.06, Math.min(0.35, (intensity / 100) * 0.25));
 
     ctaInlineStyle.boxShadow = [
-      `0 14px 28px -12px ${withAlpha(base, glowAlpha)}`,
-      `0 0 0 1px ${withAlpha(base, rimAlpha)}`,
+      `0 14px 28px -12px ${withAlpha(glowColor, glowAlpha)}`,
+      `0 0 0 1px ${withAlpha(glowColor, rimAlpha)}`,
     ].join(", ");
   }
 
