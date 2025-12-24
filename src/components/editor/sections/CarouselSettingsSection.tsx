@@ -783,6 +783,24 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                         onCheckedChange={(v) => updateCTAStyle(key, { glow: v })}
                       />
                     </div>
+
+                    {carouselSettings[key].cta.style.glow && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Glow Intensity</Label>
+                          <span className="text-xs text-muted-foreground">
+                            {carouselSettings[key].cta.style.glowIntensity ?? 25}%
+                          </span>
+                        </div>
+                        <Slider
+                          value={[carouselSettings[key].cta.style.glowIntensity ?? 25]}
+                          onValueChange={([v]) => updateCTAStyle(key, { glowIntensity: v })}
+                          min={10}
+                          max={100}
+                          step={5}
+                        />
+                      </div>
+                    )}
                   </>
                 )}
               </CardContent>

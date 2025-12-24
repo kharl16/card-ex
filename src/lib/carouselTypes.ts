@@ -38,6 +38,7 @@ export interface CTAStyle {
   text?: string;
   border?: string;
   glow?: boolean;
+  glowIntensity?: number; // 0-100, default 25
 }
 
 export interface CarouselCTA {
