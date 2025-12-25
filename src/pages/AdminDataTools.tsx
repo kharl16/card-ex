@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,15 @@ export default function AdminDataTools() {
   const [result, setResult] = useState<string | null>(null);
   const [backfillRunning, setBackfillRunning] = useState(false);
   const [backfillResult, setBackfillResult] = useState<string | null>(null);
+  const hasAutoRun = useRef(false);
+
+  // Auto-run the referral backfill on page load
+  useEffect(() => {
+    if (!hasAutoRun.current) {
+      hasAutoRun.current = true;
+      runReferralBackfill();
+    }
+  }, []);
 
   const runMigration = async () => {
     setRunning(true);
