@@ -134,15 +134,17 @@ export default function Signup() {
             </div>
           )}
 
-          <form onSubmit={handleEmailSignUp} className="space-y-4">
+          <form onSubmit={handleEmailSignUp} className="space-y-4" autoComplete="off">
             <div className="space-y-2">
               <Label htmlFor="signup-name">Full Name</Label>
               <Input
                 id="signup-name"
+                name="signup-name"
                 type="text"
                 placeholder="John Doe"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
+                autoComplete="off"
                 required
               />
             </div>
@@ -150,10 +152,12 @@ export default function Signup() {
               <Label htmlFor="signup-email">Email</Label>
               <Input
                 id="signup-email"
+                name="signup-email"
                 type="email"
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="new-email"
                 required
               />
             </div>
@@ -161,10 +165,12 @@ export default function Signup() {
               <Label htmlFor="signup-password">Password</Label>
               <Input
                 id="signup-password"
+                name="signup-password"
                 type="password"
                 placeholder="Minimum 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
                 minLength={6}
               />
