@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Chrome, Gift } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { storeReferralCode, getStoredReferralCode } from "@/hooks/useReferral";
+import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -78,7 +79,7 @@ export default function Signup() {
             full_name: fullName,
             referral_code: referralCode, // Store referral code in user metadata
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: getAuthCallbackUrl()
         }
       });
       if (error) throw error;
@@ -100,10 +101,18 @@ export default function Signup() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      // Store intended destination before OAuth redirect
+      storeAuthNext();
+      
+      const redirectUrl = getAuthCallbackUrl();
+      if (import.meta.env.DEV) {
+        console.log("[Signup] Google OAuth redirectTo:", redirectUrl);
+      }
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: redirectUrl
         }
       });
       if (error) throw error;
