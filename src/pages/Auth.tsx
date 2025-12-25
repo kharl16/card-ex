@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Mail, Chrome, ArrowLeft } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -69,7 +70,7 @@ export default function Auth() {
         password,
         options: {
           data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: getAuthCallbackUrl()
         }
       });
       if (error) throw error;
@@ -112,7 +113,7 @@ export default function Auth() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: getAuthCallbackUrl()
         }
       });
       if (error) throw error;
@@ -127,10 +128,18 @@ export default function Auth() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      // Store intended destination before OAuth redirect
+      storeAuthNext();
+      
+      const redirectUrl = getAuthCallbackUrl();
+      if (import.meta.env.DEV) {
+        console.log("[Auth] Google OAuth redirectTo:", redirectUrl);
+      }
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: redirectUrl
         }
       });
       if (error) throw error;
@@ -149,7 +158,7 @@ export default function Auth() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/auth/reset-password`
+        redirectTo: `${getAuthCallbackUrl().replace('/callback', '/reset-password')}`
       });
       if (error) throw error;
       toast.success("If an account with that email exists, a password reset link has been sent.");
