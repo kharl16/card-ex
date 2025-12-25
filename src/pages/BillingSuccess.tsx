@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { CheckCircle, Copy, Share2, ExternalLink, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useReferralProfile } from "@/hooks/useReferral";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,6 +14,7 @@ interface CardData {
   slug: string;
   plan_id: string;
   is_published: boolean;
+  user_id: string;
 }
 
 interface PlanData {
@@ -27,18 +26,16 @@ interface PlanData {
 export default function BillingSuccess() {
   const { cardId } = useParams<{ cardId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: referralProfile, refetch: refetchReferral } = useReferralProfile();
 
   const [card, setCard] = useState<CardData | null>(null);
   const [plan, setPlan] = useState<PlanData | null>(null);
+  const [cardOwnerReferral, setCardOwnerReferral] = useState<{ referral_code: string | null; has_referral_access: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     if (cardId) {
       loadCardAndPlan();
-      refetchReferral();
     }
   }, [cardId]);
 
@@ -47,7 +44,7 @@ export default function BillingSuccess() {
 
     const { data: cardData, error: cardError } = await supabase
       .from("cards")
-      .select("id, full_name, slug, plan_id, is_published")
+      .select("id, full_name, slug, plan_id, is_published, user_id")
       .eq("id", cardId)
       .single();
 
@@ -58,6 +55,15 @@ export default function BillingSuccess() {
     }
 
     setCard(cardData);
+
+    // Fetch the card OWNER's referral profile (not the currently logged-in user)
+    const { data: ownerProfile } = await supabase
+      .from("profiles")
+      .select("referral_code, has_referral_access")
+      .eq("id", cardData.user_id)
+      .single();
+
+    setCardOwnerReferral(ownerProfile);
 
     if (cardData.plan_id) {
       const { data: planData } = await supabase
@@ -94,8 +100,8 @@ export default function BillingSuccess() {
     navigate(`/c/${card?.slug}`);
   };
 
-  const referralLink = referralProfile?.referral_code
-    ? `https://tagex.app/signup?ref=${referralProfile.referral_code}`
+  const referralLink = cardOwnerReferral?.referral_code
+    ? `https://tagex.app/signup?ref=${cardOwnerReferral.referral_code}`
     : null;
 
   const copyToClipboard = async (text: string, label: string) => {
@@ -167,7 +173,7 @@ export default function BillingSuccess() {
             </div>
 
             {/* Referral Section */}
-            {plan?.referral_eligible && referralProfile?.has_referral_access && referralLink && (
+            {plan?.referral_eligible && cardOwnerReferral?.has_referral_access && referralLink && (
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
