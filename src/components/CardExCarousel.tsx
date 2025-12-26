@@ -4,7 +4,6 @@ import { useLightbox, type LightboxImage } from "@/hooks/useLightbox";
 import LightboxDialog from "@/components/LightboxDialog";
 import SpotlightStage, { getSlideActiveClass } from "@/components/SpotlightStage";
 import Carousel3DRing from "@/components/Carousel3DRing";
-import CarouselShareHeader from "@/components/carousel/CarouselShareHeader";
 import {
   Carousel,
   CarouselContent,
@@ -587,18 +586,6 @@ export default function CardExCarousel({
 
   return (
     <div className={cn("w-full", className)}>
-      {/* Share header */}
-      {shareEnabled && (
-        <CarouselShareHeader
-          carouselKind={carouselKind}
-          imageUrls={imageUrls}
-          shareEnabled={shareEnabled}
-          shareAllEnabled={shareAllEnabled}
-          shareUrl={shareUrl}
-          title={shareTitle}
-          onShareEvent={handleShareEvent}
-        />
-      )}
 
       {mode === "roulette" && (
         <RouletteMode

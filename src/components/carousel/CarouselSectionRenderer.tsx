@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import CardExCarousel from "@/components/CardExCarousel";
+import CarouselShareHeader from "@/components/carousel/CarouselShareHeader";
 import { cn } from "@/lib/utils";
 import {
   type CarouselSection,
@@ -12,6 +13,7 @@ import {
   getCTAButtonClasses,
 } from "@/lib/carouselTypes";
 import { toast } from "sonner";
+import type { CarouselKind } from "@/lib/share";
 
 interface ContactInfo {
   phone?: string | null;
@@ -27,6 +29,10 @@ interface CarouselSectionRendererProps {
   contactInfo?: ContactInfo;
   isInteractive?: boolean;
   className?: string;
+  /** Enable share buttons */
+  shareEnabled?: boolean;
+  /** URL for sharing */
+  shareUrl?: string;
 }
 
 export default function CarouselSectionRenderer({
@@ -36,6 +42,8 @@ export default function CarouselSectionRenderer({
   contactInfo = {},
   isInteractive = true,
   className,
+  shareEnabled = true,
+  shareUrl,
 }: CarouselSectionRendererProps) {
   const [modalOpen, setModalOpen] = React.useState(false);
 
@@ -198,23 +206,46 @@ export default function CarouselSectionRenderer({
     ].join(", ");
   }
 
+  // Map carouselKey to CarouselKind for share component
+  const carouselKindMap: Record<CarouselKey, CarouselKind> = {
+    products: "products",
+    packages: "packages",
+    testimonies: "testimonies",
+  };
+  const carouselKind = carouselKindMap[carouselKey];
+  const imageUrls = carouselItems.map((item) => item.url);
+
   return (
     <section
       id={`carousel-${carouselKey}`}
       className={cn("relative w-full py-2", className)}
     >
-      {/* Header with title and optional CTA */}
-      <div className="flex items-center justify-between px-4 mb-2">
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        {showCTA && cta?.placement === "header_right" && (
-          <Button
-            variant={buttonVariant}
-            className={ctaClasses}
-            onClick={handleCTAClick}
-            style={Object.keys(ctaInlineStyle).length > 0 ? ctaInlineStyle : undefined}
-          >
-            {cta?.label || "Click"}
-          </Button>
+      {/* Header with title, share buttons, and optional CTA */}
+      <div className="flex flex-col gap-1 px-4 mb-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+          {showCTA && cta?.placement === "header_right" && (
+            <Button
+              variant={buttonVariant}
+              className={ctaClasses}
+              onClick={handleCTAClick}
+              style={Object.keys(ctaInlineStyle).length > 0 ? ctaInlineStyle : undefined}
+            >
+              {cta?.label || "Click"}
+            </Button>
+          )}
+        </div>
+        {/* Share buttons row - aligned below title */}
+        {shareEnabled && imageUrls.length > 0 && (
+          <CarouselShareHeader
+            carouselKind={carouselKind}
+            imageUrls={imageUrls}
+            shareEnabled={shareEnabled}
+            shareAllEnabled={true}
+            shareUrl={shareUrl}
+            title={title}
+            className="justify-start -ml-1"
+          />
         )}
       </div>
 
