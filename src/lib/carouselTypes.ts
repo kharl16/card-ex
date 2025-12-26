@@ -73,6 +73,7 @@ export interface CarouselImage {
   url: string;
   alt?: string;
   order?: number;
+  shareText?: string; // optional caption override for sharing
 }
 
 export interface CarouselSection {
