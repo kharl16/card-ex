@@ -1,8 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
+import { shareSingleImage, type CarouselKind } from "@/lib/share";
 
 export interface LightboxImage {
   url: string;
   alt?: string;
+  shareText?: string;
 }
 
 export interface UseLightboxOptions {
@@ -11,6 +13,11 @@ export interface UseLightboxOptions {
   onDownload?: (index: number) => void;
   onOpen?: (index: number) => void;
   onClose?: (index: number) => void;
+  onShare?: (index: number) => void;
+  shareEnabled?: boolean;
+  carouselKind?: CarouselKind;
+  shareTitle?: string;
+  shareUrl?: string;
 }
 
 export interface UseLightboxResult {
@@ -26,8 +33,10 @@ export interface UseLightboxResult {
   nextImage: () => void;
   prevImage: () => void;
   handleDownload: () => Promise<void>;
+  handleShare: () => Promise<void>;
   currentImage: LightboxImage | undefined;
   count: number;
+  shareEnabled: boolean;
 }
 
 export function useLightbox({
@@ -36,6 +45,11 @@ export function useLightbox({
   onDownload,
   onOpen,
   onClose,
+  onShare,
+  shareEnabled = true,
+  carouselKind = "products",
+  shareTitle,
+  shareUrl,
 }: UseLightboxOptions): UseLightboxResult {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
@@ -119,6 +133,24 @@ export function useLightbox({
     }
   }, [images, lightboxIndex, onDownload]);
 
+  // Share current lightbox image
+  const handleShare = useCallback(async () => {
+    const current = images[lightboxIndex];
+    if (!current?.url || !shareEnabled) return;
+
+    const title = shareTitle || `Card-Ex ${carouselKind.charAt(0).toUpperCase() + carouselKind.slice(1)}`;
+    const text = current.shareText || current.alt || "";
+
+    await shareSingleImage({
+      imageUrl: current.url,
+      title,
+      text,
+      url: shareUrl,
+    });
+
+    onShare?.(lightboxIndex);
+  }, [images, lightboxIndex, shareEnabled, shareTitle, carouselKind, shareUrl, onShare]);
+
   // Keyboard navigation for lightbox
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -131,11 +163,12 @@ export function useLightbox({
       if (e.key === "-") zoomOut();
       if (e.key === "0") resetZoom();
       if (e.key.toLowerCase() === "s") handleDownload();
+      if (e.key.toLowerCase() === "h" && shareEnabled) handleShare();
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [lightboxOpen, closeLightbox, nextImage, prevImage, zoomIn, zoomOut, resetZoom, handleDownload]);
+  }, [lightboxOpen, closeLightbox, nextImage, prevImage, zoomIn, zoomOut, resetZoom, handleDownload, handleShare, shareEnabled]);
 
   return {
     lightboxOpen,
@@ -150,7 +183,9 @@ export function useLightbox({
     nextImage,
     prevImage,
     handleDownload,
+    handleShare,
     currentImage,
     count,
+    shareEnabled,
   };
 }

@@ -1,9 +1,10 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouletteCarousel } from "@/hooks/useRouletteCarousel";
 import { useLightbox, type LightboxImage } from "@/hooks/useLightbox";
 import LightboxDialog from "@/components/LightboxDialog";
 import SpotlightStage, { getSlideActiveClass } from "@/components/SpotlightStage";
 import Carousel3DRing from "@/components/Carousel3DRing";
+import CarouselShareHeader from "@/components/carousel/CarouselShareHeader";
 import {
   Carousel,
   CarouselContent,
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/carousel";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import type { CarouselKind } from "@/lib/share";
 
 // Types
 export type CardExCarouselMode = "roulette" | "ring3d" | "flat";
@@ -26,6 +28,7 @@ export interface CardExCarouselItem {
   description?: string;
   href?: string;
   badge?: string;
+  shareText?: string;
 }
 
 export type CardExCarouselEventType =
@@ -33,7 +36,9 @@ export type CardExCarouselEventType =
   | "image_click"
   | "lightbox_open"
   | "lightbox_close"
-  | "download";
+  | "download"
+  | "share_single"
+  | "share_all";
 
 export interface CardExCarouselEvent {
   type: CardExCarouselEventType;
@@ -61,6 +66,16 @@ export interface CardExCarouselProps {
   imageSize?: "sm" | "md" | "lg";
   /** Gap between images in pixels (0-32), default 12 */
   imageGap?: number;
+  /** Carousel kind for sharing context */
+  carouselKind?: CarouselKind;
+  /** Enable share features */
+  shareEnabled?: boolean;
+  /** Enable "Share All" button */
+  shareAllEnabled?: boolean;
+  /** Title used in share payloads */
+  shareTitle?: string;
+  /** URL to share (defaults to current page URL) */
+  shareUrl?: string;
 }
 
 // Check for reduced motion preference
@@ -70,11 +85,17 @@ const prefersReducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // Depth configuration for 3D effects
-// Depth configuration - scales are reduced to prevent overlap
 const depthConfig: Record<CarouselDepth, { scale: number; translateZ: number; rotateY: number }> = {
   soft: { scale: 1.05, translateZ: 30, rotateY: 8 },
   medium: { scale: 1.1, translateZ: 40, rotateY: 10 },
   strong: { scale: 1.15, translateZ: 50, rotateY: 12 },
+};
+
+// Image size configurations
+const imageSizeConfig = {
+  sm: { height: "h-[140px] sm:h-[160px]" },
+  md: { height: "h-[200px] sm:h-[220px]" },
+  lg: { height: "h-[260px] sm:h-[300px]" },
 };
 
 // ============== ROULETTE MODE ==============
@@ -89,14 +110,11 @@ interface RouletteModeProps {
   direction: CarouselDirection;
   imageSize: "sm" | "md" | "lg";
   imageGap?: number;
+  shareEnabled: boolean;
+  carouselKind: CarouselKind;
+  shareTitle?: string;
+  shareUrl?: string;
 }
-
-// Image size configurations
-const imageSizeConfig = {
-  sm: { height: "h-[140px] sm:h-[160px]" },
-  md: { height: "h-[200px] sm:h-[220px]" },
-  lg: { height: "h-[260px] sm:h-[300px]" },
-};
 
 function RouletteMode({
   items,
@@ -109,6 +127,10 @@ function RouletteMode({
   direction,
   imageSize,
   imageGap = 12,
+  shareEnabled,
+  carouselKind,
+  shareTitle,
+  shareUrl,
 }: RouletteModeProps) {
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
@@ -135,7 +157,7 @@ function RouletteMode({
   const sizeClasses = imageSizeConfig[imageSize] || imageSizeConfig.md;
 
   const lightboxImages: LightboxImage[] = useMemo(
-    () => items.map((item) => ({ url: item.url, alt: item.alt })),
+    () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText })),
     [items]
   );
 
@@ -145,6 +167,11 @@ function RouletteMode({
     onOpen: (index) => onEvent?.({ type: "lightbox_open", index, item: items[index] }),
     onClose: (index) => onEvent?.({ type: "lightbox_close", index, item: items[index] }),
     onDownload: (index) => onEvent?.({ type: "download", index, item: items[index] }),
+    onShare: (index) => onEvent?.({ type: "share_single", index, item: items[index] }),
+    shareEnabled,
+    carouselKind,
+    shareTitle,
+    shareUrl,
   });
 
   const handleImageClick = (logicalIndex: number) => {
@@ -202,29 +229,29 @@ function RouletteMode({
                 const isActive = cyclicDistance(logicalIndex, Math.round(logicalCenter)) === 0;
                 const slideClass = getSlideActiveClass(logicalIndex, Math.round(logicalCenter), count, spotlightEnabled);
 
-                  // Clamp scale to prevent overlap - max 1.15 for center item
-                  const clampedScale = Math.min(scale, 1.15);
+                // Clamp scale to prevent overlap - max 1.15 for center item
+                const clampedScale = Math.min(scale, 1.15);
 
-                  return (
-                    <div
-                      key={`${img.id}-${i}`}
-                      className={cn(
-                        "relative h-full flex-shrink-0 transform-gpu",
-                        slideClass
-                      )}
-                      style={{
-                        width: `${slideWidthPercent}%`,
-                        paddingLeft: `${imageGap / 2}px`,
-                        paddingRight: `${imageGap / 2}px`,
-                        transformStyle: "preserve-3d",
-                        transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${clampedScale})`,
-                        opacity,
-                        transition: reducedMotion ? "none" : "transform 220ms linear, opacity 220ms linear, filter 250ms ease",
-                      }}
-                      role="group"
-                      aria-roledescription="slide"
-                      aria-label={`Slide ${logicalIndex + 1} of ${count}`}
-                    >
+                return (
+                  <div
+                    key={`${img.id}-${i}`}
+                    className={cn(
+                      "relative h-full flex-shrink-0 transform-gpu",
+                      slideClass
+                    )}
+                    style={{
+                      width: `${slideWidthPercent}%`,
+                      paddingLeft: `${imageGap / 2}px`,
+                      paddingRight: `${imageGap / 2}px`,
+                      transformStyle: "preserve-3d",
+                      transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${clampedScale})`,
+                      opacity,
+                      transition: reducedMotion ? "none" : "transform 220ms linear, opacity 220ms linear, filter 250ms ease",
+                    }}
+                    role="group"
+                    aria-roledescription="slide"
+                    aria-label={`Slide ${logicalIndex + 1} of ${count}`}
+                  >
                     <button
                       type="button"
                       className="h-full w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
@@ -282,6 +309,8 @@ function RouletteMode({
           onPrev={lightbox.prevImage}
           onDownload={lightbox.handleDownload}
           onClose={lightbox.closeLightbox}
+          onShare={lightbox.handleShare}
+          shareEnabled={lightbox.shareEnabled}
         />
       </div>
     </SpotlightStage>
@@ -343,6 +372,10 @@ interface FlatModeProps {
   showLightbox: boolean;
   onEvent?: (event: CardExCarouselEvent) => void;
   spotlightEnabled: boolean;
+  shareEnabled: boolean;
+  carouselKind: CarouselKind;
+  shareTitle?: string;
+  shareUrl?: string;
 }
 
 function FlatMode({
@@ -351,6 +384,10 @@ function FlatMode({
   showLightbox,
   onEvent,
   spotlightEnabled,
+  shareEnabled,
+  carouselKind,
+  shareTitle,
+  shareUrl,
 }: FlatModeProps) {
   const reducedMotion = prefersReducedMotion();
   const [api, setApi] = useState<CarouselApi>();
@@ -358,7 +395,7 @@ function FlatMode({
   const count = items.length;
 
   const lightboxImages: LightboxImage[] = useMemo(
-    () => items.map((item) => ({ url: item.url, alt: item.alt })),
+    () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText })),
     [items]
   );
 
@@ -368,6 +405,11 @@ function FlatMode({
     onOpen: (index) => onEvent?.({ type: "lightbox_open", index, item: items[index] }),
     onClose: (index) => onEvent?.({ type: "lightbox_close", index, item: items[index] }),
     onDownload: (index) => onEvent?.({ type: "download", index, item: items[index] }),
+    onShare: (index) => onEvent?.({ type: "share_single", index, item: items[index] }),
+    shareEnabled,
+    carouselKind,
+    shareTitle,
+    shareUrl,
   });
 
   // Track selected index for spotlight
@@ -472,6 +514,8 @@ function FlatMode({
           onPrev={lightbox.prevImage}
           onDownload={lightbox.handleDownload}
           onClose={lightbox.closeLightbox}
+          onShare={lightbox.handleShare}
+          shareEnabled={lightbox.shareEnabled}
         />
       </div>
     </SpotlightStage>
@@ -492,6 +536,11 @@ export default function CardExCarousel({
   direction = "rtl",
   imageSize = "md",
   imageGap = 12,
+  carouselKind = "products",
+  shareEnabled = true,
+  shareAllEnabled = true,
+  shareTitle,
+  shareUrl,
 }: CardExCarouselProps) {
   const allItems = items || [];
   const totalCount = allItems.length;
@@ -506,6 +555,12 @@ export default function CardExCarousel({
   const handleLoadMore = () => {
     setDisplayCount(prev => Math.min(prev + LOAD_MORE_COUNT, totalCount));
   };
+
+  const handleShareEvent = useCallback((type: "share_all" | "download_all" | "copy_link") => {
+    if (type === "share_all") {
+      onEvent?.({ type: "share_all", index: -1 });
+    }
+  }, [onEvent]);
 
   if (!totalCount) return null;
 
@@ -528,8 +583,23 @@ export default function CardExCarousel({
     return () => window.removeEventListener("resize", updateVisibleSlides);
   }, [visibleSlides]);
 
+  const imageUrls = useMemo(() => safeItems.map(item => item.url), [safeItems]);
+
   return (
     <div className={cn("w-full", className)}>
+      {/* Share header */}
+      {shareEnabled && (
+        <CarouselShareHeader
+          carouselKind={carouselKind}
+          imageUrls={imageUrls}
+          shareEnabled={shareEnabled}
+          shareAllEnabled={shareAllEnabled}
+          shareUrl={shareUrl}
+          title={shareTitle}
+          onShareEvent={handleShareEvent}
+        />
+      )}
+
       {mode === "roulette" && (
         <RouletteMode
           items={safeItems}
@@ -542,6 +612,10 @@ export default function CardExCarousel({
           direction={direction}
           imageSize={imageSize}
           imageGap={imageGap}
+          shareEnabled={shareEnabled}
+          carouselKind={carouselKind}
+          shareTitle={shareTitle}
+          shareUrl={shareUrl}
         />
       )}
       {mode === "ring3d" && (
@@ -561,6 +635,10 @@ export default function CardExCarousel({
           showLightbox={showLightbox}
           onEvent={onEvent}
           spotlightEnabled={spotlightEnabled}
+          shareEnabled={shareEnabled}
+          carouselKind={carouselKind}
+          shareTitle={shareTitle}
+          shareUrl={shareUrl}
         />
       )}
       {hasMore && (
@@ -579,3 +657,4 @@ export default function CardExCarousel({
 
 // Export types and sub-components
 export { SpotlightStage };
+export type { CarouselKind } from "@/lib/share";
