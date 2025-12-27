@@ -109,6 +109,7 @@ interface RouletteModeProps {
   direction: CarouselDirection;
   imageSize: "sm" | "md" | "lg";
   imageGap?: number;
+  shareUrl?: string;
 }
 
 function RouletteMode({
@@ -122,6 +123,7 @@ function RouletteMode({
   direction,
   imageSize,
   imageGap = 12,
+  shareUrl,
 }: RouletteModeProps) {
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
@@ -295,6 +297,7 @@ function RouletteMode({
           onPrev={lightbox.prevImage}
           onDownload={lightbox.handleDownload}
           onClose={lightbox.closeLightbox}
+          shareUrl={shareUrl}
         />
       </div>
     </SpotlightStage>
@@ -356,6 +359,7 @@ interface FlatModeProps {
   showLightbox: boolean;
   onEvent?: (event: CardExCarouselEvent) => void;
   spotlightEnabled: boolean;
+  shareUrl?: string;
 }
 
 function FlatMode({
@@ -364,6 +368,7 @@ function FlatMode({
   showLightbox,
   onEvent,
   spotlightEnabled,
+  shareUrl,
 }: FlatModeProps) {
   const reducedMotion = prefersReducedMotion();
   const [api, setApi] = useState<CarouselApi>();
@@ -485,6 +490,7 @@ function FlatMode({
           onPrev={lightbox.prevImage}
           onDownload={lightbox.handleDownload}
           onClose={lightbox.closeLightbox}
+          shareUrl={shareUrl}
         />
       </div>
     </SpotlightStage>
@@ -569,6 +575,7 @@ export default function CardExCarousel({
           direction={direction}
           imageSize={imageSize}
           imageGap={imageGap}
+          shareUrl={shareUrl}
         />
       )}
       {mode === "ring3d" && (
@@ -588,6 +595,7 @@ export default function CardExCarousel({
           showLightbox={showLightbox}
           onEvent={onEvent}
           spotlightEnabled={spotlightEnabled}
+          shareUrl={shareUrl}
         />
       )}
       {hasMore && (

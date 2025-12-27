@@ -77,19 +77,17 @@ export default function CarouselShareHeader({
         <span className="hidden sm:inline">Download</span>
       </Button>
 
-      {/* Share All */}
-      {shareAllEnabled && (
-        <Button
-          variant="default"
-          size="sm"
-          onClick={handleShareAll}
-          className="h-7 w-7 sm:h-8 sm:w-auto sm:px-3 p-0 text-xs"
-          aria-label="Share all images"
-        >
-          <Share2 className="h-3.5 w-3.5 sm:mr-1.5" />
-          <span className="hidden sm:inline">Share All</span>
-        </Button>
-      )}
+      {/* Share All - ALWAYS show on both mobile and desktop */}
+      <Button
+        variant="default"
+        size="sm"
+        onClick={handleShareAll}
+        className="h-7 w-7 sm:h-8 sm:w-auto sm:px-3 p-0 text-xs"
+        aria-label="Share all images"
+      >
+        <Share2 className="h-3.5 w-3.5 sm:mr-1.5" />
+        <span className="hidden sm:inline">Share All</span>
+      </Button>
     </div>
   );
 }

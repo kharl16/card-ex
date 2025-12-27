@@ -159,8 +159,8 @@ export async function shareSingleImage(opts: ShareSingleOptions): Promise<ShareR
 }
 
 /**
- * Share all images in a carousel as a ZIP
- * If Web Share with files is not supported, automatically downloads the ZIP instead
+ * Share all images in a carousel
+ * Uses Web Share API if available, otherwise downloads as ZIP
  */
 export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult> {
   const { imageUrls, carouselKind, title = "Check out these images!", text = "", url } = opts;
@@ -179,37 +179,35 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
     });
   }
 
-  // Try creating a ZIP and sharing via Web Share
+  // Try Web Share API with multiple image files (not ZIP)
   if (canShareFiles()) {
     try {
       toast({
         title: "Preparing images...",
-        description: `Creating ZIP of ${imageUrls.length} images`,
+        description: `Preparing ${imageUrls.length} images to share`,
       });
 
-      const zip = new JSZip();
-      const folder = zip.folder(carouselKind) || zip;
-
-      // Fetch all images in parallel
+      // Fetch all images as files
+      const files: File[] = [];
       const fetchPromises = imageUrls.map(async (imgUrl, index) => {
         const blob = await fetchImageAsBlob(imgUrl);
         if (blob) {
           const filename = getFilenameFromUrl(imgUrl, `image-${index + 1}`);
-          folder.file(filename, blob);
+          const mimeType = getMimeType(blob, filename);
+          files.push(new File([blob], filename, { type: mimeType }));
         }
       });
 
       await Promise.all(fetchPromises);
 
-      // Generate ZIP blob
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      const zipFilename = `cardex-${carouselKind}.zip`;
-      const zipFile = new File([zipBlob], zipFilename, { type: "application/zip" });
+      if (files.length === 0) {
+        throw new Error("No images could be fetched");
+      }
 
       const shareData: ShareData = {
         title,
         text,
-        files: [zipFile],
+        files,
       };
 
       // Add the public URL if provided
@@ -225,13 +223,30 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
       if (error instanceof Error && error.name === "AbortError") {
         return { ok: false, reason: "cancelled" };
       }
-      console.warn("ZIP share failed, falling back to download:", error);
+      console.warn("Web Share with files failed, trying URL fallback:", error);
     }
   }
 
-  // Fallback: Download the ZIP instead (works on all platforms)
+  // Fallback: Try sharing just the URL (without files)
+  if (typeof navigator !== "undefined" && "share" in navigator && url) {
+    try {
+      await navigator.share({
+        title,
+        text: text || `Check out these ${imageUrls.length} images!`,
+        url,
+      });
+      return { ok: true };
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "AbortError") {
+        return { ok: false, reason: "cancelled" };
+      }
+      console.warn("Web Share URL fallback failed:", error);
+    }
+  }
+
+  // Final fallback: Download the ZIP instead
   toast({
-    title: "Sharing not supported",
+    title: "Sharing not available",
     description: "Downloading ZIP file instead...",
   });
   
