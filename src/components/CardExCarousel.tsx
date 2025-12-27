@@ -109,10 +109,6 @@ interface RouletteModeProps {
   direction: CarouselDirection;
   imageSize: "sm" | "md" | "lg";
   imageGap?: number;
-  shareEnabled: boolean;
-  carouselKind: CarouselKind;
-  shareTitle?: string;
-  shareUrl?: string;
 }
 
 function RouletteMode({
@@ -126,10 +122,6 @@ function RouletteMode({
   direction,
   imageSize,
   imageGap = 12,
-  shareEnabled,
-  carouselKind,
-  shareTitle,
-  shareUrl,
 }: RouletteModeProps) {
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
@@ -166,11 +158,6 @@ function RouletteMode({
     onOpen: (index) => onEvent?.({ type: "lightbox_open", index, item: items[index] }),
     onClose: (index) => onEvent?.({ type: "lightbox_close", index, item: items[index] }),
     onDownload: (index) => onEvent?.({ type: "download", index, item: items[index] }),
-    onShare: (index) => onEvent?.({ type: "share_single", index, item: items[index] }),
-    shareEnabled,
-    carouselKind,
-    shareTitle,
-    shareUrl,
   });
 
   const handleImageClick = (logicalIndex: number) => {
@@ -308,8 +295,6 @@ function RouletteMode({
           onPrev={lightbox.prevImage}
           onDownload={lightbox.handleDownload}
           onClose={lightbox.closeLightbox}
-          onShare={lightbox.handleShare}
-          shareEnabled={lightbox.shareEnabled}
         />
       </div>
     </SpotlightStage>
@@ -371,10 +356,6 @@ interface FlatModeProps {
   showLightbox: boolean;
   onEvent?: (event: CardExCarouselEvent) => void;
   spotlightEnabled: boolean;
-  shareEnabled: boolean;
-  carouselKind: CarouselKind;
-  shareTitle?: string;
-  shareUrl?: string;
 }
 
 function FlatMode({
@@ -383,10 +364,6 @@ function FlatMode({
   showLightbox,
   onEvent,
   spotlightEnabled,
-  shareEnabled,
-  carouselKind,
-  shareTitle,
-  shareUrl,
 }: FlatModeProps) {
   const reducedMotion = prefersReducedMotion();
   const [api, setApi] = useState<CarouselApi>();
@@ -404,11 +381,6 @@ function FlatMode({
     onOpen: (index) => onEvent?.({ type: "lightbox_open", index, item: items[index] }),
     onClose: (index) => onEvent?.({ type: "lightbox_close", index, item: items[index] }),
     onDownload: (index) => onEvent?.({ type: "download", index, item: items[index] }),
-    onShare: (index) => onEvent?.({ type: "share_single", index, item: items[index] }),
-    shareEnabled,
-    carouselKind,
-    shareTitle,
-    shareUrl,
   });
 
   // Track selected index for spotlight
@@ -513,8 +485,6 @@ function FlatMode({
           onPrev={lightbox.prevImage}
           onDownload={lightbox.handleDownload}
           onClose={lightbox.closeLightbox}
-          onShare={lightbox.handleShare}
-          shareEnabled={lightbox.shareEnabled}
         />
       </div>
     </SpotlightStage>
@@ -599,10 +569,6 @@ export default function CardExCarousel({
           direction={direction}
           imageSize={imageSize}
           imageGap={imageGap}
-          shareEnabled={shareEnabled}
-          carouselKind={carouselKind}
-          shareTitle={shareTitle}
-          shareUrl={shareUrl}
         />
       )}
       {mode === "ring3d" && (
@@ -622,10 +588,6 @@ export default function CardExCarousel({
           showLightbox={showLightbox}
           onEvent={onEvent}
           spotlightEnabled={spotlightEnabled}
-          shareEnabled={shareEnabled}
-          carouselKind={carouselKind}
-          shareTitle={shareTitle}
-          shareUrl={shareUrl}
         />
       )}
       {hasMore && (
