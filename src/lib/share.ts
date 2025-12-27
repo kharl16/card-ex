@@ -159,7 +159,8 @@ export async function shareSingleImage(opts: ShareSingleOptions): Promise<ShareR
 }
 
 /**
- * Share all images in a carousel as a ZIP or share page link
+ * Share all images in a carousel as a ZIP
+ * If Web Share with files is not supported, automatically downloads the ZIP instead
  */
 export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult> {
   const { imageUrls, carouselKind, title = "Check out these images!", text = "", url } = opts;
@@ -211,6 +212,11 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
         files: [zipFile],
       };
 
+      // Add the public URL if provided
+      if (url) {
+        shareData.url = url;
+      }
+
       if (navigator.canShare(shareData)) {
         await navigator.share(shareData);
         return { ok: true };
@@ -219,41 +225,17 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
       if (error instanceof Error && error.name === "AbortError") {
         return { ok: false, reason: "cancelled" };
       }
-      console.warn("ZIP share failed, trying fallback:", error);
+      console.warn("ZIP share failed, falling back to download:", error);
     }
   }
 
-  // Fallback: Share URL or copy to clipboard
-  const shareUrl = url || window.location.href;
+  // Fallback: Download the ZIP instead (works on all platforms)
+  toast({
+    title: "Sharing not supported",
+    description: "Downloading ZIP file instead...",
+  });
   
-  if (typeof navigator !== "undefined" && "share" in navigator) {
-    try {
-      await navigator.share({
-        title,
-        text: text || `${imageUrls.length} images from ${carouselKind}`,
-        url: shareUrl,
-      });
-      return { ok: true };
-    } catch (error: unknown) {
-      if (error instanceof Error && error.name === "AbortError") {
-        return { ok: false, reason: "cancelled" };
-      }
-    }
-  }
-
-  // Final fallback: Copy URL to clipboard
-  try {
-    await navigator.clipboard.writeText(shareUrl);
-    toast({
-      title: "Link copied!",
-      description: `Share this link to show all ${imageUrls.length} images.`,
-    });
-    return { ok: true, reason: "clipboard" };
-  } catch (error) {
-    console.error("Clipboard fallback failed:", error);
-    window.open(shareUrl, "_blank");
-    return { ok: true, reason: "newtab" };
-  }
+  return downloadAllAsZip({ imageUrls, carouselKind });
 }
 
 /**

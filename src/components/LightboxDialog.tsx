@@ -1,7 +1,7 @@
 import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, X, Download, ChevronLeft, ChevronRight, Share2 } from "lucide-react";
+import { ZoomIn, ZoomOut, X, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import type { LightboxImage } from "@/hooks/useLightbox";
 
 export interface LightboxDialogProps {
@@ -18,8 +18,6 @@ export interface LightboxDialogProps {
   onPrev: () => void;
   onDownload: () => void;
   onClose: () => void;
-  onShare?: () => void;
-  shareEnabled?: boolean;
 }
 
 export default function LightboxDialog({
@@ -36,8 +34,6 @@ export default function LightboxDialog({
   onPrev,
   onDownload,
   onClose,
-  onShare,
-  shareEnabled = true,
 }: LightboxDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,7 +50,7 @@ export default function LightboxDialog({
             <X className="h-5 w-5" />
           </Button>
 
-          {/* Zoom + Download + Share controls */}
+          {/* Zoom + Download controls */}
           <div className="absolute top-4 left-4 z-20 flex gap-2">
             <Button
               variant="ghost"
@@ -95,18 +91,6 @@ export default function LightboxDialog({
             >
               <Download className="h-5 w-5" />
             </Button>
-            {/* Share button */}
-            {shareEnabled && onShare && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onShare}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
-                aria-label="Share this image"
-              >
-                <Share2 className="h-5 w-5" />
-              </Button>
-            )}
           </div>
 
           {/* Navigation arrows in lightbox */}
