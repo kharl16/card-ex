@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, X, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { ZoomIn, ZoomOut, X, Download, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { shareSingleImage } from "@/lib/share";
 import type { LightboxImage } from "@/hooks/useLightbox";
 
 export interface LightboxDialogProps {
@@ -18,6 +19,7 @@ export interface LightboxDialogProps {
   onPrev: () => void;
   onDownload: () => void;
   onClose: () => void;
+  shareUrl?: string;
 }
 
 export default function LightboxDialog({
@@ -34,7 +36,20 @@ export default function LightboxDialog({
   onPrev,
   onDownload,
   onClose,
+  shareUrl,
 }: LightboxDialogProps) {
+  // Share current image
+  const handleShare = useCallback(async () => {
+    if (!currentImage?.url) return;
+    
+    await shareSingleImage({
+      imageUrl: currentImage.url,
+      title: currentImage.alt || "Check out this image!",
+      text: currentImage.shareText || "Check out this image from Card-Ex",
+      url: shareUrl,
+    });
+  }, [currentImage, shareUrl]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30">
@@ -50,7 +65,7 @@ export default function LightboxDialog({
             <X className="h-5 w-5" />
           </Button>
 
-          {/* Zoom + Download controls */}
+          {/* Zoom + Download + Share controls */}
           <div className="absolute top-4 left-4 z-20 flex gap-2">
             <Button
               variant="ghost"
@@ -90,6 +105,16 @@ export default function LightboxDialog({
               aria-label="Download image"
             >
               <Download className="h-5 w-5" />
+            </Button>
+            {/* Share button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleShare}
+              className="bg-black/60 hover:bg-black/80 text-white rounded-full"
+              aria-label="Share image"
+            >
+              <Share2 className="h-5 w-5" />
             </Button>
           </div>
 
