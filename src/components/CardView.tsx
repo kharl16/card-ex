@@ -84,6 +84,8 @@ interface CardViewProps {
   showQRCode?: boolean;
   /** If true, shows the vCard download buttons */
   showVCardButtons?: boolean;
+  /** Public card URL for sharing - must be https://tagex.app/c/{slug}, never editor URL */
+  publicCardUrl?: string;
 }
 
 const iconMap: Record<string, any> = {
@@ -124,6 +126,7 @@ export default function CardView({
   isInteractive = false,
   showQRCode = false,
   showVCardButtons = false,
+  publicCardUrl,
 }: CardViewProps) {
   // Normalize social links whether passed as a prop or loaded from Supabase JSON
   const resolvedSocialLinks: SocialLink[] = React.useMemo(() => {
@@ -272,6 +275,7 @@ export default function CardView({
                 images={productImagesData}
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
+                shareUrl={publicCardUrl}
                 className="mt-2 mb-3"
               />
               <CarouselSectionRenderer
@@ -280,6 +284,7 @@ export default function CardView({
                 images={packageImagesData}
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
+                shareUrl={publicCardUrl}
                 className="my-3"
               />
               <CarouselSectionRenderer
@@ -288,6 +293,7 @@ export default function CardView({
                 images={testimonyImagesData}
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
+                shareUrl={publicCardUrl}
                 className="my-3"
               />
             </>

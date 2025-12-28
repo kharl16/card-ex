@@ -1,14 +1,15 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Share2, Download } from "lucide-react";
 import { shareAllImages, downloadAllAsZip, type CarouselKind } from "@/lib/share";
-import { toast } from "@/hooks/use-toast";
+import ShareModal from "@/components/carousel/ShareModal";
 
 export interface CarouselShareHeaderProps {
   carouselKind: CarouselKind;
   imageUrls: string[];
   shareEnabled?: boolean;
   shareAllEnabled?: boolean;
+  /** The PUBLIC card URL - must be https://tagex.app/c/{slug}, never editor URL */
   shareUrl?: string;
   title?: string;
   className?: string;
@@ -25,10 +26,12 @@ export default function CarouselShareHeader({
   className = "",
   onShareEvent,
 }: CarouselShareHeaderProps) {
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  
   const kindLabel = carouselKind.charAt(0).toUpperCase() + carouselKind.slice(1);
   const displayTitle = title || kindLabel;
 
-  // Share All: try Web Share with ZIP, fallback to download
+  // Share All: try Web Share, fallback to modal
   const handleShareAll = useCallback(async () => {
     if (!shareAllEnabled || imageUrls.length === 0) return;
 
@@ -42,6 +45,9 @@ export default function CarouselShareHeader({
 
     if (result.ok) {
       onShareEvent?.("share_all");
+    } else if (result.showModal) {
+      // Open the ShareModal fallback
+      setShareModalOpen(true);
     }
   }, [imageUrls, carouselKind, displayTitle, kindLabel, shareUrl, shareAllEnabled, onShareEvent]);
 
@@ -64,30 +70,42 @@ export default function CarouselShareHeader({
   }
 
   return (
-    <div className={`flex items-center gap-1 sm:gap-2 ${className}`}>
-      {/* Download All */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleDownloadAll}
-        className="h-7 w-7 sm:h-8 sm:w-auto sm:px-3 p-0 text-xs bg-background/50 hover:bg-background/80 backdrop-blur-sm"
-        aria-label="Download all images"
-      >
-        <Download className="h-3.5 w-3.5 sm:mr-1.5" />
-        <span className="hidden sm:inline">Download</span>
-      </Button>
+    <>
+      <div className={`flex items-center gap-1 sm:gap-2 ${className}`}>
+        {/* Download All */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleDownloadAll}
+          className="h-7 w-7 sm:h-8 sm:w-auto sm:px-3 p-0 text-xs bg-background/50 hover:bg-background/80 backdrop-blur-sm"
+          aria-label="Download all images"
+        >
+          <Download className="h-3.5 w-3.5 sm:mr-1.5" />
+          <span className="hidden sm:inline">Download</span>
+        </Button>
 
-      {/* Share All - ALWAYS show on both mobile and desktop */}
-      <Button
-        variant="default"
-        size="sm"
-        onClick={handleShareAll}
-        className="h-7 w-7 sm:h-8 sm:w-auto sm:px-3 p-0 text-xs"
-        aria-label="Share all images"
-      >
-        <Share2 className="h-3.5 w-3.5 sm:mr-1.5" />
-        <span className="hidden sm:inline">Share All</span>
-      </Button>
-    </div>
+        {/* Share All - ALWAYS show on both mobile and desktop */}
+        <Button
+          variant="default"
+          size="sm"
+          onClick={handleShareAll}
+          className="h-7 w-7 sm:h-8 sm:w-auto sm:px-3 p-0 text-xs"
+          aria-label="Share all images"
+        >
+          <Share2 className="h-3.5 w-3.5 sm:mr-1.5" />
+          <span className="hidden sm:inline">Share All</span>
+        </Button>
+      </div>
+
+      {/* ShareModal fallback for when Web Share isn't available */}
+      <ShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        imageUrls={imageUrls}
+        publicCardUrl={shareUrl || ""}
+        title={`${displayTitle} from Card-Ex`}
+        text={`Check out these ${imageUrls.length} ${kindLabel.toLowerCase()} images!`}
+      />
+    </>
   );
 }
