@@ -6,6 +6,7 @@ import LoadingAnimation from "@/components/LoadingAnimation";
 import CardView, { SocialLink, ProductImage, AdditionalContact } from "@/components/CardView";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
+import { getPublicCardUrl } from "@/lib/cardUrl";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -275,6 +276,7 @@ export default function SharedCard() {
           isInteractive={true}
           showQRCode={true}
           showVCardButtons={true}
+          publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
         />
         
         {/* Create your own Card-Ex button */}

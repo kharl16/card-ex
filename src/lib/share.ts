@@ -1,5 +1,6 @@
 import JSZip from "jszip";
 import { toast } from "@/hooks/use-toast";
+import { getPublicCardUrl } from "@/lib/cardUrl";
 
 export type CarouselKind = "products" | "packages" | "testimonies";
 
@@ -22,6 +23,14 @@ export interface ShareAllOptions {
 export interface ShareResult {
   ok: boolean;
   reason?: string;
+  /** If true, caller should open the ShareModal */
+  showModal?: boolean;
+  modalData?: {
+    imageUrls: string[];
+    publicCardUrl: string;
+    title: string;
+    text: string;
+  };
 }
 
 // Check if Web Share API supports file sharing
@@ -81,7 +90,8 @@ function getMimeType(blob: Blob, filename: string): string {
 }
 
 /**
- * Share a single image via native share or clipboard fallback
+ * Share a single image via native share.
+ * If Web Share isn't supported, returns showModal: true so caller can open ShareModal.
  */
 export async function shareSingleImage(opts: ShareSingleOptions): Promise<ShareResult> {
   const { imageUrl, filenameHint, title = "Check this out!", text = "", url } = opts;
@@ -121,13 +131,13 @@ export async function shareSingleImage(opts: ShareSingleOptions): Promise<ShareR
     }
   }
 
-  // Fallback: Try sharing just the URL
+  // Fallback: Try sharing just the URL (no file)
   if (typeof navigator !== "undefined" && "share" in navigator) {
     try {
       await navigator.share({
         title,
         text: text || "Check out this image",
-        url: imageUrl,
+        url: url || imageUrl,
       });
       return { ok: true };
     } catch (error: unknown) {
@@ -138,29 +148,23 @@ export async function shareSingleImage(opts: ShareSingleOptions): Promise<ShareR
     }
   }
 
-  // Final fallback: Copy to clipboard
-  try {
-    await navigator.clipboard.writeText(imageUrl);
-    toast({
-      title: "Link copied!",
-      description: "Paste it into Messenger, Facebook, WhatsApp, or any app.",
-    });
-    return { ok: true, reason: "clipboard" };
-  } catch (error) {
-    console.error("Clipboard fallback failed:", error);
-    // Ultimate fallback: open in new tab
-    window.open(imageUrl, "_blank");
-    toast({
-      title: "Image opened in new tab",
-      description: "You can save or share it from there.",
-    });
-    return { ok: true, reason: "newtab" };
-  }
+  // Web Share not available - signal to open ShareModal
+  return {
+    ok: false,
+    reason: "no_share_api",
+    showModal: true,
+    modalData: {
+      imageUrls: [imageUrl],
+      publicCardUrl: url || imageUrl,
+      title,
+      text: text || "Check out this image",
+    },
+  };
 }
 
 /**
- * Share all images in a carousel
- * Uses Web Share API if available, otherwise downloads as ZIP
+ * Share all images in a carousel.
+ * Uses Web Share API if available, otherwise returns showModal: true so caller can open ShareModal.
  */
 export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult> {
   const { imageUrls, carouselKind, title = "Check out these images!", text = "", url } = opts;
@@ -179,7 +183,7 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
     });
   }
 
-  // Try Web Share API with multiple image files (not ZIP)
+  // Try Web Share API with multiple image files
   if (canShareFiles()) {
     try {
       toast({
@@ -244,13 +248,18 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
     }
   }
 
-  // Final fallback: Download the ZIP instead
-  toast({
-    title: "Sharing not available",
-    description: "Downloading ZIP file instead...",
-  });
-  
-  return downloadAllAsZip({ imageUrls, carouselKind });
+  // Web Share not available - signal to open ShareModal
+  return {
+    ok: false,
+    reason: "no_share_api",
+    showModal: true,
+    modalData: {
+      imageUrls,
+      publicCardUrl: url || "",
+      title,
+      text: text || `Check out these ${imageUrls.length} images!`,
+    },
+  };
 }
 
 /**
@@ -314,5 +323,37 @@ export async function downloadAllAsZip(opts: {
       variant: "destructive",
     });
     return { ok: false, reason: "zip_failed" };
+  }
+}
+
+/**
+ * Download a single image
+ */
+export async function downloadSingleImage(imageUrl: string, filename?: string): Promise<ShareResult> {
+  try {
+    const blob = await fetchImageAsBlob(imageUrl);
+    if (!blob) {
+      throw new Error("Failed to fetch image");
+    }
+
+    const downloadFilename = filename || getFilenameFromUrl(imageUrl);
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = downloadFilename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
+
+    return { ok: true };
+  } catch (error) {
+    console.error("Download failed:", error);
+    toast({
+      title: "Download failed",
+      description: "Could not download image. Please try again.",
+      variant: "destructive",
+    });
+    return { ok: false, reason: "download_failed" };
   }
 }
