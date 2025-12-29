@@ -7,6 +7,7 @@ import CardView, { SocialLink, ProductImage, AdditionalContact } from "@/compone
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { getPublicCardUrl } from "@/lib/cardUrl";
+import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -46,22 +47,24 @@ export default function SharedCard() {
   // Apply custom theme colors to document
   useEffect(() => {
     if (theme) {
-      if (theme.primary) {
-        document.documentElement.style.setProperty("--primary", theme.primary);
-      }
-      if (theme.background) {
-        document.documentElement.style.setProperty("--background", theme.background);
-      }
-      if (theme.text) {
-        document.documentElement.style.setProperty("--foreground", theme.text);
-      }
-      if (theme.accent) {
-        document.documentElement.style.setProperty("--accent", theme.accent);
-      }
+      // IMPORTANT: shadcn/tailwind tokens expect HSL triplets (e.g. "222.2 47.4% 11.2%"),
+      // not hex strings. If we set hex here, buttons (including Share) can become invisible.
+      const setHslVar = (name: string, value?: string | null) => {
+        if (!value) return;
+        const triplet = toHslTriplet(value);
+        if (triplet) document.documentElement.style.setProperty(name, triplet);
+      };
+
+      setHslVar("--primary", theme.primary);
+      setHslVar("--background", theme.background);
+      setHslVar("--foreground", theme.text);
+      setHslVar("--accent", theme.accent);
+
       if (theme.font) {
         document.documentElement.style.fontFamily = `"${theme.font}", sans-serif`;
       }
     }
+
     return () => {
       // Reset to default on unmount
       document.documentElement.style.removeProperty("--primary");
