@@ -16,7 +16,6 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { downloadAllAsZip, downloadSingleImage } from "@/lib/share";
 import { getPublicCardUrl } from "@/lib/cardUrl";
-import { Helmet } from "react-helmet";
 import type { CarouselKey } from "@/lib/carouselTypes";
 
 const CAROUSEL_LABELS: Record<CarouselKey, string> = {
@@ -24,6 +23,13 @@ const CAROUSEL_LABELS: Record<CarouselKey, string> = {
   packages: "Packages", 
   testimonies: "Testimonies",
 };
+
+// Image with optional alt/caption
+interface CarouselImage {
+  url: string;
+  alt?: string;
+  order?: number;
+}
 
 // Social share URL generators
 function getMessengerShareUrl(url: string): string {
@@ -52,6 +58,29 @@ function getViberShareUrl(text: string, url: string): string {
 
 function getEmailShareUrl(subject: string, body: string): string {
   return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+// Normalize raw image data from DB to structured format
+function normalizeImages(raw: any): CarouselImage[] {
+  if (!raw || !Array.isArray(raw)) return [];
+  
+  const mapped = raw.map((img: any, idx: number): CarouselImage | null => {
+    // Handle both legacy (string URL) and new (object with url/alt) formats
+    if (typeof img === "string") {
+      return { url: img, alt: undefined, order: idx };
+    }
+    const url = (img?.url ?? img?.image_url) as string | undefined;
+    if (!url) return null;
+    return {
+      url,
+      alt: (img?.alt ?? img?.alt_text ?? img?.caption) as string | undefined,
+      order: (img?.order ?? img?.sort_order ?? idx) as number,
+    };
+  });
+  
+  return mapped
+    .filter((img): img is CarouselImage => img !== null)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
 export default function CarouselSharePage() {
@@ -84,25 +113,33 @@ export default function CarouselSharePage() {
     loadCard();
   }, [slug]);
 
-  // Get images based on carousel kind
-  const getImages = (): string[] => {
+  // Get images based on carousel kind with alt text
+  const getImages = (): CarouselImage[] => {
     if (!card) return [];
     
     switch (kind) {
       case "products":
-        return Array.isArray(card.product_images) ? card.product_images : [];
+        return normalizeImages(card.product_images);
       case "packages":
-        return Array.isArray(card.package_images) ? card.package_images : [];
+        return normalizeImages(card.package_images);
       case "testimonies":
-        return Array.isArray(card.testimony_images) ? card.testimony_images : [];
+        return normalizeImages(card.testimony_images);
       default:
         return [];
     }
   };
 
   const images = getImages();
+  const imageUrls = images.map((img) => img.url);
   const title = card?.full_name ? `${CAROUSEL_LABELS[kind]} by ${card.full_name}` : CAROUSEL_LABELS[kind];
   const shareText = `Check out these ${CAROUSEL_LABELS[kind].toLowerCase()}!`;
+
+  // Update document title
+  useEffect(() => {
+    if (title) {
+      document.title = title;
+    }
+  }, [title]);
 
   const handleCopyLink = async (link: string, key: "all" | "card" | number) => {
     try {
@@ -116,10 +153,10 @@ export default function CarouselSharePage() {
   };
 
   const handleDownloadAll = async () => {
-    if (images.length === 0) return;
+    if (imageUrls.length === 0) return;
     setDownloadingAll(true);
     try {
-      await downloadAllAsZip({ imageUrls: images, carouselKind: kind });
+      await downloadAllAsZip({ imageUrls, carouselKind: kind });
       toast({ title: "Download started", description: "Your ZIP file is downloading" });
     } catch {
       toast({ title: "Download failed", variant: "destructive" });
@@ -211,99 +248,91 @@ export default function CarouselSharePage() {
   }
 
   return (
-    <>
-      <Helmet>
-        <title>{title}</title>
-        <meta name="description" content={shareText} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={shareText} />
-        {images[0] && <meta property="og:image" content={images[0]} />}
-        <meta property="og:url" content={sharePageUrl} />
-      </Helmet>
-
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
-          <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <Link to={publicCardUrl}>
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-            </Link>
-            <h1 className="font-semibold text-lg">{CAROUSEL_LABELS[kind]}</h1>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleDownloadAll}
-              disabled={downloadingAll}
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {downloadingAll ? "..." : "All"}
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+          <Link to={publicCardUrl}>
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
             </Button>
+          </Link>
+          <h1 className="font-semibold text-lg">{CAROUSEL_LABELS[kind]}</h1>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handleDownloadAll}
+            disabled={downloadingAll}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {downloadingAll ? "..." : "All"}
+          </Button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto px-4 py-6">
+        {/* Social Share Buttons */}
+        <section className="mb-8">
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">Share via</h2>
+          <div className="flex flex-wrap gap-2">
+            {socialButtons.map((btn) => (
+              <button
+                key={btn.name}
+                onClick={btn.onClick}
+                className={`${btn.color} flex items-center gap-2 px-4 py-2 rounded-lg hover:opacity-90 transition-opacity`}
+              >
+                <btn.icon className="h-4 w-4 text-white" />
+                <span className="text-sm text-white font-medium">{btn.name}</span>
+              </button>
+            ))}
           </div>
-        </header>
+        </section>
 
-        <main className="max-w-4xl mx-auto px-4 py-6">
-          {/* Social Share Buttons */}
-          <section className="mb-8">
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">Share via</h2>
-            <div className="flex flex-wrap gap-2">
-              {socialButtons.map((btn) => (
-                <button
-                  key={btn.name}
-                  onClick={btn.onClick}
-                  className={`${btn.color} flex items-center gap-2 px-4 py-2 rounded-lg hover:opacity-90 transition-opacity`}
-                >
-                  <btn.icon className="h-4 w-4 text-white" />
-                  <span className="text-sm text-white font-medium">{btn.name}</span>
-                </button>
-              ))}
-            </div>
-          </section>
+        {/* Copy Links */}
+        <section className="mb-8 flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleCopyLink(sharePageUrl, "all")}
+          >
+            {copiedLink === "all" ? (
+              <Check className="h-4 w-4 mr-2 text-green-500" />
+            ) : (
+              <Copy className="h-4 w-4 mr-2" />
+            )}
+            Copy page link
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleCopyLink(publicCardUrl, "card")}
+          >
+            {copiedLink === "card" ? (
+              <Check className="h-4 w-4 mr-2 text-green-500" />
+            ) : (
+              <Copy className="h-4 w-4 mr-2" />
+            )}
+            Copy card link
+          </Button>
+        </section>
 
-          {/* Copy Links */}
-          <section className="mb-8 flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleCopyLink(sharePageUrl, "all")}
-            >
-              {copiedLink === "all" ? (
-                <Check className="h-4 w-4 mr-2 text-green-500" />
-              ) : (
-                <Copy className="h-4 w-4 mr-2" />
-              )}
-              Copy page link
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleCopyLink(publicCardUrl, "card")}
-            >
-              {copiedLink === "card" ? (
-                <Check className="h-4 w-4 mr-2 text-green-500" />
-              ) : (
-                <Copy className="h-4 w-4 mr-2" />
-              )}
-              Copy card link
-            </Button>
-          </section>
-
-          {/* Image Grid */}
-          <section>
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">
-              {images.length} {images.length === 1 ? "Image" : "Images"}
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {images.map((url, index) => (
-                <div
-                  key={index}
-                  className="relative group aspect-square rounded-lg overflow-hidden bg-muted"
-                >
+        {/* Image Grid with Captions */}
+        <section>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">
+            {images.length} {images.length === 1 ? "Image" : "Images"}
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {images.map((img, index) => (
+              <div
+                key={index}
+                className="relative group rounded-lg overflow-hidden bg-muted"
+              >
+                {/* Image container */}
+                <div className="aspect-square relative">
                   <img
-                    src={url}
-                    alt={`${kind} ${index + 1}`}
+                    src={img.url}
+                    alt={img.alt || `${kind} ${index + 1}`}
                     className="w-full h-full object-cover"
                     loading="lazy"
                   />
@@ -313,7 +342,7 @@ export default function CarouselSharePage() {
                       size="icon"
                       variant="secondary"
                       className="h-8 w-8"
-                      onClick={() => handleCopyLink(url, index)}
+                      onClick={() => handleCopyLink(img.url, index)}
                     >
                       {copiedLink === index ? (
                         <Check className="h-4 w-4 text-green-500" />
@@ -325,17 +354,26 @@ export default function CarouselSharePage() {
                       size="icon"
                       variant="secondary"
                       className="h-8 w-8"
-                      onClick={() => handleDownloadSingle(url, index)}
+                      onClick={() => handleDownloadSingle(img.url, index)}
                     >
                       <Download className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-        </main>
-      </div>
-    </>
+                
+                {/* Caption below image */}
+                {img.alt && (
+                  <div className="p-2 bg-card border-t">
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {img.alt}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
