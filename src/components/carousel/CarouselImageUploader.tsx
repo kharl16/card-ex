@@ -4,8 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Upload, X, GripVertical, Trash2, ImagePlus } from "lucide-react";
+import { Upload, X, GripVertical, Trash2, ImagePlus, Pencil } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -40,6 +48,7 @@ interface SortableImageItemProps {
   image: CarouselImage;
   index: number;
   onDelete: (index: number) => void;
+  onEdit: (index: number) => void;
 }
 
 interface PendingImage {
@@ -47,7 +56,7 @@ interface PendingImage {
   previewUrl: string;
 }
 
-function SortableImageItem({ image, index, onDelete }: SortableImageItemProps) {
+function SortableImageItem({ image, index, onDelete, onEdit }: SortableImageItemProps) {
   const {
     attributes,
     listeners,
@@ -77,6 +86,13 @@ function SortableImageItem({ image, index, onDelete }: SortableImageItemProps) {
         />
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => onEdit(index)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button
             variant="destructive"
             size="sm"
             onClick={() => onDelete(index)}
@@ -101,6 +117,92 @@ function SortableImageItem({ image, index, onDelete }: SortableImageItemProps) {
   );
 }
 
+// Edit dialog for image alt text and caption
+interface ImageEditDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  image: CarouselImage | null;
+  onSave: (alt: string, shareText: string) => void;
+}
+
+function ImageEditDialog({ open, onOpenChange, image, onSave }: ImageEditDialogProps) {
+  const [alt, setAlt] = useState("");
+  const [shareText, setShareText] = useState("");
+
+  React.useEffect(() => {
+    if (image) {
+      setAlt(image.alt || "");
+      setShareText(image.shareText || "");
+    }
+  }, [image]);
+
+  const handleSave = () => {
+    onSave(alt.trim(), shareText.trim());
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Image Details</DialogTitle>
+        </DialogHeader>
+        
+        {image && (
+          <div className="space-y-4">
+            {/* Image preview */}
+            <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+              <img
+                src={image.url}
+                alt={alt || "Preview"}
+                className="w-full h-full object-contain"
+              />
+            </div>
+
+            {/* Alt text field */}
+            <div className="space-y-2">
+              <Label htmlFor="alt-text">Alt Text / Title</Label>
+              <Input
+                id="alt-text"
+                value={alt}
+                onChange={(e) => setAlt(e.target.value)}
+                placeholder="Describe this image..."
+                maxLength={200}
+              />
+              <p className="text-xs text-muted-foreground">
+                Displayed as the image title and used for accessibility. {alt.length}/200
+              </p>
+            </div>
+
+            {/* Caption/share text field */}
+            <div className="space-y-2">
+              <Label htmlFor="share-text">Caption (optional)</Label>
+              <Textarea
+                id="share-text"
+                value={shareText}
+                onChange={(e) => setShareText(e.target.value)}
+                placeholder="Add a caption for sharing..."
+                rows={3}
+                maxLength={500}
+              />
+              <p className="text-xs text-muted-foreground">
+                Shown on the share page below the image. {shareText.length}/500
+              </p>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave}>Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function CarouselImageUploader({
   carouselKey,
   cardId,
@@ -113,6 +215,8 @@ export default function CarouselImageUploader({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
   const [showEditor, setShowEditor] = useState(false);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -298,6 +402,25 @@ export default function CarouselImageUploader({
     [images, onImagesChange]
   );
 
+  const handleEdit = useCallback((index: number) => {
+    setEditingIndex(index);
+    setShowEditDialog(true);
+  }, []);
+
+  const handleEditSave = useCallback(
+    (alt: string, shareText: string) => {
+      if (editingIndex === null) return;
+      
+      const updated = images.map((img, i) =>
+        i === editingIndex ? { ...img, alt, shareText } : img
+      );
+      onImagesChange(updated);
+      setEditingIndex(null);
+      toast.success("Image details updated");
+    },
+    [editingIndex, images, onImagesChange]
+  );
+
   const carouselLabels: Record<CarouselKey, string> = {
     products: "Products",
     packages: "Packages",
@@ -329,6 +452,7 @@ export default function CarouselImageUploader({
                   image={image}
                   index={index}
                   onDelete={handleDelete}
+                  onEdit={handleEdit}
                 />
               ))}
             </div>
@@ -371,6 +495,13 @@ export default function CarouselImageUploader({
         onOpenChange={handleEditorClose}
         pendingImages={pendingImages}
         onConfirm={handleEditorConfirm}
+      />
+
+      <ImageEditDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        image={editingIndex !== null ? images[editingIndex] : null}
+        onSave={handleEditSave}
       />
     </div>
   );
