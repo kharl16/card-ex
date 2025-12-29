@@ -267,6 +267,9 @@ export default function CardView({
           const packageImagesData = normalizeCarouselImages((card as any).package_images);
           const testimonyImagesData = normalizeCarouselImages((card as any).testimony_images);
           
+          // Extract the card slug for share page navigation
+          const cardSlug = card.slug;
+          
           return (
             <>
               <CarouselSectionRenderer
@@ -276,6 +279,7 @@ export default function CardView({
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
                 shareUrl={publicCardUrl}
+                cardSlug={cardSlug}
                 className="mt-2 mb-3"
               />
               <CarouselSectionRenderer
@@ -285,6 +289,7 @@ export default function CardView({
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
                 shareUrl={publicCardUrl}
+                cardSlug={cardSlug}
                 className="my-3"
               />
               <CarouselSectionRenderer
@@ -294,6 +299,7 @@ export default function CardView({
                 contactInfo={contactInfo}
                 isInteractive={isInteractive}
                 shareUrl={publicCardUrl}
+                cardSlug={cardSlug}
                 className="my-3"
               />
             </>
