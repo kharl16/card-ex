@@ -33,6 +33,8 @@ interface CarouselSectionRendererProps {
   shareEnabled?: boolean;
   /** URL for sharing */
   shareUrl?: string;
+  /** Card slug for share page navigation */
+  cardSlug?: string;
 }
 
 export default function CarouselSectionRenderer({
@@ -44,6 +46,7 @@ export default function CarouselSectionRenderer({
   className,
   shareEnabled = true,
   shareUrl,
+  cardSlug,
 }: CarouselSectionRendererProps) {
   const [modalOpen, setModalOpen] = React.useState(false);
 
@@ -243,6 +246,7 @@ export default function CarouselSectionRenderer({
             shareEnabled={shareEnabled}
             shareAllEnabled={true}
             shareUrl={shareUrl}
+            cardSlug={cardSlug}
             title={title}
             className="justify-start -ml-1"
           />

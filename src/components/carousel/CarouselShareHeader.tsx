@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Share2, Download } from "lucide-react";
 import { shareAllImages, downloadAllAsZip, type CarouselKind } from "@/lib/share";
@@ -11,6 +12,8 @@ export interface CarouselShareHeaderProps {
   shareAllEnabled?: boolean;
   /** The PUBLIC card URL - must be https://tagex.app/c/{slug}, never editor URL */
   shareUrl?: string;
+  /** The card slug for building share page URL */
+  cardSlug?: string;
   title?: string;
   className?: string;
   onShareEvent?: (type: "share_all" | "download_all") => void;
@@ -22,16 +25,18 @@ export default function CarouselShareHeader({
   shareEnabled = true,
   shareAllEnabled = true,
   shareUrl,
+  cardSlug,
   title,
   className = "",
   onShareEvent,
 }: CarouselShareHeaderProps) {
+  const navigate = useNavigate();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   
   const kindLabel = carouselKind.charAt(0).toUpperCase() + carouselKind.slice(1);
   const displayTitle = title || kindLabel;
 
-  // Share All: try Web Share, fallback to modal
+  // Share All: try Web Share, fallback to dedicated share page on desktop
   const handleShareAll = useCallback(async () => {
     if (!shareAllEnabled || imageUrls.length === 0) return;
 
@@ -46,10 +51,15 @@ export default function CarouselShareHeader({
     if (result.ok) {
       onShareEvent?.("share_all");
     } else if (result.showModal) {
-      // Open the ShareModal fallback
-      setShareModalOpen(true);
+      // On desktop without Web Share, redirect to dedicated share page if slug available
+      if (cardSlug) {
+        navigate(`/c/${cardSlug}/share/${carouselKind}`);
+      } else {
+        // Fallback to modal if no slug
+        setShareModalOpen(true);
+      }
     }
-  }, [imageUrls, carouselKind, displayTitle, kindLabel, shareUrl, shareAllEnabled, onShareEvent]);
+  }, [imageUrls, carouselKind, displayTitle, kindLabel, shareUrl, shareAllEnabled, onShareEvent, cardSlug, navigate]);
 
   // Download All: always download as ZIP
   const handleDownloadAll = useCallback(async () => {

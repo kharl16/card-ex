@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import CardEditor from "./pages/CardEditor";
 import PublicCard from "./pages/PublicCard";
 import SharedCard from "./pages/SharedCard";
+import CarouselSharePage from "./pages/CarouselSharePage";
 import AdminCards from "./pages/AdminCards";
 import AdminDataTools from "./pages/AdminDataTools";
 import AdminReferrals from "./pages/AdminReferrals";
@@ -90,6 +91,7 @@ const AnimatedRoutes = () => {
           }
         />
         <Route path="/c/:slug" element={<PageTransition><PublicCard /></PageTransition>} />
+        <Route path="/c/:slug/share/:carouselKind" element={<PageTransition><CarouselSharePage /></PageTransition>} />
         <Route path="/s/:code" element={<PageTransition><SharedCard /></PageTransition>} />
         {/* Custom slug route - must be after all other routes except catch-all */}
         <Route path="/:customSlug" element={<PageTransition><PublicCard customSlug={true} /></PageTransition>} />
