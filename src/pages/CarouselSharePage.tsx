@@ -28,6 +28,7 @@ const CAROUSEL_LABELS: Record<CarouselKey, string> = {
 interface CarouselImage {
   url: string;
   alt?: string;
+  shareText?: string; // caption for sharing
   order?: number;
 }
 
@@ -67,13 +68,14 @@ function normalizeImages(raw: any): CarouselImage[] {
   const mapped = raw.map((img: any, idx: number): CarouselImage | null => {
     // Handle both legacy (string URL) and new (object with url/alt) formats
     if (typeof img === "string") {
-      return { url: img, alt: undefined, order: idx };
+      return { url: img, alt: undefined, shareText: undefined, order: idx };
     }
     const url = (img?.url ?? img?.image_url) as string | undefined;
     if (!url) return null;
     return {
       url,
-      alt: (img?.alt ?? img?.alt_text ?? img?.caption) as string | undefined,
+      alt: (img?.alt ?? img?.alt_text) as string | undefined,
+      shareText: (img?.shareText ?? img?.caption) as string | undefined,
       order: (img?.order ?? img?.sort_order ?? idx) as number,
     };
   });
@@ -361,12 +363,19 @@ export default function CarouselSharePage() {
                   </div>
                 </div>
                 
-                {/* Caption below image */}
-                {img.alt && (
+                {/* Caption below image - show shareText if available, else alt */}
+                {(img.shareText || img.alt) && (
                   <div className="p-2 bg-card border-t">
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {img.alt}
-                    </p>
+                    {img.alt && (
+                      <p className="text-xs font-medium text-foreground line-clamp-1">
+                        {img.alt}
+                      </p>
+                    )}
+                    {img.shareText && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                        {img.shareText}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
