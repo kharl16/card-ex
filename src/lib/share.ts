@@ -33,6 +33,14 @@ export interface ShareResult {
   };
 }
 
+// Check if we're on a mobile device (where native share is preferred)
+function isMobileDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
+}
+
 // Check if Web Share API supports file sharing
 function canShareFiles(): boolean {
   return (
@@ -40,6 +48,11 @@ function canShareFiles(): boolean {
     "share" in navigator &&
     "canShare" in navigator
   );
+}
+
+// Check if we should use native file sharing (only on mobile)
+function shouldUseNativeFileShare(): boolean {
+  return canShareFiles() && isMobileDevice();
 }
 
 // Fetch image as blob
@@ -97,7 +110,7 @@ export async function shareSingleImage(opts: ShareSingleOptions): Promise<ShareR
   const { imageUrl, filenameHint, title = "Check this out!", text = "", url } = opts;
 
   // Try Web Share API with file
-  if (canShareFiles()) {
+  if (shouldUseNativeFileShare()) {
     try {
       const blob = await fetchImageAsBlob(imageUrl);
       if (blob) {
@@ -184,7 +197,7 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
   }
 
   // Try Web Share API with multiple image files
-  if (canShareFiles()) {
+  if (shouldUseNativeFileShare()) {
     try {
       toast({
         title: "Preparing images...",
