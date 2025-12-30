@@ -34,7 +34,7 @@ export interface ShareResult {
 }
 
 // Check if we're on a mobile device (where native share is preferred)
-function isMobileDevice(): boolean {
+export function isMobileDevice(): boolean {
   if (typeof navigator === "undefined") return false;
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
     navigator.userAgent
@@ -42,7 +42,7 @@ function isMobileDevice(): boolean {
 }
 
 // Check if Web Share API supports file sharing
-function canShareFiles(): boolean {
+export function canShareFiles(): boolean {
   return (
     typeof navigator !== "undefined" &&
     "share" in navigator &&
@@ -50,8 +50,12 @@ function canShareFiles(): boolean {
   );
 }
 
-// Check if we should use native file sharing (only on mobile)
-function shouldUseNativeFileShare(): boolean {
+// Check if we should use native file sharing
+// On mobile: always use native share if available
+// On desktop: only use native share for URL-only sharing (not file sharing, which opens Windows dialog)
+export function shouldUseNativeFileShare(): boolean {
+  // Only use native file sharing on mobile devices
+  // Desktop will fall back to ShareModal/SharePage for better UX
   return canShareFiles() && isMobileDevice();
 }
 

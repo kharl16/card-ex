@@ -39,7 +39,7 @@ import CardView, { SocialLink, ProductImage } from "@/components/CardView";
 import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublishLimit } from "@/hooks/usePublishLimit";
-
+import { getPublicCardUrl } from "@/lib/cardUrl";
 // Editor section components
 import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
 import { EditorWizard, WizardStep } from "@/components/editor/EditorWizard";
@@ -1028,6 +1028,7 @@ export default function CardEditor() {
                   isInteractive={false}
                   showQRCode={true}
                   showVCardButtons={false}
+                  publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
                 />
               </div>
             </CardContent>
