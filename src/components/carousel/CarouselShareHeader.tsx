@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Share2, Download } from "lucide-react";
-import { shareAllImages, downloadAllAsZip, type CarouselKind } from "@/lib/share";
+import { shareAllImages, downloadAllAsZip, isMobileDevice, type CarouselKind } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
 
 export interface CarouselShareHeaderProps {
@@ -36,7 +36,7 @@ export default function CarouselShareHeader({
   const kindLabel = carouselKind.charAt(0).toUpperCase() + carouselKind.slice(1);
   const displayTitle = title || kindLabel;
 
-  // Share All: try Web Share, fallback to dedicated share page on desktop
+  // Share All: try Web Share, fallback to share page on desktop only
   const handleShareAll = useCallback(async () => {
     if (!shareAllEnabled || imageUrls.length === 0) return;
 
@@ -51,12 +51,19 @@ export default function CarouselShareHeader({
     if (result.ok) {
       onShareEvent?.("share_all");
     } else if (result.showModal) {
-      // On desktop without Web Share, redirect to dedicated share page if slug available
-      if (cardSlug) {
-        navigate(`/c/${cardSlug}/share/${carouselKind}`);
-      } else {
-        // Fallback to modal if no slug
+      // Check if we're on mobile - on mobile, show modal instead of navigating to share page
+      // This gives a better UX when native file sharing fails (e.g., too many images)
+      if (isMobileDevice()) {
+        // On mobile, show the ShareModal which provides social share buttons
         setShareModalOpen(true);
+      } else {
+        // On desktop, navigate to dedicated share page if slug available
+        if (cardSlug) {
+          navigate(`/c/${cardSlug}/share/${carouselKind}`);
+        } else {
+          // Fallback to modal if no slug
+          setShareModalOpen(true);
+        }
       }
     }
   }, [imageUrls, carouselKind, displayTitle, kindLabel, shareUrl, shareAllEnabled, onShareEvent, cardSlug, navigate]);
