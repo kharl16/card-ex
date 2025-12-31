@@ -200,20 +200,26 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
     });
   }
 
-  // Try Web Share API with multiple image files
+  // Try Web Share API with multiple image files on mobile
   if (shouldUseNativeFileShare()) {
     try {
+      // Limit to first 10 images for native share to avoid hitting system limits
+      // Most devices struggle with more than 10 large image files
+      const maxImagesForNativeShare = 10;
+      const imagesToShare = imageUrls.slice(0, maxImagesForNativeShare);
+      const totalImages = imageUrls.length;
+      
       toast({
         title: "Preparing images...",
-        description: `Preparing ${imageUrls.length} images to share`,
+        description: `Preparing ${imagesToShare.length}${totalImages > maxImagesForNativeShare ? ` of ${totalImages}` : ""} images to share`,
       });
 
       // Fetch all images as files
       const files: File[] = [];
-      const fetchPromises = imageUrls.map(async (imgUrl, index) => {
+      const fetchPromises = imagesToShare.map(async (imgUrl, index) => {
         const blob = await fetchImageAsBlob(imgUrl);
         if (blob) {
-          const filename = getFilenameFromUrl(imgUrl, `image-${index + 1}`);
+          const filename = getFilenameFromUrl(imgUrl, `${carouselKind}-${index + 1}`);
           const mimeType = getMimeType(blob, filename);
           files.push(new File([blob], filename, { type: mimeType }));
         }
@@ -227,7 +233,9 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
 
       const shareData: ShareData = {
         title,
-        text,
+        text: totalImages > maxImagesForNativeShare 
+          ? `${text} (Showing ${files.length} of ${totalImages} images)`
+          : text,
         files,
       };
 
@@ -239,6 +247,27 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
       if (navigator.canShare(shareData)) {
         await navigator.share(shareData);
         return { ok: true };
+      } else {
+        // canShare returned false - try with fewer files
+        console.warn("canShare returned false, trying with fewer images");
+        
+        // Try with just first 5 images
+        if (files.length > 5) {
+          const reducedFiles = files.slice(0, 5);
+          const reducedShareData: ShareData = {
+            title,
+            text: `${text} (Showing 5 of ${totalImages} images)`,
+            files: reducedFiles,
+          };
+          if (url) reducedShareData.url = url;
+          
+          if (navigator.canShare(reducedShareData)) {
+            await navigator.share(reducedShareData);
+            return { ok: true };
+          }
+        }
+        
+        throw new Error("Device cannot share this many files");
       }
     } catch (error: unknown) {
       if (error instanceof Error && error.name === "AbortError") {
@@ -249,6 +278,7 @@ export async function shareAllImages(opts: ShareAllOptions): Promise<ShareResult
   }
 
   // Fallback: Try sharing just the URL (without files)
+  // This works on both mobile and desktop
   if (typeof navigator !== "undefined" && "share" in navigator && url) {
     try {
       await navigator.share({
