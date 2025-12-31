@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Share2, Download } from "lucide-react";
 import { shareAllImages, downloadAllAsZip, isMobileDevice, type CarouselKind } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
+import ImageSelectionDialog from "@/components/carousel/ImageSelectionDialog";
 
 export interface CarouselShareHeaderProps {
   carouselKind: CarouselKind;
@@ -19,6 +20,9 @@ export interface CarouselShareHeaderProps {
   onShareEvent?: (type: "share_all" | "download_all") => void;
 }
 
+// Max images that can be shared via native share
+const MAX_NATIVE_SHARE_IMAGES = 10;
+
 export default function CarouselShareHeader({
   carouselKind,
   imageUrls,
@@ -32,19 +36,26 @@ export default function CarouselShareHeader({
 }: CarouselShareHeaderProps) {
   const navigate = useNavigate();
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
   
   const kindLabel = carouselKind.charAt(0).toUpperCase() + carouselKind.slice(1);
   const displayTitle = title || kindLabel;
 
-  // Share All: try Web Share, fallback to share page on desktop only
-  const handleShareAll = useCallback(async () => {
-    if (!shareAllEnabled || imageUrls.length === 0) return;
+  // Prepare images for selection dialog
+  const selectableImages = useMemo(() => 
+    imageUrls.map((url, idx) => ({ url, alt: `${kindLabel} ${idx + 1}` })),
+    [imageUrls, kindLabel]
+  );
+
+  // Actually perform the share with selected images
+  const doShare = useCallback(async (urlsToShare: string[]) => {
+    if (urlsToShare.length === 0) return;
 
     const result = await shareAllImages({
-      imageUrls,
+      imageUrls: urlsToShare,
       carouselKind,
       title: `${displayTitle} from Card-Ex`,
-      text: `Check out these ${imageUrls.length} ${kindLabel.toLowerCase()} images!`,
+      text: `Check out these ${urlsToShare.length} ${kindLabel.toLowerCase()} images!`,
       url: shareUrl,
     });
 
@@ -52,21 +63,36 @@ export default function CarouselShareHeader({
       onShareEvent?.("share_all");
     } else if (result.showModal) {
       // Check if we're on mobile - on mobile, show modal instead of navigating to share page
-      // This gives a better UX when native file sharing fails (e.g., too many images)
       if (isMobileDevice()) {
-        // On mobile, show the ShareModal which provides social share buttons
         setShareModalOpen(true);
       } else {
         // On desktop, navigate to dedicated share page if slug available
         if (cardSlug) {
           navigate(`/c/${cardSlug}/share/${carouselKind}`);
         } else {
-          // Fallback to modal if no slug
           setShareModalOpen(true);
         }
       }
     }
-  }, [imageUrls, carouselKind, displayTitle, kindLabel, shareUrl, shareAllEnabled, onShareEvent, cardSlug, navigate]);
+  }, [carouselKind, displayTitle, kindLabel, shareUrl, onShareEvent, cardSlug, navigate]);
+
+  // Handle share button click - show selection dialog if more than MAX images
+  const handleShareAll = useCallback(async () => {
+    if (!shareAllEnabled || imageUrls.length === 0) return;
+
+    // If more than MAX images, show selection dialog first
+    if (imageUrls.length > MAX_NATIVE_SHARE_IMAGES) {
+      setImageSelectionOpen(true);
+    } else {
+      // Otherwise share all directly
+      await doShare(imageUrls);
+    }
+  }, [imageUrls, shareAllEnabled, doShare]);
+
+  // Callback when user confirms image selection
+  const handleImageSelectionConfirm = useCallback((selectedUrls: string[]) => {
+    doShare(selectedUrls);
+  }, [doShare]);
 
   // Download All: always download as ZIP
   const handleDownloadAll = useCallback(async () => {
@@ -113,6 +139,16 @@ export default function CarouselShareHeader({
           <span className="hidden sm:inline">Share All</span>
         </Button>
       </div>
+
+      {/* Image selection dialog - shown when more than 10 images */}
+      <ImageSelectionDialog
+        open={imageSelectionOpen}
+        onOpenChange={setImageSelectionOpen}
+        images={selectableImages}
+        maxSelection={MAX_NATIVE_SHARE_IMAGES}
+        title={`Select ${kindLabel} to share`}
+        onConfirm={handleImageSelectionConfirm}
+      />
 
       {/* ShareModal fallback for when Web Share isn't available */}
       <ShareModal
