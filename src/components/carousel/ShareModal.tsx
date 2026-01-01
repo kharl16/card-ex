@@ -1,22 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import {
   MessageCircle,
   Facebook,
   Send,
   Mail,
-  Copy,
-  Check,
-  Link2,
   ExternalLink,
 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 
 // Social share URL generators
 function getMessengerShareUrl(url: string): string {
@@ -72,53 +67,14 @@ export default function ShareModal({
   text = "Check out these images!",
   thumbnailUrl,
 }: ShareModalProps) {
-  const [copiedLink, setCopiedLink] = useState<"image" | "card" | null>(null);
-  
   const primaryImageUrl = imageUrls[0] || thumbnailUrl || "";
   const isMultiple = imageUrls.length > 1;
-  
+
   // For sharing, we share the card URL so recipients can view all images
   const shareUrl = publicCardUrl;
-  const shareText = isMultiple 
+  const shareText = isMultiple
     ? `${text} (${imageUrls.length} images)`
     : text;
-
-  const handleCopyImageLink = async () => {
-    try {
-      const linkToCopy = isMultiple ? imageUrls.join("\n") : primaryImageUrl;
-      await navigator.clipboard.writeText(linkToCopy);
-      setCopiedLink("image");
-      toast({
-        title: "Copied!",
-        description: isMultiple ? "All image links copied to clipboard" : "Image link copied to clipboard",
-      });
-      setTimeout(() => setCopiedLink(null), 2000);
-    } catch {
-      toast({
-        title: "Failed to copy",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleCopyCardLink = async () => {
-    try {
-      await navigator.clipboard.writeText(publicCardUrl);
-      setCopiedLink("card");
-      toast({
-        title: "Copied!",
-        description: "Card link copied to clipboard",
-      });
-      setTimeout(() => setCopiedLink(null), 2000);
-    } catch {
-      toast({
-        title: "Failed to copy",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    }
-  };
 
   const openShareUrl = (url: string) => {
     window.open(url, "_blank", "noopener,noreferrer,width=600,height=400");
@@ -209,35 +165,6 @@ export default function ShareModal({
               <span className="text-[10px] text-white mt-1 font-medium">{btn.name}</span>
             </button>
           ))}
-        </div>
-
-        {/* Copy buttons */}
-        <div className="flex flex-col gap-2 mt-4">
-          <Button
-            variant="outline"
-            onClick={handleCopyImageLink}
-            className="w-full justify-start gap-2"
-          >
-            {copiedLink === "image" ? (
-              <Check className="h-4 w-4 text-green-500" />
-            ) : (
-              <Copy className="h-4 w-4" />
-            )}
-            {isMultiple ? "Copy all image links" : "Copy image link"}
-          </Button>
-          
-          <Button
-            variant="outline"
-            onClick={handleCopyCardLink}
-            className="w-full justify-start gap-2"
-          >
-            {copiedLink === "card" ? (
-              <Check className="h-4 w-4 text-green-500" />
-            ) : (
-              <Link2 className="h-4 w-4" />
-            )}
-            Copy card link
-          </Button>
         </div>
       </DialogContent>
     </Dialog>

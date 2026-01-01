@@ -22,8 +22,8 @@ export interface CarouselShareHeaderProps {
 
 // Max images that can be shared via native share
 const MAX_NATIVE_SHARE_IMAGES = 10;
-// Max images for download selection (no limit really, but let's keep UI reasonable)
-const MAX_DOWNLOAD_SELECTION = 50;
+// Max images that can be selected for download
+const MAX_DOWNLOAD_SELECTION = 10;
 
 export default function CarouselShareHeader({
   carouselKind,
@@ -142,16 +142,16 @@ export default function CarouselShareHeader({
           <span className="hidden sm:inline">Download</span>
         </Button>
 
-        {/* Share All - ALWAYS show on both mobile and desktop */}
+        {/* Share */}
         <Button
           variant="default"
           size="sm"
           onClick={handleShareAll}
           className="h-7 w-7 sm:h-8 sm:w-auto sm:px-3 p-0 text-xs"
-          aria-label="Share all images"
+          aria-label="Share images"
         >
           <Share2 className="h-3.5 w-3.5 sm:mr-1.5" />
-          <span className="hidden sm:inline">Share All</span>
+          <span className="hidden sm:inline">Share</span>
         </Button>
       </div>
 
