@@ -35,20 +35,24 @@ export default function ImageSelectionDialog({
   open,
   onOpenChange,
   images,
-  maxSelection = 10,
+  maxSelection,
   title = "Select images to share",
   onConfirm,
   mode = "share",
   previousSelection,
   onSelectionChange,
 }: ImageSelectionDialogProps) {
-  // Default to previous selection or first maxSelection images
+  // Check if selection is unlimited (undefined or Infinity)
+  const isUnlimited = maxSelection === undefined || maxSelection === Infinity;
+  const effectiveMax = isUnlimited ? images.length : maxSelection;
+
+  // Default to previous selection or first effectiveMax images
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(() => {
     if (previousSelection && previousSelection.size > 0) {
       return new Set(previousSelection);
     }
     const initial = new Set<number>();
-    for (let i = 0; i < Math.min(images.length, maxSelection); i++) {
+    for (let i = 0; i < Math.min(images.length, effectiveMax); i++) {
       initial.add(i);
     }
     return initial;
@@ -70,34 +74,34 @@ export default function ImageSelectionDialog({
           return;
         }
       }
-      // Fall back to first maxSelection images
+      // Fall back to first effectiveMax images
       const initial = new Set<number>();
-      for (let i = 0; i < Math.min(images.length, maxSelection); i++) {
+      for (let i = 0; i < Math.min(images.length, effectiveMax); i++) {
         initial.add(i);
       }
       setSelectedIndices(initial);
     }
-  }, [open, images.length, maxSelection, previousSelection]);
+  }, [open, images.length, effectiveMax, previousSelection]);
 
   const toggleImage = useCallback((index: number) => {
     setSelectedIndices((prev) => {
       const next = new Set(prev);
       if (next.has(index)) {
         next.delete(index);
-      } else if (next.size < maxSelection) {
+      } else if (isUnlimited || next.size < effectiveMax) {
         next.add(index);
       }
       return next;
     });
-  }, [maxSelection]);
+  }, [isUnlimited, effectiveMax]);
 
   const selectAll = useCallback(() => {
     const allSelected = new Set<number>();
-    for (let i = 0; i < Math.min(images.length, maxSelection); i++) {
+    for (let i = 0; i < images.length; i++) {
       allSelected.add(i);
     }
     setSelectedIndices(allSelected);
-  }, [images.length, maxSelection]);
+  }, [images.length]);
 
   const clearAll = useCallback(() => {
     setSelectedIndices(new Set());
@@ -113,7 +117,7 @@ export default function ImageSelectionDialog({
     onOpenChange(false);
   }, [selectedIndices, images, onConfirm, onOpenChange, onSelectionChange]);
 
-  const canSelectMore = selectedIndices.size < maxSelection;
+  const canSelectMore = isUnlimited || selectedIndices.size < effectiveMax;
   
   // Button configuration based on mode
   const buttonConfig = mode === "download" 
@@ -127,7 +131,10 @@ export default function ImageSelectionDialog({
         <DialogHeader className="px-4 pt-4 pb-2 border-b flex-shrink-0">
           <DialogTitle className="text-lg">{title}</DialogTitle>
           <p className="text-sm text-muted-foreground">
-            {selectedIndices.size} of {maxSelection} selected ({images.length} total)
+            {isUnlimited 
+              ? `${selectedIndices.size} selected (${images.length} total)`
+              : `${selectedIndices.size} of ${effectiveMax} selected (${images.length} total)`
+            }
           </p>
         </DialogHeader>
 
@@ -137,9 +144,9 @@ export default function ImageSelectionDialog({
             variant="outline"
             size="sm"
             onClick={selectAll}
-            disabled={selectedIndices.size === Math.min(images.length, maxSelection)}
+            disabled={selectedIndices.size === images.length}
           >
-            Select first {Math.min(images.length, maxSelection)}
+            {isUnlimited ? "Select all" : `Select first ${effectiveMax}`}
           </Button>
           <Button
             variant="outline"

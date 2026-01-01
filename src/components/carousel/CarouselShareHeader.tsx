@@ -37,9 +37,11 @@ export default function CarouselShareHeader({
   const navigate = useNavigate();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
+  const [downloadSelectionOpen, setDownloadSelectionOpen] = useState(false);
   
-  // Persist share selection between dialog opens
+  // Persist selections between dialog opens
   const [shareSelection, setShareSelection] = useState<Set<number>>(new Set());
+  const [downloadSelection, setDownloadSelection] = useState<Set<number>>(new Set());
   
   const kindLabel = carouselKind.charAt(0).toUpperCase() + carouselKind.slice(1);
   const displayTitle = title || kindLabel;
@@ -79,11 +81,9 @@ export default function CarouselShareHeader({
     }
   }, [carouselKind, displayTitle, kindLabel, shareUrl, onShareEvent, cardSlug, navigate]);
 
-  // Handle share button click - ALWAYS show selection dialog so users can pick images
+  // Handle share button click - show selection dialog
   const handleShareAll = useCallback(async () => {
     if (!shareAllEnabled || imageUrls.length === 0) return;
-
-    // Always show selection dialog to let users choose which images to share
     setImageSelectionOpen(true);
   }, [imageUrls.length, shareAllEnabled]);
 
@@ -92,19 +92,25 @@ export default function CarouselShareHeader({
     doShare(selectedUrls);
   }, [doShare]);
 
-  // Handle download button click - download ALL images immediately
-  const handleDownloadAll = useCallback(async () => {
+  // Handle download button click - show selection dialog (unlimited)
+  const handleDownloadAll = useCallback(() => {
     if (imageUrls.length === 0) return;
+    setDownloadSelectionOpen(true);
+  }, [imageUrls.length]);
+
+  // Callback when user confirms image selection for download
+  const handleDownloadSelectionConfirm = useCallback(async (selectedUrls: string[]) => {
+    if (selectedUrls.length === 0) return;
 
     const result = await downloadAllAsZip({
-      imageUrls,
+      imageUrls: selectedUrls,
       carouselKind,
     });
 
     if (result.ok) {
       onShareEvent?.("download_all");
     }
-  }, [imageUrls, carouselKind, onShareEvent]);
+  }, [carouselKind, onShareEvent]);
 
   if (!shareEnabled || imageUrls.length === 0) {
     return null;
@@ -151,8 +157,19 @@ export default function CarouselShareHeader({
         onSelectionChange={setShareSelection}
       />
 
+      {/* Image selection dialog for DOWNLOAD - unlimited selection */}
+      <ImageSelectionDialog
+        open={downloadSelectionOpen}
+        onOpenChange={setDownloadSelectionOpen}
+        images={selectableImages}
+        title={`Select ${kindLabel} to download`}
+        onConfirm={handleDownloadSelectionConfirm}
+        mode="download"
+        previousSelection={downloadSelection}
+        onSelectionChange={setDownloadSelection}
+      />
 
-      {/* ShareModal fallback for when Web Share isn't available */}
+
       <ShareModal
         open={shareModalOpen}
         onOpenChange={setShareModalOpen}
