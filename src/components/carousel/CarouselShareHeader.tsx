@@ -37,11 +37,9 @@ export default function CarouselShareHeader({
   const navigate = useNavigate();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
-  const [downloadSelectionOpen, setDownloadSelectionOpen] = useState(false);
   
-  // Persist selections between dialog opens
+  // Persist share selection between dialog opens
   const [shareSelection, setShareSelection] = useState<Set<number>>(new Set());
-  const [downloadSelection, setDownloadSelection] = useState<Set<number>>(new Set());
   
   const kindLabel = carouselKind.charAt(0).toUpperCase() + carouselKind.slice(1);
   const displayTitle = title || kindLabel;
@@ -94,32 +92,19 @@ export default function CarouselShareHeader({
     doShare(selectedUrls);
   }, [doShare]);
 
-  // Actually perform the download with selected images
-  const doDownload = useCallback(async (urlsToDownload: string[]) => {
-    if (urlsToDownload.length === 0) return;
+  // Handle download button click - download ALL images immediately
+  const handleDownloadAll = useCallback(async () => {
+    if (imageUrls.length === 0) return;
 
     const result = await downloadAllAsZip({
-      imageUrls: urlsToDownload,
+      imageUrls,
       carouselKind,
     });
 
     if (result.ok) {
       onShareEvent?.("download_all");
     }
-  }, [carouselKind, onShareEvent]);
-
-  // Handle download button click - ALWAYS show selection dialog so users can pick images
-  const handleDownloadAll = useCallback(async () => {
-    if (imageUrls.length === 0) return;
-
-    // Always show selection dialog to let users choose which images to download
-    setDownloadSelectionOpen(true);
-  }, [imageUrls.length]);
-
-  // Callback when user confirms image selection for download
-  const handleDownloadSelectionConfirm = useCallback((selectedUrls: string[]) => {
-    doDownload(selectedUrls);
-  }, [doDownload]);
+  }, [imageUrls, carouselKind, onShareEvent]);
 
   if (!shareEnabled || imageUrls.length === 0) {
     return null;
@@ -166,17 +151,6 @@ export default function CarouselShareHeader({
         onSelectionChange={setShareSelection}
       />
 
-      {/* Image selection dialog for DOWNLOAD - no limit */}
-      <ImageSelectionDialog
-        open={downloadSelectionOpen}
-        onOpenChange={setDownloadSelectionOpen}
-        images={selectableImages}
-        title={`Select ${kindLabel} to download`}
-        onConfirm={handleDownloadSelectionConfirm}
-        mode="download"
-        previousSelection={downloadSelection}
-        onSelectionChange={setDownloadSelection}
-      />
 
       {/* ShareModal fallback for when Web Share isn't available */}
       <ShareModal
