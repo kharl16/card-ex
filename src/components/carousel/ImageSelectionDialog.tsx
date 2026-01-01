@@ -7,13 +7,15 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, Share2 } from "lucide-react";
+import { Check, Share2, Download } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface CarouselImage {
   url: string;
   alt?: string;
 }
+
+type SelectionMode = "share" | "download";
 
 interface ImageSelectionDialogProps {
   open: boolean;
@@ -22,6 +24,8 @@ interface ImageSelectionDialogProps {
   maxSelection?: number;
   title?: string;
   onConfirm: (selectedUrls: string[]) => void;
+  /** Mode: "share" or "download" - affects button label and icon */
+  mode?: SelectionMode;
 }
 
 export default function ImageSelectionDialog({
@@ -31,6 +35,7 @@ export default function ImageSelectionDialog({
   maxSelection = 10,
   title = "Select images to share",
   onConfirm,
+  mode = "share",
 }: ImageSelectionDialogProps) {
   // Default to first maxSelection images selected
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(() => {
@@ -85,11 +90,17 @@ export default function ImageSelectionDialog({
   }, [selectedIndices, images, onConfirm, onOpenChange]);
 
   const canSelectMore = selectedIndices.size < maxSelection;
+  
+  // Button configuration based on mode
+  const buttonConfig = mode === "download" 
+    ? { icon: Download, label: "Download" }
+    : { icon: Share2, label: "Share" };
+  const ActionIcon = buttonConfig.icon;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg sm:max-w-2xl max-h-[90vh] flex flex-col p-0">
-        <DialogHeader className="px-4 pt-4 pb-2 border-b">
+      <DialogContent className="max-w-lg sm:max-w-2xl max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="px-4 pt-4 pb-2 border-b flex-shrink-0">
           <DialogTitle className="text-lg">{title}</DialogTitle>
           <p className="text-sm text-muted-foreground">
             {selectedIndices.size} of {maxSelection} selected ({images.length} total)
@@ -97,7 +108,7 @@ export default function ImageSelectionDialog({
         </DialogHeader>
 
         {/* Quick actions */}
-        <div className="flex items-center gap-2 px-4 py-2 bg-muted/30">
+        <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 flex-shrink-0">
           <Button
             variant="outline"
             size="sm"
@@ -116,9 +127,9 @@ export default function ImageSelectionDialog({
           </Button>
         </div>
 
-        {/* Image grid */}
-        <ScrollArea className="flex-1 px-4 py-2">
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+        {/* Image grid with proper scroll area */}
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-4">
             {images.map((img, index) => {
               const isSelected = selectedIndices.has(index);
               const canSelect = isSelected || canSelectMore;
@@ -169,7 +180,7 @@ export default function ImageSelectionDialog({
           </div>
         </ScrollArea>
 
-        <DialogFooter className="px-4 py-3 border-t">
+        <DialogFooter className="px-4 py-3 border-t flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
@@ -178,8 +189,8 @@ export default function ImageSelectionDialog({
             disabled={selectedIndices.size === 0}
             className="gap-2"
           >
-            <Share2 className="h-4 w-4" />
-            Share {selectedIndices.size} image{selectedIndices.size !== 1 ? "s" : ""}
+            <ActionIcon className="h-4 w-4" />
+            {buttonConfig.label} {selectedIndices.size} image{selectedIndices.size !== 1 ? "s" : ""}
           </Button>
         </DialogFooter>
       </DialogContent>
