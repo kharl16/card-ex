@@ -22,8 +22,6 @@ export interface CarouselShareHeaderProps {
 
 // Max images that can be shared via native share
 const MAX_NATIVE_SHARE_IMAGES = 10;
-// Max images that can be selected for download
-const MAX_DOWNLOAD_SELECTION = 10;
 
 export default function CarouselShareHeader({
   carouselKind,
@@ -168,12 +166,11 @@ export default function CarouselShareHeader({
         onSelectionChange={setShareSelection}
       />
 
-      {/* Image selection dialog for DOWNLOAD - shown when more than 10 images */}
+      {/* Image selection dialog for DOWNLOAD - no limit */}
       <ImageSelectionDialog
         open={downloadSelectionOpen}
         onOpenChange={setDownloadSelectionOpen}
         images={selectableImages}
-        maxSelection={MAX_DOWNLOAD_SELECTION}
         title={`Select ${kindLabel} to download`}
         onConfirm={handleDownloadSelectionConfirm}
         mode="download"
