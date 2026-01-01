@@ -41,6 +41,10 @@ export default function CarouselShareHeader({
   const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
   const [downloadSelectionOpen, setDownloadSelectionOpen] = useState(false);
   
+  // Persist selections between dialog opens
+  const [shareSelection, setShareSelection] = useState<Set<number>>(new Set());
+  const [downloadSelection, setDownloadSelection] = useState<Set<number>>(new Set());
+  
   const kindLabel = carouselKind.charAt(0).toUpperCase() + carouselKind.slice(1);
   const displayTitle = title || kindLabel;
 
@@ -170,6 +174,8 @@ export default function CarouselShareHeader({
         title={`Select ${kindLabel} to share`}
         onConfirm={handleImageSelectionConfirm}
         mode="share"
+        previousSelection={shareSelection}
+        onSelectionChange={setShareSelection}
       />
 
       {/* Image selection dialog for DOWNLOAD - shown when more than 10 images */}
@@ -181,6 +187,8 @@ export default function CarouselShareHeader({
         title={`Select ${kindLabel} to download`}
         onConfirm={handleDownloadSelectionConfirm}
         mode="download"
+        previousSelection={downloadSelection}
+        onSelectionChange={setDownloadSelection}
       />
 
       {/* ShareModal fallback for when Web Share isn't available */}

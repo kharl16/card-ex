@@ -26,6 +26,10 @@ interface ImageSelectionDialogProps {
   onConfirm: (selectedUrls: string[]) => void;
   /** Mode: "share" or "download" - affects button label and icon */
   mode?: SelectionMode;
+  /** Previously selected indices to restore when dialog opens */
+  previousSelection?: Set<number>;
+  /** Callback to persist selection when it changes */
+  onSelectionChange?: (indices: Set<number>) => void;
 }
 
 export default function ImageSelectionDialog({
@@ -36,9 +40,14 @@ export default function ImageSelectionDialog({
   title = "Select images to share",
   onConfirm,
   mode = "share",
+  previousSelection,
+  onSelectionChange,
 }: ImageSelectionDialogProps) {
-  // Default to first maxSelection images selected
+  // Default to previous selection or first maxSelection images
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(() => {
+    if (previousSelection && previousSelection.size > 0) {
+      return new Set(previousSelection);
+    }
     const initial = new Set<number>();
     for (let i = 0; i < Math.min(images.length, maxSelection); i++) {
       initial.add(i);
@@ -46,16 +55,30 @@ export default function ImageSelectionDialog({
     return initial;
   });
 
-  // Reset selection when dialog opens with new images
+  // Restore selection when dialog opens - use previous if available
   React.useEffect(() => {
     if (open) {
+      if (previousSelection && previousSelection.size > 0) {
+        // Filter out any indices that are now out of range
+        const validSelection = new Set<number>();
+        previousSelection.forEach((idx) => {
+          if (idx < images.length) {
+            validSelection.add(idx);
+          }
+        });
+        if (validSelection.size > 0) {
+          setSelectedIndices(validSelection);
+          return;
+        }
+      }
+      // Fall back to first maxSelection images
       const initial = new Set<number>();
       for (let i = 0; i < Math.min(images.length, maxSelection); i++) {
         initial.add(i);
       }
       setSelectedIndices(initial);
     }
-  }, [open, images.length, maxSelection]);
+  }, [open, images.length, maxSelection, previousSelection]);
 
   const toggleImage = useCallback((index: number) => {
     setSelectedIndices((prev) => {
@@ -82,12 +105,14 @@ export default function ImageSelectionDialog({
   }, []);
 
   const handleConfirm = useCallback(() => {
+    // Persist selection before confirming
+    onSelectionChange?.(selectedIndices);
     const selectedUrls = Array.from(selectedIndices)
       .sort((a, b) => a - b)
       .map((idx) => images[idx].url);
     onConfirm(selectedUrls);
     onOpenChange(false);
-  }, [selectedIndices, images, onConfirm, onOpenChange]);
+  }, [selectedIndices, images, onConfirm, onOpenChange, onSelectionChange]);
 
   const canSelectMore = selectedIndices.size < maxSelection;
   
