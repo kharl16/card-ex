@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Check, Share2, Download } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface CarouselImage {
   url: string;
@@ -124,7 +123,7 @@ export default function ImageSelectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg sm:max-w-2xl max-h-[85vh] !flex !flex-col !gap-0 p-0">
+      <DialogContent className="max-w-lg sm:max-w-2xl h-[85vh] flex flex-col gap-0 p-0">
         <DialogHeader className="px-4 pt-4 pb-2 border-b flex-shrink-0">
           <DialogTitle className="text-lg">{title}</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -153,7 +152,10 @@ export default function ImageSelectionDialog({
         </div>
 
         {/* Image grid - scrolls when there are many images */}
-        <ScrollArea className="flex-1 min-h-0">
+        <div
+          className="flex-1 min-h-0 overflow-y-auto"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-4">
             {images.map((img, index) => {
               const isSelected = selectedIndices.has(index);
@@ -203,7 +205,7 @@ export default function ImageSelectionDialog({
               );
             })}
           </div>
-        </ScrollArea>
+        </div>
 
         <DialogFooter className="px-4 py-3 border-t flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
