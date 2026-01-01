@@ -124,7 +124,7 @@ export default function ImageSelectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg sm:max-w-2xl max-h-[85vh] flex flex-col p-0">
+      <DialogContent className="max-w-lg sm:max-w-2xl max-h-[85vh] !flex !flex-col !gap-0 p-0">
         <DialogHeader className="px-4 pt-4 pb-2 border-b flex-shrink-0">
           <DialogTitle className="text-lg">{title}</DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -152,8 +152,8 @@ export default function ImageSelectionDialog({
           </Button>
         </div>
 
-        {/* Image grid with proper scroll area - explicit max height for scrolling */}
-        <ScrollArea className="flex-1 min-h-0 max-h-[50vh]">
+        {/* Image grid - scrolls when there are many images */}
+        <ScrollArea className="flex-1 min-h-0">
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-4">
             {images.map((img, index) => {
               const isSelected = selectedIndices.has(index);
