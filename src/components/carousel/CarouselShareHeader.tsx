@@ -22,6 +22,8 @@ export interface CarouselShareHeaderProps {
 
 // Max images that can be shared via native share
 const MAX_NATIVE_SHARE_IMAGES = 10;
+// Max images for download selection (no limit really, but let's keep UI reasonable)
+const MAX_DOWNLOAD_SELECTION = 50;
 
 export default function CarouselShareHeader({
   carouselKind,
@@ -37,6 +39,7 @@ export default function CarouselShareHeader({
   const navigate = useNavigate();
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [imageSelectionOpen, setImageSelectionOpen] = useState(false);
+  const [downloadSelectionOpen, setDownloadSelectionOpen] = useState(false);
   
   const kindLabel = carouselKind.charAt(0).toUpperCase() + carouselKind.slice(1);
   const displayTitle = title || kindLabel;
@@ -89,24 +92,42 @@ export default function CarouselShareHeader({
     }
   }, [imageUrls, shareAllEnabled, doShare]);
 
-  // Callback when user confirms image selection
+  // Callback when user confirms image selection for sharing
   const handleImageSelectionConfirm = useCallback((selectedUrls: string[]) => {
     doShare(selectedUrls);
   }, [doShare]);
 
-  // Download All: always download as ZIP
-  const handleDownloadAll = useCallback(async () => {
-    if (imageUrls.length === 0) return;
+  // Actually perform the download with selected images
+  const doDownload = useCallback(async (urlsToDownload: string[]) => {
+    if (urlsToDownload.length === 0) return;
 
     const result = await downloadAllAsZip({
-      imageUrls,
+      imageUrls: urlsToDownload,
       carouselKind,
     });
 
     if (result.ok) {
       onShareEvent?.("download_all");
     }
-  }, [imageUrls, carouselKind, onShareEvent]);
+  }, [carouselKind, onShareEvent]);
+
+  // Handle download button click - show selection dialog if more than 10 images
+  const handleDownloadAll = useCallback(async () => {
+    if (imageUrls.length === 0) return;
+
+    // If more than 10 images, show selection dialog first
+    if (imageUrls.length > 10) {
+      setDownloadSelectionOpen(true);
+    } else {
+      // Otherwise download all directly
+      await doDownload(imageUrls);
+    }
+  }, [imageUrls, doDownload]);
+
+  // Callback when user confirms image selection for download
+  const handleDownloadSelectionConfirm = useCallback((selectedUrls: string[]) => {
+    doDownload(selectedUrls);
+  }, [doDownload]);
 
   if (!shareEnabled || imageUrls.length === 0) {
     return null;
@@ -140,7 +161,7 @@ export default function CarouselShareHeader({
         </Button>
       </div>
 
-      {/* Image selection dialog - shown when more than 10 images */}
+      {/* Image selection dialog for SHARE - shown when more than 10 images */}
       <ImageSelectionDialog
         open={imageSelectionOpen}
         onOpenChange={setImageSelectionOpen}
@@ -148,6 +169,18 @@ export default function CarouselShareHeader({
         maxSelection={MAX_NATIVE_SHARE_IMAGES}
         title={`Select ${kindLabel} to share`}
         onConfirm={handleImageSelectionConfirm}
+        mode="share"
+      />
+
+      {/* Image selection dialog for DOWNLOAD - shown when more than 10 images */}
+      <ImageSelectionDialog
+        open={downloadSelectionOpen}
+        onOpenChange={setDownloadSelectionOpen}
+        images={selectableImages}
+        maxSelection={MAX_DOWNLOAD_SELECTION}
+        title={`Select ${kindLabel} to download`}
+        onConfirm={handleDownloadSelectionConfirm}
+        mode="download"
       />
 
       {/* ShareModal fallback for when Web Share isn't available */}
