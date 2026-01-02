@@ -324,7 +324,7 @@ export default function CardView({
               // Render the icon - either custom PNG or lucide icon
               const renderIcon = () => {
                 if (customIconSrc) {
-                  return <img src={customIconSrc} alt={link.label} className="h-7 w-7 object-contain" />;
+                  return <img src={customIconSrc} alt={link.label} className="h-6 w-6 object-contain" />;
                 }
                 const Icon = IconComponent || Globe;
                 return <Icon className="h-6 w-6 text-white" />;
@@ -337,7 +337,7 @@ export default function CardView({
                     href={link.value}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`flex h-12 w-12 items-center justify-center rounded-full ${customIconSrc ? '' : brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
+                    className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
                     style={{ animationDelay: bounceDelay, animationFillMode: "backwards" }}
                     title={link.label}
                   >
@@ -349,7 +349,7 @@ export default function CardView({
               return (
                 <div
                   key={link.id}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full ${customIconSrc ? '' : brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
                   style={{ animationDelay: bounceDelay, animationFillMode: "backwards" }}
                   title={link.label}
                 >
