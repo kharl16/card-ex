@@ -7,12 +7,8 @@ import {
   Download,
   Facebook,
   Linkedin,
-  Instagram,
-  Twitter,
   Youtube,
   Github,
-  MessageCircle,
-  Music,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,6 +21,12 @@ import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { mergeCarouselSettings, type CarouselSettingsData } from "@/lib/carouselTypes";
 import type { Tables } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+
+// Custom social icons
+import tiktokIcon from "@/assets/icons/tiktok.png";
+import instagramIcon from "@/assets/icons/instagram.png";
+import twitterXIcon from "@/assets/icons/twitter-x.png";
+import telegramIcon from "@/assets/icons/telegram.png";
 
 type CardData = Tables<"cards">;
 
@@ -91,13 +93,17 @@ interface CardViewProps {
 const iconMap: Record<string, any> = {
   Facebook,
   Linkedin,
-  Instagram,
-  Twitter,
   Youtube,
   Github,
-  MessageCircle,
-  Music,
   Globe,
+};
+
+// Custom PNG icons for platforms without white backgrounds
+const customIconMap: Record<string, string> = {
+  Instagram: instagramIcon,
+  Twitter: twitterXIcon,
+  MessageCircle: telegramIcon,
+  Music: tiktokIcon,
 };
 
 const socialBrandColors: Record<string, string> = {
@@ -310,9 +316,19 @@ export default function CardView({
         {resolvedSocialLinks.length > 0 && (
           <div className="flex flex-wrap gap-3 justify-center px-4 pb-4">
             {resolvedSocialLinks.map((link, index) => {
-              const IconComponent = iconMap[link.icon] || Globe;
+              const IconComponent = iconMap[link.icon];
+              const customIconSrc = customIconMap[link.icon];
               const brandColor = socialBrandColors[link.kind] || "bg-primary";
               const bounceDelay = `${index * 0.1}s`;
+
+              // Render the icon - either custom PNG or lucide icon
+              const renderIcon = () => {
+                if (customIconSrc) {
+                  return <img src={customIconSrc} alt={link.label} className="h-7 w-7 object-contain" />;
+                }
+                const Icon = IconComponent || Globe;
+                return <Icon className="h-6 w-6 text-white" />;
+              };
 
               if (isInteractive) {
                 return (
@@ -321,11 +337,11 @@ export default function CardView({
                     href={link.value}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
+                    className={`flex h-12 w-12 items-center justify-center rounded-full ${customIconSrc ? '' : brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
                     style={{ animationDelay: bounceDelay, animationFillMode: "backwards" }}
                     title={link.label}
                   >
-                    <IconComponent className="h-6 w-6 text-white" />
+                    {renderIcon()}
                   </a>
                 );
               }
@@ -333,11 +349,11 @@ export default function CardView({
               return (
                 <div
                   key={link.id}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-full ${customIconSrc ? '' : brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
                   style={{ animationDelay: bounceDelay, animationFillMode: "backwards" }}
                   title={link.label}
                 >
-                  <IconComponent className="h-6 w-6 text-white" />
+                  {renderIcon()}
                 </div>
               );
             })}
