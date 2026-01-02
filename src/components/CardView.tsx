@@ -106,16 +106,46 @@ const customIconMap: Record<string, string> = {
   Music: tiktokIcon,
 };
 
-const socialBrandColors: Record<string, string> = {
-  facebook: "bg-[#1877F2]",
-  linkedin: "bg-[#0A66C2]",
-  instagram: "bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#FD1D1D]",
-  x: "bg-black",
-  youtube: "bg-[#FF0000]",
-  telegram: "bg-[#26A5E4]",
-  tiktok: "bg-black",
-  url: "bg-[#4285F4]",
+// Brand colors and glow effects for social platforms
+const socialBrandConfig: Record<string, { bg: string; glow: string }> = {
+  facebook: { 
+    bg: "bg-[#1877F2]", 
+    glow: "hover:shadow-[0_0_20px_rgba(24,119,242,0.6)]" 
+  },
+  linkedin: { 
+    bg: "bg-[#0A66C2]", 
+    glow: "hover:shadow-[0_0_20px_rgba(10,102,194,0.5)]" 
+  },
+  instagram: { 
+    bg: "bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#FD1D1D]", 
+    glow: "hover:shadow-[0_0_24px_rgba(225,48,108,0.6)]" 
+  },
+  x: { 
+    bg: "bg-black", 
+    glow: "hover:shadow-[0_0_16px_rgba(255,255,255,0.25)]" 
+  },
+  youtube: { 
+    bg: "bg-[#FF0000]", 
+    glow: "hover:shadow-[0_0_20px_rgba(255,0,0,0.5)]" 
+  },
+  telegram: { 
+    bg: "bg-[#26A5E4]", 
+    glow: "hover:shadow-[0_0_20px_rgba(38,165,228,0.6)]" 
+  },
+  tiktok: { 
+    bg: "bg-black", 
+    glow: "hover:shadow-[0_0_20px_rgba(0,255,255,0.4),0_0_20px_rgba(255,0,80,0.4)]" 
+  },
+  url: { 
+    bg: "bg-[#4285F4]", 
+    glow: "hover:shadow-[0_0_16px_rgba(66,133,244,0.5)]" 
+  },
 };
+
+// Legacy accessor for brand colors only
+const socialBrandColors: Record<string, string> = Object.fromEntries(
+  Object.entries(socialBrandConfig).map(([k, v]) => [k, v.bg])
+);
 
 const contactBrandColors: Record<string, string> = {
   email: "bg-[#EA4335]",
@@ -318,8 +348,18 @@ export default function CardView({
             {resolvedSocialLinks.map((link, index) => {
               const IconComponent = iconMap[link.icon];
               const customIconSrc = customIconMap[link.icon];
-              const brandColor = socialBrandColors[link.kind] || "bg-primary";
+              const brandConfig = socialBrandConfig[link.kind] || { bg: "bg-primary", glow: "hover:shadow-[0_0_16px_rgba(212,175,55,0.5)]" };
               const bounceDelay = `${index * 0.1}s`;
+
+              // Common classes for brand-aware hover/active animations
+              const iconContainerClasses = `
+                flex h-12 w-12 items-center justify-center rounded-full 
+                ${brandConfig.bg} ${brandConfig.glow}
+                hover:scale-110 active:scale-95 active:opacity-80
+                transition-all duration-200 ease-out
+                cursor-pointer shadow-md 
+                animate-[bounce_0.6s_ease-out]
+              `.trim().replace(/\s+/g, ' ');
 
               // Render the icon - either custom PNG or lucide icon
               const renderIcon = () => {
@@ -337,7 +377,7 @@ export default function CardView({
                     href={link.value}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
+                    className={iconContainerClasses}
                     style={{ animationDelay: bounceDelay, animationFillMode: "backwards" }}
                     title={link.label}
                   >
@@ -349,7 +389,7 @@ export default function CardView({
               return (
                 <div
                   key={link.id}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full ${brandColor} hover:scale-110 hover:opacity-90 transition-all duration-300 cursor-pointer shadow-md animate-[bounce_0.6s_ease-out]`}
+                  className={iconContainerClasses}
                   style={{ animationDelay: bounceDelay, animationFillMode: "backwards" }}
                   title={link.label}
                 >
