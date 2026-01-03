@@ -893,6 +893,42 @@ export type Database = {
           },
         ]
       }
+      tools: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          title: string
+          tool_url: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+          tool_url: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+          tool_url?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           granted_at: string | null

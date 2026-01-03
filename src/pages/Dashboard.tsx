@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy, Trash2, Pencil, Search, DollarSign } from "lucide-react";
+import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy, Trash2, Pencil, Search, DollarSign, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -264,6 +264,10 @@ export default function Dashboard() {
               </Button>
             )}
             <AdminButton />
+            <Button onClick={() => navigate("/tools")} variant="outline" size="sm" className="gap-2">
+              <Wrench className="h-4 w-4" />
+              Tools
+            </Button>
             <Button onClick={() => navigate("/gallery")} variant="outline" size="sm">
               Gallery
             </Button>
