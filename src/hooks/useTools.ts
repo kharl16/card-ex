@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface Tool {
   id: string;
@@ -13,12 +14,24 @@ export interface Tool {
   updated_at: string;
 }
 
+export interface ToolInput {
+  title: string;
+  description?: string;
+  category: string;
+  tool_url: string;
+  visibility?: string;
+  is_active?: boolean;
+}
+
 interface UseToolsReturn {
   tools: Tool[];
   loading: boolean;
   error: string | null;
   categories: string[];
   refetch: () => Promise<void>;
+  createTool: (data: ToolInput) => Promise<boolean>;
+  updateTool: (id: string, data: ToolInput) => Promise<boolean>;
+  deleteTool: (id: string) => Promise<boolean>;
 }
 
 export function useTools(): UseToolsReturn {
@@ -26,7 +39,7 @@ export function useTools(): UseToolsReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTools = async () => {
+  const fetchTools = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -51,11 +64,11 @@ export function useTools(): UseToolsReturn {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTools();
-  }, []);
+  }, [fetchTools]);
 
   // Extract unique categories from the tools data
   const categories = useMemo(() => {
@@ -63,11 +76,83 @@ export function useTools(): UseToolsReturn {
     return uniqueCategories.sort();
   }, [tools]);
 
+  const createTool = useCallback(async (data: ToolInput): Promise<boolean> => {
+    try {
+      const { error: insertError } = await supabase.from("tools").insert({
+        title: data.title,
+        description: data.description || null,
+        category: data.category,
+        tool_url: data.tool_url,
+        visibility: data.visibility || "all_members",
+        is_active: data.is_active ?? true,
+      });
+
+      if (insertError) throw insertError;
+
+      toast.success("Tool created successfully");
+      await fetchTools();
+      return true;
+    } catch (err: any) {
+      console.error("Error creating tool:", err);
+      toast.error(err.message || "Failed to create tool");
+      return false;
+    }
+  }, [fetchTools]);
+
+  const updateTool = useCallback(async (id: string, data: ToolInput): Promise<boolean> => {
+    try {
+      const { error: updateError } = await supabase
+        .from("tools")
+        .update({
+          title: data.title,
+          description: data.description || null,
+          category: data.category,
+          tool_url: data.tool_url,
+          visibility: data.visibility || "all_members",
+          is_active: data.is_active ?? true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+
+      if (updateError) throw updateError;
+
+      toast.success("Tool updated successfully");
+      await fetchTools();
+      return true;
+    } catch (err: any) {
+      console.error("Error updating tool:", err);
+      toast.error(err.message || "Failed to update tool");
+      return false;
+    }
+  }, [fetchTools]);
+
+  const deleteTool = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const { error: deleteError } = await supabase
+        .from("tools")
+        .delete()
+        .eq("id", id);
+
+      if (deleteError) throw deleteError;
+
+      toast.success("Tool deleted successfully");
+      await fetchTools();
+      return true;
+    } catch (err: any) {
+      console.error("Error deleting tool:", err);
+      toast.error(err.message || "Failed to delete tool");
+      return false;
+    }
+  }, [fetchTools]);
+
   return {
     tools,
     loading,
     error,
     categories,
     refetch: fetchTools,
+    createTool,
+    updateTool,
+    deleteTool,
   };
 }
