@@ -6,9 +6,19 @@ interface ToolsListProps {
   tools: Tool[];
   searchTerm: string;
   selectedCategory: string;
+  isAdmin?: boolean;
+  onEdit?: (tool: Tool) => void;
+  onDelete?: (tool: Tool) => void;
 }
 
-export function ToolsList({ tools, searchTerm, selectedCategory }: ToolsListProps) {
+export function ToolsList({
+  tools,
+  searchTerm,
+  selectedCategory,
+  isAdmin,
+  onEdit,
+  onDelete,
+}: ToolsListProps) {
   // Filter tools based on search and category
   const filteredTools = useMemo(() => {
     let result = tools;
@@ -67,7 +77,13 @@ export function ToolsList({ tools, searchTerm, selectedCategory }: ToolsListProp
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {categoryTools.map((tool) => (
-              <ToolCard key={tool.id} tool={tool} />
+              <ToolCard
+                key={tool.id}
+                tool={tool}
+                isAdmin={isAdmin}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             ))}
           </div>
         </div>
