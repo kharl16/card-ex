@@ -67,6 +67,54 @@ export type Database = {
           },
         ]
       }
+      ambassadors_library: {
+        Row: {
+          allowed_sites: string[] | null
+          created_at: string
+          drive_link: string | null
+          drive_share_link: string | null
+          endorser: string | null
+          folder_name: string | null
+          id: string
+          is_active: boolean
+          product_endorsed: string | null
+          thumbnail: string | null
+          updated_at: string
+          video_file_url: string | null
+          visibility_level: Database["public"]["Enums"]["visibility_level"]
+        }
+        Insert: {
+          allowed_sites?: string[] | null
+          created_at?: string
+          drive_link?: string | null
+          drive_share_link?: string | null
+          endorser?: string | null
+          folder_name?: string | null
+          id?: string
+          is_active?: boolean
+          product_endorsed?: string | null
+          thumbnail?: string | null
+          updated_at?: string
+          video_file_url?: string | null
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Update: {
+          allowed_sites?: string[] | null
+          created_at?: string
+          drive_link?: string | null
+          drive_share_link?: string | null
+          endorser?: string | null
+          folder_name?: string | null
+          id?: string
+          is_active?: boolean
+          product_endorsed?: string | null
+          thumbnail?: string | null
+          updated_at?: string
+          video_file_url?: string | null
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Relationships: []
+      }
       analytics_daily: {
         Row: {
           card_id: string
@@ -515,6 +563,174 @@ export type Database = {
           },
         ]
       }
+      directory_entries: {
+        Row: {
+          address: string | null
+          allowed_sites: string[] | null
+          created_at: string
+          facebook_page: string | null
+          id: number
+          is_active: boolean
+          location: string | null
+          maps_link: string | null
+          operating_hours: string | null
+          owner: string | null
+          phone_1: string | null
+          phone_2: string | null
+          phone_3: string | null
+          sites: string | null
+          updated_at: string
+          visibility_level: Database["public"]["Enums"]["visibility_level"]
+        }
+        Insert: {
+          address?: string | null
+          allowed_sites?: string[] | null
+          created_at?: string
+          facebook_page?: string | null
+          id?: number
+          is_active?: boolean
+          location?: string | null
+          maps_link?: string | null
+          operating_hours?: string | null
+          owner?: string | null
+          phone_1?: string | null
+          phone_2?: string | null
+          phone_3?: string | null
+          sites?: string | null
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Update: {
+          address?: string | null
+          allowed_sites?: string[] | null
+          created_at?: string
+          facebook_page?: string | null
+          id?: number
+          is_active?: boolean
+          location?: string | null
+          maps_link?: string | null
+          operating_hours?: string | null
+          owner?: string | null
+          phone_1?: string | null
+          phone_2?: string | null
+          phone_3?: string | null
+          sites?: string | null
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Relationships: []
+      }
+      files_repository: {
+        Row: {
+          allowed_sites: string[] | null
+          check_match: string | null
+          created_at: string
+          description: string | null
+          drive_link_download: string | null
+          drive_link_share: string | null
+          file_name: string
+          folder_name: string | null
+          give_me_5: string | null
+          id: number
+          images: string | null
+          infinity: string | null
+          is_active: boolean
+          just_4_you: string | null
+          package_points_smc: string | null
+          price_dp: string | null
+          price_srp: string | null
+          rqv: string | null
+          unilevel_points: number | null
+          updated_at: string
+          view_video_url: string | null
+          visibility_level: Database["public"]["Enums"]["visibility_level"]
+          wholesale_package_commission: string | null
+        }
+        Insert: {
+          allowed_sites?: string[] | null
+          check_match?: string | null
+          created_at?: string
+          description?: string | null
+          drive_link_download?: string | null
+          drive_link_share?: string | null
+          file_name: string
+          folder_name?: string | null
+          give_me_5?: string | null
+          id?: number
+          images?: string | null
+          infinity?: string | null
+          is_active?: boolean
+          just_4_you?: string | null
+          package_points_smc?: string | null
+          price_dp?: string | null
+          price_srp?: string | null
+          rqv?: string | null
+          unilevel_points?: number | null
+          updated_at?: string
+          view_video_url?: string | null
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+          wholesale_package_commission?: string | null
+        }
+        Update: {
+          allowed_sites?: string[] | null
+          check_match?: string | null
+          created_at?: string
+          description?: string | null
+          drive_link_download?: string | null
+          drive_link_share?: string | null
+          file_name?: string
+          folder_name?: string | null
+          give_me_5?: string | null
+          id?: number
+          images?: string | null
+          infinity?: string | null
+          is_active?: boolean
+          just_4_you?: string | null
+          package_points_smc?: string | null
+          price_dp?: string | null
+          price_srp?: string | null
+          rqv?: string | null
+          unilevel_points?: number | null
+          updated_at?: string
+          view_video_url?: string | null
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+          wholesale_package_commission?: string | null
+        }
+        Relationships: []
+      }
+      iam_links: {
+        Row: {
+          allowed_sites: string[] | null
+          created_at: string
+          id: string
+          is_active: boolean
+          link: string
+          name: string
+          updated_at: string
+          visibility_level: Database["public"]["Enums"]["visibility_level"]
+        }
+        Insert: {
+          allowed_sites?: string[] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          link: string
+          name: string
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Update: {
+          allowed_sites?: string[] | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          link?: string
+          name?: string
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Relationships: []
+      }
       memberships: {
         Row: {
           created_at: string | null
@@ -855,6 +1071,114 @@ export type Database = {
           },
         ]
       }
+      resource_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          resource_id: string
+          resource_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          resource_id: string
+          resource_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          resource_id?: string
+          resource_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      resource_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          resource_id: string
+          resource_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          resource_id: string
+          resource_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          resource_id?: string
+          resource_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      resource_folders: {
+        Row: {
+          created_at: string
+          folder_name: string
+          id: string
+          images: string | null
+          is_active: boolean
+          updated_at: string
+          visibility_level: Database["public"]["Enums"]["visibility_level"]
+        }
+        Insert: {
+          created_at?: string
+          folder_name: string
+          id?: string
+          images?: string | null
+          is_active?: boolean
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Update: {
+          created_at?: string
+          folder_name?: string
+          id?: string
+          images?: string | null
+          is_active?: boolean
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Relationships: []
+      }
+      resource_user_roles: {
+        Row: {
+          assigned_sites: string[] | null
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["resource_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_sites?: string[] | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["resource_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_sites?: string[] | null
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["resource_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       share_links: {
         Row: {
           card_id: string
@@ -893,6 +1217,78 @@ export type Database = {
           },
         ]
       }
+      sites: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          sites: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sites: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sites?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      superadmin_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string
+          created_at: string
+          details: Json | null
+          id: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          target_user_id?: string | null
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       tools: {
         Row: {
           category: string
@@ -929,6 +1325,36 @@ export type Database = {
         }
         Relationships: []
       }
+      training_folders: {
+        Row: {
+          created_at: string
+          folder_name: string
+          id: string
+          images: string | null
+          is_active: boolean
+          updated_at: string
+          visibility_level: Database["public"]["Enums"]["visibility_level"]
+        }
+        Insert: {
+          created_at?: string
+          folder_name: string
+          id?: string
+          images?: string | null
+          is_active?: boolean
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Update: {
+          created_at?: string
+          folder_name?: string
+          id?: string
+          images?: string | null
+          is_active?: boolean
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           granted_at: string | null
@@ -950,6 +1376,36 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      ways_13: {
+        Row: {
+          allowed_sites: string[] | null
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          updated_at: string
+          visibility_level: Database["public"]["Enums"]["visibility_level"]
+        }
+        Insert: {
+          allowed_sites?: string[] | null
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Update: {
+          allowed_sites?: string[] | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
         Relationships: []
       }
@@ -1010,6 +1466,14 @@ export type Database = {
         }
         Returns: string
       }
+      can_view_resource: {
+        Args: {
+          p_allowed_sites?: string[]
+          p_user_id: string
+          p_visibility: Database["public"]["Enums"]["visibility_level"]
+        }
+        Returns: boolean
+      }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       ensure_user_referral_code: {
         Args: { p_user_id: string }
@@ -1019,6 +1483,10 @@ export type Database = {
       get_referral_code_for_user: {
         Args: { p_user_id: string }
         Returns: string
+      }
+      get_resource_role: {
+        Args: { p_user_id: string }
+        Returns: Database["public"]["Enums"]["resource_role"]
       }
       has_role: {
         Args: {
@@ -1031,6 +1499,8 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_resource_admin: { Args: { p_user_id: string }; Returns: boolean }
+      is_resource_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       process_card_payment: {
         Args: {
@@ -1070,6 +1540,12 @@ export type Database = {
         | "youtube"
         | "linkedin"
         | "custom"
+      resource_role: "member" | "leader" | "admin" | "super_admin"
+      visibility_level:
+        | "public_members"
+        | "leaders_only"
+        | "admins_only"
+        | "super_admin_only"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1221,6 +1697,13 @@ export const Constants = {
         "youtube",
         "linkedin",
         "custom",
+      ],
+      resource_role: ["member", "leader", "admin", "super_admin"],
+      visibility_level: [
+        "public_members",
+        "leaders_only",
+        "admins_only",
+        "super_admin_only",
       ],
     },
   },
