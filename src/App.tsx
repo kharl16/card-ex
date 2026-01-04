@@ -23,6 +23,7 @@ import Analytics from "./pages/Analytics";
 import Billing from "./pages/Billing";
 import BillingSuccess from "./pages/BillingSuccess";
 import Tools from "./pages/Tools";
+import ResourcesHub from "./pages/ResourcesHub";
 import RequireAuth from "./components/auth/RequireAuth";
 import NotFound from "./pages/NotFound";
 import PageTransition from "./components/PageTransition";
@@ -152,6 +153,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <Tools />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/resources"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <ResourcesHub />
               </RequireAuth>
             </PageTransition>
           }
