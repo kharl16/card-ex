@@ -24,6 +24,14 @@ import Billing from "./pages/Billing";
 import BillingSuccess from "./pages/BillingSuccess";
 import Tools from "./pages/Tools";
 import ResourcesHub from "./pages/ResourcesHub";
+import FilesPage from "./pages/resources/FilesPage";
+import AmbassadorsPage from "./pages/resources/AmbassadorsPage";
+import LinksPage from "./pages/resources/LinksPage";
+import DirectoryPage from "./pages/resources/DirectoryPage";
+import AdminResources from "./pages/admin/AdminResources";
+import SuperAdminConsole from "./pages/superadmin/SuperAdminConsole";
+import UserRolesPage from "./pages/superadmin/UserRolesPage";
+import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
 import RequireAuth from "./components/auth/RequireAuth";
 import NotFound from "./pages/NotFound";
 import PageTransition from "./components/PageTransition";
@@ -163,6 +171,86 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <ResourcesHub />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/resources/files"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <FilesPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/resources/ambassadors"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AmbassadorsPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/resources/links"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <LinksPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/resources/directory"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DirectoryPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/resources"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminResources />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/superadmin"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <SuperAdminConsole />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/superadmin/users"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <UserRolesPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/superadmin/visibility"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <VisibilityPoliciesPage />
               </RequireAuth>
             </PageTransition>
           }
