@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Filter, Grid, List, X } from "lucide-react";
+import { ArrowLeft, Search, Filter, Grid, List, X, FileText } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -102,28 +102,38 @@ function FilesPageContent() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4 mb-4">
             <Link to="/resources">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
+              <Button variant="ghost" size="lg" className="h-12 w-12">
+                <ArrowLeft className="h-6 w-6" />
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold">Files Repository</h1>
-            <Badge variant="secondary">{filteredFiles.length} files</Badge>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-primary/10">
+                <FileText className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">Files Repository</h1>
+                <p className="text-sm text-muted-foreground">Download materials and resources</p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="ml-auto text-base px-3 py-1">
+              {filteredFiles.length} files
+            </Badge>
           </div>
 
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Search files..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-12 h-12 text-lg"
               />
             </div>
 
             <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[180px] h-12 text-base">
                 <SelectValue placeholder="All Folders" />
               </SelectTrigger>
               <SelectContent>
@@ -137,7 +147,7 @@ function FilesPageContent() {
             </Select>
 
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as "name" | "newest")}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[140px] h-12 text-base">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -146,19 +156,19 @@ function FilesPageContent() {
               </SelectContent>
             </Select>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-2">
               <Switch id="hasVideo" checked={hasVideo} onCheckedChange={setHasVideo} />
-              <Label htmlFor="hasVideo" className="text-sm">Has Video</Label>
+              <Label htmlFor="hasVideo" className="text-base cursor-pointer">Video</Label>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-2">
               <Switch id="hasDownload" checked={hasDownload} onCheckedChange={setHasDownload} />
-              <Label htmlFor="hasDownload" className="text-sm">Has Download</Label>
+              <Label htmlFor="hasDownload" className="text-base cursor-pointer">Download</Label>
             </div>
 
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                <X className="h-4 w-4 mr-1" />
+              <Button variant="ghost" size="lg" className="h-12" onClick={clearFilters}>
+                <X className="h-5 w-5 mr-2" />
                 Clear
               </Button>
             )}
@@ -166,26 +176,28 @@ function FilesPageContent() {
             <div className="flex gap-1 ml-auto">
               <Button
                 variant={viewMode === "grid" ? "default" : "outline"}
-                size="icon"
+                size="lg"
+                className="h-12 w-12"
                 onClick={() => setViewMode("grid")}
               >
-                <Grid className="h-4 w-4" />
+                <Grid className="h-5 w-5" />
               </Button>
               <Button
                 variant={viewMode === "list" ? "default" : "outline"}
-                size="icon"
+                size="lg"
+                className="h-12 w-12"
                 onClick={() => setViewMode("list")}
               >
-                <List className="h-4 w-4" />
+                <List className="h-5 w-5" />
               </Button>
             </div>
           </div>
 
-          {/* Folder chips */}
+          {/* Folder chips - large tap targets */}
           <div className="flex flex-wrap gap-2 mt-4">
             <Badge
               variant={selectedFolder === "all" ? "default" : "outline"}
-              className="cursor-pointer"
+              className="cursor-pointer px-4 py-2 text-base"
               onClick={() => setSelectedFolder("all")}
             >
               All
@@ -194,7 +206,7 @@ function FilesPageContent() {
               <Badge
                 key={name}
                 variant={selectedFolder === name ? "default" : "outline"}
-                className="cursor-pointer"
+                className="cursor-pointer px-4 py-2 text-base"
                 onClick={() => setSelectedFolder(name)}
               >
                 {name}
@@ -208,17 +220,18 @@ function FilesPageContent() {
       <main className="container mx-auto px-4 py-8">
         {filteredFiles.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-muted-foreground mb-4">No files found</p>
+            <FileText className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
+            <p className="text-xl text-muted-foreground mb-4">No files found</p>
             {hasActiveFilters && (
-              <Button onClick={clearFilters}>Clear Filters</Button>
+              <Button size="lg" onClick={clearFilters}>Clear Filters</Button>
             )}
           </div>
         ) : (
           <div
             className={
               viewMode === "grid"
-                ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
-                : "flex flex-col gap-3"
+                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
+                : "flex flex-col gap-4"
             }
           >
             {filteredFiles.map((file) => (

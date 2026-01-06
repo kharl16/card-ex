@@ -87,41 +87,152 @@ function AdminResourcesContent() {
     }
   };
 
-  // CSV Import
+  // CSV Header Mappings per module
+  const csvHeaderMappings: Record<ModuleType, Record<string, string>> = {
+    files: {
+      "id": "id",
+      "File Name": "file_name",
+      "Images": "images",
+      "Drive Link Download": "drive_link_download",
+      "Drive Link share": "drive_link_share",
+      "Description": "description",
+      "Price (DP)": "price_dp",
+      "Price (SRP)": "price_srp",
+      "Unilevel Points": "unilevel_points",
+      "Folder Name": "folder_name",
+      "Wholesale Package Commission": "wholesale_package_commission",
+      "Package Points (SMC)": "package_points_smc",
+      "RQV": "rqv",
+      "Infinity": "infinity",
+      "Check Match": "check_match",
+      "Give Me 5": "give_me_5",
+      "Just 4 You": "just_4_you",
+      "View Video URL": "view_video_url",
+    },
+    directory: {
+      "id": "id",
+      "Location": "location",
+      "Address": "address",
+      "Maps Link": "maps_link",
+      "Owner": "owner",
+      "Facebook Page": "facebook_page",
+      "Operating Hours": "operating_hours",
+      "Phone 1": "phone_1",
+      "Phone 2": "phone_2",
+      "Phone 3": "phone_3",
+      "Sites": "sites",
+    },
+    ambassadors: {
+      "id": "id",
+      "Endorser": "endorser",
+      "Product Endorsed": "product_endorsed",
+      "Thumbnail": "thumbnail",
+      "Drive Link": "drive_link",
+      "Drive Share Link": "drive_share_link",
+      "Video File URL": "video_file_url",
+      "Folder Name": "folder_name",
+    },
+    links: {
+      "id": "id",
+      "Name": "name",
+      "Link": "link",
+    },
+    ways: {
+      "id": "id",
+      "New Column": "content",
+      "Content": "content",
+    },
+  };
+
+  // CSV Import with explicit header mapping
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setImporting(true);
+    const errors: string[] = [];
+    
     try {
       const text = await file.text();
       const lines = text.split("\n");
-      const headers = lines[0].split(",").map((h) => h.trim().toLowerCase().replace(/\s+/g, "_"));
+      const rawHeaders = parseCSVLine(lines[0]);
+      const mapping = csvHeaderMappings[activeTab];
       
-      const rows = [];
+      // Map CSV headers to DB columns
+      const columnMap: { csvIndex: number; dbColumn: string }[] = [];
+      rawHeaders.forEach((header, idx) => {
+        const trimmedHeader = header.trim();
+        const dbColumn = mapping[trimmedHeader];
+        if (dbColumn) {
+          columnMap.push({ csvIndex: idx, dbColumn });
+        }
+      });
+
+      if (columnMap.length === 0) {
+        toast.error("No matching columns found. Check CSV headers match expected format.");
+        return;
+      }
+
+      const rows: Record<string, any>[] = [];
       for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
-        const values = parseCSVLine(lines[i]);
-        const row: Record<string, any> = {};
-        headers.forEach((header, idx) => {
-          row[header] = values[idx]?.trim() || null;
-        });
-        // Add default visibility
-        row.visibility_level = row.visibility_level || "public_members";
-        row.is_active = true;
-        rows.push(row);
+        
+        try {
+          const values = parseCSVLine(lines[i]);
+          const row: Record<string, any> = {};
+          
+          columnMap.forEach(({ csvIndex, dbColumn }) => {
+            const rawValue = values[csvIndex]?.trim() || null;
+            let value: string | number | null = rawValue;
+            // Handle numeric fields
+            if (dbColumn === "unilevel_points" && rawValue) {
+              value = parseFloat(rawValue) || null;
+            }
+            if (dbColumn === "id" && rawValue) {
+              value = parseInt(rawValue, 10) || null;
+            }
+            row[dbColumn] = value;
+          });
+          
+          // Add default visibility and is_active
+          row.visibility_level = row.visibility_level || "public_members";
+          row.is_active = row.is_active ?? true;
+          
+          rows.push(row);
+        } catch (rowErr) {
+          errors.push(`Row ${i}: Parse error`);
+        }
+      }
+
+      if (rows.length === 0) {
+        toast.error("No valid rows found in CSV");
+        return;
       }
 
       const table = moduleConfig[activeTab].table;
-      const { error } = await supabase.from(table as any).upsert(rows, { onConflict: "id" });
+      
+      // Use different upsert strategy based on table
+      let upsertConfig: { onConflict?: string } = {};
+      if (activeTab === "files" || activeTab === "directory") {
+        upsertConfig = { onConflict: "id" };
+      }
+      
+      const { error, data } = await supabase
+        .from(table as any)
+        .upsert(rows, upsertConfig);
 
       if (error) throw error;
 
-      toast.success(`Imported ${rows.length} records`);
+      const successMsg = `Imported ${rows.length} records`;
+      if (errors.length > 0) {
+        toast.warning(`${successMsg} with ${errors.length} errors`);
+      } else {
+        toast.success(successMsg);
+      }
       refetch();
     } catch (err) {
       console.error("Import error:", err);
-      toast.error("Failed to import CSV");
+      toast.error(`Failed to import CSV: ${err instanceof Error ? err.message : "Unknown error"}`);
     } finally {
       setImporting(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
