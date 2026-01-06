@@ -82,38 +82,49 @@ function LinksPageContent() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4 mb-4">
             <Link to="/resources">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
+              <Button variant="ghost" size="lg" className="h-12 w-12">
+                <ArrowLeft className="h-6 w-6" />
               </Button>
             </Link>
-            <h1 className="text-2xl font-bold">Quick Links</h1>
-            <Badge variant="secondary">{filteredLinks.length} links</Badge>
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-full bg-primary/10">
+                <ExternalLink className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">Quick Links</h1>
+                <p className="text-sm text-muted-foreground">Important resources at your fingertips</p>
+              </div>
+            </div>
+            <Badge variant="secondary" className="ml-auto text-base px-3 py-1">
+              {filteredLinks.length} links
+            </Badge>
           </div>
 
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
               <Input
                 placeholder="Search links..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-12 h-12 text-lg"
               />
             </div>
 
             <Button
               variant={showFavoritesOnly ? "default" : "outline"}
-              size="sm"
+              size="lg"
+              className="h-12 gap-2"
               onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             >
-              <Heart className={cn("h-4 w-4 mr-1", showFavoritesOnly && "fill-current")} />
-              Favorites Only
+              <Heart className={cn("h-5 w-5", showFavoritesOnly && "fill-current")} />
+              Favorites
             </Button>
 
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                <X className="h-4 w-4 mr-1" />
+              <Button variant="ghost" size="lg" className="h-12" onClick={clearFilters}>
+                <X className="h-5 w-5 mr-2" />
                 Clear
               </Button>
             )}
@@ -125,9 +136,10 @@ function LinksPageContent() {
       <main className="container mx-auto px-4 py-8">
         {filteredLinks.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-muted-foreground mb-4">No links found</p>
+            <ExternalLink className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
+            <p className="text-xl text-muted-foreground mb-4">No links found</p>
             {hasActiveFilters && (
-              <Button onClick={clearFilters}>Clear Filters</Button>
+              <Button size="lg" onClick={clearFilters}>Clear Filters</Button>
             )}
           </div>
         ) : (
@@ -139,38 +151,38 @@ function LinksPageContent() {
                   key={link.id}
                   className="group transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 bg-card/80 backdrop-blur border-border/50"
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
+                  <CardContent className="p-5">
+                    <div className="flex items-start justify-between gap-4 mb-4">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-base mb-1">{link.name}</h3>
+                        <h3 className="font-semibold text-lg md:text-xl mb-2">{link.name}</h3>
                         <p className="text-sm text-muted-foreground truncate">{link.link}</p>
                       </div>
                       <Button
-                        size="icon"
+                        size="lg"
                         variant="ghost"
-                        className={cn("h-8 w-8 flex-shrink-0", favorite && "text-red-500")}
+                        className={cn("h-12 w-12 flex-shrink-0", favorite && "text-red-500")}
                         onClick={() => toggleFavorite("link", link.id)}
                       >
-                        <Heart className={cn("h-4 w-4", favorite && "fill-current")} />
+                        <Heart className={cn("h-6 w-6", favorite && "fill-current")} />
                       </Button>
                     </div>
-                    <div className="flex gap-2 mt-4">
+                    <div className="flex gap-3">
                       <Button
                         variant="outline"
-                        size="sm"
-                        className="flex-1 gap-2"
+                        size="lg"
+                        className="flex-1 h-12 gap-2 text-base"
                         onClick={() => handleCopy(link)}
                       >
-                        <Copy className="h-4 w-4" />
+                        <Copy className="h-5 w-5" />
                         Copy
                       </Button>
                       <Button
                         variant="default"
-                        size="sm"
-                        className="flex-1 gap-2"
+                        size="lg"
+                        className="flex-1 h-12 gap-2 text-base"
                         onClick={() => handleOpen(link)}
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        <ExternalLink className="h-5 w-5" />
                         Open
                       </Button>
                     </div>

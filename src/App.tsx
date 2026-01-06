@@ -28,6 +28,7 @@ import FilesPage from "./pages/resources/FilesPage";
 import AmbassadorsPage from "./pages/resources/AmbassadorsPage";
 import LinksPage from "./pages/resources/LinksPage";
 import DirectoryPage from "./pages/resources/DirectoryPage";
+import WaysPage from "./pages/resources/WaysPage";
 import AdminResources from "./pages/admin/AdminResources";
 import SuperAdminConsole from "./pages/superadmin/SuperAdminConsole";
 import UserRolesPage from "./pages/superadmin/UserRolesPage";
@@ -211,6 +212,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <DirectoryPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/resources/13-ways"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <WaysPage />
               </RequireAuth>
             </PageTransition>
           }
