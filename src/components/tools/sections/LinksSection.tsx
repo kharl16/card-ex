@@ -1,0 +1,204 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ExternalLink, Copy, Check, Link as LinkIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
+interface IAMLink {
+  id: string;
+  name: string;
+  link: string;
+  category: string | null;
+  icon_url: string | null;
+}
+
+interface LinksSectionProps {
+  searchQuery: string;
+}
+
+export default function LinksSection({ searchQuery }: LinksSectionProps) {
+  const [items, setItems] = useState<IAMLink[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const fetchItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("iam_links")
+        .select("*")
+        .eq("is_active", true)
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+
+      setItems(data || []);
+
+      // Extract unique categories
+      const cats = [...new Set((data || []).map((item) => item.category).filter(Boolean))] as string[];
+      setCategories(cats);
+    } catch (err) {
+      console.error("Error fetching links:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      !searchQuery ||
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.link.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.category?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesCategory = !activeCategory || item.category === activeCategory;
+
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleCopy = async (item: IAMLink) => {
+    try {
+      await navigator.clipboard.writeText(item.link);
+      setCopiedId(item.id);
+      toast.success("Link copied!");
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+
+  const handleOpen = (item: IAMLink) => {
+    window.open(item.link, "_blank");
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+        ))}
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-lg text-muted-foreground">No links available yet</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Category Filter */}
+      {categories.length > 0 && (
+        <ScrollArea className="w-full whitespace-nowrap">
+          <div className="flex gap-2 pb-2">
+            <Badge
+              variant={activeCategory === null ? "default" : "outline"}
+              className={cn(
+                "cursor-pointer px-4 py-2 text-sm",
+                activeCategory === null && "bg-primary text-primary-foreground"
+              )}
+              onClick={() => setActiveCategory(null)}
+            >
+              All
+            </Badge>
+            {categories.map((cat) => (
+              <Badge
+                key={cat}
+                variant={activeCategory === cat ? "default" : "outline"}
+                className={cn(
+                  "cursor-pointer px-4 py-2 text-sm whitespace-nowrap",
+                  activeCategory === cat && "bg-primary text-primary-foreground"
+                )}
+                onClick={() => setActiveCategory(cat)}
+              >
+                {cat}
+              </Badge>
+            ))}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      )}
+
+      {/* Links Grid */}
+      <div className="grid gap-4">
+        {filteredItems.map((item) => (
+          <div
+            key={item.id}
+            className={cn(
+              "flex items-center gap-4 p-4 rounded-2xl",
+              "bg-card border border-border/50 shadow-sm",
+              "hover:shadow-md hover:border-primary/30 transition-all"
+            )}
+          >
+            {/* Icon */}
+            <div
+              className={cn(
+                "w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center",
+                "bg-gradient-to-br from-primary/20 to-primary/5",
+                "border border-primary/20"
+              )}
+            >
+              {item.icon_url ? (
+                <img src={item.icon_url} alt="" className="w-8 h-8 object-contain" />
+              ) : (
+                <LinkIcon className="w-6 h-6 text-primary" />
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-foreground text-lg truncate">{item.name}</h4>
+              {item.category && (
+                <Badge variant="secondary" className="mt-1">
+                  {item.category}
+                </Badge>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleCopy(item)}
+                className="h-12 w-12 rounded-xl"
+              >
+                {copiedId === item.id ? (
+                  <Check className="h-5 w-5 text-green-500" />
+                ) : (
+                  <Copy className="h-5 w-5" />
+                )}
+              </Button>
+              <Button
+                onClick={() => handleOpen(item)}
+                className="h-12 px-6 rounded-xl gap-2 text-base"
+              >
+                <ExternalLink className="h-5 w-5" />
+                Open
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredItems.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">No links match your search</p>
+        </div>
+      )}
+    </div>
+  );
+}

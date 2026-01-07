@@ -701,7 +701,9 @@ export type Database = {
       iam_links: {
         Row: {
           allowed_sites: string[] | null
+          category: string | null
           created_at: string
+          icon_url: string | null
           id: string
           is_active: boolean
           link: string
@@ -711,7 +713,9 @@ export type Database = {
         }
         Insert: {
           allowed_sites?: string[] | null
+          category?: string | null
           created_at?: string
+          icon_url?: string | null
           id?: string
           is_active?: boolean
           link: string
@@ -721,7 +725,9 @@ export type Database = {
         }
         Update: {
           allowed_sites?: string[] | null
+          category?: string | null
           created_at?: string
+          icon_url?: string | null
           id?: string
           is_active?: boolean
           link?: string
@@ -911,6 +917,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      presentations: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          download_url: string | null
+          id: string
+          is_active: boolean
+          presentation_url: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          visibility_level: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          download_url?: string | null
+          id?: string
+          is_active?: boolean
+          presentation_url?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          visibility_level?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          download_url?: string | null
+          id?: string
+          is_active?: boolean
+          presentation_url?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          visibility_level?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -1325,6 +1373,33 @@ export type Database = {
         }
         Relationships: []
       }
+      tools_orb_settings: {
+        Row: {
+          enabled: boolean
+          id: string
+          items: Json
+          orb_image_url: string | null
+          orb_label: string | null
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          id?: string
+          items?: Json
+          orb_image_url?: string | null
+          orb_label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          id?: string
+          items?: Json
+          orb_image_url?: string | null
+          orb_label?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       training_folders: {
         Row: {
           created_at: string
@@ -1352,6 +1427,48 @@ export type Database = {
           is_active?: boolean
           updated_at?: string
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
+        }
+        Relationships: []
+      }
+      training_items: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          source_type: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string | null
+          visibility_level: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          source_type?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url?: string | null
+          visibility_level?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          source_type?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+          visibility_level?: string
         }
         Relationships: []
       }
