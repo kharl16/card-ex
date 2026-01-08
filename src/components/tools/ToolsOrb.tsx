@@ -2,16 +2,7 @@ import { useState, useEffect, useRef, RefObject } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  GraduationCap,
-  Link,
-  FolderOpen,
-  Building2,
-  Presentation,
-  X,
-  Settings,
-  Sparkles,
-} from "lucide-react";
+import { GraduationCap, Link, FolderOpen, Building2, Presentation, X, Settings, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ToolsDrawer from "./ToolsDrawer";
 import ToolsOrbCustomizer from "./ToolsOrbCustomizer";
@@ -43,27 +34,34 @@ interface ToolsOrbProps {
 export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProps) {
   const { settings, loading } = useToolsOrb();
   const { isAdmin, user } = useAuth();
+
   const [isOpen, setIsOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
+
   const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
+
   const orbRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const dragStartPos = useRef<Position>({ x: 0, y: 0 });
 
   const positionKey = `${POSITION_KEY_PREFIX}_${mode}`;
-  const orbSize = 56; // Slightly smaller for preview
+  const orbSize = 56;
   const margin = 8;
 
-  // Get container bounds
+  // Get bounds for clamping. Use visualViewport on mobile to avoid "off-screen" issues.
   const getBounds = () => {
     if (mode === "preview" && containerRef?.current) {
       const rect = containerRef.current.getBoundingClientRect();
       return { width: rect.width, height: rect.height };
     }
+
+    const vv = window.visualViewport;
+    if (vv) return { width: vv.width, height: vv.height };
+
     return { width: window.innerWidth, height: window.innerHeight };
   };
 
@@ -76,30 +74,38 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     };
   };
 
-  // Initialize position
+  // Default position: CENTER-RIGHT EDGE (requested)
+  const getDefaultPosition = (): Position => {
+    const bounds = getBounds();
+    return clampPosition({
+      x: bounds.width - orbSize - margin,
+      y: bounds.height / 2 - orbSize / 2,
+    });
+  };
+
+  // Initialize position (and fix saved off-screen positions)
   useEffect(() => {
     const saved = localStorage.getItem(positionKey);
-    const bounds = getBounds();
-    
+
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setPosition(clampPosition(parsed));
+        const clamped = clampPosition(parsed);
+
+        if (!Number.isFinite(clamped.x) || !Number.isFinite(clamped.y)) {
+          setPosition(getDefaultPosition());
+        } else {
+          setPosition(clamped);
+        }
       } catch {
-        // Default: bottom-right
-        setPosition({
-          x: bounds.width - orbSize - margin,
-          y: bounds.height - orbSize - margin - 60,
-        });
+        setPosition(getDefaultPosition());
       }
     } else {
-      // Default: bottom-right
-      setPosition({
-        x: bounds.width - orbSize - margin,
-        y: bounds.height - orbSize - margin - 60,
-      });
+      setPosition(getDefaultPosition());
     }
+
     setInitialized(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, positionKey]);
 
   // Save position when it changes
@@ -109,28 +115,47 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     }
   }, [position, initialized, positionKey]);
 
-  // Re-clamp on resize
+  // Re-clamp on viewport changes (mobile address bar / visual viewport)
   useEffect(() => {
-    const handleResize = () => {
+    const handleViewportChange = () => {
       setPosition((prev) => clampPosition(prev));
     };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    window.addEventListener("resize", handleViewportChange);
+
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener("resize", handleViewportChange);
+      vv.addEventListener("scroll", handleViewportChange);
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleViewportChange);
+      if (vv) {
+        vv.removeEventListener("resize", handleViewportChange);
+        vv.removeEventListener("scroll", handleViewportChange);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
   // Snap to edge on drag end
   const handleDragEnd = () => {
     setIsDragging(false);
     const bounds = getBounds();
+
+    // On actual/public card, always snap to RIGHT edge (keeps it visible + consistent)
+    const snapRight = mode === "public";
     const centerX = position.x + orbSize / 2;
     const screenCenter = bounds.width / 2;
 
-    // Snap to nearest horizontal edge
-    const newX = centerX < screenCenter ? margin : bounds.width - orbSize - margin;
-    
-    // Keep within vertical bounds
-    const newY = Math.max(margin, Math.min(bounds.height - orbSize - margin, position.y));
+    const newX = snapRight
+      ? bounds.width - orbSize - margin
+      : centerX < screenCenter
+        ? margin
+        : bounds.width - orbSize - margin;
 
+    const newY = Math.max(margin, Math.min(bounds.height - orbSize - margin, position.y));
     setPosition({ x: newX, y: newY });
   };
 
@@ -149,9 +174,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   if (loading || !settings.enabled) return null;
   if (mode === "preview" && !user) return null;
 
-  const enabledItems = settings.items
-    .filter((item) => item.enabled)
-    .sort((a, b) => a.order - b.order);
+  const enabledItems = settings.items.filter((item) => item.enabled).sort((a, b) => a.order - b.order);
 
   // Calculate radial positions based on orb position
   const getRadialPosition = (index: number, total: number) => {
@@ -160,8 +183,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     const isOnRight = position.x > bounds.width / 2;
     const isOnBottom = position.y > bounds.height / 2;
 
-    // Adjust start angle based on position
-    let startAngle = -Math.PI / 2; // Start from top
+    let startAngle = -Math.PI / 2; // start upward
     if (isOnRight && isOnBottom) startAngle = Math.PI;
     else if (isOnRight) startAngle = Math.PI / 2;
     else if (isOnBottom) startAngle = -Math.PI;
@@ -181,10 +203,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     <>
       <div
         ref={wrapperRef}
-        className={cn(
-          "inset-0 pointer-events-none",
-          isPreview ? "absolute" : "fixed"
-        )}
+        className={cn("inset-0 pointer-events-none", isPreview ? "absolute" : "fixed")}
         style={{ zIndex: isPreview ? 50 : 9999 }}
       >
         {/* Radial Menu Items */}
@@ -198,7 +217,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                 exit={{ opacity: 0 }}
                 className={cn(
                   "absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto",
-                  isPreview && "rounded-xl"
+                  isPreview && "rounded-xl",
                 )}
                 onClick={() => setIsOpen(false)}
               />
@@ -212,14 +231,24 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                 return (
                   <motion.button
                     key={item.id}
-                    initial={{ opacity: 0, scale: 0, x: position.x + orbSize / 2, y: position.y + orbSize / 2 }}
+                    initial={{
+                      opacity: 0,
+                      scale: 0,
+                      x: position.x + orbSize / 2,
+                      y: position.y + orbSize / 2,
+                    }}
                     animate={{
                       opacity: 1,
                       scale: 1,
                       x: position.x + orbSize / 2 + pos.x,
                       y: position.y + orbSize / 2 + pos.y,
                     }}
-                    exit={{ opacity: 0, scale: 0, x: position.x + orbSize / 2, y: position.y + orbSize / 2 }}
+                    exit={{
+                      opacity: 0,
+                      scale: 0,
+                      x: position.x + orbSize / 2,
+                      y: position.y + orbSize / 2,
+                    }}
                     transition={{ delay: index * 0.05, type: "spring", stiffness: 300 }}
                     onClick={() => handleItemClick(item)}
                     className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
@@ -231,24 +260,22 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                           "bg-gradient-to-br from-primary/90 to-primary shadow-lg",
                           "border-2 border-primary-foreground/20",
                           "group-hover:scale-110 transition-transform",
-                          "backdrop-blur-md"
+                          "backdrop-blur-md",
                         )}
                         style={{ width: itemSize, height: itemSize }}
                       >
                         {item.image_url ? (
-                          <img 
-                            src={item.image_url} 
-                            alt={item.label} 
-                            className="w-6 h-6 rounded-full object-cover" 
-                          />
+                          <img src={item.image_url} alt={item.label} className="w-6 h-6 rounded-full object-cover" />
                         ) : (
                           <IconComponent className={cn("text-primary-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")} />
                         )}
                       </div>
-                      <span className={cn(
-                        "font-medium text-foreground bg-background/80 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap",
-                        isPreview ? "text-[10px]" : "text-xs"
-                      )}>
+                      <span
+                        className={cn(
+                          "font-medium text-foreground bg-background/80 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap",
+                          isPreview ? "text-[10px]" : "text-xs",
+                        )}
+                      >
                         {item.label}
                       </span>
                     </div>
@@ -259,14 +286,24 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
               {/* Admin Settings Button */}
               {isAdmin && (
                 <motion.button
-                  initial={{ opacity: 0, scale: 0, x: position.x + orbSize / 2, y: position.y + orbSize / 2 }}
+                  initial={{
+                    opacity: 0,
+                    scale: 0,
+                    x: position.x + orbSize / 2,
+                    y: position.y + orbSize / 2,
+                  }}
                   animate={{
                     opacity: 1,
                     scale: 1,
                     x: position.x + orbSize / 2 + getRadialPosition(enabledItems.length, enabledItems.length + 1).x,
                     y: position.y + orbSize / 2 + getRadialPosition(enabledItems.length, enabledItems.length + 1).y,
                   }}
-                  exit={{ opacity: 0, scale: 0, x: position.x + orbSize / 2, y: position.y + orbSize / 2 }}
+                  exit={{
+                    opacity: 0,
+                    scale: 0,
+                    x: position.x + orbSize / 2,
+                    y: position.y + orbSize / 2,
+                  }}
                   transition={{ delay: enabledItems.length * 0.05, type: "spring", stiffness: 300 }}
                   onClick={handleSettingsClick}
                   className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
@@ -277,16 +314,18 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                         "rounded-full flex items-center justify-center",
                         "bg-gradient-to-br from-muted to-muted/80 shadow-lg",
                         "border-2 border-border",
-                        "group-hover:scale-110 transition-transform"
+                        "group-hover:scale-110 transition-transform",
                       )}
                       style={{ width: isPreview ? 44 : 56, height: isPreview ? 44 : 56 }}
                     >
                       <Settings className={cn("text-muted-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")} />
                     </div>
-                    <span className={cn(
-                      "font-medium text-foreground bg-background/80 px-2 py-0.5 rounded-full shadow-sm",
-                      isPreview ? "text-[10px]" : "text-xs"
-                    )}>
+                    <span
+                      className={cn(
+                        "font-medium text-foreground bg-background/80 px-2 py-0.5 rounded-full shadow-sm",
+                        isPreview ? "text-[10px]" : "text-xs",
+                      )}
+                    >
                       Settings
                     </span>
                   </div>
@@ -328,16 +367,12 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
               "border-2 border-primary-foreground/30",
               "backdrop-blur-md",
               "transition-all duration-300",
-              isOpen && "rotate-45 shadow-[0_0_30px_rgba(212,175,55,0.6)]"
+              isOpen && "rotate-45 shadow-[0_0_30px_rgba(212,175,55,0.6)]",
             )}
             style={{ width: orbSize, height: orbSize }}
           >
             {settings.orb_image_url ? (
-              <img
-                src={settings.orb_image_url}
-                alt="Tools"
-                className="w-8 h-8 rounded-full object-cover"
-              />
+              <img src={settings.orb_image_url} alt="Tools" className="w-8 h-8 rounded-full object-cover" />
             ) : isOpen ? (
               <X className={cn("text-primary-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")} />
             ) : (
@@ -346,9 +381,9 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
           </div>
 
           {/* Glow ring animation */}
-          <div 
-            className="absolute inset-0 rounded-full animate-ping bg-primary/20" 
-            style={{ animationDuration: "2s" }} 
+          <div
+            className="absolute inset-0 rounded-full animate-ping bg-primary/20"
+            style={{ animationDuration: "2s" }}
           />
         </motion.div>
       </div>
@@ -363,12 +398,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
       />
 
       {/* Customizer Dialog */}
-      {isAdmin && (
-        <ToolsOrbCustomizer
-          open={customizerOpen}
-          onOpenChange={setCustomizerOpen}
-        />
-      )}
+      {isAdmin && <ToolsOrbCustomizer open={customizerOpen} onOpenChange={setCustomizerOpen} />}
     </>
   );
 }
