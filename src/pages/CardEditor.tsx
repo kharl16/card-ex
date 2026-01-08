@@ -40,6 +40,7 @@ import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublishLimit } from "@/hooks/usePublishLimit";
 import { getPublicCardUrl } from "@/lib/cardUrl";
+import ToolsOrb from "@/components/tools/ToolsOrb";
 // Editor section components
 import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
 import { EditorWizard, WizardStep } from "@/components/editor/EditorWizard";
@@ -1035,6 +1036,7 @@ export default function CardEditor() {
           </Card>
         </div>
       </main>
+      <ToolsOrb />
     </div>
   );
 }

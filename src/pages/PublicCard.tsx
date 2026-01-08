@@ -10,6 +10,7 @@ import { getPublicCardUrl } from "@/lib/cardUrl";
 import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import ToolsOrb from "@/components/tools/ToolsOrb";
 
 type CardData = Tables<"cards">;
 
@@ -288,6 +289,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           </p>
         </div>
       </div>
+      <ToolsOrb />
     </div>
   );
 }
