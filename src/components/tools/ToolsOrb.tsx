@@ -2,14 +2,23 @@ import { useState, useEffect, useRef, RefObject, useMemo } from "react";
 import { motion, AnimatePresence, useMotionValue } from "framer-motion";
 import { useToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
 import { useAuth } from "@/contexts/AuthContext";
-import { GraduationCap, Link, FolderOpen, Building2, Presentation, X, Settings, Sparkles } from "lucide-react";
+import {
+  GraduationCap,
+  Link as LinkIcon,
+  FolderOpen,
+  Building2,
+  Presentation,
+  X,
+  Settings,
+  Sparkles,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import ToolsDrawer from "./ToolsDrawer";
 import ToolsOrbCustomizer from "./ToolsOrbCustomizer";
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
   GraduationCap,
-  Link,
+  Link: LinkIcon,
   FolderOpen,
   Building2,
   Presentation,
@@ -25,9 +34,7 @@ interface Position {
 }
 
 interface ToolsOrbProps {
-  /** "preview" = bounded to container; "public" = fixed on viewport */
   mode?: "preview" | "public";
-  /** Container ref for preview mode bounding */
   containerRef?: RefObject<HTMLElement>;
 }
 
@@ -35,26 +42,27 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   const { settings, loading } = useToolsOrb();
   const { isAdmin, user } = useAuth();
 
+  const isPreview = mode === "preview";
+  const positionKey = `${POSITION_KEY_PREFIX}_${mode}`;
+
+  const orbSize = 56;
+  const margin = 10;
+
   const [isOpen, setIsOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
 
-  const [initialized, setInitialized] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  // ✅ Track drag state without causing position jumps
+  const dragStartPos = useRef<Position>({ x: 0, y: 0 });
+  const draggingRef = useRef(false);
+  const rafRef = useRef<number | null>(null);
 
-  // Single source of truth for position (orb + menu)
+  // ✅ Motion values = single source of truth for both orb + menu
   const xMV = useMotionValue(0);
   const yMV = useMotionValue(0);
 
-  const dragStartPos = useRef<Position>({ x: 0, y: 0 });
-
-  const isPreview = mode === "preview";
-  const positionKey = `${POSITION_KEY_PREFIX}_${mode}`;
-  const orbSize = 56;
-  const margin = 10;
-
-  // Visual viewport (mobile safe)
+  // ✅ Visual viewport support (fixes mobile address bar + coordinate drift)
   const vv = typeof window !== "undefined" ? window.visualViewport : null;
   const vvOffset = useMemo(
     () => ({
@@ -85,13 +93,14 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
 
   const getDefaultPosition = (): Position => {
     const b = getBounds();
+    // center-right default
     return clampPosition({
       x: b.width - orbSize - margin,
       y: b.height / 2 - orbSize / 2,
     });
   };
 
-  // Initialize position
+  // ✅ Initialize ONCE and do NOT “reset to top-left” during drag
   useEffect(() => {
     const saved = localStorage.getItem(positionKey);
     let start = getDefaultPosition();
@@ -108,31 +117,36 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
 
     xMV.set(start.x);
     yMV.set(start.y);
-    setInitialized(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, positionKey]);
+  }, [positionKey, mode]);
 
-  // Save position
+  // ✅ Save with a tiny debounce (prevents jitter + heavy writes)
   useEffect(() => {
-    if (!initialized) return;
+    let t: number | null = null;
 
-    const save = () => {
-      const p = { x: xMV.get(), y: yMV.get() };
-      if (p.x || p.y) localStorage.setItem(positionKey, JSON.stringify(p));
+    const scheduleSave = () => {
+      if (t) window.clearTimeout(t);
+      t = window.setTimeout(() => {
+        const p = { x: xMV.get(), y: yMV.get() };
+        localStorage.setItem(positionKey, JSON.stringify(p));
+      }, 120);
     };
 
-    const unsubX = xMV.on("change", save);
-    const unsubY = yMV.on("change", save);
+    const unsubX = xMV.on("change", scheduleSave);
+    const unsubY = yMV.on("change", scheduleSave);
 
     return () => {
       unsubX();
       unsubY();
+      if (t) window.clearTimeout(t);
     };
-  }, [initialized, positionKey, xMV, yMV]);
+  }, [positionKey, xMV, yMV]);
 
-  // Re-clamp on viewport changes
+  // ✅ Re-clamp when viewport changes (rotation, address bar, etc.)
   useEffect(() => {
     const reclamp = () => {
+      // don’t fight the finger while dragging
+      if (draggingRef.current) return;
       const p = clampPosition({ x: xMV.get(), y: yMV.get() });
       xMV.set(p.x);
       yMV.set(p.y);
@@ -155,16 +169,6 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
-  // ✅ FIX: DO NOT FORCE SNAP RIGHT. Allow free placement everywhere.
-  const handleDragEnd = () => {
-    setIsDragging(false);
-
-    // Simply re-clamp to stay within bounds (no edge snapping)
-    const p = clampPosition({ x: xMV.get(), y: yMV.get() });
-    xMV.set(p.x);
-    yMV.set(p.y);
-  };
-
   const handleItemClick = (item: ToolsOrbItem) => {
     setIsOpen(false);
     setActiveSection(item.id);
@@ -181,31 +185,64 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
 
   const enabledItems = settings.items.filter((it) => it.enabled).sort((a, b) => a.order - b.order);
 
-  // Radial offsets
-  const getRadialOffset = (index: number, total: number) => {
+  /**
+   * ✅ Equidistant, non-overlapping radial layout
+   * - Uses full 180° (or 240°) spread depending on available room.
+   * - Radius grows if many items to prevent overlap.
+   */
+  const getRadialConfig = () => {
     const b = getBounds();
-    const radius = isPreview ? 72 : 96;
-
     const px = xMV.get();
     const py = yMV.get();
 
     const isOnRight = px > b.width / 2;
     const isOnBottom = py > b.height / 2;
 
-    // Expand away from edges automatically
-    let startAngle = -Math.PI / 2;
-    if (isOnRight && isOnBottom) startAngle = Math.PI;
-    else if (isOnRight) startAngle = Math.PI / 2;
-    else if (isOnBottom) startAngle = -Math.PI;
+    // Preferred: expand toward center of screen
+    // Define a “sector” (startAngle, endAngle) where items will be laid out.
+    // Angles are radians, 0 = right, pi/2 = down, -pi/2 = up
+    let start = -Math.PI / 2; // up
+    let end = Math.PI / 2; // down
 
-    const angleSpan = Math.PI * 0.75; // 135deg
+    // If orb is on right side, fan leftwards (around pi)
+    if (isOnRight) {
+      start = Math.PI + Math.PI / 2; // 270°
+      end = Math.PI - Math.PI / 2; // 90° (wrap)
+      // We'll handle wrap by using a negative span below
+    }
+
+    // If orb is near top or bottom, slightly bias sector to avoid going offscreen
+    // (keeps labels/buttons visible)
+    // We'll keep it simple and just keep a 180° fan.
+
+    // Radius: increase with item count so no overlap
+    const total = enabledItems.length + (isAdmin ? 1 : 0);
+    const itemSize = isPreview ? 44 : 56;
+    const minGap = 10; // spacing between circles
+    const minRadius = isPreview ? 74 : 96;
+
+    // circumference needed for total items across a semicircle:
+    // arcLength ≈ radius * pi  -> ensure arcLength >= total*(itemSize+minGap)
+    const neededRadius = Math.max(minRadius, (total * (itemSize + minGap)) / Math.PI);
+
+    return { isOnRight, isOnBottom, radius: neededRadius, total };
+  };
+
+  const getRadialOffset = (index: number, total: number, radius: number, isOnRight: boolean) => {
+    // Equidistant angles over 180° (π radians)
+    // Fan direction:
+    // - If on right: angles centered around π (left direction)
+    // - Else: angles centered around 0 (right direction)
+    const span = Math.PI; // 180°
     const denom = Math.max(1, total - 1);
-    const angle = startAngle + (index / denom) * angleSpan - angleSpan / 2;
+
+    const center = isOnRight ? Math.PI : 0; // left vs right
+    const startAngle = center - span / 2;
+    const angle = startAngle + (index / denom) * span;
 
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
   };
 
-  // Align wrapper to visual viewport on mobile
   const wrapperStyle = isPreview
     ? undefined
     : ({
@@ -214,6 +251,8 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         width: vvOffset.width,
         height: vvOffset.height,
       } as React.CSSProperties);
+
+  const radial = getRadialConfig();
 
   return (
     <>
@@ -237,7 +276,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
           )}
         </AnimatePresence>
 
-        {/* Menu anchor follows orb EXACTLY (same xMV/yMV) */}
+        {/* Menu anchor follows orb EXACTLY */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -249,10 +288,10 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
             >
               <div className="absolute pointer-events-none" style={{ left: orbSize / 2, top: orbSize / 2 }}>
                 {enabledItems.map((item, index) => {
-                  const total = enabledItems.length + (isAdmin ? 1 : 0);
-                  const off = getRadialOffset(index, total);
                   const IconComponent = ICON_MAP[item.icon_name] || Sparkles;
                   const itemSize = isPreview ? 44 : 56;
+
+                  const off = getRadialOffset(index, radial.total, radial.radius, radial.isOnRight);
 
                   return (
                     <motion.button
@@ -260,7 +299,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                       initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
                       animate={{ opacity: 1, scale: 1, x: off.x, y: off.y }}
                       exit={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                      transition={{ delay: index * 0.05, type: "spring", stiffness: 340, damping: 22 }}
+                      transition={{ delay: index * 0.04, type: "spring", stiffness: 360, damping: 24 }}
                       onClick={() => handleItemClick(item)}
                       className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
                     >
@@ -302,11 +341,11 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                     animate={{
                       opacity: 1,
                       scale: 1,
-                      x: getRadialOffset(enabledItems.length, enabledItems.length + 1).x,
-                      y: getRadialOffset(enabledItems.length, enabledItems.length + 1).y,
+                      x: getRadialOffset(enabledItems.length, radial.total, radial.radius, radial.isOnRight).x,
+                      y: getRadialOffset(enabledItems.length, radial.total, radial.radius, radial.isOnRight).y,
                     }}
                     exit={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                    transition={{ delay: enabledItems.length * 0.05, type: "spring", stiffness: 340, damping: 22 }}
+                    transition={{ delay: enabledItems.length * 0.04, type: "spring", stiffness: 360, damping: 24 }}
                     onClick={handleSettingsClick}
                     className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
                   >
@@ -344,20 +383,34 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
           dragMomentum={false}
           dragElastic={0}
           onDragStart={() => {
+            draggingRef.current = true;
             setIsDragging(true);
             dragStartPos.current = { x: xMV.get(), y: yMV.get() };
           }}
           onDrag={(_, info) => {
-            const next = clampPosition({
+            // ✅ Smooth finger-following: throttle with rAF
+            const nextRaw = {
               x: dragStartPos.current.x + info.offset.x,
               y: dragStartPos.current.y + info.offset.y,
+            };
+            const next = clampPosition(nextRaw);
+
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+            rafRef.current = requestAnimationFrame(() => {
+              xMV.set(next.x);
+              yMV.set(next.y);
             });
-            xMV.set(next.x);
-            yMV.set(next.y);
           }}
-          onDragEnd={handleDragEnd}
+          onDragEnd={() => {
+            draggingRef.current = false;
+            setIsDragging(false);
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+            const p = clampPosition({ x: xMV.get(), y: yMV.get() });
+            xMV.set(p.x);
+            yMV.set(p.y);
+          }}
           onClick={() => !isDragging && setIsOpen((v) => !v)}
-          style={{ x: xMV, y: yMV }}
+          style={{ x: xMV, y: yMV, touchAction: "none" }}
           className="absolute pointer-events-auto cursor-grab active:cursor-grabbing"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
