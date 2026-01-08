@@ -145,7 +145,9 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     setCustomizerOpen(true);
   };
 
-  if (loading || !settings.enabled || !user) return null;
+  // Show orb for everyone in public mode, only for logged-in users in preview mode
+  if (loading || !settings.enabled) return null;
+  if (mode === "preview" && !user) return null;
 
   const enabledItems = settings.items
     .filter((item) => item.enabled)
