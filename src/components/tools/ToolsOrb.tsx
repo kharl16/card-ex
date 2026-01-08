@@ -43,7 +43,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   const [initialized, setInitialized] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  // IMPORTANT: single source of truth for position (shared by orb + menu)
+  // Single source of truth for position (orb + menu)
   const xMV = useMotionValue(0);
   const yMV = useMotionValue(0);
 
@@ -91,7 +91,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     });
   };
 
-  // Initialize (and fix saved off-screen positions)
+  // Initialize position
   useEffect(() => {
     const saved = localStorage.getItem(positionKey);
     let start = getDefaultPosition();
@@ -112,13 +112,12 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, positionKey]);
 
-  // Save position (from motion values)
+  // Save position
   useEffect(() => {
     if (!initialized) return;
 
     const save = () => {
       const p = { x: xMV.get(), y: yMV.get() };
-      // Don’t save zeros on first paint
       if (p.x || p.y) localStorage.setItem(positionKey, JSON.stringify(p));
     };
 
@@ -131,7 +130,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     };
   }, [initialized, positionKey, xMV, yMV]);
 
-  // Re-clamp on viewport changes (mobile bars, rotation, etc.)
+  // Re-clamp on viewport changes
   useEffect(() => {
     const reclamp = () => {
       const p = clampPosition({ x: xMV.get(), y: yMV.get() });
@@ -156,20 +155,14 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
+  // ✅ FIX: DO NOT FORCE SNAP RIGHT. Allow free placement everywhere.
   const handleDragEnd = () => {
     setIsDragging(false);
-    const b = getBounds();
 
-    // Keep public mode always on RIGHT edge (your preferred placement)
-    const snapRight = !isPreview;
-    const cur = { x: xMV.get(), y: yMV.get() };
-
-    const newX = snapRight ? b.width - orbSize - margin : cur.x;
-    const newY = Math.max(margin, Math.min(b.height - orbSize - margin, cur.y));
-
-    const snapped = clampPosition({ x: newX, y: newY });
-    xMV.set(snapped.x);
-    yMV.set(snapped.y);
+    // Simply re-clamp to stay within bounds (no edge snapping)
+    const p = clampPosition({ x: xMV.get(), y: yMV.get() });
+    xMV.set(p.x);
+    yMV.set(p.y);
   };
 
   const handleItemClick = (item: ToolsOrbItem) => {
@@ -188,7 +181,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
 
   const enabledItems = settings.items.filter((it) => it.enabled).sort((a, b) => a.order - b.order);
 
-  // Radial offsets ONLY — anchored around the orb via the SAME motion values
+  // Radial offsets
   const getRadialOffset = (index: number, total: number) => {
     const b = getBounds();
     const radius = isPreview ? 72 : 96;
@@ -212,7 +205,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
   };
 
-  // IMPORTANT: align wrapper to the *visual viewport* on mobile so absolute coords match what user sees
+  // Align wrapper to visual viewport on mobile
   const wrapperStyle = isPreview
     ? undefined
     : ({
@@ -228,7 +221,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         className={cn("pointer-events-none", isPreview ? "absolute inset-0" : "fixed")}
         style={{ zIndex: isPreview ? 50 : 9999, ...(wrapperStyle || {}) }}
       >
-        {/* BACKDROP */}
+        {/* Backdrop */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -244,7 +237,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
           )}
         </AnimatePresence>
 
-        {/* MENU ANCHOR: this follows the orb EXACTLY via same xMV/yMV */}
+        {/* Menu anchor follows orb EXACTLY (same xMV/yMV) */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -252,14 +245,9 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute pointer-events-none"
-              style={{
-                x: xMV,
-                y: yMV,
-              }}
+              style={{ x: xMV, y: yMV }}
             >
-              {/* Anchor at orb center */}
               <div className="absolute pointer-events-none" style={{ left: orbSize / 2, top: orbSize / 2 }}>
-                {/* Items */}
                 {enabledItems.map((item, index) => {
                   const total = enabledItems.length + (isAdmin ? 1 : 0);
                   const off = getRadialOffset(index, total);
@@ -308,7 +296,6 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                   );
                 })}
 
-                {/* Settings */}
                 {isAdmin && (
                   <motion.button
                     initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
@@ -319,12 +306,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                       y: getRadialOffset(enabledItems.length, enabledItems.length + 1).y,
                     }}
                     exit={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                    transition={{
-                      delay: enabledItems.length * 0.05,
-                      type: "spring",
-                      stiffness: 340,
-                      damping: 22,
-                    }}
+                    transition={{ delay: enabledItems.length * 0.05, type: "spring", stiffness: 340, damping: 22 }}
                     onClick={handleSettingsClick}
                     className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
                   >
@@ -356,7 +338,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
           )}
         </AnimatePresence>
 
-        {/* ORB */}
+        {/* Orb */}
         <motion.div
           drag
           dragMomentum={false}
