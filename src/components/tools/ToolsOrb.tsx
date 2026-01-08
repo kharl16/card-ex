@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, RefObject, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue } from "framer-motion";
 import { useToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
 import { useAuth } from "@/contexts/AuthContext";
 import { GraduationCap, Link, FolderOpen, Building2, Presentation, X, Settings, Sparkles } from "lucide-react";
@@ -40,20 +40,21 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
 
-  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const orbRef = useRef<HTMLDivElement>(null);
+  // IMPORTANT: single source of truth for position (shared by orb + menu)
+  const xMV = useMotionValue(0);
+  const yMV = useMotionValue(0);
+
   const dragStartPos = useRef<Position>({ x: 0, y: 0 });
 
+  const isPreview = mode === "preview";
   const positionKey = `${POSITION_KEY_PREFIX}_${mode}`;
   const orbSize = 56;
-  const margin = 8;
+  const margin = 10;
 
-  const isPreview = mode === "preview";
-
-  // VisualViewport info (fixes mobile “items appear elsewhere” issue)
+  // Visual viewport (mobile safe)
   const vv = typeof window !== "undefined" ? window.visualViewport : null;
   const vvOffset = useMemo(
     () => ({
@@ -66,102 +67,109 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     [vv?.offsetLeft, vv?.offsetTop, vv?.width, vv?.height],
   );
 
-  // Get bounds for clamping
   const getBounds = () => {
     if (isPreview && containerRef?.current) {
       const rect = containerRef.current.getBoundingClientRect();
       return { width: rect.width, height: rect.height };
     }
-    // Use visualViewport dimensions for public mode
     return { width: vvOffset.width, height: vvOffset.height };
   };
 
   const clampPosition = (pos: Position): Position => {
-    const bounds = getBounds();
+    const b = getBounds();
     return {
-      x: Math.max(margin, Math.min(bounds.width - orbSize - margin, pos.x)),
-      y: Math.max(margin, Math.min(bounds.height - orbSize - margin, pos.y)),
+      x: Math.max(margin, Math.min(b.width - orbSize - margin, pos.x)),
+      y: Math.max(margin, Math.min(b.height - orbSize - margin, pos.y)),
     };
   };
 
-  // Default position: center-right edge
   const getDefaultPosition = (): Position => {
-    const bounds = getBounds();
+    const b = getBounds();
     return clampPosition({
-      x: bounds.width - orbSize - margin,
-      y: bounds.height / 2 - orbSize / 2,
+      x: b.width - orbSize - margin,
+      y: b.height / 2 - orbSize / 2,
     });
   };
 
-  // Initialize position
+  // Initialize (and fix saved off-screen positions)
   useEffect(() => {
     const saved = localStorage.getItem(positionKey);
+    let start = getDefaultPosition();
 
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         const clamped = clampPosition(parsed);
-        if (!Number.isFinite(clamped.x) || !Number.isFinite(clamped.y)) {
-          setPosition(getDefaultPosition());
-        } else {
-          setPosition(clamped);
-        }
+        if (Number.isFinite(clamped.x) && Number.isFinite(clamped.y)) start = clamped;
       } catch {
-        setPosition(getDefaultPosition());
+        // ignore
       }
-    } else {
-      setPosition(getDefaultPosition());
     }
 
+    xMV.set(start.x);
+    yMV.set(start.y);
     setInitialized(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, positionKey]);
 
-  // Save position when it changes
+  // Save position (from motion values)
   useEffect(() => {
-    if (initialized && (position.x !== 0 || position.y !== 0)) {
-      localStorage.setItem(positionKey, JSON.stringify(position));
-    }
-  }, [position, initialized, positionKey]);
+    if (!initialized) return;
 
-  // Re-clamp on viewport changes (mobile address bar, rotation, etc.)
+    const save = () => {
+      const p = { x: xMV.get(), y: yMV.get() };
+      // Don’t save zeros on first paint
+      if (p.x || p.y) localStorage.setItem(positionKey, JSON.stringify(p));
+    };
+
+    const unsubX = xMV.on("change", save);
+    const unsubY = yMV.on("change", save);
+
+    return () => {
+      unsubX();
+      unsubY();
+    };
+  }, [initialized, positionKey, xMV, yMV]);
+
+  // Re-clamp on viewport changes (mobile bars, rotation, etc.)
   useEffect(() => {
-    const handleViewportChange = () => setPosition((prev) => clampPosition(prev));
+    const reclamp = () => {
+      const p = clampPosition({ x: xMV.get(), y: yMV.get() });
+      xMV.set(p.x);
+      yMV.set(p.y);
+    };
 
-    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("resize", reclamp);
     const vvp = window.visualViewport;
     if (vvp) {
-      vvp.addEventListener("resize", handleViewportChange);
-      vvp.addEventListener("scroll", handleViewportChange);
+      vvp.addEventListener("resize", reclamp);
+      vvp.addEventListener("scroll", reclamp);
     }
 
     return () => {
-      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("resize", reclamp);
       if (vvp) {
-        vvp.removeEventListener("resize", handleViewportChange);
-        vvp.removeEventListener("scroll", handleViewportChange);
+        vvp.removeEventListener("resize", reclamp);
+        vvp.removeEventListener("scroll", reclamp);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
-  // Snap to right edge on public (optional but keeps it consistent)
   const handleDragEnd = () => {
     setIsDragging(false);
-    const bounds = getBounds();
+    const b = getBounds();
 
+    // Keep public mode always on RIGHT edge (your preferred placement)
     const snapRight = !isPreview;
-    const centerX = position.x + orbSize / 2;
-    const screenCenter = bounds.width / 2;
+    const cur = { x: xMV.get(), y: yMV.get() };
 
-    const newX = snapRight
-      ? bounds.width - orbSize - margin
-      : centerX < screenCenter
-        ? margin
-        : bounds.width - orbSize - margin;
+    const newX = snapRight ? b.width - orbSize - margin : cur.x;
+    const newY = Math.max(margin, Math.min(b.height - orbSize - margin, cur.y));
 
-    const newY = Math.max(margin, Math.min(bounds.height - orbSize - margin, position.y));
-    setPosition({ x: newX, y: newY });
+    const snapped = clampPosition({ x: newX, y: newY });
+    xMV.set(snapped.x);
+    yMV.set(snapped.y);
   };
 
   const handleItemClick = (item: ToolsOrbItem) => {
@@ -178,17 +186,20 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   if (loading || !settings.enabled) return null;
   if (isPreview && !user) return null;
 
-  const enabledItems = settings.items.filter((item) => item.enabled).sort((a, b) => a.order - b.order);
+  const enabledItems = settings.items.filter((it) => it.enabled).sort((a, b) => a.order - b.order);
 
-  // Radial offsets ONLY (we will position the whole menu at the orb center)
+  // Radial offsets ONLY — anchored around the orb via the SAME motion values
   const getRadialOffset = (index: number, total: number) => {
-    const bounds = getBounds();
-    const radius = isPreview ? 70 : 96;
+    const b = getBounds();
+    const radius = isPreview ? 72 : 96;
 
-    const isOnRight = position.x > bounds.width / 2;
-    const isOnBottom = position.y > bounds.height / 2;
+    const px = xMV.get();
+    const py = yMV.get();
 
-    // Bias expansion to stay near the orb (avoid going off-screen)
+    const isOnRight = px > b.width / 2;
+    const isOnBottom = py > b.height / 2;
+
+    // Expand away from edges automatically
     let startAngle = -Math.PI / 2;
     if (isOnRight && isOnBottom) startAngle = Math.PI;
     else if (isOnRight) startAngle = Math.PI / 2;
@@ -201,7 +212,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
   };
 
-  // IMPORTANT: Wrapper is aligned to the visual viewport on mobile
+  // IMPORTANT: align wrapper to the *visual viewport* on mobile so absolute coords match what user sees
   const wrapperStyle = isPreview
     ? undefined
     : ({
@@ -211,45 +222,44 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         height: vvOffset.height,
       } as React.CSSProperties);
 
-  // Orb center point (relative to wrapper)
-  const orbCenter = {
-    x: position.x + orbSize / 2,
-    y: position.y + orbSize / 2,
-  };
-
   return (
     <>
       <div
         className={cn("pointer-events-none", isPreview ? "absolute inset-0" : "fixed")}
-        style={{
-          zIndex: isPreview ? 50 : 9999,
-          ...(wrapperStyle || {}),
-        }}
+        style={{ zIndex: isPreview ? 50 : 9999, ...(wrapperStyle || {}) }}
       >
+        {/* BACKDROP */}
         <AnimatePresence>
           {isOpen && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className={cn(
-                  "absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto",
-                  isPreview && "rounded-xl",
-                )}
-                onClick={() => setIsOpen(false)}
-              />
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className={cn(
+                "absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto",
+                isPreview && "rounded-xl",
+              )}
+              onClick={() => setIsOpen(false)}
+            />
+          )}
+        </AnimatePresence>
 
-              {/* MENU ANCHOR: everything pops around the orb (not elsewhere) */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute pointer-events-none"
-                style={{ left: orbCenter.x, top: orbCenter.y }}
-              >
-                {/* Menu Items (relative offsets from orb center) */}
+        {/* MENU ANCHOR: this follows the orb EXACTLY via same xMV/yMV */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute pointer-events-none"
+              style={{
+                x: xMV,
+                y: yMV,
+              }}
+            >
+              {/* Anchor at orb center */}
+              <div className="absolute pointer-events-none" style={{ left: orbSize / 2, top: orbSize / 2 }}>
+                {/* Items */}
                 {enabledItems.map((item, index) => {
                   const total = enabledItems.length + (isAdmin ? 1 : 0);
                   const off = getRadialOffset(index, total);
@@ -262,7 +272,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                       initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
                       animate={{ opacity: 1, scale: 1, x: off.x, y: off.y }}
                       exit={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                      transition={{ delay: index * 0.05, type: "spring", stiffness: 320, damping: 20 }}
+                      transition={{ delay: index * 0.05, type: "spring", stiffness: 340, damping: 22 }}
                       onClick={() => handleItemClick(item)}
                       className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
                     >
@@ -298,7 +308,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                   );
                 })}
 
-                {/* Admin Settings Button */}
+                {/* Settings */}
                 {isAdmin && (
                   <motion.button
                     initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
@@ -312,8 +322,8 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                     transition={{
                       delay: enabledItems.length * 0.05,
                       type: "spring",
-                      stiffness: 320,
-                      damping: 20,
+                      stiffness: 340,
+                      damping: 22,
                     }}
                     onClick={handleSettingsClick}
                     className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
@@ -341,31 +351,31 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                     </div>
                   </motion.button>
                 )}
-              </motion.div>
-            </>
+              </div>
+            </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Main Orb Button */}
+        {/* ORB */}
         <motion.div
-          ref={orbRef}
           drag
           dragMomentum={false}
           dragElastic={0}
           onDragStart={() => {
             setIsDragging(true);
-            dragStartPos.current = { ...position };
+            dragStartPos.current = { x: xMV.get(), y: yMV.get() };
           }}
           onDrag={(_, info) => {
-            const newPos = {
+            const next = clampPosition({
               x: dragStartPos.current.x + info.offset.x,
               y: dragStartPos.current.y + info.offset.y,
-            };
-            setPosition(clampPosition(newPos));
+            });
+            xMV.set(next.x);
+            yMV.set(next.y);
           }}
           onDragEnd={handleDragEnd}
-          onClick={() => !isDragging && setIsOpen(!isOpen)}
-          style={{ x: position.x, y: position.y }}
+          onClick={() => !isDragging && setIsOpen((v) => !v)}
+          style={{ x: xMV, y: yMV }}
           className="absolute pointer-events-auto cursor-grab active:cursor-grabbing"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -391,7 +401,6 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
             )}
           </div>
 
-          {/* Glow ring animation */}
           <div
             className="absolute inset-0 rounded-full animate-ping bg-primary/20"
             style={{ animationDuration: "2s" }}
@@ -399,7 +408,6 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         </motion.div>
       </div>
 
-      {/* Tools Drawer */}
       <ToolsDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
@@ -408,7 +416,6 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         items={enabledItems}
       />
 
-      {/* Customizer Dialog */}
       {isAdmin && <ToolsOrbCustomizer open={customizerOpen} onOpenChange={setCustomizerOpen} />}
     </>
   );
