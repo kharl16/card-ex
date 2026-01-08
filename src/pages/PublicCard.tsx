@@ -289,7 +289,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           </p>
         </div>
       </div>
-      <ToolsOrb />
+      <ToolsOrb mode="public" />
     </div>
   );
 }
