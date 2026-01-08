@@ -142,6 +142,7 @@ export default function CardEditor() {
   const autosaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const initialLoadRef = useRef(true);
   const lastSavedCardRef = useRef<string>("");
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
@@ -1020,7 +1021,10 @@ export default function CardEditor() {
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
             <CardContent className="p-2 sm:p-4">
-              <div className="transition-all duration-500 ease-out w-full max-w-full overflow-x-hidden">
+              <div 
+                ref={previewContainerRef}
+                className="relative transition-all duration-500 ease-out w-full max-w-full overflow-hidden rounded-xl"
+              >
                 <CardView
                   card={card}
                   socialLinks={socialLinks}
@@ -1031,12 +1035,13 @@ export default function CardEditor() {
                   showVCardButtons={false}
                   publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
                 />
+                {/* ToolsOrb inside preview */}
+                <ToolsOrb mode="preview" containerRef={previewContainerRef} />
               </div>
             </CardContent>
           </Card>
         </div>
       </main>
-      <ToolsOrb />
     </div>
   );
 }
