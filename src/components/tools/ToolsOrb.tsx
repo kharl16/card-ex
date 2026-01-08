@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, RefObject, useMemo } from "react";
-import { motion, AnimatePresence, useMotionValue } from "framer-motion";
+import { useState, useEffect, useRef, RefObject, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -52,55 +52,42 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
+  const [initialized, setInitialized] = useState(false);
 
-  // ✅ Track drag state without causing position jumps
-  const dragStartPos = useRef<Position>({ x: 0, y: 0 });
-  const draggingRef = useRef(false);
-  const rafRef = useRef<number | null>(null);
+  const constraintsRef = useRef<HTMLDivElement>(null);
+  const orbRef = useRef<HTMLDivElement>(null);
 
-  // ✅ Motion values = single source of truth for both orb + menu
-  const xMV = useMotionValue(0);
-  const yMV = useMotionValue(0);
-
-  // ✅ Visual viewport support (fixes mobile address bar + coordinate drift)
-  const vv = typeof window !== "undefined" ? window.visualViewport : null;
-  const vvOffset = useMemo(
-    () => ({
-      left: vv?.offsetLeft ?? 0,
-      top: vv?.offsetTop ?? 0,
-      width: vv?.width ?? (typeof window !== "undefined" ? window.innerWidth : 0),
-      height: vv?.height ?? (typeof window !== "undefined" ? window.innerHeight : 0),
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [vv?.offsetLeft, vv?.offsetTop, vv?.width, vv?.height],
-  );
-
-  const getBounds = () => {
+  const getBounds = useCallback(() => {
     if (isPreview && containerRef?.current) {
       const rect = containerRef.current.getBoundingClientRect();
       return { width: rect.width, height: rect.height };
     }
-    return { width: vvOffset.width, height: vvOffset.height };
-  };
+    const vv = window.visualViewport;
+    return {
+      width: vv?.width ?? window.innerWidth,
+      height: vv?.height ?? window.innerHeight,
+    };
+  }, [isPreview, containerRef]);
 
-  const clampPosition = (pos: Position): Position => {
+  const clampPosition = useCallback((pos: Position): Position => {
     const b = getBounds();
     return {
       x: Math.max(margin, Math.min(b.width - orbSize - margin, pos.x)),
       y: Math.max(margin, Math.min(b.height - orbSize - margin, pos.y)),
     };
-  };
+  }, [getBounds]);
 
-  const getDefaultPosition = (): Position => {
+  const getDefaultPosition = useCallback((): Position => {
     const b = getBounds();
-    // center-right default
     return clampPosition({
       x: b.width - orbSize - margin,
       y: b.height / 2 - orbSize / 2,
     });
-  };
+  }, [getBounds, clampPosition]);
 
-  // ✅ Initialize ONCE and do NOT “reset to top-left” during drag
+  // Initialize position once
   useEffect(() => {
     const saved = localStorage.getItem(positionKey);
     let start = getDefaultPosition();
@@ -109,65 +96,66 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
       try {
         const parsed = JSON.parse(saved);
         const clamped = clampPosition(parsed);
-        if (Number.isFinite(clamped.x) && Number.isFinite(clamped.y)) start = clamped;
+        if (Number.isFinite(clamped.x) && Number.isFinite(clamped.y)) {
+          start = clamped;
+        }
       } catch {
         // ignore
       }
     }
 
-    xMV.set(start.x);
-    yMV.set(start.y);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [positionKey, mode]);
+    setPosition(start);
+    setInitialized(true);
+  }, [positionKey, getDefaultPosition, clampPosition]);
 
-  // ✅ Save with a tiny debounce (prevents jitter + heavy writes)
+  // Save position on change
   useEffect(() => {
-    let t: number | null = null;
+    if (!initialized) return;
+    const timeout = setTimeout(() => {
+      localStorage.setItem(positionKey, JSON.stringify(position));
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, [position, positionKey, initialized]);
 
-    const scheduleSave = () => {
-      if (t) window.clearTimeout(t);
-      t = window.setTimeout(() => {
-        const p = { x: xMV.get(), y: yMV.get() };
-        localStorage.setItem(positionKey, JSON.stringify(p));
-      }, 120);
-    };
-
-    const unsubX = xMV.on("change", scheduleSave);
-    const unsubY = yMV.on("change", scheduleSave);
-
-    return () => {
-      unsubX();
-      unsubY();
-      if (t) window.clearTimeout(t);
-    };
-  }, [positionKey, xMV, yMV]);
-
-  // ✅ Re-clamp when viewport changes (rotation, address bar, etc.)
+  // Re-clamp on resize
   useEffect(() => {
-    const reclamp = () => {
-      // don’t fight the finger while dragging
-      if (draggingRef.current) return;
-      const p = clampPosition({ x: xMV.get(), y: yMV.get() });
-      xMV.set(p.x);
-      yMV.set(p.y);
+    const handleResize = () => {
+      if (isDragging) return;
+      setPosition(prev => clampPosition(prev));
     };
 
-    window.addEventListener("resize", reclamp);
-    const vvp = window.visualViewport;
-    if (vvp) {
-      vvp.addEventListener("resize", reclamp);
-      vvp.addEventListener("scroll", reclamp);
+    window.addEventListener("resize", handleResize);
+    const vv = window.visualViewport;
+    if (vv) {
+      vv.addEventListener("resize", handleResize);
+      vv.addEventListener("scroll", handleResize);
     }
 
     return () => {
-      window.removeEventListener("resize", reclamp);
-      if (vvp) {
-        vvp.removeEventListener("resize", reclamp);
-        vvp.removeEventListener("scroll", reclamp);
+      window.removeEventListener("resize", handleResize);
+      if (vv) {
+        vv.removeEventListener("resize", handleResize);
+        vv.removeEventListener("scroll", handleResize);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
+  }, [isDragging, clampPosition]);
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    
+    // Get final position from the orb element
+    if (orbRef.current && constraintsRef.current) {
+      const orbRect = orbRef.current.getBoundingClientRect();
+      const containerRect = constraintsRef.current.getBoundingClientRect();
+      
+      const newPos = clampPosition({
+        x: orbRect.left - containerRect.left,
+        y: orbRect.top - containerRect.top,
+      });
+      
+      setPosition(newPos);
+    }
+  };
 
   const handleItemClick = (item: ToolsOrbItem) => {
     setIsOpen(false);
@@ -180,85 +168,74 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     setCustomizerOpen(true);
   };
 
+  const handleOrbClick = () => {
+    if (!isDragging) {
+      setIsOpen(v => !v);
+    }
+  };
+
   if (loading || !settings.enabled) return null;
   if (isPreview && !user) return null;
+  if (!initialized) return null;
 
-  const enabledItems = settings.items.filter((it) => it.enabled).sort((a, b) => a.order - b.order);
+  const enabledItems = settings.items.filter(it => it.enabled).sort((a, b) => a.order - b.order);
 
-  /**
-   * ✅ Equidistant, non-overlapping radial layout
-   * - Uses full 180° (or 240°) spread depending on available room.
-   * - Radius grows if many items to prevent overlap.
-   */
+  // Radial layout calculations
   const getRadialConfig = () => {
     const b = getBounds();
-    const px = xMV.get();
-    const py = yMV.get();
-
-    const isOnRight = px > b.width / 2;
-    const isOnBottom = py > b.height / 2;
-
-    // Preferred: expand toward center of screen
-    // Define a “sector” (startAngle, endAngle) where items will be laid out.
-    // Angles are radians, 0 = right, pi/2 = down, -pi/2 = up
-    let start = -Math.PI / 2; // up
-    let end = Math.PI / 2; // down
-
-    // If orb is on right side, fan leftwards (around pi)
-    if (isOnRight) {
-      start = Math.PI + Math.PI / 2; // 270°
-      end = Math.PI - Math.PI / 2; // 90° (wrap)
-      // We'll handle wrap by using a negative span below
-    }
-
-    // If orb is near top or bottom, slightly bias sector to avoid going offscreen
-    // (keeps labels/buttons visible)
-    // We'll keep it simple and just keep a 180° fan.
-
-    // Radius: increase with item count so no overlap
+    const isOnRight = position.x > b.width / 2;
+    const isOnBottom = position.y > b.height / 2;
+    
     const total = enabledItems.length + (isAdmin ? 1 : 0);
     const itemSize = isPreview ? 44 : 56;
-    const minGap = 10; // spacing between circles
+    const minGap = 12;
     const minRadius = isPreview ? 74 : 96;
-
-    // circumference needed for total items across a semicircle:
-    // arcLength ≈ radius * pi  -> ensure arcLength >= total*(itemSize+minGap)
+    
+    // Ensure radius is large enough for all items without overlap
     const neededRadius = Math.max(minRadius, (total * (itemSize + minGap)) / Math.PI);
-
+    
     return { isOnRight, isOnBottom, radius: neededRadius, total };
   };
 
   const getRadialOffset = (index: number, total: number, radius: number, isOnRight: boolean) => {
-    // Equidistant angles over 180° (π radians)
-    // Fan direction:
-    // - If on right: angles centered around π (left direction)
-    // - Else: angles centered around 0 (right direction)
     const span = Math.PI; // 180°
     const denom = Math.max(1, total - 1);
-
-    const center = isOnRight ? Math.PI : 0; // left vs right
+    const center = isOnRight ? Math.PI : 0;
     const startAngle = center - span / 2;
-    const angle = startAngle + (index / denom) * span;
+    const angle = total === 1 ? center : startAngle + (index / denom) * span;
+    
+    return { 
+      x: Math.cos(angle) * radius, 
+      y: Math.sin(angle) * radius 
+    };
+  };
 
-    return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+  const radial = getRadialConfig();
+
+  // Visual viewport offset for public mode
+  const vv = typeof window !== "undefined" ? window.visualViewport : null;
+  const vvOffset = {
+    left: vv?.offsetLeft ?? 0,
+    top: vv?.offsetTop ?? 0,
+    width: vv?.width ?? window.innerWidth,
+    height: vv?.height ?? window.innerHeight,
   };
 
   const wrapperStyle = isPreview
     ? undefined
-    : ({
+    : {
         left: vvOffset.left,
         top: vvOffset.top,
         width: vvOffset.width,
         height: vvOffset.height,
-      } as React.CSSProperties);
-
-  const radial = getRadialConfig();
+      } as React.CSSProperties;
 
   return (
     <>
       <div
-        className={cn("pointer-events-none", isPreview ? "absolute inset-0" : "fixed")}
-        style={{ zIndex: isPreview ? 50 : 9999, ...(wrapperStyle || {}) }}
+        ref={constraintsRef}
+        className={cn("pointer-events-none", isPreview ? "absolute inset-0" : "fixed inset-0")}
+        style={{ zIndex: isPreview ? 50 : 9999, ...wrapperStyle }}
       >
         {/* Backdrop */}
         <AnimatePresence>
@@ -269,14 +246,14 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
               exit={{ opacity: 0 }}
               className={cn(
                 "absolute inset-0 bg-black/30 backdrop-blur-sm pointer-events-auto",
-                isPreview && "rounded-xl",
+                isPreview && "rounded-xl"
               )}
               onClick={() => setIsOpen(false)}
             />
           )}
         </AnimatePresence>
 
-        {/* Menu anchor follows orb EXACTLY */}
+        {/* Menu items anchored to orb position */}
         <AnimatePresence>
           {isOpen && (
             <motion.div
@@ -284,133 +261,116 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute pointer-events-none"
-              style={{ x: xMV, y: yMV }}
+              style={{ 
+                left: position.x + orbSize / 2, 
+                top: position.y + orbSize / 2 
+              }}
             >
-              <div className="absolute pointer-events-none" style={{ left: orbSize / 2, top: orbSize / 2 }}>
-                {enabledItems.map((item, index) => {
-                  const IconComponent = ICON_MAP[item.icon_name] || Sparkles;
-                  const itemSize = isPreview ? 44 : 56;
+              {enabledItems.map((item, index) => {
+                const IconComponent = ICON_MAP[item.icon_name] || Sparkles;
+                const itemSize = isPreview ? 44 : 56;
+                const off = getRadialOffset(index, radial.total, radial.radius, radial.isOnRight);
 
-                  const off = getRadialOffset(index, radial.total, radial.radius, radial.isOnRight);
-
-                  return (
-                    <motion.button
-                      key={item.id}
-                      initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                      animate={{ opacity: 1, scale: 1, x: off.x, y: off.y }}
-                      exit={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                      transition={{ delay: index * 0.04, type: "spring", stiffness: 360, damping: 24 }}
-                      onClick={() => handleItemClick(item)}
-                      className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
-                    >
-                      <div className="flex flex-col items-center gap-1 group">
-                        <div
-                          className={cn(
-                            "rounded-full flex items-center justify-center",
-                            "bg-gradient-to-br from-primary/90 to-primary shadow-lg",
-                            "border-2 border-primary-foreground/20",
-                            "group-hover:scale-110 transition-transform",
-                            "backdrop-blur-md",
-                          )}
-                          style={{ width: itemSize, height: itemSize }}
-                        >
-                          {item.image_url ? (
-                            <img src={item.image_url} alt={item.label} className="w-6 h-6 rounded-full object-cover" />
-                          ) : (
-                            <IconComponent
-                              className={cn("text-primary-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")}
-                            />
-                          )}
-                        </div>
-                        <span
-                          className={cn(
-                            "font-medium text-foreground bg-background/80 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap",
-                            isPreview ? "text-[10px]" : "text-xs",
-                          )}
-                        >
-                          {item.label}
-                        </span>
-                      </div>
-                    </motion.button>
-                  );
-                })}
-
-                {isAdmin && (
+                return (
                   <motion.button
+                    key={item.id}
                     initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                    animate={{
-                      opacity: 1,
-                      scale: 1,
-                      x: getRadialOffset(enabledItems.length, radial.total, radial.radius, radial.isOnRight).x,
-                      y: getRadialOffset(enabledItems.length, radial.total, radial.radius, radial.isOnRight).y,
-                    }}
+                    animate={{ opacity: 1, scale: 1, x: off.x, y: off.y }}
                     exit={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                    transition={{ delay: enabledItems.length * 0.04, type: "spring", stiffness: 360, damping: 24 }}
-                    onClick={handleSettingsClick}
+                    transition={{ delay: index * 0.04, type: "spring", stiffness: 360, damping: 24 }}
+                    onClick={() => handleItemClick(item)}
                     className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
                   >
                     <div className="flex flex-col items-center gap-1 group">
                       <div
                         className={cn(
                           "rounded-full flex items-center justify-center",
-                          "bg-gradient-to-br from-muted to-muted/80 shadow-lg",
-                          "border-2 border-border",
+                          "bg-gradient-to-br from-primary/90 to-primary shadow-lg",
+                          "border-2 border-primary-foreground/20",
                           "group-hover:scale-110 transition-transform",
+                          "backdrop-blur-md"
                         )}
-                        style={{ width: isPreview ? 44 : 56, height: isPreview ? 44 : 56 }}
+                        style={{ width: itemSize, height: itemSize }}
                       >
-                        <Settings className={cn("text-muted-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")} />
+                        {item.image_url ? (
+                          <img 
+                            src={item.image_url} 
+                            alt={item.label} 
+                            className="w-6 h-6 rounded-full object-cover" 
+                          />
+                        ) : (
+                          <IconComponent
+                            className={cn("text-primary-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")}
+                          />
+                        )}
                       </div>
                       <span
                         className={cn(
-                          "font-medium text-foreground bg-background/80 px-2 py-0.5 rounded-full shadow-sm",
-                          isPreview ? "text-[10px]" : "text-xs",
+                          "font-medium text-foreground bg-background/80 px-2 py-0.5 rounded-full shadow-sm whitespace-nowrap",
+                          isPreview ? "text-[10px]" : "text-xs"
                         )}
                       >
-                        Settings
+                        {item.label}
                       </span>
                     </div>
                   </motion.button>
-                )}
-              </div>
+                );
+              })}
+
+              {isAdmin && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    x: getRadialOffset(enabledItems.length, radial.total, radial.radius, radial.isOnRight).x,
+                    y: getRadialOffset(enabledItems.length, radial.total, radial.radius, radial.isOnRight).y,
+                  }}
+                  exit={{ opacity: 0, scale: 0, x: 0, y: 0 }}
+                  transition={{ delay: enabledItems.length * 0.04, type: "spring", stiffness: 360, damping: 24 }}
+                  onClick={handleSettingsClick}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-auto"
+                >
+                  <div className="flex flex-col items-center gap-1 group">
+                    <div
+                      className={cn(
+                        "rounded-full flex items-center justify-center",
+                        "bg-gradient-to-br from-muted to-muted/80 shadow-lg",
+                        "border-2 border-border",
+                        "group-hover:scale-110 transition-transform"
+                      )}
+                      style={{ width: isPreview ? 44 : 56, height: isPreview ? 44 : 56 }}
+                    >
+                      <Settings className={cn("text-muted-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")} />
+                    </div>
+                    <span
+                      className={cn(
+                        "font-medium text-foreground bg-background/80 px-2 py-0.5 rounded-full shadow-sm",
+                        isPreview ? "text-[10px]" : "text-xs"
+                      )}
+                    >
+                      Settings
+                    </span>
+                  </div>
+                </motion.button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Orb */}
+        {/* Draggable Orb */}
         <motion.div
+          ref={orbRef}
           drag
+          dragConstraints={constraintsRef}
           dragMomentum={false}
           dragElastic={0}
-          onDragStart={() => {
-            draggingRef.current = true;
-            setIsDragging(true);
-            dragStartPos.current = { x: xMV.get(), y: yMV.get() };
-          }}
-          onDrag={(_, info) => {
-            // ✅ Smooth finger-following: throttle with rAF
-            const nextRaw = {
-              x: dragStartPos.current.x + info.offset.x,
-              y: dragStartPos.current.y + info.offset.y,
-            };
-            const next = clampPosition(nextRaw);
-
-            if (rafRef.current) cancelAnimationFrame(rafRef.current);
-            rafRef.current = requestAnimationFrame(() => {
-              xMV.set(next.x);
-              yMV.set(next.y);
-            });
-          }}
-          onDragEnd={() => {
-            draggingRef.current = false;
-            setIsDragging(false);
-            if (rafRef.current) cancelAnimationFrame(rafRef.current);
-            const p = clampPosition({ x: xMV.get(), y: yMV.get() });
-            xMV.set(p.x);
-            yMV.set(p.y);
-          }}
-          onClick={() => !isDragging && setIsOpen((v) => !v)}
-          style={{ x: xMV, y: yMV, touchAction: "none" }}
+          onDragStart={() => setIsDragging(true)}
+          onDragEnd={handleDragEnd}
+          onClick={handleOrbClick}
+          initial={{ x: position.x, y: position.y }}
+          animate={{ x: position.x, y: position.y }}
+          style={{ touchAction: "none" }}
           className="absolute pointer-events-auto cursor-grab active:cursor-grabbing"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -423,12 +383,16 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
               "border-2 border-primary-foreground/30",
               "backdrop-blur-md",
               "transition-all duration-300",
-              isOpen && "rotate-45 shadow-[0_0_30px_rgba(212,175,55,0.6)]",
+              isOpen && "rotate-45 shadow-[0_0_30px_rgba(212,175,55,0.6)]"
             )}
             style={{ width: orbSize, height: orbSize }}
           >
             {settings.orb_image_url ? (
-              <img src={settings.orb_image_url} alt="Tools" className="w-8 h-8 rounded-full object-cover" />
+              <img 
+                src={settings.orb_image_url} 
+                alt="Tools" 
+                className="w-8 h-8 rounded-full object-cover" 
+              />
             ) : isOpen ? (
               <X className={cn("text-primary-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")} />
             ) : (
