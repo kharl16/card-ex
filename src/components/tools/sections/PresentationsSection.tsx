@@ -3,9 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Download, Presentation } from "lucide-react";
+import { ExternalLink, Download, Presentation, Plus, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
+import AdminPresentationDialog from "../admin/AdminPresentationDialog";
 
 interface PresentationItem {
   id: string;
@@ -15,6 +17,7 @@ interface PresentationItem {
   presentation_url: string | null;
   download_url: string | null;
   category: string | null;
+  is_active: boolean;
 }
 
 interface PresentationsSectionProps {
@@ -22,10 +25,13 @@ interface PresentationsSectionProps {
 }
 
 export default function PresentationsSection({ searchQuery }: PresentationsSectionProps) {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<PresentationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<PresentationItem | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -66,6 +72,16 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
     return matchesSearch && matchesCategory;
   });
 
+  const handleEdit = (item: PresentationItem) => {
+    setEditingItem(item);
+    setAdminDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingItem(null);
+    setAdminDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -76,7 +92,7 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isAdmin) {
     return (
       <div className="text-center py-12">
         <p className="text-lg text-muted-foreground">No presentations available yet</p>
@@ -86,6 +102,14 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
 
   return (
     <div className="space-y-4">
+      {/* Admin Add Button */}
+      {isAdmin && (
+        <Button onClick={handleAdd} className="w-full gap-2">
+          <Plus className="w-4 h-4" />
+          Add Presentation
+        </Button>
+      )}
+
       {/* Category Filter */}
       {categories.length > 0 && (
         <ScrollArea className="w-full whitespace-nowrap">
@@ -124,11 +148,23 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
           <div
             key={item.id}
             className={cn(
-              "rounded-2xl overflow-hidden",
+              "rounded-2xl overflow-hidden relative",
               "bg-card border border-border/50 shadow-sm",
               "hover:shadow-md hover:border-primary/30 transition-all"
             )}
           >
+            {/* Admin Edit Button */}
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                size="icon"
+                className="absolute top-2 right-2 z-10 h-8 w-8"
+                onClick={() => handleEdit(item)}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            )}
+
             {/* Thumbnail */}
             <div className="relative aspect-[4/3] bg-muted">
               {item.thumbnail_url ? (
@@ -191,6 +227,14 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
           <p className="text-lg text-muted-foreground">No presentations match your search</p>
         </div>
       )}
+
+      {/* Admin Dialog */}
+      <AdminPresentationDialog
+        open={adminDialogOpen}
+        onOpenChange={setAdminDialogOpen}
+        item={editingItem}
+        onSaved={fetchItems}
+      />
     </div>
   );
 }

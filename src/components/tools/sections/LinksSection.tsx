@@ -3,10 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink, Copy, Check, Link as LinkIcon } from "lucide-react";
+import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
+import AdminLinkDialog from "../admin/AdminLinkDialog";
 
 interface IAMLink {
   id: string;
@@ -14,6 +16,7 @@ interface IAMLink {
   link: string;
   category: string | null;
   icon_url: string | null;
+  is_active: boolean;
 }
 
 interface LinksSectionProps {
@@ -21,11 +24,14 @@ interface LinksSectionProps {
 }
 
 export default function LinksSection({ searchQuery }: LinksSectionProps) {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<IAMLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<IAMLink | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -80,6 +86,16 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
     window.open(item.link, "_blank");
   };
 
+  const handleEdit = (item: IAMLink) => {
+    setEditingItem(item);
+    setAdminDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingItem(null);
+    setAdminDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -90,7 +106,7 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isAdmin) {
     return (
       <div className="text-center py-12">
         <p className="text-lg text-muted-foreground">No links available yet</p>
@@ -100,6 +116,14 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
 
   return (
     <div className="space-y-4">
+      {/* Admin Add Button */}
+      {isAdmin && (
+        <Button onClick={handleAdd} className="w-full gap-2">
+          <Plus className="w-4 h-4" />
+          Add Link
+        </Button>
+      )}
+
       {/* Category Filter */}
       {categories.length > 0 && (
         <ScrollArea className="w-full whitespace-nowrap">
@@ -138,11 +162,23 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
           <div
             key={item.id}
             className={cn(
-              "flex items-center gap-4 p-4 rounded-2xl",
+              "flex items-center gap-4 p-4 rounded-2xl relative",
               "bg-card border border-border/50 shadow-sm",
               "hover:shadow-md hover:border-primary/30 transition-all"
             )}
           >
+            {/* Admin Edit Button */}
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                size="icon"
+                className="absolute top-2 right-2 h-8 w-8"
+                onClick={() => handleEdit(item)}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            )}
+
             {/* Icon */}
             <div
               className={cn(
@@ -159,7 +195,7 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
             </div>
 
             {/* Info */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pr-10">
               <h4 className="font-semibold text-foreground text-lg truncate">{item.name}</h4>
               {item.category && (
                 <Badge variant="secondary" className="mt-1">
@@ -199,6 +235,14 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
           <p className="text-lg text-muted-foreground">No links match your search</p>
         </div>
       )}
+
+      {/* Admin Dialog */}
+      <AdminLinkDialog
+        open={adminDialogOpen}
+        onOpenChange={setAdminDialogOpen}
+        item={editingItem}
+        onSaved={fetchItems}
+      />
     </div>
   );
 }

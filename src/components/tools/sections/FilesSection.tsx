@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Download, Share2, Play, FolderOpen, Eye } from "lucide-react";
+import { Download, Share2, Play, FolderOpen, Eye, Plus, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
+import AdminFileDialog from "../admin/AdminFileDialog";
 
 interface FileItem {
   id: number;
@@ -19,6 +21,7 @@ interface FileItem {
   view_video_url: string | null;
   price_dp: string | null;
   price_srp: string | null;
+  is_active: boolean;
 }
 
 interface FilesSectionProps {
@@ -26,11 +29,14 @@ interface FilesSectionProps {
 }
 
 export default function FilesSection({ searchQuery }: FilesSectionProps) {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [folders, setFolders] = useState<string[]>([]);
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<FileItem | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -78,6 +84,16 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
     return urls[0] || null;
   };
 
+  const handleEdit = (item: FileItem) => {
+    setEditingItem(item);
+    setAdminDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingItem(null);
+    setAdminDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -88,7 +104,7 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isAdmin) {
     return (
       <div className="text-center py-12">
         <p className="text-lg text-muted-foreground">No files available yet</p>
@@ -98,6 +114,14 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
 
   return (
     <div className="space-y-4">
+      {/* Admin Add Button */}
+      {isAdmin && (
+        <Button onClick={handleAdd} className="w-full gap-2">
+          <Plus className="w-4 h-4" />
+          Add File
+        </Button>
+      )}
+
       {/* Folder Filter */}
       {folders.length > 0 && (
         <ScrollArea className="w-full whitespace-nowrap">
@@ -141,11 +165,23 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
             <div
               key={item.id}
               className={cn(
-                "rounded-2xl overflow-hidden",
+                "rounded-2xl overflow-hidden relative",
                 "bg-card border border-border/50 shadow-sm",
                 "hover:shadow-md hover:border-primary/30 transition-all"
               )}
             >
+              {/* Admin Edit Button */}
+              {isAdmin && (
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute top-2 right-2 z-10 h-8 w-8"
+                  onClick={() => handleEdit(item)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
+
               {/* Thumbnail */}
               <div
                 className="relative aspect-square bg-muted cursor-pointer"
@@ -310,6 +346,14 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Admin Dialog */}
+      <AdminFileDialog
+        open={adminDialogOpen}
+        onOpenChange={setAdminDialogOpen}
+        item={editingItem}
+        onSaved={fetchItems}
+      />
     </div>
   );
 }

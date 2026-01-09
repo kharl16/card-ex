@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
-import { GripVertical, Save, Loader2 } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ImageUpload } from "@/components/ImageUpload";
 
 interface ToolsOrbCustomizerProps {
   open: boolean;
@@ -33,8 +34,8 @@ export default function ToolsOrbCustomizer({ open, onOpenChange }: ToolsOrbCusto
     setLocalSettings((prev) => ({ ...prev, orb_label }));
   };
 
-  const handleOrbImageChange = (orb_image_url: string) => {
-    setLocalSettings((prev) => ({ ...prev, orb_image_url: orb_image_url || null }));
+  const handleOrbImageChange = (orb_image_url: string | null) => {
+    setLocalSettings((prev) => ({ ...prev, orb_image_url }));
   };
 
   const handleItemToggle = (itemId: string, enabled: boolean) => {
@@ -55,7 +56,7 @@ export default function ToolsOrbCustomizer({ open, onOpenChange }: ToolsOrbCusto
     }));
   };
 
-  const handleItemImageChange = (itemId: string, image_url: string) => {
+  const handleItemImageChange = (itemId: string, image_url: string | null) => {
     setLocalSettings((prev) => ({
       ...prev,
       items: prev.items.map((item) =>
@@ -129,11 +130,14 @@ export default function ToolsOrbCustomizer({ open, onOpenChange }: ToolsOrbCusto
             </div>
 
             <div className="space-y-2">
-              <Label>Custom Orb Image URL</Label>
-              <Input
-                value={localSettings.orb_image_url || ""}
-                onChange={(e) => handleOrbImageChange(e.target.value)}
-                placeholder="https://..."
+              <ImageUpload
+                value={localSettings.orb_image_url}
+                onChange={handleOrbImageChange}
+                label="Custom Orb Image"
+                aspectRatio="aspect-square"
+                bucket="media"
+                folderPrefix="tools-orb"
+                maxSize={2}
               />
               <p className="text-xs text-muted-foreground">Leave empty to use default icon</p>
             </div>
@@ -152,9 +156,9 @@ export default function ToolsOrbCustomizer({ open, onOpenChange }: ToolsOrbCusto
                     !item.enabled && "opacity-50"
                   )}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     {/* Drag handle & reorder buttons */}
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-1 pt-1">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -176,7 +180,7 @@ export default function ToolsOrbCustomizer({ open, onOpenChange }: ToolsOrbCusto
                     </div>
 
                     {/* Item content */}
-                    <div className="flex-1 space-y-2">
+                    <div className="flex-1 space-y-3">
                       <div className="flex items-center gap-2">
                         <Input
                           value={item.label}
@@ -189,12 +193,19 @@ export default function ToolsOrbCustomizer({ open, onOpenChange }: ToolsOrbCusto
                           onCheckedChange={(checked) => handleItemToggle(item.id, checked)}
                         />
                       </div>
-                      <Input
-                        value={item.image_url || ""}
-                        onChange={(e) => handleItemImageChange(item.id, e.target.value)}
-                        className="h-8 text-sm"
-                        placeholder="Custom icon URL (optional)"
-                      />
+                      
+                      {/* Custom icon image upload */}
+                      <div className="w-24">
+                        <ImageUpload
+                          value={item.image_url || null}
+                          onChange={(url) => handleItemImageChange(item.id, url)}
+                          label="Icon"
+                          aspectRatio="aspect-square"
+                          bucket="media"
+                          folderPrefix="tools-orb/icons"
+                          maxSize={1}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
