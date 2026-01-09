@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Play, ExternalLink } from "lucide-react";
+import { Play, ExternalLink, Plus, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
+import AdminTrainingDialog from "../admin/AdminTrainingDialog";
 
 interface TrainingItem {
   id: string;
@@ -16,6 +18,7 @@ interface TrainingItem {
   video_url: string | null;
   source_type: string | null;
   category: string | null;
+  is_active: boolean;
 }
 
 interface TrainingsSectionProps {
@@ -23,11 +26,14 @@ interface TrainingsSectionProps {
 }
 
 export default function TrainingsSection({ searchQuery }: TrainingsSectionProps) {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<TrainingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<TrainingItem | null>(null);
   const [categories, setCategories] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<TrainingItem | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -93,6 +99,16 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
     }
   };
 
+  const handleEdit = (item: TrainingItem) => {
+    setEditingItem(item);
+    setAdminDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingItem(null);
+    setAdminDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -103,7 +119,7 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isAdmin) {
     return (
       <div className="text-center py-12">
         <p className="text-lg text-muted-foreground">No trainings available yet</p>
@@ -113,6 +129,14 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
 
   return (
     <div className="space-y-6">
+      {/* Admin Add Button */}
+      {isAdmin && (
+        <Button onClick={handleAdd} className="w-full gap-2">
+          <Plus className="w-4 h-4" />
+          Add Training
+        </Button>
+      )}
+
       {/* Category Filter */}
       {categories.length > 0 && (
         <ScrollArea className="w-full whitespace-nowrap">
@@ -157,11 +181,23 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
                 <div
                   key={item.id}
                   className={cn(
-                    "flex-shrink-0 w-64 rounded-2xl overflow-hidden",
+                    "flex-shrink-0 w-64 rounded-2xl overflow-hidden relative",
                     "bg-card border border-border/50 shadow-md",
                     "hover:shadow-lg hover:border-primary/30 transition-all"
                   )}
                 >
+                  {/* Admin Edit Button */}
+                  {isAdmin && (
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="absolute top-2 right-2 z-10 h-8 w-8"
+                      onClick={() => handleEdit(item)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  )}
+
                   {/* Thumbnail */}
                   <div className="relative aspect-video bg-muted">
                     {item.thumbnail_url ? (
@@ -239,6 +275,14 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Admin Dialog */}
+      <AdminTrainingDialog
+        open={adminDialogOpen}
+        onOpenChange={setAdminDialogOpen}
+        item={editingItem}
+        onSaved={fetchItems}
+      />
     </div>
   );
 }
