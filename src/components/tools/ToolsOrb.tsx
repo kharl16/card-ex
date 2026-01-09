@@ -180,7 +180,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
 
   const enabledItems = settings.items.filter(it => it.enabled).sort((a, b) => a.order - b.order);
 
-  // Radial layout calculations
+  // Radial layout calculations - all items including Settings are evenly distributed
   const getRadialConfig = () => {
     const b = getBounds();
     const isOnRight = position.x > b.width / 2;
@@ -188,8 +188,8 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     
     const total = enabledItems.length + (isAdmin ? 1 : 0);
     const itemSize = isPreview ? 44 : 56;
-    const minGap = 12;
-    const minRadius = isPreview ? 74 : 96;
+    const minGap = 16;
+    const minRadius = isPreview ? 80 : 100;
     
     // Ensure radius is large enough for all items without overlap
     const neededRadius = Math.max(minRadius, (total * (itemSize + minGap)) / Math.PI);
@@ -197,12 +197,16 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     return { isOnRight, isOnBottom, radius: neededRadius, total };
   };
 
+  // All items (including Settings) are placed equidistantly on a 180° arc
   const getRadialOffset = (index: number, total: number, radius: number, isOnRight: boolean) => {
     const span = Math.PI; // 180°
-    const denom = Math.max(1, total - 1);
     const center = isOnRight ? Math.PI : 0;
+    
+    // For equidistant spacing: divide arc into (total + 1) parts, place items in middle sections
+    // This ensures equal gaps at edges and between all items
+    const angleStep = span / (total + 1);
     const startAngle = center - span / 2;
-    const angle = total === 1 ? center : startAngle + (index / denom) * span;
+    const angle = startAngle + angleStep * (index + 1);
     
     return { 
       x: Math.cos(angle) * radius, 
