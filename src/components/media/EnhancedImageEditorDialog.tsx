@@ -81,23 +81,96 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
     }
   }, [open, imageSrc]);
 
-  // Load image
+  // Load image with proper CORS handling
   useEffect(() => {
     if (!open || !imageSrc) return;
 
     const img = new Image();
+    // Set crossOrigin BEFORE setting src to ensure CORS headers are requested
     img.crossOrigin = "anonymous";
+    
     img.onload = () => {
       imageRef.current = img;
       setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
       setImageLoaded(true);
     };
+    
     img.onerror = () => {
-      toast.error("Failed to load image for editing");
-      setImageLoaded(false);
+      // Try loading without crossOrigin as fallback (for data URLs)
+      if (imageSrc.startsWith('data:')) {
+        const fallbackImg = new Image();
+        fallbackImg.onload = () => {
+          imageRef.current = fallbackImg;
+          setNaturalSize({ width: fallbackImg.naturalWidth, height: fallbackImg.naturalHeight });
+          setImageLoaded(true);
+        };
+        fallbackImg.onerror = () => {
+          toast.error("Failed to load image for editing");
+          setImageLoaded(false);
+        };
+        fallbackImg.src = imageSrc;
+      } else {
+        toast.error("Failed to load image for editing");
+        setImageLoaded(false);
+      }
     };
-    img.src = imageSrc;
+    
+    // Add cache-busting for Supabase storage URLs to avoid CORS caching issues
+    if (imageSrc.includes('supabase.co') && !imageSrc.includes('?')) {
+      img.src = `${imageSrc}?t=${Date.now()}`;
+    } else if (imageSrc.includes('supabase.co') && !imageSrc.includes('t=')) {
+      img.src = `${imageSrc}&t=${Date.now()}`;
+    } else {
+      img.src = imageSrc;
+    }
   }, [open, imageSrc]);
+
+  // Apply brightness and contrast manually via pixel manipulation
+  const applyBrightnessContrast = useCallback((
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    brightnessVal: number,
+    contrastVal: number
+  ) => {
+    // Only apply if values are not default
+    if (brightnessVal === 1 && contrastVal === 1) return;
+    
+    try {
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const data = imageData.data;
+      
+      // Convert brightness (1.0 = normal) to multiplier
+      const brightnessFactor = brightnessVal;
+      
+      // Convert contrast (1.0 = normal) to factor
+      // Formula: factor = (259 * (contrast + 255)) / (255 * (259 - contrast))
+      const contrastPercent = (contrastVal - 1) * 255; // Convert 0.5-1.5 to -127 to 127
+      const contrastFactor = (259 * (contrastPercent + 255)) / (255 * (259 - contrastPercent));
+      
+      for (let i = 0; i < data.length; i += 4) {
+        // Apply brightness
+        let r = data[i] * brightnessFactor;
+        let g = data[i + 1] * brightnessFactor;
+        let b = data[i + 2] * brightnessFactor;
+        
+        // Apply contrast
+        r = contrastFactor * (r - 128) + 128;
+        g = contrastFactor * (g - 128) + 128;
+        b = contrastFactor * (b - 128) + 128;
+        
+        // Clamp values
+        data[i] = Math.max(0, Math.min(255, r));
+        data[i + 1] = Math.max(0, Math.min(255, g));
+        data[i + 2] = Math.max(0, Math.min(255, b));
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+    } catch (e) {
+      // getImageData will throw if canvas is tainted by CORS
+      console.warn("Could not apply pixel manipulation (CORS restriction):", e);
+    }
+  }, []);
 
   // Draw preview on canvas
   const drawPreview = useCallback(() => {
@@ -105,7 +178,7 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
     const img = imageRef.current;
     if (!canvas || !img || !imageLoaded) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
     // Get canvas display size
@@ -120,8 +193,11 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
     // Save context state
     ctx.save();
 
-    // Apply filters
-    ctx.filter = `brightness(${brightness}) contrast(${contrast})`;
+    // Try to use CSS filter first (more performant when it works)
+    const supportsFilter = typeof ctx.filter !== 'undefined';
+    if (supportsFilter) {
+      ctx.filter = `brightness(${brightness}) contrast(${contrast})`;
+    }
 
     // Calculate the base image size to fill the canvas
     const imgAspect = img.naturalWidth / img.naturalHeight;
@@ -150,7 +226,24 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
 
     // Restore context
     ctx.restore();
-  }, [imageLoaded, zoom, rotation, brightness, contrast, offsetX, offsetY, aspectRatio]);
+    
+    // If CSS filter isn't supported or didn't work, apply manual pixel manipulation
+    if (!supportsFilter || (brightness !== 1 || contrast !== 1)) {
+      // Test if the filter actually applied by checking if we can read pixels
+      // If CSS filter worked, we don't need manual fallback
+      try {
+        // Quick check if canvas is readable (not tainted)
+        ctx.getImageData(0, 0, 1, 1);
+        // If CSS filter is not available, apply manually
+        if (!supportsFilter) {
+          applyBrightnessContrast(ctx, canvasWidth, canvasHeight, brightness, contrast);
+        }
+      } catch {
+        // Canvas is tainted, can't apply manual fallback
+        console.warn("Canvas is tainted, brightness/contrast preview limited");
+      }
+    }
+  }, [imageLoaded, zoom, rotation, brightness, contrast, offsetX, offsetY, aspectRatio, applyBrightnessContrast]);
 
   // Redraw on any change
   useEffect(() => {
@@ -209,7 +302,7 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
     setOffsetY(0);
   };
 
-  // Save handler
+  // Save handler with manual brightness/contrast fallback
   const handleSave = async () => {
     const img = imageRef.current;
     if (!img) {
@@ -226,7 +319,7 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       const outputCanvas = document.createElement("canvas");
       outputCanvas.width = outputWidth;
       outputCanvas.height = outputHeight;
-      const ctx = outputCanvas.getContext("2d");
+      const ctx = outputCanvas.getContext("2d", { willReadFrequently: true });
 
       if (!ctx) {
         throw new Error("Could not get canvas context");
@@ -236,8 +329,11 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       ctx.fillStyle = "#000";
       ctx.fillRect(0, 0, outputWidth, outputHeight);
 
-      // Apply filters
-      ctx.filter = `brightness(${brightness}) contrast(${contrast})`;
+      // Try CSS filter first
+      const supportsFilter = typeof ctx.filter !== 'undefined';
+      if (supportsFilter) {
+        ctx.filter = `brightness(${brightness}) contrast(${contrast})`;
+      }
 
       // Calculate the base image size to fill the output canvas
       const imgAspect = img.naturalWidth / img.naturalHeight;
@@ -265,11 +361,18 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       const scaledOffsetY = offsetY * scaleY;
 
       // Apply transforms
+      ctx.save();
       ctx.translate(outputWidth / 2 + scaledOffsetX, outputHeight / 2 + scaledOffsetY);
       ctx.rotate((rotation * Math.PI) / 180);
 
       // Draw image centered
       ctx.drawImage(img, -drawWidth / 2, -drawHeight / 2, drawWidth, drawHeight);
+      ctx.restore();
+      
+      // Apply manual brightness/contrast if CSS filter isn't available
+      if (!supportsFilter && (brightness !== 1 || contrast !== 1)) {
+        applyBrightnessContrast(ctx, outputWidth, outputHeight, brightness, contrast);
+      }
 
       // Convert to blob
       const blob = await new Promise<Blob | null>((resolve) => {
