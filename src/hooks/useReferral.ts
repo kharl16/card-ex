@@ -14,6 +14,11 @@ export interface Referral {
   referred_profile?: {
     full_name: string | null;
   };
+  referred_card?: {
+    id: string;
+    slug: string;
+    full_name: string | null;
+  };
   plan?: {
     name: string;
     profit: number;
@@ -109,21 +114,37 @@ export function useMyReferrals() {
         .select("id, full_name")
         .in("id", referredUserIds);
 
+      // Fetch referred cards (the cards owned by referred users)
+      const referredCardIds = referrals?.filter(r => r.referred_card_id).map(r => r.referred_card_id) || [];
+      const { data: cards } = referredCardIds.length > 0 
+        ? await supabase
+            .from("cards")
+            .select("id, slug, full_name")
+            .in("id", referredCardIds)
+        : { data: [] };
+
       // Fetch payment statuses
       const paymentIds = referrals?.filter(r => r.payment_id).map(r => r.payment_id) || [];
-      const { data: payments } = await supabase
-        .from("payments")
-        .select("id, status, amount")
-        .in("id", paymentIds);
+      const { data: payments } = paymentIds.length > 0
+        ? await supabase
+            .from("payments")
+            .select("id, status, amount")
+            .in("id", paymentIds)
+        : { data: [] };
 
       // Combine data
       return referrals?.map(ref => ({
         ...ref,
         referred_profile: profiles?.find(p => p.id === ref.referred_user_id),
+        referred_card: cards?.find(c => c.id === ref.referred_card_id),
         payment: payments?.find(p => p.id === ref.payment_id),
       })) as Referral[];
     },
     enabled: !!user?.id,
+    // Keep data fresh
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    staleTime: 30000, // 30 seconds
   });
 }
 
