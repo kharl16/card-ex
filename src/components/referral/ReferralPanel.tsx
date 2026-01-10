@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Copy, Share2, Users, TrendingUp, AlertCircle, UserCheck, Clock, CheckCircle2, Wallet, DollarSign } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Copy, Share2, Users, TrendingUp, AlertCircle, UserCheck, Clock, CheckCircle2, Wallet, DollarSign, Eye, Edit } from "lucide-react";
 import { useReferralProfile, useMyReferrals, useMyReferrer } from "@/hooks/useReferral";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,12 +10,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-
 interface ReferralPanelProps {
   userPlanCode?: string | null;
 }
 
 export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
+  const navigate = useNavigate();
   const { data: referralProfile, isLoading: profileLoading } = useReferralProfile();
   const { data: referrals, isLoading: referralsLoading } = useMyReferrals();
   const { data: myReferrer } = useMyReferrer();
@@ -272,7 +273,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
               <Users className="h-4 w-4" />
               Your Referrals ({referrals.length})
             </h4>
-            <div className="border rounded-lg overflow-hidden">
+            <div className="border rounded-lg overflow-hidden overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -280,13 +281,14 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
                     <TableHead>Plan</TableHead>
                     <TableHead className="text-right">Commission</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {referrals.map((ref) => (
                     <TableRow key={ref.id}>
                       <TableCell className="font-medium">
-                        {ref.referred_profile?.full_name || "User"}
+                        {ref.referred_profile?.full_name || "Unknown User"}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {ref.plan?.name || "-"}
@@ -295,6 +297,34 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
                         ₱{ref.plan?.profit?.toLocaleString() || 0}
                       </TableCell>
                       <TableCell>{getStatusBadge(ref.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-1">
+                          {ref.referred_card ? (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => window.open(`/c/${ref.referred_card?.slug}`, '_blank')}
+                                title="View Card"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => navigate(`/editor/${ref.referred_card?.id}`)}
+                                title="Edit Card"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">No card yet</span>
+                          )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
