@@ -26,6 +26,7 @@ import { AdminTemplateManager } from "@/components/templates/AdminTemplateManage
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 import { ReferralPanel } from "@/components/referral/ReferralPanel";
 import { useAuth } from "@/contexts/AuthContext";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 type CardData = Tables<"cards">;
 type FilterMode = "all" | "published" | "unpublished";
@@ -271,6 +272,7 @@ export default function Dashboard() {
             <Button onClick={() => navigate("/gallery")} variant="outline" size="sm">
               Gallery
             </Button>
+            <NotificationBell />
             <SignOutButton />
           </div>
         </div>
