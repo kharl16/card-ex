@@ -579,6 +579,7 @@ export type Database = {
           phone_2: string | null
           phone_3: string | null
           sites: string | null
+          sort_order: number | null
           updated_at: string
           visibility_level: Database["public"]["Enums"]["visibility_level"]
         }
@@ -597,6 +598,7 @@ export type Database = {
           phone_2?: string | null
           phone_3?: string | null
           sites?: string | null
+          sort_order?: number | null
           updated_at?: string
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
@@ -615,6 +617,7 @@ export type Database = {
           phone_2?: string | null
           phone_3?: string | null
           sites?: string | null
+          sort_order?: number | null
           updated_at?: string
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
@@ -640,6 +643,7 @@ export type Database = {
           price_dp: string | null
           price_srp: string | null
           rqv: string | null
+          sort_order: number | null
           unilevel_points: number | null
           updated_at: string
           view_video_url: string | null
@@ -665,6 +669,7 @@ export type Database = {
           price_dp?: string | null
           price_srp?: string | null
           rqv?: string | null
+          sort_order?: number | null
           unilevel_points?: number | null
           updated_at?: string
           view_video_url?: string | null
@@ -690,6 +695,7 @@ export type Database = {
           price_dp?: string | null
           price_srp?: string | null
           rqv?: string | null
+          sort_order?: number | null
           unilevel_points?: number | null
           updated_at?: string
           view_video_url?: string | null
@@ -708,6 +714,7 @@ export type Database = {
           is_active: boolean
           link: string
           name: string
+          sort_order: number | null
           updated_at: string
           visibility_level: Database["public"]["Enums"]["visibility_level"]
         }
@@ -720,6 +727,7 @@ export type Database = {
           is_active?: boolean
           link: string
           name: string
+          sort_order?: number | null
           updated_at?: string
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
@@ -732,6 +740,7 @@ export type Database = {
           is_active?: boolean
           link?: string
           name?: string
+          sort_order?: number | null
           updated_at?: string
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
@@ -960,6 +969,7 @@ export type Database = {
           id: string
           is_active: boolean
           presentation_url: string | null
+          sort_order: number | null
           thumbnail_url: string | null
           title: string
           updated_at: string
@@ -973,6 +983,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           presentation_url?: string | null
+          sort_order?: number | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
@@ -986,6 +997,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           presentation_url?: string | null
+          sort_order?: number | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
@@ -1470,6 +1482,7 @@ export type Database = {
           description: string | null
           id: string
           is_active: boolean
+          sort_order: number | null
           source_type: string | null
           thumbnail_url: string | null
           title: string
@@ -1483,6 +1496,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          sort_order?: number | null
           source_type?: string | null
           thumbnail_url?: string | null
           title: string
@@ -1496,6 +1510,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_active?: boolean
+          sort_order?: number | null
           source_type?: string | null
           thumbnail_url?: string | null
           title?: string

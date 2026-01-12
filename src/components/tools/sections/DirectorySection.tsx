@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2 } from "lucide-react";
+import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
+import AdminDirectoryDialog from "../admin/AdminDirectoryDialog";
 
 interface DirectoryEntry {
   id: number;
@@ -20,6 +22,7 @@ interface DirectoryEntry {
   phone_2: string | null;
   phone_3: string | null;
   sites: string | null;
+  is_active: boolean;
 }
 
 interface DirectorySectionProps {
@@ -27,11 +30,14 @@ interface DirectorySectionProps {
 }
 
 export default function DirectorySection({ searchQuery }: DirectorySectionProps) {
+  const { isAdmin } = useAuth();
   const [items, setItems] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [sites, setSites] = useState<string[]>([]);
   const [activeSite, setActiveSite] = useState<string | null>(null);
   const [selectedEntry, setSelectedEntry] = useState<DirectoryEntry | null>(null);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<DirectoryEntry | null>(null);
 
   useEffect(() => {
     fetchItems();
@@ -82,7 +88,17 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
     );
   }
 
-  if (items.length === 0) {
+  const handleEdit = (item: DirectoryEntry) => {
+    setEditingItem(item);
+    setAdminDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    setEditingItem(null);
+    setAdminDialogOpen(true);
+  };
+
+  if (items.length === 0 && !isAdmin) {
     return (
       <div className="text-center py-12">
         <p className="text-lg text-muted-foreground">No branches available yet</p>
@@ -92,6 +108,14 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
 
   return (
     <div className="space-y-4">
+      {/* Admin Add Button */}
+      {isAdmin && (
+        <Button onClick={handleAdd} className="w-full gap-2">
+          <Plus className="w-4 h-4" />
+          Add Directory Entry
+        </Button>
+      )}
+
       {/* Site Filter */}
       {sites.length > 0 && (
         <ScrollArea className="w-full whitespace-nowrap">
@@ -131,11 +155,23 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
           <div
             key={item.id}
             className={cn(
-              "p-4 rounded-2xl",
+              "p-4 rounded-2xl relative",
               "bg-card border border-border/50 shadow-sm",
               "hover:shadow-md hover:border-primary/30 transition-all"
             )}
           >
+            {/* Admin Edit Button */}
+            {isAdmin && (
+              <Button
+                variant="secondary"
+                size="icon"
+                className="absolute top-2 right-2 h-8 w-8"
+                onClick={() => handleEdit(item)}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            )}
+
             <div className="flex gap-4">
               {/* Icon */}
               <div
@@ -316,6 +352,14 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Admin Dialog */}
+      <AdminDirectoryDialog
+        open={adminDialogOpen}
+        onOpenChange={setAdminDialogOpen}
+        item={editingItem}
+        onSaved={fetchItems}
+      />
     </div>
   );
 }

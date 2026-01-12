@@ -4,14 +4,16 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Search, X } from "lucide-react";
+import { ArrowLeft, Search, X, FileSpreadsheet } from "lucide-react";
 import { ToolsOrbItem } from "@/hooks/useToolsOrb";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
 import TrainingsSection from "./sections/TrainingsSection";
 import LinksSection from "./sections/LinksSection";
 import FilesSection from "./sections/FilesSection";
 import DirectorySection from "./sections/DirectorySection";
 import PresentationsSection from "./sections/PresentationsSection";
+import BulkImportExportDialog from "./admin/BulkImportExportDialog";
 import { cn } from "@/lib/utils";
 import {
   GraduationCap,
@@ -46,10 +48,11 @@ export default function ToolsDrawer({
   onSectionChange,
   items,
 }: ToolsDrawerProps) {
+  const { isAdmin } = useAuth();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState("");
+  const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
 
-  // Reset search when closing or changing sections
   useEffect(() => {
     if (!open) {
       setSearchQuery("");
@@ -64,7 +67,6 @@ export default function ToolsDrawer({
 
   const renderContent = () => {
     if (!activeSection) {
-      // Show main menu
       return (
         <div className="p-4 space-y-4">
           <div className="text-center mb-6">
@@ -73,6 +75,17 @@ export default function ToolsDrawer({
               Access all your resources in one place
             </p>
           </div>
+
+          {isAdmin && (
+            <Button
+              variant="outline"
+              onClick={() => setBulkDialogOpen(true)}
+              className="w-full gap-2"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              Bulk Import/Export
+            </Button>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             {items.map((item) => {
@@ -114,10 +127,8 @@ export default function ToolsDrawer({
       );
     }
 
-    // Show specific section
     return (
       <div className="flex flex-col h-full">
-        {/* Section Header */}
         <div className="sticky top-0 z-10 bg-background border-b p-4 space-y-3">
           <div className="flex items-center gap-3">
             <Button
@@ -133,7 +144,6 @@ export default function ToolsDrawer({
             </h2>
           </div>
 
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
@@ -155,7 +165,6 @@ export default function ToolsDrawer({
           </div>
         </div>
 
-        {/* Section Content */}
         <ScrollArea className="flex-1">
           <div className="p-4">
             {activeSection === "trainings" && <TrainingsSection searchQuery={searchQuery} />}
@@ -169,37 +178,39 @@ export default function ToolsDrawer({
     );
   };
 
-  if (isMobile) {
-    return (
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="h-[90vh] max-h-[90vh]">
-          <div className="h-full overflow-hidden flex flex-col">
-            {!activeSection && (
-              <DrawerHeader className="border-b">
-                <DrawerTitle className="sr-only">Tools Hub</DrawerTitle>
-              </DrawerHeader>
-            )}
-            <div className="flex-1 overflow-hidden">
-              <ScrollArea className="h-full">
-                {renderContent()}
-              </ScrollArea>
-            </div>
-          </div>
-        </DrawerContent>
-      </Drawer>
-    );
-  }
-
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[480px] sm:max-w-[480px] p-0">
-        <SheetHeader className="sr-only">
-          <SheetTitle>Tools Hub</SheetTitle>
-        </SheetHeader>
-        <div className="h-full overflow-hidden flex flex-col">
-          {renderContent()}
-        </div>
-      </SheetContent>
-    </Sheet>
+    <>
+      {isMobile ? (
+        <Drawer open={open} onOpenChange={onOpenChange}>
+          <DrawerContent className="h-[90vh] max-h-[90vh]">
+            <div className="h-full overflow-hidden flex flex-col">
+              {!activeSection && (
+                <DrawerHeader className="border-b">
+                  <DrawerTitle className="sr-only">Tools Hub</DrawerTitle>
+                </DrawerHeader>
+              )}
+              <div className="flex-1 overflow-hidden">
+                <ScrollArea className="h-full">{renderContent()}</ScrollArea>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Sheet open={open} onOpenChange={onOpenChange}>
+          <SheetContent side="right" className="w-[480px] sm:max-w-[480px] p-0">
+            <SheetHeader className="sr-only">
+              <SheetTitle>Tools Hub</SheetTitle>
+            </SheetHeader>
+            <div className="h-full overflow-hidden flex flex-col">{renderContent()}</div>
+          </SheetContent>
+        </Sheet>
+      )}
+
+      <BulkImportExportDialog
+        open={bulkDialogOpen}
+        onOpenChange={setBulkDialogOpen}
+        onImported={() => {}}
+      />
+    </>
   );
 }
