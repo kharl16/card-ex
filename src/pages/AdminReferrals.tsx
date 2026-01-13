@@ -136,15 +136,32 @@ export default function AdminReferrals() {
   };
 
   const updateStatus = async (id: string, newStatus: string) => {
+    // Find the referral to get details for email notification
+    const referral = referrals.find(r => r.id === id);
+    
     const { error } = await supabase
       .from("referrals")
       .update({ status: newStatus })
       .eq("id", id);
 
     if (error) {
+      console.error("Failed to update status:", error);
       toast.error("Failed to update status");
     } else {
       toast.success(`Status updated to ${newStatus}`);
+      
+      // Send email notification via edge function (fire and forget)
+      if (referral && (newStatus === 'qualified' || newStatus === 'paid_out')) {
+        supabase.functions.invoke('send-referral-notification', {
+          body: {
+            referrer_user_id: referral.referrer_user_id,
+            referred_user_name: referral.referred_name || 'Unknown',
+            old_status: referral.status,
+            new_status: newStatus
+          }
+        }).catch(err => console.error('Email notification failed:', err));
+      }
+      
       loadReferrals();
     }
   };
