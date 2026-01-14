@@ -2,7 +2,52 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const RESEND_API_KEY = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
-const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "Card-Ex <onboarding@resend.dev>";
+
+const normalizeResendFrom = (input: string) => {
+  let v = (input ?? "").toString();
+  // Normalize common copy/paste artifacts
+  v = v.replace(/\r|\n/g, " ").replace(/\u00A0/g, " ");
+  v = v
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .trim();
+
+  // Remove surrounding quotes/backticks
+  v = v
+    .replace(/^`(.*)`$/, "$1")
+    .replace(/^"(.*)"$/, "$1")
+    .replace(/^'(.*)'$/, "$1")
+    .trim()
+    .replace(/\s+/g, " ");
+
+  // If user pasted extra text after the address, keep only the first "Name <email>" part
+  const angle = v.match(/^(.*)<([^>]+)>/);
+  if (angle) {
+    const name = (angle[1] || "").trim() || "Card-Ex";
+    const email = (angle[2] || "").trim();
+    return `${name} <${email}>`;
+  }
+  const emailMatch = v.match(/[^<>\s]+@[^<>\s]+\.[^<>\s]+/);
+  if (emailMatch) {
+    const email = emailMatch[0].trim();
+    return `Card-Ex <${email}>`;
+  }
+
+  return v;
+};
+
+const RESEND_FROM_EMAIL = normalizeResendFrom(Deno.env.get("RESEND_FROM_EMAIL") ?? "");
+
+const isValidEmail = (email: string) => /^[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+$/.test(email);
+
+const isValidResendFrom = (value: string) => {
+  const trimmed = value.trim();
+  const m = trimmed.match(/^(.*)<([^>]+)>$/);
+  if (m) return !!m[1]?.trim() && isValidEmail(m[2].trim());
+  return isValidEmail(trimmed);
+};
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,8 +95,20 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
+    if (!RESEND_FROM_EMAIL) {
+      throw new Error(
+        "RESEND_FROM_EMAIL is not configured. Set it to 'Name <email@yourdomain.com>' or 'email@yourdomain.com' (no quotes)."
+      );
+    }
+
+    if (!isValidResendFrom(RESEND_FROM_EMAIL)) {
+      throw new Error(
+        "Invalid RESEND_FROM_EMAIL format. Use 'email@example.com' or 'Name <email@example.com>' (no quotes)."
+      );
+    }
+
     console.log(
-      `Resend key loaded: startsWithRe=${RESEND_API_KEY.startsWith("re_")}, length=${RESEND_API_KEY.length}`
+      `Resend config ok: keySet=${RESEND_API_KEY.startsWith("re_")}, fromHasName=${RESEND_FROM_EMAIL.includes("<")}`
     );
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
