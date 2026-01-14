@@ -40,6 +40,7 @@ interface ReferralWithDetails {
   referred_name: string | null;
   plan_name: string | null;
   plan_profit: number | null;
+  plan_wholesale: number | null;
 }
 
 interface ReferrerStats {
@@ -79,6 +80,9 @@ export default function AdminReferrals() {
     }
   }, [user, isAdmin]);
 
+  // Admin user ID (kharl16@gmail.com - Carl Tamayao) who receives wholesale commission from all sales
+  const ADMIN_USER_ID = "a0efd175-4704-495e-a755-a18d1bd8dab8";
+
   const loadPlans = async () => {
     const { data } = await supabase
       .from("card_plans")
@@ -91,12 +95,12 @@ export default function AdminReferrals() {
   const loadReferrals = async () => {
     setLoading(true);
     try {
-      // Get all referrals with plan info
+      // Get all referrals with plan info including wholesale_price
       const { data: referralsData, error } = await supabase
         .from("referrals")
         .select(`
           *,
-          plan:card_plans(name, profit)
+          plan:card_plans(name, profit, wholesale_price)
         `)
         .order("created_at", { ascending: false });
 
@@ -124,6 +128,7 @@ export default function AdminReferrals() {
         referred_name: profileMap.get(r.referred_user_id) || "Unknown",
         plan_name: r.plan?.name || null,
         plan_profit: r.plan?.profit || null,
+        plan_wholesale: r.plan?.wholesale_price || null,
       }));
 
       setReferrals(combined);
@@ -193,9 +198,11 @@ export default function AdminReferrals() {
   };
 
   // Calculate per-referrer stats for analytics
+  // Admin (Carl Tamayao) gets wholesale_price from ALL referrals as additional commission
   const referrerStats = useMemo<ReferrerStats[]>(() => {
     const statsMap = new Map<string, ReferrerStats>();
 
+    // First, calculate each referrer's own direct commissions
     referrals.forEach(r => {
       if (!statsMap.has(r.referrer_user_id)) {
         statsMap.set(r.referrer_user_id, {
@@ -232,6 +239,36 @@ export default function AdminReferrals() {
           break;
       }
     });
+
+    // Calculate admin's wholesale share from ALL referrals (not just his own)
+    // The admin gets wholesale_price from every sale made by other referrers
+    const adminWholesaleShare = referrals
+      .filter(r => r.referrer_user_id !== ADMIN_USER_ID) // Only from other referrers
+      .reduce((sum, r) => sum + (r.plan_wholesale || 0), 0);
+
+    // Add admin's wholesale share to their total commission
+    if (statsMap.has(ADMIN_USER_ID)) {
+      const adminStat = statsMap.get(ADMIN_USER_ID)!;
+      adminStat.total_commission += adminWholesaleShare;
+      
+      // Also add to paid commission based on paid_out referrals from others
+      const adminWholesalePaid = referrals
+        .filter(r => r.referrer_user_id !== ADMIN_USER_ID && r.status === "paid_out")
+        .reduce((sum, r) => sum + (r.plan_wholesale || 0), 0);
+      adminStat.paid_commission += adminWholesalePaid;
+      
+      // Add to qualified commission
+      const adminWholesaleQualified = referrals
+        .filter(r => r.referrer_user_id !== ADMIN_USER_ID && r.status === "qualified")
+        .reduce((sum, r) => sum + (r.plan_wholesale || 0), 0);
+      adminStat.qualified_commission += adminWholesaleQualified;
+      
+      // Add to pending commission
+      const adminWholesalePending = referrals
+        .filter(r => r.referrer_user_id !== ADMIN_USER_ID && r.status === "pending")
+        .reduce((sum, r) => sum + (r.plan_wholesale || 0), 0);
+      adminStat.pending_commission += adminWholesalePending;
+    }
 
     // Calculate conversion rates (qualified + paid_out / total)
     statsMap.forEach(stat => {
