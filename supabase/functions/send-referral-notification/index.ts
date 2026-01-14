@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const RESEND_API_KEY = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
+const RESEND_FROM_EMAIL = Deno.env.get("RESEND_FROM_EMAIL") || "Card-Ex <onboarding@resend.dev>";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,7 +24,7 @@ async function sendEmail(to: string, subject: string, html: string) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: "Card-Ex <onboarding@resend.dev>",
+      from: RESEND_FROM_EMAIL,
       to: [to],
       subject,
       html,
