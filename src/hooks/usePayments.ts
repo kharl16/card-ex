@@ -126,15 +126,35 @@ export function useSubmitPayment() {
           .single();
 
         if (buyerProfile?.referred_by_user_id) {
-          // Create referral record linking referrer to this purchase
-          await supabase.from("referrals").insert({
-            referrer_user_id: buyerProfile.referred_by_user_id,
-            referred_user_id: user.id,
-            referred_card_id: cardId,
-            payment_id: payment.id,
-            plan_id: planId,
-            status: "pending",
-          });
+          // Check if referral already exists (unique constraint: referrer_user_id, referred_user_id)
+          const { data: existingReferral } = await supabase
+            .from("referrals")
+            .select("id")
+            .eq("referrer_user_id", buyerProfile.referred_by_user_id)
+            .eq("referred_user_id", user.id)
+            .maybeSingle();
+
+          if (!existingReferral) {
+            // Create referral record linking referrer to this purchase
+            await supabase.from("referrals").insert({
+              referrer_user_id: buyerProfile.referred_by_user_id,
+              referred_user_id: user.id,
+              referred_card_id: cardId,
+              payment_id: payment.id,
+              plan_id: planId,
+              status: "pending",
+            });
+          } else {
+            // Update existing referral with payment/card info if missing
+            await supabase
+              .from("referrals")
+              .update({
+                referred_card_id: cardId,
+                payment_id: payment.id,
+                plan_id: planId,
+              })
+              .eq("id", existingReferral.id);
+          }
         }
       }
 
