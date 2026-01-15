@@ -22,6 +22,7 @@ import {
   Percent,
   BarChart3,
   Download,
+  CheckCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -70,6 +71,7 @@ export default function AdminReferrals() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [plans, setPlans] = useState<{ id: string; name: string }[]>([]);
   const [planFilter, setPlanFilter] = useState<string>("all");
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -173,6 +175,59 @@ export default function AdminReferrals() {
       
       loadReferrals();
     }
+  };
+
+  // Bulk mark all qualified as paid out
+  const markAllQualifiedAsPaid = async () => {
+    const qualifiedReferrals = referrals.filter(r => r.status === "qualified");
+    
+    if (qualifiedReferrals.length === 0) {
+      toast.info("No qualified referrals to process");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Are you sure you want to mark ${qualifiedReferrals.length} qualified referral(s) as paid out?`
+    );
+    
+    if (!confirmed) return;
+
+    setBulkProcessing(true);
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const referral of qualifiedReferrals) {
+      const { error } = await supabase
+        .from("referrals")
+        .update({ status: "paid_out" })
+        .eq("id", referral.id);
+
+      if (error) {
+        console.error(`Failed to update referral ${referral.id}:`, error);
+        errorCount++;
+      } else {
+        successCount++;
+        // Send email notification (fire and forget)
+        supabase.functions.invoke('send-referral-notification', {
+          body: {
+            referrer_user_id: referral.referrer_user_id,
+            referred_user_name: referral.referred_name || 'Unknown',
+            old_status: 'qualified',
+            new_status: 'paid_out'
+          }
+        }).catch(err => console.error('Email notification failed:', err));
+      }
+    }
+
+    setBulkProcessing(false);
+
+    if (errorCount === 0) {
+      toast.success(`Successfully marked ${successCount} referral(s) as paid out`);
+    } else {
+      toast.warning(`Processed ${successCount} of ${qualifiedReferrals.length} referrals. ${errorCount} failed.`);
+    }
+
+    loadReferrals();
   };
 
   // Filter referrals
@@ -550,10 +605,24 @@ export default function AdminReferrals() {
                   <Users className="h-5 w-5" />
                   Referrals ({filteredReferrals.length})
                 </CardTitle>
-                <Button variant="outline" size="sm" onClick={exportReferralsCSV} className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Export CSV
-                </Button>
+                <div className="flex items-center gap-2">
+                  {totals.qualified > 0 && (
+                    <Button 
+                      variant="default" 
+                      size="sm" 
+                      onClick={markAllQualifiedAsPaid}
+                      disabled={bulkProcessing}
+                      className="gap-2 bg-green-600 hover:bg-green-700"
+                    >
+                      <CheckCheck className="h-4 w-4" />
+                      {bulkProcessing ? "Processing..." : `Mark All Qualified as Paid (${totals.qualified})`}
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" onClick={exportReferralsCSV} className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Export CSV
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
