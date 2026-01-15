@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Percent,
   BarChart3,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -55,6 +56,9 @@ interface ReferrerStats {
   qualified_commission: number;
   paid_commission: number;
   conversion_rate: number;
+  // Breakdown for admin
+  direct_commission: number;
+  wholesale_share: number;
 }
 
 export default function AdminReferrals() {
@@ -217,12 +221,15 @@ export default function AdminReferrals() {
           qualified_commission: 0,
           paid_commission: 0,
           conversion_rate: 0,
+          direct_commission: 0,
+          wholesale_share: 0,
         });
       }
 
       const stat = statsMap.get(r.referrer_user_id)!;
       stat.total_referrals++;
       stat.total_commission += r.plan_profit || 0;
+      stat.direct_commission += r.plan_profit || 0; // Track direct commission
 
       switch (r.status) {
         case "pending":
@@ -249,6 +256,7 @@ export default function AdminReferrals() {
     // Add admin's wholesale share to their total commission
     if (statsMap.has(ADMIN_USER_ID)) {
       const adminStat = statsMap.get(ADMIN_USER_ID)!;
+      adminStat.wholesale_share = adminWholesaleShare; // Track wholesale share separately
       adminStat.total_commission += adminWholesaleShare;
       
       // Also add to paid commission based on paid_out referrals from others
@@ -311,6 +319,60 @@ export default function AdminReferrals() {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  // CSV Export functions
+  const exportReferralsCSV = () => {
+    const headers = ["Date", "Referrer", "Referred User", "Plan", "Commission", "Wholesale", "Status"];
+    const rows = filteredReferrals.map(r => [
+      format(new Date(r.created_at), "yyyy-MM-dd"),
+      r.referrer_name || "Unknown",
+      r.referred_name || "Unknown",
+      r.plan_name || "-",
+      r.plan_profit?.toString() || "0",
+      r.plan_wholesale?.toString() || "0",
+      r.status
+    ]);
+    
+    const csvContent = [headers.join(","), ...rows.map(row => row.map(cell => `"${cell}"`).join(","))].join("\n");
+    downloadCSV(csvContent, `referrals-${format(new Date(), "yyyy-MM-dd")}.csv`);
+    toast.success("Referrals exported successfully");
+  };
+
+  const exportLeaderboardCSV = () => {
+    const headers = [
+      "Rank", "Referrer", "Total Referrals", "Pending", "Qualified", "Paid Out",
+      "Conversion Rate", "Direct Commission", "Wholesale Share", "Total Commission", "Paid Commission"
+    ];
+    const rows = referrerStats.map((stat, index) => [
+      (index + 1).toString(),
+      stat.referrer_name,
+      stat.total_referrals.toString(),
+      stat.pending.toString(),
+      stat.qualified.toString(),
+      stat.paid_out.toString(),
+      `${stat.conversion_rate.toFixed(1)}%`,
+      stat.direct_commission.toString(),
+      stat.wholesale_share.toString(),
+      stat.total_commission.toString(),
+      stat.paid_commission.toString()
+    ]);
+    
+    const csvContent = [headers.join(","), ...rows.map(row => row.map(cell => `"${cell}"`).join(","))].join("\n");
+    downloadCSV(csvContent, `leaderboard-${format(new Date(), "yyyy-MM-dd")}.csv`);
+    toast.success("Leaderboard exported successfully");
+  };
+
+  const downloadCSV = (content: string, filename: string) => {
+    const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (authLoading || loading) {
@@ -483,11 +545,15 @@ export default function AdminReferrals() {
 
             {/* Referrals Table */}
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
                   Referrals ({filteredReferrals.length})
                 </CardTitle>
+                <Button variant="outline" size="sm" onClick={exportReferralsCSV} className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Export CSV
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -563,11 +629,15 @@ export default function AdminReferrals() {
           {/* Leaderboard Tab */}
           <TabsContent value="leaderboard" className="space-y-4">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
                   Top Referrers
                 </CardTitle>
+                <Button variant="outline" size="sm" onClick={exportLeaderboardCSV} className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Export CSV
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -581,6 +651,8 @@ export default function AdminReferrals() {
                         <TableHead className="text-center">Qualified</TableHead>
                         <TableHead className="text-center">Paid</TableHead>
                         <TableHead className="text-center">Conversion</TableHead>
+                        <TableHead className="text-right">Direct Commission</TableHead>
+                        <TableHead className="text-right">Wholesale Share</TableHead>
                         <TableHead className="text-right">Total Commission</TableHead>
                         <TableHead className="text-right">Paid Out</TableHead>
                       </TableRow>
@@ -588,7 +660,7 @@ export default function AdminReferrals() {
                     <TableBody>
                       {referrerStats.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">
                             No referrers found
                           </TableCell>
                         </TableRow>
@@ -598,7 +670,12 @@ export default function AdminReferrals() {
                             <TableCell className="font-medium">
                               {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : index + 1}
                             </TableCell>
-                            <TableCell className="font-medium">{stat.referrer_name}</TableCell>
+                            <TableCell className="font-medium">
+                              {stat.referrer_name}
+                              {stat.referrer_user_id === ADMIN_USER_ID && (
+                                <Badge variant="outline" className="ml-2 text-xs">Admin</Badge>
+                              )}
+                            </TableCell>
                             <TableCell className="text-center">{stat.total_referrals}</TableCell>
                             <TableCell className="text-center">
                               <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">
@@ -619,6 +696,18 @@ export default function AdminReferrals() {
                               <span className={stat.conversion_rate >= 50 ? "text-green-400" : stat.conversion_rate >= 25 ? "text-yellow-400" : "text-muted-foreground"}>
                                 {stat.conversion_rate.toFixed(0)}%
                               </span>
+                            </TableCell>
+                            <TableCell className="text-right text-muted-foreground">
+                              ₱{stat.direct_commission.toLocaleString()}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {stat.wholesale_share > 0 ? (
+                                <span className="text-amber-400 font-medium">
+                                  ₱{stat.wholesale_share.toLocaleString()}
+                                </span>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-right font-semibold text-primary">
                               ₱{stat.total_commission.toLocaleString()}
