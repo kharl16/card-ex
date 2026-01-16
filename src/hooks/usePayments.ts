@@ -116,34 +116,68 @@ export function useSubmitPayment() {
           .eq("id", user.id);
       }
 
-      // Handle referral tracking - use referred_by_user_id from profile (set at signup)
+      // Handle referral tracking - validate and sync referrer from both profile and card
       // Only create referral if plan is referral-eligible
       if (plan?.referral_eligible) {
+        // Get referrer info from both profile and card for validation
         const { data: buyerProfile } = await supabase
           .from("profiles")
           .select("referred_by_user_id")
           .eq("id", user.id)
           .single();
 
-        if (buyerProfile?.referred_by_user_id) {
+        const { data: cardData } = await supabase
+          .from("cards")
+          .select("referred_by_user_id")
+          .eq("id", cardId)
+          .single();
+
+        // Use card's referred_by_user_id as source of truth, fallback to profile
+        // This ensures the referral matches the card's referrer (set during card creation)
+        const referrerUserId = cardData?.referred_by_user_id || buyerProfile?.referred_by_user_id;
+
+        if (referrerUserId) {
+          // Validate: if both exist, they should match - log warning if mismatch
+          if (cardData?.referred_by_user_id && buyerProfile?.referred_by_user_id && 
+              cardData.referred_by_user_id !== buyerProfile.referred_by_user_id) {
+            console.warn(
+              `Referrer mismatch detected for user ${user.id}: ` +
+              `Card referrer: ${cardData.referred_by_user_id}, Profile referrer: ${buyerProfile.referred_by_user_id}. ` +
+              `Using card's referrer as source of truth.`
+            );
+          }
+
           // Check if referral already exists (unique constraint: referrer_user_id, referred_user_id)
           const { data: existingReferral } = await supabase
             .from("referrals")
-            .select("id")
-            .eq("referrer_user_id", buyerProfile.referred_by_user_id)
+            .select("id, referrer_user_id")
             .eq("referred_user_id", user.id)
             .maybeSingle();
 
           if (!existingReferral) {
             // Create referral record linking referrer to this purchase
             await supabase.from("referrals").insert({
-              referrer_user_id: buyerProfile.referred_by_user_id,
+              referrer_user_id: referrerUserId,
               referred_user_id: user.id,
               referred_card_id: cardId,
               payment_id: payment.id,
               plan_id: planId,
               status: "pending",
             });
+          } else if (existingReferral.referrer_user_id !== referrerUserId) {
+            // Fix mismatch: update referrer to match card's referred_by_user_id
+            console.warn(
+              `Fixing referral mismatch: updating referrer from ${existingReferral.referrer_user_id} to ${referrerUserId}`
+            );
+            await supabase
+              .from("referrals")
+              .update({
+                referrer_user_id: referrerUserId,
+                referred_card_id: cardId,
+                payment_id: payment.id,
+                plan_id: planId,
+              })
+              .eq("id", existingReferral.id);
           } else {
             // Update existing referral with payment/card info if missing
             await supabase
@@ -248,42 +282,71 @@ export function useAdminOverridePayment() {
             })
             .eq("id", userId);
 
-          // Create referral row
-          // If user was referred by someone, use that referrer
-          // If not referred by anyone (e.g., admin-created user), use admin as referrer
-          const referrerUserId = targetUserProfile?.referred_by_user_id;
-          
-          if (referrerUserId) {
-            // Check if referral already exists
-            const { data: existingReferral } = await supabase
-              .from("referrals")
-              .select("id")
-              .eq("referrer_user_id", referrerUserId)
-              .eq("referred_user_id", userId)
-              .maybeSingle();
+            // Create referral row - validate referrer from card first
+            // Get card's referred_by_user_id as source of truth
+            const { data: cardData } = await supabase
+              .from("cards")
+              .select("referred_by_user_id")
+              .eq("id", cardId)
+              .single();
 
-            if (!existingReferral) {
-              await supabase.from("referrals").insert({
-                referrer_user_id: referrerUserId,
-                referred_user_id: userId,
-                referred_card_id: cardId,
-                payment_id: payment?.id ?? null,
-                plan_id: planId,
-                status: "pending",
-              });
-            } else {
-              // Update existing referral with card and payment info
-              await supabase
+            // Use card's referrer if available, otherwise use profile's referrer
+            const referrerUserId = cardData?.referred_by_user_id || targetUserProfile?.referred_by_user_id;
+            
+            if (referrerUserId) {
+              // Log if there's a mismatch between card and profile referrer
+              if (cardData?.referred_by_user_id && targetUserProfile?.referred_by_user_id &&
+                  cardData.referred_by_user_id !== targetUserProfile.referred_by_user_id) {
+                console.warn(
+                  `Admin override: Referrer mismatch for user ${userId}. ` +
+                  `Card: ${cardData.referred_by_user_id}, Profile: ${targetUserProfile.referred_by_user_id}. ` +
+                  `Using card's referrer.`
+                );
+              }
+
+              // Check if any referral already exists for this user
+              const { data: existingReferral } = await supabase
                 .from("referrals")
-                .update({
+                .select("id, referrer_user_id")
+                .eq("referred_user_id", userId)
+                .maybeSingle();
+
+              if (!existingReferral) {
+                await supabase.from("referrals").insert({
+                  referrer_user_id: referrerUserId,
+                  referred_user_id: userId,
                   referred_card_id: cardId,
                   payment_id: payment?.id ?? null,
                   plan_id: planId,
-                })
-                .eq("id", existingReferral.id);
+                  status: "pending",
+                });
+              } else if (existingReferral.referrer_user_id !== referrerUserId) {
+                // Fix mismatch: update to correct referrer
+                console.warn(
+                  `Admin override: Fixing referral mismatch from ${existingReferral.referrer_user_id} to ${referrerUserId}`
+                );
+                await supabase
+                  .from("referrals")
+                  .update({
+                    referrer_user_id: referrerUserId,
+                    referred_card_id: cardId,
+                    payment_id: payment?.id ?? null,
+                    plan_id: planId,
+                  })
+                  .eq("id", existingReferral.id);
+              } else {
+                // Update existing referral with card and payment info
+                await supabase
+                  .from("referrals")
+                  .update({
+                    referred_card_id: cardId,
+                    payment_id: payment?.id ?? null,
+                    plan_id: planId,
+                  })
+                  .eq("id", existingReferral.id);
+              }
             }
           }
-        }
       } else {
         // Mark as unpaid
         await supabase
