@@ -101,7 +101,7 @@ export default function AdminDataTools() {
         // 4. Check if user has a published card with eligible plan
         const { data: publishedCard } = await supabase
           .from("cards")
-          .select("id, plan_id, is_published, is_paid")
+          .select("id, plan_id, is_published, is_paid, referred_by_user_id")
           .eq("user_id", profile.id)
           .eq("is_published", true)
           .maybeSingle();
@@ -131,13 +131,15 @@ export default function AdminDataTools() {
               createdReferralCodes++;
             }
 
-            // Check if referral row already exists
+            // VALIDATION: Use card's referred_by_user_id as source of truth
+            // Fall back to profile's referred_by_user_id, then admin as last resort
+            const actualReferrerId = publishedCard.referred_by_user_id || profile.referred_by_user_id || adminId;
+
+            // Check if referral row already exists for this user
             const { data: existingReferral } = await supabase
               .from("referrals")
-              .select("id")
-              .eq("referrer_user_id", adminId)
+              .select("id, referrer_user_id")
               .eq("referred_user_id", profile.id)
-              .eq("referred_card_id", publishedCard.id)
               .maybeSingle();
 
             if (!existingReferral) {
@@ -151,9 +153,9 @@ export default function AdminDataTools() {
                 .limit(1)
                 .maybeSingle();
 
-              // Insert referral row
+              // Insert referral row with validated referrer
               const { error: insertError } = await supabase.from("referrals").insert({
-                referrer_user_id: adminId,
+                referrer_user_id: actualReferrerId,
                 referred_user_id: profile.id,
                 referred_card_id: publishedCard.id,
                 payment_id: latestPayment?.id ?? null,
@@ -165,6 +167,21 @@ export default function AdminDataTools() {
                 logs.push(`⚠ Failed to create referral for ${profile.full_name}: ${insertError.message}`);
               } else {
                 createdReferralRows++;
+              }
+            } else if (existingReferral.referrer_user_id !== actualReferrerId) {
+              // Fix mismatch: update referrer to match card's referred_by_user_id
+              const { error: updateError } = await supabase
+                .from("referrals")
+                .update({
+                  referrer_user_id: actualReferrerId,
+                  referred_card_id: publishedCard.id,
+                })
+                .eq("id", existingReferral.id);
+
+              if (updateError) {
+                logs.push(`⚠ Failed to fix referrer mismatch for ${profile.full_name}: ${updateError.message}`);
+              } else {
+                logs.push(`✓ Fixed referrer mismatch for ${profile.full_name}`);
               }
             }
           }
