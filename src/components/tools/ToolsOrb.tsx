@@ -282,19 +282,44 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                 return (
                   <motion.div
                     key={item.id}
-                    initial={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
+                    initial={{ 
+                      opacity: 0, 
+                      scale: 0, 
+                      x: 0, 
+                      y: 0,
+                      filter: "blur(8px)"
+                    }}
                     animate={{ 
                       opacity: 1, 
-                      scale: 1, 
+                      scale: [0, 1.15, 0.95, 1],
                       x: pos.x, 
-                      y: pos.y 
+                      y: pos.y,
+                      filter: "blur(0px)"
                     }}
-                    exit={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
+                    exit={{ 
+                      opacity: 0, 
+                      scale: 0, 
+                      x: 0, 
+                      y: 0,
+                      filter: "blur(4px)",
+                      transition: { 
+                        duration: 0.15, 
+                        delay: (totalItems - index - 1) * 0.03 
+                      }
+                    }}
                     transition={{ 
-                      delay: index * 0.05, 
-                      type: "spring", 
-                      stiffness: 400, 
-                      damping: 25 
+                      delay: index * 0.06,
+                      duration: 0.5,
+                      scale: {
+                        times: [0, 0.5, 0.75, 1],
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 15
+                      },
+                      x: { type: "spring", stiffness: 350, damping: 22 },
+                      y: { type: "spring", stiffness: 350, damping: 22 },
+                      opacity: { duration: 0.2 },
+                      filter: { duration: 0.3 }
                     }}
                     className="absolute pointer-events-auto"
                     style={{
