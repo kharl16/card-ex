@@ -287,6 +287,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                       scale: 0, 
                       x: 0, 
                       y: 0,
+                      rotate: -180,
                       filter: "blur(8px)"
                     }}
                     animate={{ 
@@ -294,6 +295,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                       scale: [0, 1.15, 0.95, 1],
                       x: pos.x, 
                       y: pos.y,
+                      rotate: 0,
                       filter: "blur(0px)"
                     }}
                     exit={{ 
@@ -301,9 +303,10 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                       scale: 0, 
                       x: 0, 
                       y: 0,
+                      rotate: 90,
                       filter: "blur(4px)",
                       transition: { 
-                        duration: 0.15, 
+                        duration: 0.2, 
                         delay: (totalItems - index - 1) * 0.03 
                       }
                     }}
@@ -316,6 +319,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                         stiffness: 300,
                         damping: 15
                       },
+                      rotate: { type: "spring", stiffness: 200, damping: 12 },
                       x: { type: "spring", stiffness: 350, damping: 22 },
                       y: { type: "spring", stiffness: 350, damping: 22 },
                       opacity: { duration: 0.2 },
