@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil } from "lucide-react";
+import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -97,13 +97,7 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-24 w-full rounded-2xl" />
-        ))}
-      </div>
-    );
+    return <ToolsSkeleton type="list" count={4} />;
   }
 
   if (items.length === 0 && !isAdmin) {

@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Play, ExternalLink, Plus, Pencil } from "lucide-react";
+import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
@@ -110,13 +110,7 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
   };
 
   if (loading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-32 w-full rounded-2xl" />
-        ))}
-      </div>
-    );
+    return <ToolsSkeleton type="card" count={4} />;
   }
 
   if (items.length === 0 && !isAdmin) {
