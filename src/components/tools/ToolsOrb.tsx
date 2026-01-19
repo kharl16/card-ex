@@ -293,32 +293,9 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
             const pos = getRadialPosition(index);
 
             return (
-              <motion.div
+              // OUTER WRAPPER: owns the radial positioning transform (NOT animated)
+              <div
                 key={item.id}
-                initial={{ 
-                  opacity: 0, 
-                  scale: 0, 
-                  rotate: -180,
-                  filter: "blur(8px)"
-                }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: 1,
-                  rotate: 0,
-                  filter: "blur(0px)"
-                }}
-                exit={{ 
-                  opacity: 0, 
-                  scale: 0, 
-                  rotate: 90,
-                  filter: "blur(4px)",
-                }}
-                transition={{ 
-                  delay: index * 0.05,
-                  duration: 0.35,
-                  rotate: { type: "spring", stiffness: 200, damping: 14 },
-                  scale: { type: "spring", stiffness: 300, damping: 20 },
-                }}
                 className="pointer-events-auto"
                 style={{
                   position: "absolute",
@@ -327,66 +304,99 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                   transform: `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px))`,
                   zIndex: 10000,
                   overflow: "visible",
+                  willChange: "transform",
                 }}
               >
-                <button
-                  onClick={() => isSettingsItem ? handleSettingsClick() : handleItemClick(item as ToolsOrbItem)}
-                  className="flex flex-col items-center outline-none focus:outline-none group"
-                  style={{ overflow: "visible" }}
+                {/* INNER ANIMATED ELEMENT: only handles opacity/scale/blur animations */}
+                <motion.div
+                  initial={{ 
+                    opacity: 0, 
+                    scale: 0.6, 
+                    filter: "blur(6px)"
+                  }}
+                  animate={{ 
+                    opacity: 1, 
+                    scale: 1,
+                    filter: "blur(0px)"
+                  }}
+                  exit={{ 
+                    opacity: 0, 
+                    scale: 0.6, 
+                    filter: "blur(4px)",
+                  }}
+                  transition={{ 
+                    delay: index * 0.05,
+                    duration: 0.25,
+                  }}
+                  style={{ transformOrigin: "center" }}
                 >
-                  {/* Icon Circle */}
-                  <div
-                    className={cn(
-                      "rounded-full flex items-center justify-center",
-                      "transition-transform duration-200 ease-out",
-                      "group-hover:scale-110 group-active:scale-95",
-                      isSettingsItem
-                        ? "bg-gradient-to-br from-zinc-600 to-zinc-700 border-2 border-zinc-500/30"
-                        : "bg-gradient-to-br from-primary via-primary/95 to-primary/80 border-2 border-primary-foreground/20"
-                    )}
+                  {/* Button with relative positioning for label anchor */}
+                  <button
+                    onClick={() => isSettingsItem ? handleSettingsClick() : handleItemClick(item as ToolsOrbItem)}
+                    className="relative flex flex-col items-center outline-none focus:outline-none group"
                     style={{ 
                       width: iconSize, 
-                      height: iconSize,
-                      boxShadow: isSettingsItem 
-                        ? '0 4px 20px rgba(0,0,0,0.3)' 
-                        : '0 4px 20px rgba(212, 175, 55, 0.4), 0 0 30px rgba(212, 175, 55, 0.2)'
+                      height: iconSize, 
+                      overflow: "visible" 
                     }}
                   >
-                    {'image_url' in item && item.image_url ? (
-                      <img 
-                        src={item.image_url} 
-                        alt={item.label} 
-                        className={cn("rounded-full object-cover", isPreview ? "w-5 h-5" : "w-6 h-6")}
-                      />
-                    ) : (
-                      <IconComponent
-                        className={cn(
-                          isSettingsItem ? "text-zinc-200" : "text-primary-foreground",
-                          isPreview ? "w-5 h-5" : "w-6 h-6"
-                        )}
-                      />
-                    )}
-                  </div>
-                  
-                  {/* Label - positioned below icon, never overlapping */}
-                  <span
-                    className={cn(
-                      "font-medium whitespace-nowrap",
-                      "bg-black/60 backdrop-blur-md",
-                      "px-2 py-1 rounded-full",
-                      "shadow-lg",
-                      isPreview ? "text-[10px]" : "text-xs",
-                      "text-white mt-2"
-                    )}
-                    style={{ 
-                      position: "relative",
-                      zIndex: 10001,
-                    }}
-                  >
-                    {item.label}
-                  </span>
-                </button>
-              </motion.div>
+                    {/* Icon Circle */}
+                    <div
+                      className={cn(
+                        "rounded-full flex items-center justify-center",
+                        "transition-transform duration-200 ease-out",
+                        "group-hover:scale-110 group-active:scale-95",
+                        isSettingsItem
+                          ? "bg-gradient-to-br from-zinc-600 to-zinc-700 border-2 border-zinc-500/30"
+                          : "bg-gradient-to-br from-primary via-primary/95 to-primary/80 border-2 border-primary-foreground/20"
+                      )}
+                      style={{ 
+                        width: iconSize, 
+                        height: iconSize,
+                        boxShadow: isSettingsItem 
+                          ? '0 4px 20px rgba(0,0,0,0.3)' 
+                          : '0 4px 20px rgba(212, 175, 55, 0.4), 0 0 30px rgba(212, 175, 55, 0.2)'
+                      }}
+                    >
+                      {'image_url' in item && item.image_url ? (
+                        <img 
+                          src={item.image_url} 
+                          alt={item.label} 
+                          className={cn("rounded-full object-cover", isPreview ? "w-5 h-5" : "w-6 h-6")}
+                        />
+                      ) : (
+                        <IconComponent
+                          className={cn(
+                            isSettingsItem ? "text-zinc-200" : "text-primary-foreground",
+                            isPreview ? "w-5 h-5" : "w-6 h-6"
+                          )}
+                        />
+                      )}
+                    </div>
+                    
+                    {/* Label - ABSOLUTE positioned below icon, never overlapping */}
+                    <span
+                      className={cn(
+                        "font-medium whitespace-nowrap",
+                        "bg-black/60 backdrop-blur-md",
+                        "px-2 py-1 rounded-full",
+                        "shadow-lg text-white",
+                        isPreview ? "text-[10px]" : "text-xs"
+                      )}
+                      style={{ 
+                        position: "absolute",
+                        top: iconSize + 8,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        zIndex: 10001,
+                        pointerEvents: "none",
+                      }}
+                    >
+                      {item.label}
+                    </span>
+                  </button>
+                </motion.div>
+              </div>
             );
           })}
         </AnimatePresence>
