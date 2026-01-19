@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, RefObject, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, RefObject, useCallback, useMemo } from "react";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { createPortal } from "react-dom";
 import { useToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
 import { useAuth } from "@/contexts/AuthContext";
@@ -55,11 +55,22 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState<Position>({ x: 0, y: 0 });
   const [initialized, setInitialized] = useState(false);
 
+  // Motion values for smooth dragging - the orb position
+  const motionX = useMotionValue(0);
+  const motionY = useMotionValue(0);
+
+  // Springs for ultra-smooth following
+  const springConfig = { stiffness: 900, damping: 60 };
+  const springX = useSpring(motionX, springConfig);
+  const springY = useSpring(motionY, springConfig);
+
+  // Derived motion values for orb center (for radial items)
+  const orbCenterX = useTransform(springX, (x) => x + orbSize / 2);
+  const orbCenterY = useTransform(springY, (y) => y + orbSize / 2);
+
   const constraintsRef = useRef<HTMLDivElement>(null);
-  const orbRef = useRef<HTMLDivElement>(null);
 
   const getBounds = useCallback(() => {
     if (isPreview && containerRef?.current) {
@@ -106,24 +117,33 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
       }
     }
 
-    setPosition(start);
+    // Set motion values immediately (no animation on mount)
+    motionX.set(start.x);
+    motionY.set(start.y);
     setInitialized(true);
-  }, [positionKey, getDefaultPosition, clampPosition]);
+  }, [positionKey, getDefaultPosition, clampPosition, motionX, motionY]);
 
-  // Save position on change
+  // Save position on change (debounced)
   useEffect(() => {
     if (!initialized) return;
-    const timeout = setTimeout(() => {
-      localStorage.setItem(positionKey, JSON.stringify(position));
-    }, 100);
-    return () => clearTimeout(timeout);
-  }, [position, positionKey, initialized]);
+    
+    const unsubX = motionX.on("change", () => {
+      // Only save when not dragging to avoid excessive writes
+    });
+    
+    return () => {
+      unsubX();
+    };
+  }, [initialized, motionX]);
 
   // Re-clamp on resize
   useEffect(() => {
     const handleResize = () => {
       if (isDragging) return;
-      setPosition(prev => clampPosition(prev));
+      const currentPos = { x: motionX.get(), y: motionY.get() };
+      const clamped = clampPosition(currentPos);
+      motionX.set(clamped.x);
+      motionY.set(clamped.y);
     };
 
     window.addEventListener("resize", handleResize);
@@ -140,22 +160,21 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         vv.removeEventListener("scroll", handleResize);
       }
     };
-  }, [isDragging, clampPosition]);
+  }, [isDragging, clampPosition, motionX, motionY]);
 
   const handleDragEnd = () => {
     setIsDragging(false);
     
-    if (orbRef.current && constraintsRef.current) {
-      const orbRect = orbRef.current.getBoundingClientRect();
-      const containerRect = constraintsRef.current.getBoundingClientRect();
-      
-      const newPos = clampPosition({
-        x: orbRect.left - containerRect.left,
-        y: orbRect.top - containerRect.top,
-      });
-      
-      setPosition(newPos);
-    }
+    // Get current motion value position and clamp
+    const currentPos = { x: motionX.get(), y: motionY.get() };
+    const clamped = clampPosition(currentPos);
+    
+    // Snap to clamped position
+    motionX.set(clamped.x);
+    motionY.set(clamped.y);
+    
+    // Persist to localStorage
+    localStorage.setItem(positionKey, JSON.stringify(clamped));
   };
 
   const handleItemClick = (item: ToolsOrbItem) => {
@@ -191,25 +210,24 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   const radius = isMobile ? radiusMobile : radiusDesktop;
   const iconSize = isPreview ? 48 : 52;
 
-  // Edge detection for semi-circle direction
-  const orbCenterX = position.x + orbSize / 2;
-  const orbCenterY = position.y + orbSize / 2;
+  // Get current position for edge detection (use spring values for real-time)
+  const currentX = springX.get();
+  const currentY = springY.get();
+  const currentCenterX = currentX + orbSize / 2;
+  const currentCenterY = currentY + orbSize / 2;
   const edgeThreshold = 140;
   
   // Determine sweep direction based on orb position
   let startAngle: number;
   let sweep: number;
   
-  if (orbCenterX < edgeThreshold) {
-    // Near left edge - open to the right
+  if (currentCenterX < edgeThreshold) {
     startAngle = -90;
     sweep = 180;
-  } else if (orbCenterX > b.width - edgeThreshold) {
-    // Near right edge - open to the left
+  } else if (currentCenterX > b.width - edgeThreshold) {
     startAngle = 90;
     sweep = 180;
   } else {
-    // Center - full ring with gap at bottom
     startAngle = -90;
     sweep = 300;
   }
@@ -272,8 +290,8 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         )}
       </AnimatePresence>
 
-      {/* Center anchor point - positioned at orb center */}
-      <div
+      {/* Center anchor point - positioned using motion values for real-time following */}
+      <motion.div
         className="pointer-events-none"
         style={{
           position: "absolute",
@@ -400,83 +418,78 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
             );
           })}
         </AnimatePresence>
+      </motion.div>
 
-        {/* Center Button (+ / X) - positioned at the anchor */}
-        <motion.div
-          ref={orbRef}
-          drag
-          dragConstraints={{
-            left: -orbCenterX + margin + orbSize / 2,
-            right: b.width - orbCenterX - margin - orbSize / 2,
-            top: -orbCenterY + margin + orbSize / 2,
-            bottom: b.height - orbCenterY - margin - orbSize / 2,
-          }}
-          dragMomentum={false}
-          dragElastic={0}
-          onDragStart={() => setIsDragging(true)}
-          onDrag={(_, info) => {
-            const newX = position.x + info.delta.x;
-            const newY = position.y + info.delta.y;
-            setPosition(clampPosition({ x: newX, y: newY }));
-          }}
-          onDragEnd={handleDragEnd}
-          onClick={handleOrbClick}
-          style={{ 
-            touchAction: "none", 
-            zIndex: 10002,
-            position: "absolute",
-            left: 0,
-            top: 0,
-            transform: "translate(-50%, -50%)",
-          }}
-          className="pointer-events-auto cursor-grab active:cursor-grabbing"
-          whileHover={{ scale: 1.08 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <div
-            className={cn(
-              "rounded-full flex items-center justify-center relative",
-              "bg-gradient-to-br from-primary via-primary/90 to-primary/70",
-              "border-2 border-primary-foreground/30",
-              "transition-all duration-300 ease-out"
-            )}
-            style={{ 
-              width: orbSize, 
-              height: orbSize,
-              boxShadow: isOpen 
-                ? '0 0 40px rgba(212, 175, 55, 0.6), 0 0 60px rgba(212, 175, 55, 0.3)'
-                : '0 0 25px rgba(212, 175, 55, 0.4), 0 0 40px rgba(212, 175, 55, 0.2)'
-            }}
-          >
-            {settings.orb_image_url ? (
-              <img 
-                src={settings.orb_image_url} 
-                alt="Tools" 
-                className={cn("rounded-full object-cover", isPreview ? "w-7 h-7" : "w-8 h-8")}
-              />
-            ) : (
-              <motion.div
-                animate={{ rotate: isOpen ? 45 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                {isOpen ? (
-                  <X className={cn("text-primary-foreground", isPreview ? "w-6 h-6" : "w-7 h-7")} strokeWidth={2.5} />
-                ) : (
-                  <Plus className={cn("text-primary-foreground", isPreview ? "w-6 h-6" : "w-7 h-7")} strokeWidth={2.5} />
-                )}
-              </motion.div>
-            )}
-          </div>
-
-          {/* Pulsing ring effect */}
-          {!isOpen && (
-            <div
-              className="absolute inset-0 rounded-full animate-ping bg-primary/20 pointer-events-none"
-              style={{ animationDuration: "2.5s" }}
-            />
+      {/* Center Button (+ / X) - positioned using motion values for real-time dragging */}
+      <motion.div
+        drag
+        dragConstraints={{
+          left: margin,
+          right: b.width - orbSize - margin,
+          top: margin,
+          bottom: b.height - orbSize - margin,
+        }}
+        dragMomentum={false}
+        dragElastic={0.08}
+        onDragStart={() => setIsDragging(true)}
+        onDragEnd={handleDragEnd}
+        onClick={handleOrbClick}
+        style={{ 
+          x: springX,
+          y: springY,
+          touchAction: "none", 
+          zIndex: 10002,
+          position: "absolute",
+          left: 0,
+          top: 0,
+        }}
+        className="pointer-events-auto cursor-grab active:cursor-grabbing"
+        whileHover={{ scale: 1.08 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <div
+          className={cn(
+            "rounded-full flex items-center justify-center relative",
+            "bg-gradient-to-br from-primary via-primary/90 to-primary/70",
+            "border-2 border-primary-foreground/30",
+            "transition-all duration-300 ease-out"
           )}
-        </motion.div>
-      </div>
+          style={{ 
+            width: orbSize, 
+            height: orbSize,
+            boxShadow: isOpen 
+              ? '0 0 40px rgba(212, 175, 55, 0.6), 0 0 60px rgba(212, 175, 55, 0.3)'
+              : '0 0 25px rgba(212, 175, 55, 0.4), 0 0 40px rgba(212, 175, 55, 0.2)'
+          }}
+        >
+          {settings.orb_image_url ? (
+            <img 
+              src={settings.orb_image_url} 
+              alt="Tools" 
+              className={cn("rounded-full object-cover", isPreview ? "w-7 h-7" : "w-8 h-8")}
+            />
+          ) : (
+            <motion.div
+              animate={{ rotate: isOpen ? 45 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {isOpen ? (
+                <X className={cn("text-primary-foreground", isPreview ? "w-6 h-6" : "w-7 h-7")} strokeWidth={2.5} />
+              ) : (
+                <Plus className={cn("text-primary-foreground", isPreview ? "w-6 h-6" : "w-7 h-7")} strokeWidth={2.5} />
+              )}
+            </motion.div>
+          )}
+        </div>
+
+        {/* Pulsing ring effect */}
+        {!isOpen && (
+          <div
+            className="absolute inset-0 rounded-full animate-ping bg-primary/20 pointer-events-none"
+            style={{ animationDuration: "2.5s" }}
+          />
+        )}
+      </motion.div>
     </div>
   );
 
@@ -504,7 +517,10 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         items={enabledItems}
       />
 
-      {isAdmin && <ToolsOrbCustomizer open={customizerOpen} onOpenChange={setCustomizerOpen} />}
+      <ToolsOrbCustomizer
+        open={customizerOpen}
+        onOpenChange={setCustomizerOpen}
+      />
     </>
   );
 }
