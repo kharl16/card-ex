@@ -420,6 +420,56 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         </AnimatePresence>
       </motion.div>
 
+      {/* Glow trail elements - appear while dragging */}
+      <AnimatePresence>
+        {isDragging && (
+          <>
+            {/* Trail layer 1 - largest, most delayed */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 0.3, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.15 }}
+              style={{
+                x: springX,
+                y: springY,
+                position: "absolute",
+                left: -8,
+                top: -8,
+                width: orbSize + 16,
+                height: orbSize + 16,
+                borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(212, 175, 55, 0.4) 0%, rgba(212, 175, 55, 0) 70%)",
+                filter: "blur(8px)",
+                zIndex: 10001,
+                pointerEvents: "none",
+              }}
+            />
+            {/* Trail layer 2 - medium */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 0.5, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.7 }}
+              transition={{ duration: 0.1 }}
+              style={{
+                x: springX,
+                y: springY,
+                position: "absolute",
+                left: -4,
+                top: -4,
+                width: orbSize + 8,
+                height: orbSize + 8,
+                borderRadius: "50%",
+                background: "radial-gradient(circle, rgba(212, 175, 55, 0.5) 0%, rgba(212, 175, 55, 0) 60%)",
+                filter: "blur(4px)",
+                zIndex: 10001,
+                pointerEvents: "none",
+              }}
+            />
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Center Button (+ / X) - positioned using motion values for real-time dragging */}
       <motion.div
         drag
@@ -457,9 +507,11 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
           style={{ 
             width: orbSize, 
             height: orbSize,
-            boxShadow: isOpen 
-              ? '0 0 40px rgba(212, 175, 55, 0.6), 0 0 60px rgba(212, 175, 55, 0.3)'
-              : '0 0 25px rgba(212, 175, 55, 0.4), 0 0 40px rgba(212, 175, 55, 0.2)'
+            boxShadow: isDragging
+              ? '0 0 50px rgba(212, 175, 55, 0.7), 0 0 80px rgba(212, 175, 55, 0.4), 0 0 100px rgba(212, 175, 55, 0.2)'
+              : isOpen 
+                ? '0 0 40px rgba(212, 175, 55, 0.6), 0 0 60px rgba(212, 175, 55, 0.3)'
+                : '0 0 25px rgba(212, 175, 55, 0.4), 0 0 40px rgba(212, 175, 55, 0.2)'
           }}
         >
           {settings.orb_image_url ? (
@@ -483,7 +535,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         </div>
 
         {/* Pulsing ring effect */}
-        {!isOpen && (
+        {!isOpen && !isDragging && (
           <div
             className="absolute inset-0 rounded-full animate-ping bg-primary/20 pointer-events-none"
             style={{ animationDuration: "2.5s" }}
