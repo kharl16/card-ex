@@ -47,7 +47,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   const isPreview = mode === "preview";
   const positionKey = `${POSITION_KEY_PREFIX}_${mode}`;
 
-  const orbSize = isPreview ? 48 : 56;
+  const orbSize = 48; // Consistent size for both modes
   const margin = 16;
 
   const [isOpen, setIsOpen] = useState(false);
@@ -202,13 +202,10 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   const allItems = [...enabledItems, ...(isAdmin ? [{ id: "settings", label: "Settings", icon_name: "Settings" }] : [])] as (ToolsOrbItem | { id: string; label: string; icon_name: string })[];
   const totalItems = allItems.length;
 
-  // Radial geometry constants
+  // Radial geometry constants - consistent sizing for seamless look across all views
   const b = getBounds();
-  const isMobile = b.width < 480;
-  const radiusDesktop = 120;
-  const radiusMobile = 92;
-  const radius = isMobile ? radiusMobile : radiusDesktop;
-  const iconSize = isPreview ? 48 : 52;
+  const radius = 100; // Consistent radius for perfect equidistant spacing
+  const iconSize = 48; // Consistent icon size matching preview
 
   // Get current position for edge detection (use spring values for real-time)
   const currentX = springX.get();
@@ -380,13 +377,13 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                         <img 
                           src={item.image_url} 
                           alt={item.label} 
-                          className={cn("rounded-full object-cover", isPreview ? "w-5 h-5" : "w-6 h-6")}
+                          className="w-6 h-6 rounded-full object-cover"
                         />
                       ) : (
                         <IconComponent
                           className={cn(
-                            isSettingsItem ? "text-zinc-200" : "text-primary-foreground",
-                            isPreview ? "w-5 h-5" : "w-6 h-6"
+                            "w-6 h-6",
+                            isSettingsItem ? "text-zinc-200" : "text-primary-foreground"
                           )}
                         />
                       )}
@@ -395,11 +392,10 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                     {/* Label - ABSOLUTE positioned below icon, never overlapping */}
                     <span
                       className={cn(
-                        "font-medium whitespace-nowrap",
+                        "text-[11px] font-medium whitespace-nowrap",
                         "bg-black/60 backdrop-blur-md",
                         "px-2 py-1 rounded-full",
-                        "shadow-lg text-white",
-                        isPreview ? "text-[10px]" : "text-xs"
+                        "shadow-lg text-white"
                       )}
                       style={{ 
                         position: "absolute",
