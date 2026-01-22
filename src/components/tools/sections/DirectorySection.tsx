@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+// ScrollArea removed - using native overflow for better mobile compatibility
 import { useAuth } from "@/contexts/AuthContext";
 import AdminDirectoryDialog from "../admin/AdminDirectoryDialog";
 
@@ -101,7 +101,7 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full max-w-full overflow-x-hidden">
       {/* Admin Add Button */}
       {isAdmin && (
         <Button onClick={handleAdd} className="w-full gap-2">
@@ -110,19 +110,19 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
         </Button>
       )}
 
-      {/* Site Filter */}
+      {/* Site Filter - horizontal scroll for badges */}
       {sites.length > 0 && (
-        <ScrollArea className="w-full whitespace-nowrap">
-          <div className="flex gap-2 pb-2">
+        <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
+          <div className="flex gap-2 pb-2 min-w-min">
             <Badge
               variant={activeSite === null ? "default" : "outline"}
               className={cn(
-                "cursor-pointer px-4 py-2 text-sm gap-2",
+                "cursor-pointer px-3 py-2 text-xs gap-1.5 flex-shrink-0",
                 activeSite === null && "bg-primary text-primary-foreground"
               )}
               onClick={() => setActiveSite(null)}
             >
-              <Building2 className="w-4 h-4" />
+              <Building2 className="w-3.5 h-3.5" />
               All Sites
             </Badge>
             {sites.map((site) => (
@@ -130,7 +130,7 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
                 key={site}
                 variant={activeSite === site ? "default" : "outline"}
                 className={cn(
-                  "cursor-pointer px-4 py-2 text-sm whitespace-nowrap",
+                  "cursor-pointer px-3 py-2 text-xs whitespace-nowrap flex-shrink-0",
                   activeSite === site && "bg-primary text-primary-foreground"
                 )}
                 onClick={() => setActiveSite(site)}
@@ -139,17 +139,16 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
               </Badge>
             ))}
           </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        </div>
       )}
 
       {/* Directory Cards */}
-      <div className="grid gap-4">
+      <div className="grid gap-4 w-full">
         {filteredItems.map((item) => (
           <div
             key={item.id}
             className={cn(
-              "p-4 rounded-2xl relative",
+              "p-3 sm:p-4 rounded-2xl relative w-full",
               "bg-card border border-border/50 shadow-sm",
               "hover:shadow-md hover:border-primary/30 transition-all"
             )}
@@ -166,77 +165,79 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
               </Button>
             )}
 
-            <div className="flex gap-4">
+            <div className="flex gap-3 sm:gap-4">
               {/* Icon */}
               <div
                 className={cn(
-                  "w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center",
+                  "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 flex items-center justify-center",
                   "bg-gradient-to-br from-primary/20 to-primary/5",
                   "border border-primary/20"
                 )}
               >
-                <MapPin className="w-6 h-6 text-primary" />
+                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0 space-y-1">
-                <h4 className="font-semibold text-foreground text-lg">{item.location || "Unknown Location"}</h4>
+                <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight truncate pr-8">
+                  {item.location || "Unknown Location"}
+                </h4>
                 {item.sites && (
                   <Badge variant="secondary" className="text-xs">
                     {item.sites}
                   </Badge>
                 )}
                 {item.operating_hours && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>{item.operating_hours}</span>
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                    <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="truncate">{item.operating_hours}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex flex-wrap gap-2 mt-4">
+            {/* Actions - Grid layout for consistent button sizing */}
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-3 sm:mt-4">
               {item.phone_1 && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-11 px-4 gap-2 rounded-xl"
+                  className="h-10 sm:h-11 px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm"
                   onClick={() => window.open(`tel:${item.phone_1}`, "_self")}
                 >
-                  <Phone className="w-4 h-4" />
-                  Call
+                  <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden xs:inline">Call</span>
                 </Button>
               )}
               {item.maps_link && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-11 px-4 gap-2 rounded-xl"
+                  className="h-10 sm:h-11 px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm"
                   onClick={() => window.open(item.maps_link!, "_blank")}
                 >
-                  <Navigation className="w-4 h-4" />
-                  Maps
+                  <Navigation className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden xs:inline">Maps</span>
                 </Button>
               )}
               {item.facebook_page && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-11 px-4 gap-2 rounded-xl"
+                  className="h-10 sm:h-11 px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm"
                   onClick={() => window.open(item.facebook_page!, "_blank")}
                 >
-                  <Facebook className="w-4 h-4" />
-                  Facebook
+                  <Facebook className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="hidden xs:inline">FB</span>
                 </Button>
               )}
               <Button
                 variant="secondary"
                 size="sm"
-                className="h-11 px-4 gap-2 rounded-xl"
+                className="h-10 sm:h-11 px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm"
                 onClick={() => setSelectedEntry(item)}
               >
-                View Details
+                <span>View</span>
               </Button>
             </div>
           </div>
