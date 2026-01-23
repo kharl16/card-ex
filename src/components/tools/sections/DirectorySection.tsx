@@ -202,42 +202,43 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 sm:h-11 px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+                  className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                   onClick={() => window.open(`tel:${item.phone_1}`, "_self")}
                 >
-                  <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden xs:inline">Call</span>
+                  <Phone className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden xxs:inline">Call</span>
                 </Button>
               )}
               {item.maps_link && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 sm:h-11 px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+                  className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                   onClick={() => window.open(item.maps_link!, "_blank")}
                 >
-                  <Navigation className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden xs:inline">Maps</span>
+                  <Navigation className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden xxs:inline">Maps</span>
                 </Button>
               )}
               {item.facebook_page && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 sm:h-11 px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+                  className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                   onClick={() => window.open(item.facebook_page!, "_blank")}
                 >
-                  <Facebook className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                  <span className="hidden xs:inline">FB</span>
+                  <Facebook className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden xxs:inline">FB</span>
                 </Button>
               )}
               <Button
                 variant="secondary"
                 size="sm"
-                className="h-10 sm:h-11 px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm"
+                className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                 onClick={() => setSelectedEntry(item)}
               >
-                <span>View</span>
+                <MapPin className="w-4 h-4 flex-shrink-0 xxs:hidden" />
+                <span className="hidden xxs:inline">View</span>
               </Button>
             </div>
           </div>
