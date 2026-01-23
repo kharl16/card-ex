@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,29 @@ import { cn } from "@/lib/utils";
 // ScrollArea removed - using native overflow for better mobile compatibility
 import { useAuth } from "@/contexts/AuthContext";
 import AdminDirectoryDialog from "../admin/AdminDirectoryDialog";
+
+// Utility to highlight matching text
+function highlightText(text: string | null, query: string): ReactNode {
+  if (!text || !query.trim()) return text || "";
+  
+  const lowerText = text.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const startIndex = lowerText.indexOf(lowerQuery);
+  
+  if (startIndex === -1) return text;
+  
+  const before = text.slice(0, startIndex);
+  const match = text.slice(startIndex, startIndex + query.length);
+  const after = text.slice(startIndex + query.length);
+  
+  return (
+    <>
+      {before}
+      <mark className="bg-primary/30 text-foreground rounded-sm px-0.5">{match}</mark>
+      {after}
+    </>
+  );
+}
 
 interface DirectoryEntry {
   id: number;
@@ -207,8 +230,13 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
               {/* Info */}
               <div className="flex-1 min-w-0 space-y-1">
                 <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight truncate pr-8">
-                  {item.location || "Unknown Location"}
+                  {highlightText(item.location, searchQuery) || "Unknown Location"}
                 </h4>
+                {item.address && (
+                  <p className="text-xs text-muted-foreground truncate">
+                    {highlightText(item.address, searchQuery)}
+                  </p>
+                )}
                 {item.sites && (
                   <Badge variant="secondary" className="text-xs">
                     {item.sites}
