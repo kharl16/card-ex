@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X } from "lucide-react";
+import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 // ScrollArea removed - using native overflow for better mobile compatibility
@@ -315,8 +315,67 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       </div>
 
       {filteredItems.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-lg text-muted-foreground">No branches match your search</p>
+        <div className="text-center py-12 px-4 animate-fade-in">
+          {/* Illustration */}
+          <div className="relative w-24 h-24 mx-auto mb-6">
+            <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50 rounded-full" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <SearchX className="w-12 h-12 text-muted-foreground/60" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
+              <MapPin className="w-4 h-4 text-primary/60" />
+            </div>
+          </div>
+
+          {/* Message */}
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            No branches found
+          </h3>
+          {searchQuery.trim() && (
+            <p className="text-sm text-muted-foreground mb-4">
+              No results for "<span className="font-medium text-foreground">{searchQuery}</span>"
+            </p>
+          )}
+
+          {/* Suggestions */}
+          <div className="bg-muted/50 rounded-xl p-4 max-w-xs mx-auto mb-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+              <Lightbulb className="w-3.5 h-3.5" />
+              <span className="font-medium">Try these suggestions:</span>
+            </div>
+            <ul className="text-xs text-muted-foreground space-y-1 text-left">
+              <li>• Check your spelling</li>
+              <li>• Try a shorter search term</li>
+              <li>• Search by city or area name</li>
+              {activeSite && <li>• Clear the site filter</li>}
+            </ul>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-2 max-w-xs mx-auto">
+            {searchQuery.trim() && onClearSearch && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full gap-2"
+                onClick={onClearSearch}
+              >
+                <X className="w-4 h-4" />
+                Clear search
+              </Button>
+            )}
+            {activeSite && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full gap-2 text-muted-foreground"
+                onClick={() => setActiveSite(null)}
+              >
+                <Building2 className="w-4 h-4" />
+                Show all sites
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
