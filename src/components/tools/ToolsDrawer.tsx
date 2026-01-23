@@ -170,7 +170,7 @@ export default function ToolsDrawer({
             {activeSection === "trainings" && <TrainingsSection searchQuery={searchQuery} />}
             {activeSection === "links" && <LinksSection searchQuery={searchQuery} />}
             {activeSection === "files" && <FilesSection searchQuery={searchQuery} />}
-            {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} />}
+            {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} />}
             {activeSection === "presentations" && <PresentationsSection searchQuery={searchQuery} />}
           </div>
         </ScrollArea>
