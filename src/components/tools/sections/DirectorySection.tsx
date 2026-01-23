@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -65,6 +65,17 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
     }
   };
 
+  // Calculate branch counts per site
+  const siteCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    items.forEach((item) => {
+      if (item.sites) {
+        counts[item.sites] = (counts[item.sites] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [items]);
+
   const filteredItems = items.filter((item) => {
     const matchesSearch =
       !searchQuery ||
@@ -124,6 +135,14 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
             >
               <Building2 className="w-3.5 h-3.5" />
               All Sites
+              <span className={cn(
+                "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-[18px] text-center",
+                activeSite === null 
+                  ? "bg-primary-foreground/20 text-primary-foreground" 
+                  : "bg-muted text-muted-foreground"
+              )}>
+                {items.length}
+              </span>
             </Badge>
             {sites.map((site) => (
               <Badge
@@ -136,6 +155,14 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
                 onClick={() => setActiveSite(site)}
               >
                 {site}
+                <span className={cn(
+                  "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-[18px] text-center",
+                  activeSite === site 
+                    ? "bg-primary-foreground/20 text-primary-foreground" 
+                    : "bg-muted text-muted-foreground"
+                )}>
+                  {siteCounts[site] || 0}
+                </span>
               </Badge>
             ))}
           </div>
