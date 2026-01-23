@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil } from "lucide-react";
+import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 // ScrollArea removed - using native overflow for better mobile compatibility
@@ -50,9 +50,10 @@ interface DirectoryEntry {
 
 interface DirectorySectionProps {
   searchQuery: string;
+  onClearSearch?: () => void;
 }
 
-export default function DirectorySection({ searchQuery }: DirectorySectionProps) {
+export default function DirectorySection({ searchQuery, onClearSearch }: DirectorySectionProps) {
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -141,6 +142,19 @@ export default function DirectorySection({ searchQuery }: DirectorySectionProps)
         <Button onClick={handleAdd} className="w-full gap-2">
           <Plus className="w-4 h-4" />
           Add Directory Entry
+        </Button>
+      )}
+
+      {/* Clear Search Button */}
+      {searchQuery.trim() && onClearSearch && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full gap-2 text-muted-foreground hover:text-foreground"
+          onClick={onClearSearch}
+        >
+          <X className="w-4 h-4" />
+          Clear search: "{searchQuery}"
         </Button>
       )}
 
