@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye } from "lucide-react";
+import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, Copy } from "lucide-react";
+import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 // ScrollArea removed - using native overflow for better mobile compatibility
@@ -62,6 +63,42 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   const [selectedEntry, setSelectedEntry] = useState<DirectoryEntry | null>(null);
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DirectoryEntry | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const handleShareBranch = async (entry: DirectoryEntry) => {
+    const shareTitle = entry.location || "Branch Details";
+    const shareText = [
+      `📍 ${entry.location || "Branch"}`,
+      entry.address && `Address: ${entry.address}`,
+      entry.operating_hours && `Hours: ${entry.operating_hours}`,
+      entry.phone_1 && `Phone: ${entry.phone_1}`,
+      entry.maps_link && `Maps: ${entry.maps_link}`,
+    ].filter(Boolean).join("\n");
+
+    // Try native share first
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+        });
+        return;
+      } catch (err) {
+        // User cancelled or share failed, fall through to copy
+        if ((err as Error).name === "AbortError") return;
+      }
+    }
+
+    // Fallback to clipboard copy
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      toast.success("Branch info copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy branch info");
+    }
+  };
 
   useEffect(() => {
     fetchItems();
@@ -452,24 +489,47 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3">
-              {selectedEntry?.maps_link && (
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                {selectedEntry?.maps_link && (
+                  <Button
+                    className="flex-1 h-12 gap-2"
+                    onClick={() => window.open(selectedEntry.maps_link!, "_blank")}
+                  >
+                    <Navigation className="w-5 h-5" />
+                    Open in Maps
+                  </Button>
+                )}
+                {selectedEntry?.facebook_page && (
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-12 gap-2"
+                    onClick={() => window.open(selectedEntry.facebook_page!, "_blank")}
+                  >
+                    <Facebook className="w-5 h-5" />
+                    Facebook Page
+                  </Button>
+                )}
+              </div>
+              
+              {/* Share Button */}
+              {selectedEntry && (
                 <Button
-                  className="flex-1 h-12 gap-2"
-                  onClick={() => window.open(selectedEntry.maps_link!, "_blank")}
+                  variant="secondary"
+                  className="w-full h-12 gap-2"
+                  onClick={() => handleShareBranch(selectedEntry)}
                 >
-                  <Navigation className="w-5 h-5" />
-                  Open in Maps
-                </Button>
-              )}
-              {selectedEntry?.facebook_page && (
-                <Button
-                  variant="outline"
-                  className="flex-1 h-12 gap-2"
-                  onClick={() => window.open(selectedEntry.facebook_page!, "_blank")}
-                >
-                  <Facebook className="w-5 h-5" />
-                  Facebook Page
+                {copied ? (
+                    <>
+                      <Check className="w-5 h-5 text-primary" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-5 h-5" />
+                      Share Branch Info
+                    </>
+                  )}
                 </Button>
               )}
             </div>
