@@ -3,10 +3,65 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, Copy } from "lucide-react";
+import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
+
+// Generate vCard for a directory entry
+function generateDirectoryVCard(entry: DirectoryEntry): string {
+  const lines: string[] = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+  ];
+
+  // Organization name (use location as the org)
+  if (entry.location) {
+    lines.push(`FN:${entry.location}`);
+    lines.push(`ORG:${entry.location}`);
+  }
+
+  // Address
+  if (entry.address) {
+    lines.push(`ADR;TYPE=WORK:;;${entry.address};;;;`);
+  }
+
+  // Phone numbers
+  if (entry.phone_1) {
+    lines.push(`TEL;TYPE=WORK,VOICE:${entry.phone_1}`);
+  }
+  if (entry.phone_2) {
+    lines.push(`TEL;TYPE=WORK,VOICE:${entry.phone_2}`);
+  }
+  if (entry.phone_3) {
+    lines.push(`TEL;TYPE=WORK,VOICE:${entry.phone_3}`);
+  }
+
+  // Facebook as URL
+  if (entry.facebook_page) {
+    lines.push(`URL;TYPE=WORK:${entry.facebook_page}`);
+  }
+
+  // Operating hours as note
+  if (entry.operating_hours) {
+    lines.push(`NOTE:Operating Hours: ${entry.operating_hours}`);
+  }
+
+  // Owner
+  if (entry.owner) {
+    lines.push(`X-OWNER:${entry.owner}`);
+  }
+
+  // Maps link as geo URL
+  if (entry.maps_link) {
+    lines.push(`X-MAPS:${entry.maps_link}`);
+  }
+
+  lines.push(`UID:directory-${entry.id}`);
+  lines.push("END:VCARD");
+
+  return lines.join("\r\n");
+}
 // ScrollArea removed - using native overflow for better mobile compatibility
 import { useAuth } from "@/contexts/AuthContext";
 import AdminDirectoryDialog from "../admin/AdminDirectoryDialog";
@@ -97,6 +152,28 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Failed to copy branch info");
+    }
+  };
+
+  const handleAddToContacts = (entry: DirectoryEntry) => {
+    try {
+      const vcardContent = generateDirectoryVCard(entry);
+      const blob = new Blob([vcardContent], {
+        type: "text/vcard;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const safeName = entry.location?.trim().replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-_]/g, "") || "branch";
+      link.href = url;
+      link.download = `${safeName}.vcf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Contact file downloaded!");
+    } catch (err) {
+      console.error("vCard generation failed:", err);
+      toast.error("Failed to create contact file");
     }
   };
 
@@ -512,25 +589,35 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                 )}
               </div>
               
-              {/* Share Button */}
+              {/* Share & Add to Contacts */}
               {selectedEntry && (
-                <Button
-                  variant="secondary"
-                  className="w-full h-12 gap-2"
-                  onClick={() => handleShareBranch(selectedEntry)}
-                >
-                {copied ? (
-                    <>
-                      <Check className="w-5 h-5 text-primary" />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Share2 className="w-5 h-5" />
-                      Share Branch Info
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    variant="secondary"
+                    className="flex-1 h-12 gap-2"
+                    onClick={() => handleShareBranch(selectedEntry)}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-5 h-5 text-primary" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Share2 className="w-5 h-5" />
+                        Share
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-12 gap-2"
+                    onClick={() => handleAddToContacts(selectedEntry)}
+                  >
+                    <UserPlus className="w-5 h-5" />
+                    Add to Contacts
+                  </Button>
+                </div>
               )}
             </div>
           </div>
