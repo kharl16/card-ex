@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb } from "lucide-react";
+import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 // ScrollArea removed - using native overflow for better mobile compatibility
@@ -301,12 +301,12 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                 </Button>
               )}
               <Button
-                variant="secondary"
+                variant="default"
                 size="sm"
-                className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={() => setSelectedEntry(item)}
               >
-                <MapPin className="w-4 h-4 flex-shrink-0 xxs:hidden" />
+                <Eye className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden xxs:inline">View</span>
               </Button>
             </div>
