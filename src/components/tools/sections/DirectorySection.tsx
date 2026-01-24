@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, UserPlus } from "lucide-react";
+import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, UserPlus, Route } from "lucide-react";
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
@@ -175,6 +175,64 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       console.error("vCard generation failed:", err);
       toast.error("Failed to create contact file");
     }
+  };
+
+  const handleGetDirections = (entry: DirectoryEntry) => {
+    // Build a navigation URL that works across platforms
+    // Priority: use maps_link if available, otherwise construct from address
+    let destination = "";
+    
+    if (entry.maps_link) {
+      // If we have a maps link, try to extract coordinates or use it directly
+      // Google Maps navigation format: google.com/maps/dir/?api=1&destination=...
+      const mapsUrl = entry.maps_link;
+      
+      // Check if it's a Google Maps link with place ID or coordinates
+      if (mapsUrl.includes("google.com/maps") || mapsUrl.includes("goo.gl/maps")) {
+        // For Google Maps, append navigation mode
+        const navUrl = mapsUrl.includes("?") 
+          ? `${mapsUrl}&dir_action=navigate` 
+          : `${mapsUrl}?dir_action=navigate`;
+        window.open(navUrl, "_blank");
+        return;
+      }
+      
+      // For other map links, open directly
+      window.open(mapsUrl, "_blank");
+      return;
+    }
+    
+    // Fallback: use address to construct a navigation URL
+    if (entry.address) {
+      destination = encodeURIComponent(entry.address);
+    } else if (entry.location) {
+      destination = encodeURIComponent(entry.location);
+    }
+    
+    if (!destination) {
+      toast.error("No address available for directions");
+      return;
+    }
+    
+    // Detect platform and open appropriate maps app
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isIOS = /iphone|ipad|ipod/.test(userAgent);
+    const isAndroid = /android/.test(userAgent);
+    
+    let directionsUrl: string;
+    
+    if (isIOS) {
+      // Apple Maps with directions
+      directionsUrl = `maps://maps.apple.com/?daddr=${destination}&dirflg=d`;
+    } else if (isAndroid) {
+      // Google Maps navigation intent
+      directionsUrl = `google.navigation:q=${destination}`;
+    } else {
+      // Desktop fallback: Google Maps directions
+      directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
+    }
+    
+    window.open(directionsUrl, "_blank");
   };
 
   useEffect(() => {
@@ -567,14 +625,26 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
             {/* Actions */}
             <div className="flex flex-col gap-3">
+              {/* Directions Button - Primary Action */}
+              {selectedEntry && (selectedEntry.maps_link || selectedEntry.address) && (
+                <Button
+                  className="w-full h-12 gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => handleGetDirections(selectedEntry)}
+                >
+                  <Route className="w-5 h-5" />
+                  Get Directions
+                </Button>
+              )}
+              
               <div className="flex gap-3">
                 {selectedEntry?.maps_link && (
                   <Button
+                    variant="outline"
                     className="flex-1 h-12 gap-2"
                     onClick={() => window.open(selectedEntry.maps_link!, "_blank")}
                   >
                     <Navigation className="w-5 h-5" />
-                    Open in Maps
+                    View on Maps
                   </Button>
                 )}
                 {selectedEntry?.facebook_page && (
@@ -584,7 +654,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                     onClick={() => window.open(selectedEntry.facebook_page!, "_blank")}
                   >
                     <Facebook className="w-5 h-5" />
-                    Facebook Page
+                    Facebook
                   </Button>
                 )}
               </div>
