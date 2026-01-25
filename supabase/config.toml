@@ -20,3 +20,6 @@ verify_jwt = true
 
 [functions.send-referral-notification]
 verify_jwt = false
+
+[functions.backfill-missing-referrals]
+verify_jwt = false
