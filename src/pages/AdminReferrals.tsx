@@ -23,7 +23,19 @@ import {
   BarChart3,
   Download,
   CheckCheck,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import LoadingAnimation from "@/components/LoadingAnimation";
@@ -228,6 +240,22 @@ export default function AdminReferrals() {
     }
 
     loadReferrals();
+  };
+
+  // Delete a referral record
+  const deleteReferral = async (id: string, referredName: string) => {
+    const { error } = await supabase
+      .from("referrals")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Failed to delete referral:", error);
+      toast.error("Failed to delete referral");
+    } else {
+      toast.success(`Deleted referral for ${referredName}`);
+      loadReferrals();
+    }
   };
 
   // Filter referrals
@@ -671,19 +699,51 @@ export default function AdminReferrals() {
                             </TableCell>
                             <TableCell>{getStatusBadge(referral.status)}</TableCell>
                             <TableCell>
-                              <Select
-                                value={referral.status}
-                                onValueChange={(value) => updateStatus(referral.id, value)}
-                              >
-                                <SelectTrigger className="w-[120px] h-8">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="pending">Pending</SelectItem>
-                                  <SelectItem value="qualified">Qualified</SelectItem>
-                                  <SelectItem value="paid_out">Paid Out</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <div className="flex items-center gap-2">
+                                <Select
+                                  value={referral.status}
+                                  onValueChange={(value) => updateStatus(referral.id, value)}
+                                >
+                                  <SelectTrigger className="w-[120px] h-8">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="qualified">Qualified</SelectItem>
+                                    <SelectItem value="paid_out">Paid Out</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                
+                                <AlertDialog>
+                                  <AlertDialogTrigger asChild>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>Delete Referral Record?</AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This will permanently delete the referral record for <strong>{referral.referred_name}</strong> 
+                                        {" "}(referred by {referral.referrer_name}). This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                      <AlertDialogAction
+                                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        onClick={() => deleteReferral(referral.id, referral.referred_name || "Unknown")}
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))
