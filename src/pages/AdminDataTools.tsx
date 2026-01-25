@@ -3,12 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Users, Database } from "lucide-react";
+import { ArrowLeft, Users, Database, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import SignOutButton from "@/components/auth/SignOutButton";
 
-const ADMIN_EMAIL = "kharl16@gmail.com";
 const PERSONAL_PLAN_CODE = "personal";
 
 export default function AdminDataTools() {
@@ -17,6 +16,8 @@ export default function AdminDataTools() {
   const [result, setResult] = useState<string | null>(null);
   const [backfillRunning, setBackfillRunning] = useState(false);
   const [backfillResult, setBackfillResult] = useState<string | null>(null);
+  const [missingBackfillRunning, setMissingBackfillRunning] = useState(false);
+  const [missingBackfillResult, setMissingBackfillResult] = useState<string | null>(null);
   const hasAutoRun = useRef(false);
 
   // Auto-run the referral backfill on page load
@@ -204,6 +205,117 @@ export default function AdminDataTools() {
     }
   };
 
+  const runMissingReferralsBackfill = async () => {
+    setMissingBackfillRunning(true);
+    setMissingBackfillResult(null);
+    const logs: string[] = [];
+
+    try {
+      // Find cards with referred_by_user_id that don't have a referral record
+      const { data: cardsWithReferrer, error: cardsError } = await supabase
+        .from("cards")
+        .select("id, user_id, plan_id, referred_by_user_id, full_name, is_published, is_paid")
+        .not("referred_by_user_id", "is", null);
+
+      if (cardsError) throw cardsError;
+
+      logs.push(`Found ${cardsWithReferrer?.length || 0} cards with referred_by_user_id`);
+
+      // Get existing referrals
+      const { data: existingReferrals, error: referralsError } = await supabase
+        .from("referrals")
+        .select("referred_user_id");
+
+      if (referralsError) throw referralsError;
+
+      const existingReferredUserIds = new Set(existingReferrals?.map(r => r.referred_user_id) || []);
+
+      // Filter to cards missing referral records (also ensure plan is referral-eligible)
+      const cardsMissingReferrals = cardsWithReferrer?.filter(card => 
+        !existingReferredUserIds.has(card.user_id) && 
+        card.is_published && 
+        card.is_paid
+      ) || [];
+
+      logs.push(`Found ${cardsMissingReferrals.length} cards missing referral records`);
+
+      if (cardsMissingReferrals.length === 0) {
+        logs.push("\n✓ No missing referral records to create.");
+        setMissingBackfillResult(logs.join("\n"));
+        toast.success("No missing referrals found!");
+        return;
+      }
+
+      // Get plan info for eligibility check
+      const planIds = [...new Set(cardsMissingReferrals.filter(c => c.plan_id).map(c => c.plan_id))];
+      const { data: plans } = planIds.length > 0 
+        ? await supabase.from("card_plans").select("id, code, referral_eligible").in("id", planIds)
+        : { data: [] };
+
+      const eligiblePlanIds = new Set(
+        plans?.filter(p => p.referral_eligible && p.code?.toLowerCase() !== PERSONAL_PLAN_CODE).map(p => p.id) || []
+      );
+
+      // Get latest payments for these cards
+      const cardIds = cardsMissingReferrals.map(c => c.id);
+      const { data: payments } = await supabase
+        .from("payments")
+        .select("id, card_id")
+        .in("card_id", cardIds)
+        .order("created_at", { ascending: false });
+
+      // Create a map of card_id to latest payment_id
+      const paymentMap = new Map<string, string>();
+      payments?.forEach(p => {
+        if (!paymentMap.has(p.card_id)) {
+          paymentMap.set(p.card_id, p.id);
+        }
+      });
+
+      let createdCount = 0;
+      let skippedCount = 0;
+
+      for (const card of cardsMissingReferrals) {
+        // Skip if plan is not eligible
+        if (card.plan_id && !eligiblePlanIds.has(card.plan_id)) {
+          logs.push(`⏭ Skipped ${card.full_name}: Plan not referral-eligible`);
+          skippedCount++;
+          continue;
+        }
+
+        // Create referral record
+        const { error: insertError } = await supabase.from("referrals").insert({
+          referrer_user_id: card.referred_by_user_id,
+          referred_user_id: card.user_id,
+          referred_card_id: card.id,
+          payment_id: paymentMap.get(card.id) ?? null,
+          plan_id: card.plan_id,
+          status: "pending",
+        });
+
+        if (insertError) {
+          logs.push(`⚠ Failed to create referral for ${card.full_name}: ${insertError.message}`);
+        } else {
+          logs.push(`✓ Created referral for ${card.full_name}`);
+          createdCount++;
+        }
+      }
+
+      logs.push(`\n--- Summary ---`);
+      logs.push(`✓ Created ${createdCount} referral records`);
+      logs.push(`⏭ Skipped ${skippedCount} (ineligible plans)`);
+
+      setMissingBackfillResult(logs.join("\n"));
+      toast.success(`Created ${createdCount} missing referral records!`);
+    } catch (error: any) {
+      logs.push(`\n❌ Error: ${error.message}`);
+      setMissingBackfillResult(logs.join("\n"));
+      toast.error("Backfill failed: " + error.message);
+    } finally {
+      setMissingBackfillRunning(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/50 bg-card/30 backdrop-blur">
@@ -224,6 +336,45 @@ export default function AdminDataTools() {
       </header>
 
       <main className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
+        {/* Backfill Missing Referrals Tool */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Link2 className="h-5 w-5" />
+              Backfill Missing Referrals
+            </CardTitle>
+            <CardDescription>
+              Find cards with referred_by_user_id but no referral record and create missing entries
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg bg-muted p-4">
+              <h3 className="mb-2 font-semibold">This tool will:</h3>
+              <ul className="list-inside list-disc space-y-1 text-sm text-muted-foreground">
+                <li>Find published, paid cards that have <code>referred_by_user_id</code> set</li>
+                <li>Check if a referral record exists for that user</li>
+                <li>Create missing referral records with proper referrer attribution</li>
+                <li>Skip cards with ineligible plans (Personal)</li>
+              </ul>
+            </div>
+
+            <Button 
+              onClick={runMissingReferralsBackfill} 
+              disabled={missingBackfillRunning} 
+              size="lg" 
+              className="w-full"
+            >
+              {missingBackfillRunning ? "Finding Missing Referrals..." : "Run Missing Referrals Backfill"}
+            </Button>
+
+            {missingBackfillResult && (
+              <div className={`rounded-lg p-4 ${missingBackfillResult.includes('Error') ? 'bg-destructive/10 text-destructive' : 'bg-green-500/10 text-green-600'}`}>
+                <pre className="whitespace-pre-wrap text-sm">{missingBackfillResult}</pre>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Referral Backfill Tool */}
         <Card>
           <CardHeader>
