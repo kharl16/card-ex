@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ResourcesProvider } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
 import { DirectoryCard } from "@/components/resources/DirectoryCard";
+import { cn } from "@/lib/utils";
 
 function DirectoryPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,7 +19,7 @@ function DirectoryPageContent() {
   const { directory, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
   // Define preferred order for sites
-  const siteOrder = ["Branches", "Luzon", "Visayas", "Mindanao", "International IBCs"];
+  const siteOrder = ["Branches", "Luzon IBCs", "Visayas IBCs", "Mindanao IBCs", "International IBCs"];
 
   // Get unique sites with custom ordering
   const siteNames = useMemo(() => {
@@ -151,24 +152,36 @@ function DirectoryPageContent() {
           </div>
 
           {/* Site chips - wrapping layout */}
-          <div className="flex flex-wrap gap-2 mt-4">
-            <Badge
-              variant={selectedSite === "all" ? "default" : "outline"}
-              className="cursor-pointer px-3 py-1.5 text-sm"
-              onClick={() => setSelectedSite("all")}
-            >
-              All Sites
-            </Badge>
-            {siteNames.map((name) => (
-              <Badge
-                key={name}
-                variant={selectedSite === name ? "default" : "outline"}
-                className="cursor-pointer px-3 py-1.5 text-sm"
-                onClick={() => setSelectedSite(name)}
+          <div className="w-full max-w-full overflow-visible">
+            <div className="flex flex-wrap items-center gap-2 w-full max-w-full">
+              <button
+                type="button"
+                onClick={() => setSelectedSite("all")}
+                className={cn(
+                  "inline-flex items-center gap-2 h-11 px-4 rounded-full max-w-full min-w-0 whitespace-nowrap text-sm font-semibold transition-colors border",
+                  selectedSite === "all"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-foreground border-border hover:border-primary/50"
+                )}
               >
-                {name}
-              </Badge>
-            ))}
+                All Sites
+              </button>
+              {siteNames.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setSelectedSite(name)}
+                  className={cn(
+                    "inline-flex items-center gap-2 h-11 px-4 rounded-full max-w-full min-w-0 whitespace-nowrap text-sm font-semibold transition-colors border",
+                    selectedSite === name
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-foreground border-border hover:border-primary/50"
+                  )}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </header>
