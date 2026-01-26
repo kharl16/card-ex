@@ -251,9 +251,19 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
       setItems(data || []);
 
-      // Extract unique sites
+      // Extract unique sites with custom ordering
+      const siteOrder = ["Branches", "Luzon", "Visayas", "Mindanao", "International IBCs"];
       const uniqueSites = [...new Set((data || []).map((item) => item.sites).filter(Boolean))] as string[];
-      setSites(uniqueSites);
+      // Sort by preferred order, then alphabetically for any not in the list
+      const sortedSites = uniqueSites.sort((a, b) => {
+        const aIndex = siteOrder.indexOf(a);
+        const bIndex = siteOrder.indexOf(b);
+        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        return a.localeCompare(b);
+      });
+      setSites(sortedSites);
     } catch (err) {
       console.error("Error fetching directory:", err);
     } finally {
@@ -330,22 +340,22 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         </Button>
       )}
 
-      {/* Site Filter - horizontal scroll for badges */}
+      {/* Site Filter - wrapping layout for all tabs visible */}
       {sites.length > 0 && (
-        <div className="w-full overflow-x-auto overflow-y-hidden -mx-1 px-1">
-          <div className="flex gap-2 pb-2 min-w-min">
+        <div className="w-full max-w-full overflow-x-hidden">
+          <div className="flex flex-wrap gap-2 items-center">
             <Badge
               variant={activeSite === null ? "default" : "outline"}
               className={cn(
-                "cursor-pointer px-3 py-2 text-xs gap-1.5 flex-shrink-0",
+                "cursor-pointer px-4 py-2 text-sm gap-1.5 shrink-0 max-w-full whitespace-nowrap min-h-[44px] flex items-center",
                 activeSite === null && "bg-primary text-primary-foreground"
               )}
               onClick={() => setActiveSite(null)}
             >
-              <Building2 className="w-3.5 h-3.5" />
+              <Building2 className="w-4 h-4" />
               All Sites
               <span className={cn(
-                "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-[18px] text-center",
+                "ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold min-w-[22px] text-center",
                 activeSite === null 
                   ? "bg-primary-foreground/20 text-primary-foreground" 
                   : "bg-muted text-muted-foreground"
@@ -358,14 +368,14 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                 key={site}
                 variant={activeSite === site ? "default" : "outline"}
                 className={cn(
-                  "cursor-pointer px-3 py-2 text-xs whitespace-nowrap flex-shrink-0",
+                  "cursor-pointer px-4 py-2 text-sm shrink-0 max-w-full whitespace-nowrap min-h-[44px] flex items-center",
                   activeSite === site && "bg-primary text-primary-foreground"
                 )}
                 onClick={() => setActiveSite(site)}
               >
                 {site}
                 <span className={cn(
-                  "ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold min-w-[18px] text-center",
+                  "ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold min-w-[22px] text-center",
                   activeSite === site 
                     ? "bg-primary-foreground/20 text-primary-foreground" 
                     : "bg-muted text-muted-foreground"
