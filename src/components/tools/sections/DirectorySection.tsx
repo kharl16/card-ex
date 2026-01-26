@@ -252,7 +252,8 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       setItems(data || []);
 
       // Extract unique sites with custom ordering
-      const siteOrder = ["Branches", "Luzon", "Visayas", "Mindanao", "International IBCs"];
+      // Order: Branches, Luzon IBCs, Visayas IBCs, Mindanao IBCs, International IBCs
+      const siteOrder = ["Branches", "Luzon IBCs", "Visayas IBCs", "Mindanao IBCs", "International IBCs"];
       const uniqueSites = [...new Set((data || []).map((item) => item.sites).filter(Boolean))] as string[];
       // Sort by preferred order, then alphabetically for any not in the list
       const sortedSites = uniqueSites.sort((a, b) => {
@@ -342,48 +343,54 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
       {/* Site Filter - wrapping layout for all tabs visible */}
       {sites.length > 0 && (
-        <div className="w-full max-w-full overflow-x-hidden">
-          <div className="flex flex-wrap gap-2 items-center">
-            <Badge
-              variant={activeSite === null ? "default" : "outline"}
-              className={cn(
-                "cursor-pointer px-4 py-2 text-sm gap-1.5 shrink-0 max-w-full whitespace-nowrap min-h-[44px] flex items-center",
-                activeSite === null && "bg-primary text-primary-foreground"
-              )}
-              onClick={() => setActiveSite(null)}
-            >
-              <Building2 className="w-4 h-4" />
-              All Sites
-              <span className={cn(
-                "ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold min-w-[22px] text-center",
-                activeSite === null 
-                  ? "bg-primary-foreground/20 text-primary-foreground" 
-                  : "bg-muted text-muted-foreground"
-              )}>
-                {items.length}
-              </span>
-            </Badge>
-            {sites.map((site) => (
-              <Badge
-                key={site}
-                variant={activeSite === site ? "default" : "outline"}
+        <div className="w-full max-w-full overflow-visible">
+          <div className="w-full max-w-full">
+            <div className="flex flex-wrap items-center gap-2 w-full max-w-full">
+              <button
+                type="button"
+                onClick={() => setActiveSite(null)}
                 className={cn(
-                  "cursor-pointer px-4 py-2 text-sm shrink-0 max-w-full whitespace-nowrap min-h-[44px] flex items-center",
-                  activeSite === site && "bg-primary text-primary-foreground"
+                  "inline-flex items-center gap-2 h-11 px-4 rounded-full max-w-full min-w-0 whitespace-nowrap text-sm font-semibold transition-colors border",
+                  activeSite === null 
+                    ? "bg-primary text-primary-foreground border-primary" 
+                    : "bg-background text-foreground border-border hover:border-primary/50"
                 )}
-                onClick={() => setActiveSite(site)}
               >
-                {site}
+                <Building2 className="w-4 h-4 shrink-0" />
+                <span>All Sites</span>
                 <span className={cn(
-                  "ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold min-w-[22px] text-center",
-                  activeSite === site 
+                  "px-2 py-0.5 rounded-full text-xs font-bold min-w-[22px] text-center",
+                  activeSite === null 
                     ? "bg-primary-foreground/20 text-primary-foreground" 
                     : "bg-muted text-muted-foreground"
                 )}>
-                  {siteCounts[site] || 0}
+                  {items.length}
                 </span>
-              </Badge>
-            ))}
+              </button>
+              {sites.map((site) => (
+                <button
+                  key={site}
+                  type="button"
+                  onClick={() => setActiveSite(site)}
+                  className={cn(
+                    "inline-flex items-center gap-2 h-11 px-4 rounded-full max-w-full min-w-0 whitespace-nowrap text-sm font-semibold transition-colors border",
+                    activeSite === site 
+                      ? "bg-primary text-primary-foreground border-primary" 
+                      : "bg-background text-foreground border-border hover:border-primary/50"
+                  )}
+                >
+                  <span>{site}</span>
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-full text-xs font-bold min-w-[22px] text-center",
+                    activeSite === site 
+                      ? "bg-primary-foreground/20 text-primary-foreground" 
+                      : "bg-muted text-muted-foreground"
+                  )}>
+                    {siteCounts[site] || 0}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
