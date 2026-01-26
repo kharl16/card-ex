@@ -17,13 +17,25 @@ function DirectoryPageContent() {
 
   const { directory, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
-  // Get unique sites
+  // Define preferred order for sites
+  const siteOrder = ["Branches", "Luzon", "Visayas", "Mindanao", "International IBCs"];
+
+  // Get unique sites with custom ordering
   const siteNames = useMemo(() => {
     const names = new Set<string>();
     directory.forEach((d) => {
       if (d.sites) names.add(d.sites);
     });
-    return Array.from(names).sort();
+    const allSites = Array.from(names);
+    // Sort by preferred order, then alphabetically for any not in the list
+    return allSites.sort((a, b) => {
+      const aIndex = siteOrder.indexOf(a);
+      const bIndex = siteOrder.indexOf(b);
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+      return a.localeCompare(b);
+    });
   }, [directory]);
 
   // Filtered and sorted
@@ -138,20 +150,20 @@ function DirectoryPageContent() {
             )}
           </div>
 
-          {/* Site chips */}
+          {/* Site chips - wrapping layout */}
           <div className="flex flex-wrap gap-2 mt-4">
             <Badge
               variant={selectedSite === "all" ? "default" : "outline"}
-              className="cursor-pointer"
+              className="cursor-pointer px-3 py-1.5 text-sm"
               onClick={() => setSelectedSite("all")}
             >
-              All
+              All Sites
             </Badge>
             {siteNames.map((name) => (
               <Badge
                 key={name}
                 variant={selectedSite === name ? "default" : "outline"}
-                className="cursor-pointer"
+                className="cursor-pointer px-3 py-1.5 text-sm"
                 onClick={() => setSelectedSite(name)}
               >
                 {name}
