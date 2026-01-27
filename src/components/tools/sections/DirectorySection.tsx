@@ -113,8 +113,18 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sites, setSites] = useState<string[]>([]);
-  const [activeSite, setActiveSite] = useState<string | null>(null);
+
+  type TabId = "all" | "branches" | "luzon" | "visayas" | "mindanao" | "intl";
+  const TABS: Array<{ id: TabId; label: string; prefix?: string }> = [
+    { id: "all", label: "All Sites" },
+    { id: "branches", label: "Branches", prefix: "Branches" },
+    { id: "luzon", label: "Luzon IBCs", prefix: "Luzon IBCs" },
+    { id: "visayas", label: "Visayas IBCs", prefix: "Visayas IBCs" },
+    { id: "mindanao", label: "Mindanao IBCs", prefix: "Mindanao IBCs" },
+    { id: "intl", label: "International IBCs", prefix: "International IBCs" },
+  ];
+
+  const [activeTab, setActiveTab] = useState<TabId>("all");
   const [selectedEntry, setSelectedEntry] = useState<DirectoryEntry | null>(null);
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DirectoryEntry | null>(null);
@@ -250,28 +260,6 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       if (error) throw error;
 
       setItems(data || []);
-
-      // Extract unique sites with custom ordering
-      // Order: Branches, Luzon IBCs, Visayas IBCs, Mindanao IBCs, International IBCs
-      const siteOrder = ["Branches", "Luzon IBCs", "Visayas IBCs", "Mindanao IBCs", "International IBCs"];
-      const uniqueSites = [...new Set((data || []).map((item) => item.sites).filter(Boolean))] as string[];
-      
-      // Helper to find order index by checking if site name STARTS with any of the preferred order items
-      const getOrderIndex = (site: string): number => {
-        for (let i = 0; i < siteOrder.length; i++) {
-          if (site.startsWith(siteOrder[i])) return i;
-        }
-        return siteOrder.length; // Put unmatched at end
-      };
-      
-      // Sort by preferred order, then alphabetically for any not in the list
-      const sortedSites = uniqueSites.sort((a, b) => {
-        const aIndex = getOrderIndex(a);
-        const bIndex = getOrderIndex(b);
-        if (aIndex !== bIndex) return aIndex - bIndex;
-        return a.localeCompare(b);
-      });
-      setSites(sortedSites);
     } catch (err) {
       console.error("Error fetching directory:", err);
     } finally {
@@ -279,14 +267,26 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     }
   };
 
-  // Calculate branch counts per site
-  const siteCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
+  const tabCounts = useMemo(() => {
+    const counts: Record<TabId, number> = {
+      all: items.length,
+      branches: 0,
+      luzon: 0,
+      visayas: 0,
+      mindanao: 0,
+      intl: 0,
+    };
+
     items.forEach((item) => {
-      if (item.sites) {
-        counts[item.sites] = (counts[item.sites] || 0) + 1;
-      }
+      const s = item.sites?.trim();
+      if (!s) return;
+      if (s.startsWith("Branches")) counts.branches += 1;
+      else if (s.startsWith("Luzon IBCs")) counts.luzon += 1;
+      else if (s.startsWith("Visayas IBCs")) counts.visayas += 1;
+      else if (s.startsWith("Mindanao IBCs")) counts.mindanao += 1;
+      else if (s.startsWith("International IBCs")) counts.intl += 1;
     });
+
     return counts;
   }, [items]);
 
@@ -298,7 +298,10 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       item.owner?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.sites?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesSite = !activeSite || item.sites === activeSite;
+    const tab = TABS.find((t) => t.id === activeTab);
+    const matchesSite =
+      tab?.id === "all" ||
+      (!!tab?.prefix && (item.sites || "").trim().startsWith(tab.prefix));
 
     return matchesSearch && matchesSite;
   });
@@ -349,58 +352,38 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       )}
 
       {/* Site Filter - wrapping layout for all tabs visible */}
-      {sites.length > 0 && (
-        <div className="w-full max-w-full overflow-visible">
-          <div className="w-full max-w-full">
-            <div className="flex flex-wrap items-center gap-2 w-full max-w-full">
+      <div className="w-full max-w-full overflow-x-hidden">
+        <div className="w-full max-w-full">
+          <div className="flex flex-wrap items-center gap-2 w-full max-w-full">
+            {TABS.map((tab) => (
               <button
+                key={tab.id}
                 type="button"
-                onClick={() => setActiveSite(null)}
+                onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "inline-flex items-center gap-2 h-11 px-4 rounded-full max-w-full min-w-0 whitespace-nowrap text-sm font-semibold transition-colors border",
-                  activeSite === null 
-                    ? "bg-primary text-primary-foreground border-primary" 
+                  "inline-flex items-center gap-2 shrink-0 h-11 px-4 rounded-full max-w-full min-w-0 whitespace-nowrap text-sm font-semibold transition-colors border",
+                  activeTab === tab.id
+                    ? "bg-primary text-primary-foreground border-primary"
                     : "bg-background text-foreground border-border hover:border-primary/50"
                 )}
               >
-                <Building2 className="w-4 h-4 shrink-0" />
-                <span>All Sites</span>
-                <span className={cn(
-                  "px-2 py-0.5 rounded-full text-xs font-bold min-w-[22px] text-center",
-                  activeSite === null 
-                    ? "bg-primary-foreground/20 text-primary-foreground" 
-                    : "bg-muted text-muted-foreground"
-                )}>
-                  {items.length}
-                </span>
-              </button>
-              {sites.map((site) => (
-                <button
-                  key={site}
-                  type="button"
-                  onClick={() => setActiveSite(site)}
+                {tab.id === "all" && <Building2 className="w-4 h-4 shrink-0" />}
+                <span>{tab.label}</span>
+                <span
                   className={cn(
-                    "inline-flex items-center gap-2 h-11 px-4 rounded-full max-w-full min-w-0 whitespace-nowrap text-sm font-semibold transition-colors border",
-                    activeSite === site 
-                      ? "bg-primary text-primary-foreground border-primary" 
-                      : "bg-background text-foreground border-border hover:border-primary/50"
+                    "px-2 py-0.5 rounded-full text-xs font-bold text-center",
+                    activeTab === tab.id
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-secondary text-secondary-foreground"
                   )}
                 >
-                  <span>{site}</span>
-                  <span className={cn(
-                    "px-2 py-0.5 rounded-full text-xs font-bold min-w-[22px] text-center",
-                    activeSite === site 
-                      ? "bg-primary-foreground/20 text-primary-foreground" 
-                      : "bg-muted text-muted-foreground"
-                  )}>
-                    {siteCounts[site] || 0}
-                  </span>
-                </button>
-              ))}
-            </div>
+                  {tabCounts[tab.id]}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Directory Cards */}
       <div className="grid gap-4 w-full">
@@ -543,7 +526,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
               <li>• Check your spelling</li>
               <li>• Try a shorter search term</li>
               <li>• Search by city or area name</li>
-              {activeSite && <li>• Clear the site filter</li>}
+              {activeTab !== "all" && <li>• Clear the site filter</li>}
             </ul>
           </div>
 
@@ -560,12 +543,12 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                 Clear search
               </Button>
             )}
-            {activeSite && (
+            {activeTab !== "all" && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full gap-2 text-muted-foreground"
-                onClick={() => setActiveSite(null)}
+                onClick={() => setActiveTab("all")}
               >
                 <Building2 className="w-4 h-4" />
                 Show all sites
