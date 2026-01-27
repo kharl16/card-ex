@@ -1,12 +1,56 @@
-import { useState, useEffect, useMemo, ReactNode } from "react";
+import { useState, useEffect, useMemo, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, UserPlus, Route } from "lucide-react";
+import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, UserPlus, Route, Locate, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
+
+// Haversine formula to calculate distance between two lat/lng points in km
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Extract coordinates from a Google Maps URL
+function extractCoordsFromUrl(url: string | null): { lat: number; lng: number } | null {
+  if (!url) return null;
+  
+  try {
+    // Match patterns like @14.5995,120.9842 or ?ll=14.5995,120.9842 or /place/14.5995,120.9842
+    const patterns = [
+      /@(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+      /[?&]ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+      /\/place\/(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+      /[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
+      /!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/,
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        const lat = parseFloat(match[1]);
+        const lng = parseFloat(match[2]);
+        if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+          return { lat, lng };
+        }
+      }
+    }
+  } catch {
+    // Ignore parsing errors
+  }
+  
+  return null;
+}
 
 // Generate vCard for a directory entry
 function generateDirectoryVCard(entry: DirectoryEntry): string {
@@ -104,6 +148,10 @@ interface DirectoryEntry {
   is_active: boolean;
 }
 
+interface DirectoryEntryWithDistance extends DirectoryEntry {
+  distance?: number;
+}
+
 interface DirectorySectionProps {
   searchQuery: string;
   onClearSearch?: () => void;
@@ -129,6 +177,12 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DirectoryEntry | null>(null);
   const [copied, setCopied] = useState(false);
+  
+  // Geolocation state
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [sortByNearest, setSortByNearest] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
   const handleShareBranch = async (entry: DirectoryEntry) => {
     const shareTitle = entry.location || "Branch Details";
@@ -245,6 +299,55 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     window.open(directionsUrl, "_blank");
   };
 
+  // Handle geolocation request
+  const handleSortByNearest = useCallback(() => {
+    if (sortByNearest) {
+      // Turn off sorting
+      setSortByNearest(false);
+      setUserLocation(null);
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setGeoError("Geolocation is not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setGeoLoading(true);
+    setGeoError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+        setSortByNearest(true);
+        setGeoLoading(false);
+        toast.success("Sorting by nearest location");
+      },
+      (error) => {
+        setGeoLoading(false);
+        let message = "Unable to get your location";
+        if (error.code === error.PERMISSION_DENIED) {
+          message = "Location permission denied. Please enable location access in your browser settings.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          message = "Location information is unavailable";
+        } else if (error.code === error.TIMEOUT) {
+          message = "Location request timed out";
+        }
+        setGeoError(message);
+        toast.error(message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000, // Cache for 1 minute
+      }
+    );
+  }, [sortByNearest]);
+
   useEffect(() => {
     fetchItems();
   }, []);
@@ -290,21 +393,57 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     return counts;
   }, [items]);
 
-  const filteredItems = items.filter((item) => {
-    const matchesSearch =
-      !searchQuery ||
-      item.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.owner?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.sites?.toLowerCase().includes(searchQuery.toLowerCase());
+  // Filter and sort items
+  const filteredItems = useMemo(() => {
+    let result = items.filter((item) => {
+      const matchesSearch =
+        !searchQuery ||
+        item.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.owner?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.sites?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const tab = TABS.find((t) => t.id === activeTab);
-    const matchesSite =
-      tab?.id === "all" ||
-      (!!tab?.prefix && (item.sites || "").trim().startsWith(tab.prefix));
+      const tab = TABS.find((t) => t.id === activeTab);
+      const matchesSite =
+        tab?.id === "all" ||
+        (!!tab?.prefix && (item.sites || "").trim().startsWith(tab.prefix));
 
-    return matchesSearch && matchesSite;
-  });
+      return matchesSearch && matchesSite;
+    });
+
+    // Sort by distance if enabled and user location is available
+    if (sortByNearest && userLocation) {
+      const itemsWithDistance: DirectoryEntryWithDistance[] = result.map((item) => {
+        const coords = extractCoordsFromUrl(item.maps_link);
+        let distance: number | undefined;
+        
+        if (coords) {
+          distance = calculateDistance(
+            userLocation.lat,
+            userLocation.lng,
+            coords.lat,
+            coords.lng
+          );
+        }
+        
+        return { ...item, distance };
+      });
+
+      // Sort: items with distance first (ascending), then items without distance
+      itemsWithDistance.sort((a, b) => {
+        if (a.distance !== undefined && b.distance !== undefined) {
+          return a.distance - b.distance;
+        }
+        if (a.distance !== undefined) return -1;
+        if (b.distance !== undefined) return 1;
+        return 0;
+      });
+
+      return itemsWithDistance;
+    }
+
+    return result;
+  }, [items, searchQuery, activeTab, sortByNearest, userLocation, TABS]);
 
   if (loading) {
     return <ToolsSkeleton type="list" count={4} />;
@@ -385,9 +524,42 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         </div>
       </div>
 
+      {/* Sort by Nearest Button */}
+      <Button
+        variant={sortByNearest ? "default" : "outline"}
+        size="sm"
+        className={cn(
+          "w-full gap-2 h-11",
+          sortByNearest && "bg-primary text-primary-foreground"
+        )}
+        onClick={handleSortByNearest}
+        disabled={geoLoading}
+      >
+        {geoLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Getting your location...
+          </>
+        ) : sortByNearest ? (
+          <>
+            <Locate className="w-4 h-4" />
+            Sorting by nearest • Tap to reset
+          </>
+        ) : (
+          <>
+            <Locate className="w-4 h-4" />
+            Sort by nearest
+          </>
+        )}
+      </Button>
+
       {/* Directory Cards */}
       <div className="grid gap-4 w-full">
-        {filteredItems.map((item) => (
+        {filteredItems.map((item) => {
+          const itemWithDistance = item as DirectoryEntryWithDistance;
+          const hasDistance = sortByNearest && itemWithDistance.distance !== undefined;
+          
+          return (
           <div
             key={item.id}
             className={cn(
@@ -422,19 +594,35 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
               {/* Info */}
               <div className="flex-1 min-w-0 space-y-1">
-                <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight truncate pr-8">
-                  {highlightText(item.location, searchQuery) || "Unknown Location"}
-                </h4>
+                <div className="flex items-start gap-2 pr-8">
+                  <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight truncate">
+                    {highlightText(item.location, searchQuery) || "Unknown Location"}
+                  </h4>
+                  {hasDistance && (
+                    <Badge variant="outline" className="shrink-0 text-xs bg-primary/10 text-primary border-primary/30">
+                      {itemWithDistance.distance! < 1 
+                        ? `${Math.round(itemWithDistance.distance! * 1000)}m` 
+                        : `${itemWithDistance.distance!.toFixed(1)}km`}
+                    </Badge>
+                  )}
+                </div>
                 {item.address && (
                   <p className="text-xs text-muted-foreground truncate">
                     {highlightText(item.address, searchQuery)}
                   </p>
                 )}
-                {item.sites && (
-                  <Badge variant="secondary" className="text-xs">
-                    {item.sites}
-                  </Badge>
-                )}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {item.sites && (
+                    <Badge variant="secondary" className="text-xs">
+                      {item.sites}
+                    </Badge>
+                  )}
+                  {sortByNearest && itemWithDistance.distance === undefined && (
+                    <Badge variant="outline" className="text-xs text-muted-foreground">
+                      No coordinates
+                    </Badge>
+                  )}
+                </div>
                 {item.operating_hours && (
                   <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                     <Clock className="w-3.5 h-3.5 flex-shrink-0" />
@@ -490,7 +678,8 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
               </Button>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredItems.length === 0 && (
