@@ -255,13 +255,20 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       // Order: Branches, Luzon IBCs, Visayas IBCs, Mindanao IBCs, International IBCs
       const siteOrder = ["Branches", "Luzon IBCs", "Visayas IBCs", "Mindanao IBCs", "International IBCs"];
       const uniqueSites = [...new Set((data || []).map((item) => item.sites).filter(Boolean))] as string[];
+      
+      // Helper to find order index by checking if site name STARTS with any of the preferred order items
+      const getOrderIndex = (site: string): number => {
+        for (let i = 0; i < siteOrder.length; i++) {
+          if (site.startsWith(siteOrder[i])) return i;
+        }
+        return siteOrder.length; // Put unmatched at end
+      };
+      
       // Sort by preferred order, then alphabetically for any not in the list
       const sortedSites = uniqueSites.sort((a, b) => {
-        const aIndex = siteOrder.indexOf(a);
-        const bIndex = siteOrder.indexOf(b);
-        if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-        if (aIndex !== -1) return -1;
-        if (bIndex !== -1) return 1;
+        const aIndex = getOrderIndex(a);
+        const bIndex = getOrderIndex(b);
+        if (aIndex !== bIndex) return aIndex - bIndex;
         return a.localeCompare(b);
       });
       setSites(sortedSites);
