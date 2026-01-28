@@ -7,6 +7,7 @@ import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X,
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
+import DirectoryCategoryChips from "./DirectoryCategoryChips";
 
 // Haversine formula to calculate distance between two lat/lng points in km
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -162,14 +163,14 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   const [items, setItems] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  type TabId = "all" | "branches" | "luzon" | "visayas" | "mindanao" | "intl";
+  type TabId = "all" | "branches" | "luzon" | "visayas" | "mindanao" | "international";
   const TABS: Array<{ id: TabId; label: string; prefix?: string }> = [
     { id: "all", label: "All Sites" },
     { id: "branches", label: "Branches", prefix: "Branches" },
     { id: "luzon", label: "Luzon IBCs", prefix: "Luzon IBCs" },
     { id: "visayas", label: "Visayas IBCs", prefix: "Visayas IBCs" },
     { id: "mindanao", label: "Mindanao IBCs", prefix: "Mindanao IBCs" },
-    { id: "intl", label: "International IBCs", prefix: "International IBCs" },
+    { id: "international", label: "International IBCs", prefix: "International IBCs" },
   ];
 
   const [activeTab, setActiveTab] = useState<TabId>("all");
@@ -377,7 +378,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       luzon: 0,
       visayas: 0,
       mindanao: 0,
-      intl: 0,
+      international: 0,
     };
 
     items.forEach((item) => {
@@ -387,7 +388,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       else if (s.startsWith("Luzon IBCs")) counts.luzon += 1;
       else if (s.startsWith("Visayas IBCs")) counts.visayas += 1;
       else if (s.startsWith("Mindanao IBCs")) counts.mindanao += 1;
-      else if (s.startsWith("International IBCs")) counts.intl += 1;
+      else if (s.startsWith("International IBCs")) counts.international += 1;
     });
 
     return counts;
@@ -471,9 +472,9 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     <div className="space-y-4 w-full max-w-full overflow-x-hidden">
       {/* Admin Add Button */}
       {isAdmin && (
-        <Button onClick={handleAdd} className="w-full gap-2">
+        <Button onClick={handleAdd} className="w-full max-w-full gap-2 overflow-hidden">
           <Plus className="w-4 h-4" />
-          Add Directory Entry
+          <span className="truncate">Add Directory Entry</span>
         </Button>
       )}
 
@@ -490,39 +491,17 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         </Button>
       )}
 
-      {/* Site Filter - wrapping layout for all tabs visible */}
-      <div className="w-full max-w-full overflow-x-hidden">
-        <div className="w-full max-w-full">
-          <div className="flex flex-wrap items-center gap-2 w-full max-w-full">
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={cn(
-                  "inline-flex items-center gap-2 shrink-0 h-11 px-4 rounded-full max-w-full min-w-0 whitespace-nowrap text-sm font-semibold transition-colors border",
-                  activeTab === tab.id
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background text-foreground border-border hover:border-primary/50"
-                )}
-              >
-                {tab.id === "all" && <Building2 className="w-4 h-4 shrink-0" />}
-                <span>{tab.label}</span>
-                <span
-                  className={cn(
-                    "px-2 py-0.5 rounded-full text-xs font-bold text-center",
-                    activeTab === tab.id
-                      ? "bg-primary-foreground/20 text-primary-foreground"
-                      : "bg-secondary text-secondary-foreground"
-                  )}
-                >
-                  {tabCounts[tab.id]}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Site Filter - grid layout to guarantee all 6 categories are visible */}
+      <DirectoryCategoryChips
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as TabId)}
+        categories={TABS.map((tab) => ({
+          id: tab.id,
+          label: tab.label,
+          count: tabCounts[tab.id],
+          icon: tab.id === "all" ? <Building2 className="w-4 h-4" /> : undefined,
+        }))}
+      />
 
       {/* Sort by Nearest Button */}
       <Button
