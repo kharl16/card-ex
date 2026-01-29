@@ -1,14 +1,16 @@
-import { useState, useEffect, useMemo, ReactNode, useCallback } from "react";
+import { useState, useEffect, useMemo, ReactNode, useCallback, lazy, Suspense } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, UserPlus, Route, Locate, Loader2 } from "lucide-react";
+import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, UserPlus, Route, Locate, Loader2, List, Map } from "lucide-react";
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import DirectoryCategoryChips from "./DirectoryCategoryChips";
 
+// Lazy load the map component to reduce initial bundle size
+const DirectoryMapView = lazy(() => import("./DirectoryMapView"));
 // Haversine formula to calculate distance between two lat/lng points in km
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in km
@@ -178,6 +180,9 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DirectoryEntry | null>(null);
   const [copied, setCopied] = useState(false);
+  
+  // View mode: list or map
+  const [viewMode, setViewMode] = useState<"list" | "map">("list");
   
   // Geolocation state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -503,165 +508,217 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         }))}
       />
 
-      {/* Sort by Nearest Button */}
-      <Button
-        variant={sortByNearest ? "default" : "outline"}
-        size="sm"
-        className={cn(
-          "w-full gap-2 h-11",
-          sortByNearest && "bg-primary text-primary-foreground"
-        )}
-        onClick={handleSortByNearest}
-        disabled={geoLoading}
-      >
-        {geoLoading ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Getting your location...
-          </>
-        ) : sortByNearest ? (
-          <>
-            <Locate className="w-4 h-4" />
-            Sorting by nearest • Tap to reset
-          </>
-        ) : (
-          <>
-            <Locate className="w-4 h-4" />
-            Sort by nearest
-          </>
-        )}
-      </Button>
-
-      {/* Directory Cards */}
-      <div className="grid gap-4 w-full">
-        {filteredItems.map((item) => {
-          const itemWithDistance = item as DirectoryEntryWithDistance;
-          const hasDistance = sortByNearest && itemWithDistance.distance !== undefined;
-          
-          return (
-          <div
-            key={item.id}
+      {/* View Mode Toggle + Sort by Nearest */}
+      <div className="flex gap-2">
+        {/* List/Map Toggle */}
+        <div className="flex rounded-lg border border-border overflow-hidden">
+          <Button
+            variant={viewMode === "list" ? "default" : "ghost"}
+            size="sm"
             className={cn(
-              "p-3 sm:p-4 rounded-2xl relative w-full",
-              "bg-card border border-border/50 shadow-sm",
-              "hover:shadow-md hover:border-primary/30 transition-all"
+              "h-11 px-4 gap-2 rounded-none",
+              viewMode === "list" && "bg-primary text-primary-foreground"
             )}
+            onClick={() => setViewMode("list")}
           >
-            {/* Admin Edit Button */}
-            {isAdmin && (
-              <Button
-                variant="secondary"
-                size="icon"
-                className="absolute top-2 right-2 h-8 w-8"
-                onClick={() => handleEdit(item)}
-              >
-                <Pencil className="w-4 h-4" />
-              </Button>
+            <List className="w-4 h-4" />
+            <span className="hidden sm:inline">List</span>
+          </Button>
+          <Button
+            variant={viewMode === "map" ? "default" : "ghost"}
+            size="sm"
+            className={cn(
+              "h-11 px-4 gap-2 rounded-none border-l border-border",
+              viewMode === "map" && "bg-primary text-primary-foreground"
             )}
+            onClick={() => setViewMode("map")}
+          >
+            <Map className="w-4 h-4" />
+            <span className="hidden sm:inline">Map</span>
+          </Button>
+        </div>
 
-            <div className="flex gap-3 sm:gap-4">
-              {/* Icon */}
-              <div
-                className={cn(
-                  "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 flex items-center justify-center",
-                  "bg-gradient-to-br from-primary/20 to-primary/5",
-                  "border border-primary/20"
-                )}
-              >
-                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-start gap-2 pr-8">
-                  <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight truncate">
-                    {highlightText(item.location, searchQuery) || "Unknown Location"}
-                  </h4>
-                  {hasDistance && (
-                    <Badge variant="outline" className="shrink-0 text-xs bg-primary/10 text-primary border-primary/30">
-                      {itemWithDistance.distance! < 1 
-                        ? `${Math.round(itemWithDistance.distance! * 1000)}m` 
-                        : `${itemWithDistance.distance!.toFixed(1)}km`}
-                    </Badge>
-                  )}
-                </div>
-                {item.address && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {highlightText(item.address, searchQuery)}
-                  </p>
-                )}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {item.sites && (
-                    <Badge variant="secondary" className="text-xs">
-                      {item.sites}
-                    </Badge>
-                  )}
-                  {sortByNearest && itemWithDistance.distance === undefined && (
-                    <Badge variant="outline" className="text-xs text-muted-foreground">
-                      No coordinates
-                    </Badge>
-                  )}
-                </div>
-                {item.operating_hours && (
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                    <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="truncate">{item.operating_hours}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Actions - Grid layout for consistent button sizing */}
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-3 sm:mt-4">
-              {item.phone_1 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                  onClick={() => window.open(`tel:${item.phone_1}`, "_self")}
-                >
-                  <Phone className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden xxs:inline">Call</span>
-                </Button>
-              )}
-              {item.maps_link && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                  onClick={() => window.open(item.maps_link!, "_blank")}
-                >
-                  <Navigation className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden xxs:inline">Maps</span>
-                </Button>
-              )}
-              {item.facebook_page && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                  onClick={() => window.open(item.facebook_page!, "_blank")}
-                >
-                  <Facebook className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden xxs:inline">FB</span>
-                </Button>
-              )}
-              <Button
-                variant="default"
-                size="sm"
-                className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center bg-primary text-primary-foreground hover:bg-primary/90"
-                onClick={() => setSelectedEntry(item)}
-              >
-                <Eye className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden xxs:inline">View</span>
-              </Button>
-            </div>
-          </div>
-          );
-        })}
+        {/* Sort by Nearest Button */}
+        <Button
+          variant={sortByNearest ? "default" : "outline"}
+          size="sm"
+          className={cn(
+            "flex-1 gap-2 h-11",
+            sortByNearest && "bg-primary text-primary-foreground"
+          )}
+          onClick={handleSortByNearest}
+          disabled={geoLoading}
+        >
+          {geoLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="hidden sm:inline">Getting location...</span>
+            </>
+          ) : sortByNearest ? (
+            <>
+              <Locate className="w-4 h-4" />
+              <span className="truncate">Nearest • Reset</span>
+            </>
+          ) : (
+            <>
+              <Locate className="w-4 h-4" />
+              <span className="truncate">Sort by nearest</span>
+            </>
+          )}
+        </Button>
       </div>
 
-      {filteredItems.length === 0 && (
+      {/* Map View */}
+      {viewMode === "map" && (
+        <Suspense fallback={
+          <div className="w-full h-[60vh] min-h-[400px] rounded-xl border border-border bg-muted/50 flex items-center justify-center">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Loading map...</p>
+            </div>
+          </div>
+        }>
+          <DirectoryMapView
+            items={filteredItems}
+            userLocation={userLocation}
+            onSelectEntry={setSelectedEntry}
+            extractCoordsFromUrl={extractCoordsFromUrl}
+          />
+        </Suspense>
+      )}
+
+      {/* Directory Cards (List View) */}
+      {viewMode === "list" && (
+        <div className="grid gap-4 w-full">
+          {filteredItems.map((item) => {
+            const itemWithDistance = item as DirectoryEntryWithDistance;
+            const hasDistance = sortByNearest && itemWithDistance.distance !== undefined;
+            
+            return (
+            <div
+              key={item.id}
+              className={cn(
+                "p-3 sm:p-4 rounded-2xl relative w-full",
+                "bg-card border border-border/50 shadow-sm",
+                "hover:shadow-md hover:border-primary/30 transition-all"
+              )}
+            >
+              {/* Admin Edit Button */}
+              {isAdmin && (
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8"
+                  onClick={() => handleEdit(item)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
+
+              <div className="flex gap-3 sm:gap-4">
+                {/* Icon */}
+                <div
+                  className={cn(
+                    "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 flex items-center justify-center",
+                    "bg-gradient-to-br from-primary/20 to-primary/5",
+                    "border border-primary/20"
+                  )}
+                >
+                  <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="flex items-start gap-2 pr-8">
+                    <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight truncate">
+                      {highlightText(item.location, searchQuery) || "Unknown Location"}
+                    </h4>
+                    {hasDistance && (
+                      <Badge variant="outline" className="shrink-0 text-xs bg-primary/10 text-primary border-primary/30">
+                        {itemWithDistance.distance! < 1 
+                          ? `${Math.round(itemWithDistance.distance! * 1000)}m` 
+                          : `${itemWithDistance.distance!.toFixed(1)}km`}
+                      </Badge>
+                    )}
+                  </div>
+                  {item.address && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {highlightText(item.address, searchQuery)}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {item.sites && (
+                      <Badge variant="secondary" className="text-xs">
+                        {item.sites}
+                      </Badge>
+                    )}
+                    {sortByNearest && itemWithDistance.distance === undefined && (
+                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                        No coordinates
+                      </Badge>
+                    )}
+                  </div>
+                  {item.operating_hours && (
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate">{item.operating_hours}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions - Grid layout for consistent button sizing */}
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-3 sm:mt-4">
+                {item.phone_1 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                    onClick={() => window.open(`tel:${item.phone_1}`, "_self")}
+                  >
+                    <Phone className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden xxs:inline">Call</span>
+                  </Button>
+                )}
+                {item.maps_link && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                    onClick={() => window.open(item.maps_link!, "_blank")}
+                  >
+                    <Navigation className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden xxs:inline">Maps</span>
+                  </Button>
+                )}
+                {item.facebook_page && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                    onClick={() => window.open(item.facebook_page!, "_blank")}
+                  >
+                    <Facebook className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden xxs:inline">FB</span>
+                  </Button>
+                )}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => setSelectedEntry(item)}
+                >
+                  <Eye className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden xxs:inline">View</span>
+                </Button>
+              </div>
+            </div>
+            );
+          })}
+        </div>
+      )}
+
+      {filteredItems.length === 0 && viewMode === "list" && (
         <div className="text-center py-12 px-4 animate-fade-in">
           {/* Illustration */}
           <div className="relative w-24 h-24 mx-auto mb-6">
