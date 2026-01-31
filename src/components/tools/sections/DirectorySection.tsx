@@ -169,10 +169,10 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   const TABS: Array<{ id: TabId; label: string; prefix?: string }> = [
     { id: "all", label: "All Sites" },
     { id: "branches", label: "Branches", prefix: "Branches" },
-    { id: "luzon", label: "Luzon IBCs", prefix: "Luzon IBCs" },
-    { id: "visayas", label: "Visayas IBCs", prefix: "Visayas IBCs" },
-    { id: "mindanao", label: "Mindanao IBCs", prefix: "Mindanao IBCs" },
-    { id: "international", label: "International IBCs", prefix: "International IBCs" },
+    { id: "luzon", label: "Luzon", prefix: "Luzon" },
+    { id: "visayas", label: "Visayas", prefix: "Visayas" },
+    { id: "mindanao", label: "Mindanao", prefix: "Mindanao" },
+    { id: "international", label: "International", prefix: "International" },
   ];
 
   const [activeTab, setActiveTab] = useState<TabId>("all");
@@ -389,11 +389,11 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     items.forEach((item) => {
       const s = item.sites?.trim();
       if (!s) return;
-      if (s.startsWith("Branches")) counts.branches += 1;
-      else if (s.startsWith("Luzon IBCs")) counts.luzon += 1;
-      else if (s.startsWith("Visayas IBCs")) counts.visayas += 1;
-      else if (s.startsWith("Mindanao IBCs")) counts.mindanao += 1;
-      else if (s.startsWith("International IBCs")) counts.international += 1;
+      if (s === "Branches") counts.branches += 1;
+      else if (s === "Luzon") counts.luzon += 1;
+      else if (s === "Visayas") counts.visayas += 1;
+      else if (s === "Mindanao") counts.mindanao += 1;
+      else if (s === "International") counts.international += 1;
     });
 
     return counts;

@@ -19,7 +19,7 @@ function DirectoryPageContent() {
   const { directory, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
   // Define preferred order for sites
-  const siteOrder = ["Branches", "Luzon IBCs", "Visayas IBCs", "Mindanao IBCs", "International IBCs"];
+  const siteOrder = ["Branches", "Luzon", "Visayas", "Mindanao", "International"];
 
   // Get unique sites with custom ordering
   const siteNames = useMemo(() => {
