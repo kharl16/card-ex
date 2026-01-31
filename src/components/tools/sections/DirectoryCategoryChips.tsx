@@ -18,8 +18,8 @@ type Props = {
 export default function DirectoryCategoryChips({ categories, activeId, onChange }: Props) {
   return (
     <div className="w-full max-w-full overflow-x-hidden">
-      {/* Mobile: 1 column, Tablet: 2 columns, Desktop: 3 columns */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 w-full">
+      {/* Fixed 2-column, 3-row layout for all screen sizes */}
+      <div className="grid grid-cols-2 gap-2 w-full">
         {categories.map((cat) => {
           const active = activeId === cat.id;
           return (
