@@ -166,6 +166,9 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   const [loading, setLoading] = useState(true);
 
   type TabId = "all" | "branches" | "luzon" | "visayas" | "mindanao" | "international";
+
+  // Arranged for 2-column, 3-row grid:
+  // Col1: All Sites, Luzon, Mindanao | Col2: Branches, Visayas, International
   const TABS: Array<{ id: TabId; label: string; prefix?: string }> = [
     { id: "all", label: "All Sites" },
     { id: "branches", label: "Branches", prefix: "Branches" },
