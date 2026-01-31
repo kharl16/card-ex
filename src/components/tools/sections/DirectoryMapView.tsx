@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -20,33 +20,15 @@ const fixLeafletIcons = () => {
   }
 };
 
-// Initialize on module load
-fixLeafletIcons();
+// IMPORTANT: Avoid side effects at module import time.
+// We call fixLeafletIcons() inside the component (useEffect) instead.
 
-// Custom gold marker icon
-const goldIcon = new L.Icon({
-  iconUrl: "data:image/svg+xml;base64," + btoa(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36">
-      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24c0-6.6-5.4-12-12-12z" fill="#D4AF37"/>
-      <circle cx="12" cy="12" r="5" fill="#0B0B0C"/>
-    </svg>
-  `),
-  iconSize: [24, 36],
-  iconAnchor: [12, 36],
-  popupAnchor: [0, -36],
-});
-
-// User location marker
-const userIcon = new L.Icon({
-  iconUrl: "data:image/svg+xml;base64," + btoa(`
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-      <circle cx="12" cy="12" r="10" fill="#3B82F6" stroke="white" stroke-width="3"/>
-      <circle cx="12" cy="12" r="4" fill="white"/>
-    </svg>
-  `),
-  iconSize: [24, 24],
-  iconAnchor: [12, 12],
-});
+function svgToDataUrl(svg: string) {
+  // Avoid btoa(): it can be unavailable / polyfilled differently in some environments.
+  // URI-encoding SVG is broadly safe for browsers.
+  const encoded = encodeURIComponent(svg).replace(/%0A/g, "");
+  return `data:image/svg+xml;charset=UTF-8,${encoded}`;
+}
 
 interface DirectoryEntry {
   id: number;
@@ -105,6 +87,40 @@ export default function DirectoryMapView({
 }: DirectoryMapViewProps) {
   const [selectedMarker, setSelectedMarker] = useState<DirectoryEntry | null>(null);
 
+  useEffect(() => {
+    fixLeafletIcons();
+  }, []);
+
+  const icons = useMemo(() => {
+    const goldSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36">
+        <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 24 12 24s12-15 12-24c0-6.6-5.4-12-12-12z" fill="#D4AF37"/>
+        <circle cx="12" cy="12" r="5" fill="#0B0B0C"/>
+      </svg>
+    `.trim();
+
+    const userSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+        <circle cx="12" cy="12" r="10" fill="#3B82F6" stroke="white" stroke-width="3"/>
+        <circle cx="12" cy="12" r="4" fill="white"/>
+      </svg>
+    `.trim();
+
+    return {
+      gold: new L.Icon({
+        iconUrl: svgToDataUrl(goldSvg),
+        iconSize: [24, 36],
+        iconAnchor: [12, 36],
+        popupAnchor: [0, -36],
+      }),
+      user: new L.Icon({
+        iconUrl: svgToDataUrl(userSvg),
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      }),
+    };
+  }, []);
+
   // Filter items that have valid coordinates
   const locationsWithCoords = useMemo(() => {
     const result: LocationWithCoords[] = [];
@@ -155,7 +171,7 @@ export default function DirectoryMapView({
 
         {/* User location marker */}
         {userLocation && (
-          <Marker position={[userLocation.lat, userLocation.lng]} icon={userIcon}>
+          <Marker position={[userLocation.lat, userLocation.lng]} icon={icons.user}>
             <Popup>
               <div className="text-center font-medium">Your Location</div>
             </Popup>
@@ -167,7 +183,7 @@ export default function DirectoryMapView({
           <Marker
             key={item.id}
             position={[item.coords.lat, item.coords.lng]}
-            icon={goldIcon}
+            icon={icons.gold}
             eventHandlers={{
               click: () => setSelectedMarker(item),
             }}
