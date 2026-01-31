@@ -3,14 +3,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Phone, Facebook, Clock, Navigation, Building2, Plus, Pencil, X, SearchX, Lightbulb, Eye, Share2, Check, UserPlus, Route, Locate, Loader2, List, Map } from "lucide-react";
+import {
+  MapPin,
+  Phone,
+  Facebook,
+  Clock,
+  Navigation,
+  Building2,
+  Plus,
+  Pencil,
+  X,
+  SearchX,
+  Lightbulb,
+  Eye,
+  Share2,
+  Check,
+  UserPlus,
+  Route,
+  Locate,
+  Loader2,
+  List,
+  Map,
+} from "lucide-react";
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
-import DirectoryCategoryChips from "./DirectoryCategoryChips";
 
 // Lazy load the map component to reduce initial bundle size
 const DirectoryMapView = lazy(() => import("./DirectoryMapView"));
+
 // Haversine formula to calculate distance between two lat/lng points in km
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371; // Earth's radius in km
@@ -18,8 +39,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const dLon = (lon2 - lon1) * (Math.PI / 180);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -27,7 +47,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 // Extract coordinates from a Google Maps URL
 function extractCoordsFromUrl(url: string | null): { lat: number; lng: number } | null {
   if (!url) return null;
-  
+
   try {
     // Match patterns like @14.5995,120.9842 or ?ll=14.5995,120.9842 or /place/14.5995,120.9842
     const patterns = [
@@ -37,7 +57,7 @@ function extractCoordsFromUrl(url: string | null): { lat: number; lng: number } 
       /[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/,
       /!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/,
     ];
-    
+
     for (const pattern of patterns) {
       const match = url.match(pattern);
       if (match) {
@@ -51,16 +71,13 @@ function extractCoordsFromUrl(url: string | null): { lat: number; lng: number } 
   } catch {
     // Ignore parsing errors
   }
-  
+
   return null;
 }
 
 // Generate vCard for a directory entry
 function generateDirectoryVCard(entry: DirectoryEntry): string {
-  const lines: string[] = [
-    "BEGIN:VCARD",
-    "VERSION:3.0",
-  ];
+  const lines: string[] = ["BEGIN:VCARD", "VERSION:3.0"];
 
   // Organization name (use location as the org)
   if (entry.location) {
@@ -74,15 +91,9 @@ function generateDirectoryVCard(entry: DirectoryEntry): string {
   }
 
   // Phone numbers
-  if (entry.phone_1) {
-    lines.push(`TEL;TYPE=WORK,VOICE:${entry.phone_1}`);
-  }
-  if (entry.phone_2) {
-    lines.push(`TEL;TYPE=WORK,VOICE:${entry.phone_2}`);
-  }
-  if (entry.phone_3) {
-    lines.push(`TEL;TYPE=WORK,VOICE:${entry.phone_3}`);
-  }
+  if (entry.phone_1) lines.push(`TEL;TYPE=WORK,VOICE:${entry.phone_1}`);
+  if (entry.phone_2) lines.push(`TEL;TYPE=WORK,VOICE:${entry.phone_2}`);
+  if (entry.phone_3) lines.push(`TEL;TYPE=WORK,VOICE:${entry.phone_3}`);
 
   // Facebook as URL
   if (entry.facebook_page) {
@@ -109,6 +120,7 @@ function generateDirectoryVCard(entry: DirectoryEntry): string {
 
   return lines.join("\r\n");
 }
+
 // ScrollArea removed - using native overflow for better mobile compatibility
 import { useAuth } from "@/contexts/AuthContext";
 import AdminDirectoryDialog from "../admin/AdminDirectoryDialog";
@@ -116,17 +128,17 @@ import AdminDirectoryDialog from "../admin/AdminDirectoryDialog";
 // Utility to highlight matching text
 function highlightText(text: string | null, query: string): ReactNode {
   if (!text || !query.trim()) return text || "";
-  
+
   const lowerText = text.toLowerCase();
   const lowerQuery = query.toLowerCase();
   const startIndex = lowerText.indexOf(lowerQuery);
-  
+
   if (startIndex === -1) return text;
-  
+
   const before = text.slice(0, startIndex);
   const match = text.slice(startIndex, startIndex + query.length);
   const after = text.slice(startIndex + query.length);
-  
+
   return (
     <>
       {before}
@@ -167,15 +179,46 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
   type TabId = "all" | "branches" | "luzon" | "visayas" | "mindanao" | "international";
 
-  // Arranged for 2-column, 3-row grid:
-  // Col1: All Sites, Luzon, Mindanao | Col2: Branches, Visayas, International
-  const TABS: Array<{ id: TabId; label: string; prefix?: string }> = [
-    { id: "all", label: "All Sites" },
-    { id: "branches", label: "Branches", prefix: "Branches" },
-    { id: "luzon", label: "Luzon", prefix: "Luzon" },
-    { id: "visayas", label: "Visayas", prefix: "Visayas" },
-    { id: "mindanao", label: "Mindanao", prefix: "Mindanao" },
-    { id: "international", label: "International", prefix: "International" },
+  /**
+   * IMPORTANT FIX:
+   * - We render the category tabs HERE as a true 2-column grid (no horizontal overflow).
+   * - Order is row-wise so it forms 2 columns / 3 rows:
+   *   Row1: All Sites | Branches
+   *   Row2: Luzon     | Visayas
+   *   Row3: Mindanao  | International
+   */
+  const TABS: Array<{ id: TabId; label: string; prefix?: string; icon: ReactNode }> = [
+    { id: "all", label: "All Sites", icon: <Building2 className="w-4 h-4" /> },
+    {
+      id: "branches",
+      label: "Branches",
+      prefix: "Branches",
+      icon: <MapPin className="w-4 h-4" />,
+    },
+    {
+      id: "luzon",
+      label: "Luzon",
+      prefix: "Luzon",
+      icon: <Navigation className="w-4 h-4" />,
+    },
+    {
+      id: "visayas",
+      label: "Visayas",
+      prefix: "Visayas",
+      icon: <Navigation className="w-4 h-4" />,
+    },
+    {
+      id: "mindanao",
+      label: "Mindanao",
+      prefix: "Mindanao",
+      icon: <Navigation className="w-4 h-4" />,
+    },
+    {
+      id: "international",
+      label: "International",
+      prefix: "International",
+      icon: <Route className="w-4 h-4" />,
+    },
   ];
 
   const [activeTab, setActiveTab] = useState<TabId>("all");
@@ -183,10 +226,10 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DirectoryEntry | null>(null);
   const [copied, setCopied] = useState(false);
-  
+
   // View mode: list or map
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
-  
+
   // Geolocation state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [sortByNearest, setSortByNearest] = useState(false);
@@ -201,7 +244,9 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       entry.operating_hours && `Hours: ${entry.operating_hours}`,
       entry.phone_1 && `Phone: ${entry.phone_1}`,
       entry.maps_link && `Maps: ${entry.maps_link}`,
-    ].filter(Boolean).join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     // Try native share first
     if (navigator.share) {
@@ -236,7 +281,11 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      const safeName = entry.location?.trim().replace(/\s+/g, "-").replace(/[^a-zA-Z0-9-_]/g, "") || "branch";
+      const safeName =
+        entry.location
+          ?.trim()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-zA-Z0-9-_]/g, "") || "branch";
       link.href = url;
       link.download = `${safeName}.vcf`;
       document.body.appendChild(link);
@@ -254,64 +303,48 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     // Build a navigation URL that works across platforms
     // Priority: use maps_link if available, otherwise construct from address
     let destination = "";
-    
+
     if (entry.maps_link) {
-      // If we have a maps link, try to extract coordinates or use it directly
-      // Google Maps navigation format: google.com/maps/dir/?api=1&destination=...
       const mapsUrl = entry.maps_link;
-      
-      // Check if it's a Google Maps link with place ID or coordinates
+
       if (mapsUrl.includes("google.com/maps") || mapsUrl.includes("goo.gl/maps")) {
-        // For Google Maps, append navigation mode
-        const navUrl = mapsUrl.includes("?") 
-          ? `${mapsUrl}&dir_action=navigate` 
-          : `${mapsUrl}?dir_action=navigate`;
+        const navUrl = mapsUrl.includes("?") ? `${mapsUrl}&dir_action=navigate` : `${mapsUrl}?dir_action=navigate`;
         window.open(navUrl, "_blank");
         return;
       }
-      
-      // For other map links, open directly
+
       window.open(mapsUrl, "_blank");
       return;
     }
-    
-    // Fallback: use address to construct a navigation URL
-    if (entry.address) {
-      destination = encodeURIComponent(entry.address);
-    } else if (entry.location) {
-      destination = encodeURIComponent(entry.location);
-    }
-    
+
+    if (entry.address) destination = encodeURIComponent(entry.address);
+    else if (entry.location) destination = encodeURIComponent(entry.location);
+
     if (!destination) {
       toast.error("No address available for directions");
       return;
     }
-    
-    // Detect platform and open appropriate maps app
+
     const userAgent = navigator.userAgent.toLowerCase();
     const isIOS = /iphone|ipad|ipod/.test(userAgent);
     const isAndroid = /android/.test(userAgent);
-    
+
     let directionsUrl: string;
-    
+
     if (isIOS) {
-      // Apple Maps with directions
       directionsUrl = `maps://maps.apple.com/?daddr=${destination}&dirflg=d`;
     } else if (isAndroid) {
-      // Google Maps navigation intent
       directionsUrl = `google.navigation:q=${destination}`;
     } else {
-      // Desktop fallback: Google Maps directions
       directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
     }
-    
+
     window.open(directionsUrl, "_blank");
   };
 
   // Handle geolocation request
   const handleSortByNearest = useCallback(() => {
     if (sortByNearest) {
-      // Turn off sorting
       setSortByNearest(false);
       setUserLocation(null);
       return;
@@ -353,7 +386,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 60000, // Cache for 1 minute
-      }
+      },
     );
   }, [sortByNearest]);
 
@@ -370,7 +403,6 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         .order("location", { ascending: true });
 
       if (error) throw error;
-
       setItems(data || []);
     } catch (err) {
       console.error("Error fetching directory:", err);
@@ -413,36 +445,25 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         item.sites?.toLowerCase().includes(searchQuery.toLowerCase());
 
       const tab = TABS.find((t) => t.id === activeTab);
-      const matchesSite =
-        tab?.id === "all" ||
-        (!!tab?.prefix && (item.sites || "").trim().startsWith(tab.prefix));
+      const matchesSite = tab?.id === "all" || (!!tab?.prefix && (item.sites || "").trim().startsWith(tab.prefix));
 
       return matchesSearch && matchesSite;
     });
 
-    // Sort by distance if enabled and user location is available
     if (sortByNearest && userLocation) {
       const itemsWithDistance: DirectoryEntryWithDistance[] = result.map((item) => {
         const coords = extractCoordsFromUrl(item.maps_link);
         let distance: number | undefined;
-        
+
         if (coords) {
-          distance = calculateDistance(
-            userLocation.lat,
-            userLocation.lng,
-            coords.lat,
-            coords.lng
-          );
+          distance = calculateDistance(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
         }
-        
+
         return { ...item, distance };
       });
 
-      // Sort: items with distance first (ascending), then items without distance
       itemsWithDistance.sort((a, b) => {
-        if (a.distance !== undefined && b.distance !== undefined) {
-          return a.distance - b.distance;
-        }
+        if (a.distance !== undefined && b.distance !== undefined) return a.distance - b.distance;
         if (a.distance !== undefined) return -1;
         if (b.distance !== undefined) return 1;
         return 0;
@@ -452,7 +473,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     }
 
     return result;
-  }, [items, searchQuery, activeTab, sortByNearest, userLocation, TABS]);
+  }, [items, searchQuery, activeTab, sortByNearest, userLocation]);
 
   if (loading) {
     return <ToolsSkeleton type="list" count={4} />;
@@ -499,37 +520,48 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         </Button>
       )}
 
-      {/* Site Filter - grid layout to guarantee all 6 categories are visible */}
-      <DirectoryCategoryChips
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as TabId)}
-        categories={TABS.map((tab) => {
-          // Assign unique icons for visual recognition
-          let icon: React.ReactNode = null;
-          switch (tab.id) {
-            case "all":
-              icon = <Building2 className="w-5 h-5" />;
-              break;
-            case "branches":
-              icon = <MapPin className="w-5 h-5" />;
-              break;
-            case "luzon":
-            case "visayas":
-            case "mindanao":
-              icon = <Navigation className="w-5 h-5" />;
-              break;
-            case "international":
-              icon = <Route className="w-5 h-5" />;
-              break;
-          }
-          return {
-            id: tab.id,
-            label: tab.label,
-            count: tabCounts[tab.id],
-            icon,
-          };
-        })}
-      />
+      {/* ✅ FIXED: Category tabs rendered as a real 2-column grid (always visible, no kick-out) */}
+      <div className="w-full max-w-full">
+        <div className="grid grid-cols-2 gap-2 w-full max-w-full">
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "w-full min-w-0",
+                  "flex items-center justify-between gap-2",
+                  "rounded-xl border px-3 py-2.5",
+                  "transition-all",
+                  isActive
+                    ? "bg-primary text-primary-foreground border-primary/40 shadow-sm"
+                    : "bg-card text-foreground border-border/60 hover:border-primary/30 hover:bg-muted/30",
+                )}
+              >
+                <span className="flex items-center gap-2 min-w-0">
+                  <span className={cn("shrink-0", isActive ? "text-primary-foreground" : "text-primary")}>
+                    {tab.icon}
+                  </span>
+                  <span className="font-semibold text-sm truncate">{tab.label}</span>
+                </span>
+
+                <span
+                  className={cn(
+                    "shrink-0 text-xs rounded-full px-2 py-0.5 border",
+                    isActive
+                      ? "bg-primary-foreground/15 text-primary-foreground border-primary-foreground/20"
+                      : "bg-muted/30 text-muted-foreground border-border/50",
+                  )}
+                >
+                  {tabCounts[tab.id]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* View Mode Toggle + Sort by Nearest */}
       <div className="flex gap-2">
@@ -538,10 +570,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           <Button
             variant={viewMode === "list" ? "default" : "ghost"}
             size="sm"
-            className={cn(
-              "h-11 px-4 gap-2 rounded-none",
-              viewMode === "list" && "bg-primary text-primary-foreground"
-            )}
+            className={cn("h-11 px-4 gap-2 rounded-none", viewMode === "list" && "bg-primary text-primary-foreground")}
             onClick={() => setViewMode("list")}
           >
             <List className="w-4 h-4" />
@@ -552,7 +581,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
             size="sm"
             className={cn(
               "h-11 px-4 gap-2 rounded-none border-l border-border",
-              viewMode === "map" && "bg-primary text-primary-foreground"
+              viewMode === "map" && "bg-primary text-primary-foreground",
             )}
             onClick={() => setViewMode("map")}
           >
@@ -565,10 +594,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         <Button
           variant={sortByNearest ? "default" : "outline"}
           size="sm"
-          className={cn(
-            "flex-1 gap-2 h-11",
-            sortByNearest && "bg-primary text-primary-foreground"
-          )}
+          className={cn("flex-1 gap-2 h-11", sortByNearest && "bg-primary text-primary-foreground")}
           onClick={handleSortByNearest}
           disabled={geoLoading}
         >
@@ -593,14 +619,16 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
       {/* Map View */}
       {viewMode === "map" && (
-        <Suspense fallback={
-          <div className="w-full h-[60vh] min-h-[400px] rounded-xl border border-border bg-muted/50 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Loading map...</p>
+        <Suspense
+          fallback={
+            <div className="w-full h-[60vh] min-h-[400px] rounded-xl border border-border bg-muted/50 flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading map...</p>
+              </div>
             </div>
-          </div>
-        }>
+          }
+        >
           <DirectoryMapView
             items={filteredItems}
             userLocation={userLocation}
@@ -616,126 +644,135 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           {filteredItems.map((item) => {
             const itemWithDistance = item as DirectoryEntryWithDistance;
             const hasDistance = sortByNearest && itemWithDistance.distance !== undefined;
-            
+
             return (
-            <div
-              key={item.id}
-              className={cn(
-                "p-3 sm:p-4 rounded-2xl relative w-full",
-                "bg-card border border-border/50 shadow-sm",
-                "hover:shadow-md hover:border-primary/30 transition-all"
-              )}
-            >
-              {/* Admin Edit Button */}
-              {isAdmin && (
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  className="absolute top-2 right-2 h-8 w-8"
-                  onClick={() => handleEdit(item)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-              )}
+              <div
+                key={item.id}
+                className={cn(
+                  "p-3 sm:p-4 rounded-2xl relative w-full",
+                  "bg-card border border-border/50 shadow-sm",
+                  "hover:shadow-md hover:border-primary/30 transition-all",
+                )}
+              >
+                {/* Admin Edit Button */}
+                {isAdmin && (
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    className="absolute top-2 right-2 h-8 w-8"
+                    onClick={() => handleEdit(item)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                )}
 
-              <div className="flex gap-3 sm:gap-4">
-                {/* Icon */}
-                <div
-                  className={cn(
-                    "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 flex items-center justify-center",
-                    "bg-gradient-to-br from-primary/20 to-primary/5",
-                    "border border-primary/20"
-                  )}
-                >
-                  <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                </div>
+                <div className="flex gap-3 sm:gap-4">
+                  {/* Icon */}
+                  <div
+                    className={cn(
+                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 flex items-center justify-center",
+                      "bg-gradient-to-br from-primary/20 to-primary/5",
+                      "border border-primary/20",
+                    )}
+                  >
+                    <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                  </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0 space-y-1">
-                  <div className="flex items-start gap-2 pr-8">
-                    <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight truncate">
-                      {highlightText(item.location, searchQuery) || "Unknown Location"}
-                    </h4>
-                    {hasDistance && (
-                      <Badge variant="outline" className="shrink-0 text-xs bg-primary/10 text-primary border-primary/30">
-                        {itemWithDistance.distance! < 1 
-                          ? `${Math.round(itemWithDistance.distance! * 1000)}m` 
-                          : `${itemWithDistance.distance!.toFixed(1)}km`}
-                      </Badge>
-                    )}
-                  </div>
-                  {item.address && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {highlightText(item.address, searchQuery)}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {item.sites && (
-                      <Badge variant="secondary" className="text-xs">
-                        {item.sites}
-                      </Badge>
-                    )}
-                    {sortByNearest && itemWithDistance.distance === undefined && (
-                      <Badge variant="outline" className="text-xs text-muted-foreground">
-                        No coordinates
-                      </Badge>
-                    )}
-                  </div>
-                  {item.operating_hours && (
-                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                      <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span className="truncate">{item.operating_hours}</span>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <div className="flex items-start gap-2 pr-8">
+                      <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight truncate">
+                        {highlightText(item.location, searchQuery) || "Unknown Location"}
+                      </h4>
+                      {hasDistance && (
+                        <Badge
+                          variant="outline"
+                          className="shrink-0 text-xs bg-primary/10 text-primary border-primary/30"
+                        >
+                          {itemWithDistance.distance! < 1
+                            ? `${Math.round(itemWithDistance.distance! * 1000)}m`
+                            : `${itemWithDistance.distance!.toFixed(1)}km`}
+                        </Badge>
+                      )}
                     </div>
+
+                    {item.address && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {highlightText(item.address, searchQuery)}
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {item.sites && (
+                        <Badge variant="secondary" className="text-xs">
+                          {item.sites}
+                        </Badge>
+                      )}
+                      {sortByNearest && itemWithDistance.distance === undefined && (
+                        <Badge variant="outline" className="text-xs text-muted-foreground">
+                          No coordinates
+                        </Badge>
+                      )}
+                    </div>
+
+                    {item.operating_hours && (
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                        <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="truncate">{item.operating_hours}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Actions - Grid layout for consistent button sizing */}
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-3 sm:mt-4">
+                  {item.phone_1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                      onClick={() => window.open(`tel:${item.phone_1}`, "_self")}
+                    >
+                      <Phone className="w-4 h-4 flex-shrink-0" />
+                      <span className="hidden xxs:inline">Call</span>
+                    </Button>
                   )}
+
+                  {item.maps_link && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                      onClick={() => window.open(item.maps_link!, "_blank")}
+                    >
+                      <Navigation className="w-4 h-4 flex-shrink-0" />
+                      <span className="hidden xxs:inline">Maps</span>
+                    </Button>
+                  )}
+
+                  {item.facebook_page && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                      onClick={() => window.open(item.facebook_page!, "_blank")}
+                    >
+                      <Facebook className="w-4 h-4 flex-shrink-0" />
+                      <span className="hidden xxs:inline">FB</span>
+                    </Button>
+                  )}
+
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => setSelectedEntry(item)}
+                  >
+                    <Eye className="w-4 h-4 flex-shrink-0" />
+                    <span className="hidden xxs:inline">View</span>
+                  </Button>
                 </div>
               </div>
-
-              {/* Actions - Grid layout for consistent button sizing */}
-              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-3 sm:mt-4">
-                {item.phone_1 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                    onClick={() => window.open(`tel:${item.phone_1}`, "_self")}
-                  >
-                    <Phone className="w-4 h-4 flex-shrink-0" />
-                    <span className="hidden xxs:inline">Call</span>
-                  </Button>
-                )}
-                {item.maps_link && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                    onClick={() => window.open(item.maps_link!, "_blank")}
-                  >
-                    <Navigation className="w-4 h-4 flex-shrink-0" />
-                    <span className="hidden xxs:inline">Maps</span>
-                  </Button>
-                )}
-                {item.facebook_page && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                    onClick={() => window.open(item.facebook_page!, "_blank")}
-                  >
-                    <Facebook className="w-4 h-4 flex-shrink-0" />
-                    <span className="hidden xxs:inline">FB</span>
-                  </Button>
-                )}
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center bg-primary text-primary-foreground hover:bg-primary/90"
-                  onClick={() => setSelectedEntry(item)}
-                >
-                  <Eye className="w-4 h-4 flex-shrink-0" />
-                  <span className="hidden xxs:inline">View</span>
-                </Button>
-              </div>
-            </div>
             );
           })}
         </div>
@@ -755,9 +792,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           </div>
 
           {/* Message */}
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            No branches found
-          </h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">No branches found</h3>
           {searchQuery.trim() && (
             <p className="text-sm text-muted-foreground mb-4">
               No results for "<span className="font-medium text-foreground">{searchQuery}</span>"
@@ -781,12 +816,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           {/* Actions */}
           <div className="flex flex-col gap-2 max-w-xs mx-auto">
             {searchQuery.trim() && onClearSearch && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full gap-2"
-                onClick={onClearSearch}
-              >
+              <Button variant="outline" size="sm" className="w-full gap-2" onClick={onClearSearch}>
                 <X className="w-4 h-4" />
                 Clear search
               </Button>
@@ -890,7 +920,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                   Get Directions
                 </Button>
               )}
-              
+
               <div className="flex gap-3">
                 {selectedEntry?.maps_link && (
                   <Button
@@ -913,7 +943,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                   </Button>
                 )}
               </div>
-              
+
               {/* Share & Add to Contacts */}
               {selectedEntry && (
                 <div className="flex gap-3">
