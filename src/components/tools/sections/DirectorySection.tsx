@@ -500,12 +500,32 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       <DirectoryCategoryChips
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as TabId)}
-        categories={TABS.map((tab) => ({
-          id: tab.id,
-          label: tab.label,
-          count: tabCounts[tab.id],
-          icon: tab.id === "all" ? <Building2 className="w-4 h-4" /> : undefined,
-        }))}
+        categories={TABS.map((tab) => {
+          // Assign unique icons for visual recognition
+          let icon: React.ReactNode = null;
+          switch (tab.id) {
+            case "all":
+              icon = <Building2 className="w-5 h-5" />;
+              break;
+            case "branches":
+              icon = <MapPin className="w-5 h-5" />;
+              break;
+            case "luzon":
+            case "visayas":
+            case "mindanao":
+              icon = <Navigation className="w-5 h-5" />;
+              break;
+            case "international":
+              icon = <Route className="w-5 h-5" />;
+              break;
+          }
+          return {
+            id: tab.id,
+            label: tab.label,
+            count: tabCounts[tab.id],
+            icon,
+          };
+        })}
       />
 
       {/* View Mode Toggle + Sort by Nearest */}

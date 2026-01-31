@@ -18,7 +18,8 @@ type Props = {
 export default function DirectoryCategoryChips({ categories, activeId, onChange }: Props) {
   return (
     <div className="w-full max-w-full overflow-x-hidden">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 w-full">
+      {/* Mobile: 1 column, Tablet: 2 columns, Desktop: 3 columns */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 w-full">
         {categories.map((cat) => {
           const active = activeId === cat.id;
           return (
@@ -27,23 +28,34 @@ export default function DirectoryCategoryChips({ categories, activeId, onChange 
               type="button"
               onClick={() => onChange(cat.id)}
               className={cn(
-                "w-full h-11 rounded-full px-3 min-w-0",
-                "flex items-center justify-between gap-2",
-                "border bg-background/40 backdrop-blur",
-                "text-sm font-semibold transition-colors",
+                // Base styles - increased height for senior-friendly touch targets
+                "w-full h-12 rounded-xl px-4 min-w-0",
+                "flex items-center justify-between gap-3",
+                "border-2 bg-background/60 backdrop-blur-sm",
+                "text-base font-semibold transition-all duration-200",
+                // Active state - prominent highlight
                 active
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "text-foreground border-border/60 hover:border-primary/50",
+                  ? "bg-primary text-primary-foreground border-primary shadow-md"
+                  : "text-foreground border-border/50 hover:border-primary/60 hover:bg-muted/50",
               )}
             >
-              <span className="flex items-center gap-2 min-w-0">
-                {cat.icon ? <span className="shrink-0">{cat.icon}</span> : null}
-                <span className="truncate">{cat.label}</span>
+              {/* Icon + Label - no truncation for full readability */}
+              <span className="flex items-center gap-2.5 min-w-0">
+                {cat.icon && (
+                  <span className={cn(
+                    "shrink-0 w-5 h-5",
+                    active ? "text-primary-foreground" : "text-muted-foreground"
+                  )}>
+                    {cat.icon}
+                  </span>
+                )}
+                <span className="text-left leading-tight">{cat.label}</span>
               </span>
 
+              {/* Count badge - always visible */}
               <span
                 className={cn(
-                  "shrink-0 rounded-full px-2 py-0.5 text-xs font-bold",
+                  "shrink-0 rounded-full px-2.5 py-0.5 text-sm font-bold tabular-nums",
                   active
                     ? "bg-primary-foreground/20 text-primary-foreground"
                     : "bg-secondary text-secondary-foreground",
