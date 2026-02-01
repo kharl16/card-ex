@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Save, Trash2 } from "lucide-react";
@@ -48,11 +49,50 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
   const [formData, setFormData] = useState<DirectoryEntry>(emptyItem);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [siteOptions, setSiteOptions] = useState<string[]>([]);
+  const [siteOptionsLoading, setSiteOptionsLoading] = useState(false);
 
   useEffect(() => {
     if (open) {
       setFormData(item || emptyItem);
     }
+  }, [open, item]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const fetchSiteOptions = async () => {
+      setSiteOptionsLoading(true);
+      try {
+        // Fetch from the dedicated sites table for consistent options
+        const { data, error } = await supabase
+          .from("sites")
+          .select("sites")
+          .eq("is_active", true)
+          .order("sites", { ascending: true });
+
+        if (error) throw error;
+
+        const values = (data || [])
+          .map((row) => row.sites?.trim())
+          .filter((s): s is string => !!s);
+
+        // Ensure current value is in the list (for editing entries with legacy values)
+        const current = (item?.sites ?? null)?.trim();
+        if (current && !values.includes(current)) {
+          values.unshift(current);
+        }
+
+        setSiteOptions(values);
+      } catch (err: any) {
+        console.error("Failed to fetch site options:", err);
+        setSiteOptions([]);
+      } finally {
+        setSiteOptionsLoading(false);
+      }
+    };
+
+    fetchSiteOptions();
   }, [open, item]);
 
   const handleChange = (field: keyof DirectoryEntry, value: any) => {
@@ -89,6 +129,7 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
         if (error) throw error;
         toast.success("Directory entry updated successfully");
       } else {
+        // Insert new entry - let database auto-generate the ID
         const { error } = await supabase.from("directory_entries").insert({
           location: formData.location,
           address: formData.address,
@@ -159,11 +200,23 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
 
           <div className="space-y-2">
             <Label>Site/Region</Label>
-            <Input
-              value={formData.sites || ""}
-              onChange={(e) => handleChange("sites", e.target.value || null)}
-              placeholder="e.g., Metro Manila, Visayas"
-            />
+            <Select
+              value={formData.sites ?? "__none__"}
+              onValueChange={(value) => handleChange("sites", value === "__none__" ? null : value)}
+              disabled={siteOptionsLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={siteOptionsLoading ? "Loading..." : "Select a site/region"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">None</SelectItem>
+                {siteOptions.map((opt) => (
+                  <SelectItem key={opt} value={opt}>
+                    {opt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
