@@ -1,0 +1,2 @@
+-- Reset the directory_entries_id_seq sequence to be in sync with existing data
+SELECT setval('public.directory_entries_id_seq', COALESCE((SELECT MAX(id) FROM public.directory_entries), 0) + 1, false);
