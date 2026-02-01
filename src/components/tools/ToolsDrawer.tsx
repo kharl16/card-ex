@@ -128,8 +128,8 @@ export default function ToolsDrawer({
     }
 
     return (
-      <div className="flex flex-col h-full">
-        <div className="sticky top-0 z-10 bg-background border-b p-4 space-y-3">
+      <div className="flex flex-col h-full w-full max-w-full overflow-x-hidden">
+        <div className="sticky top-0 z-10 bg-background border-b p-4 space-y-3 w-full max-w-full overflow-x-hidden">
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
@@ -165,7 +165,7 @@ export default function ToolsDrawer({
           </div>
         </div>
 
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="p-4">
             {activeSection === "trainings" && <TrainingsSection searchQuery={searchQuery} />}
             {activeSection === "links" && <LinksSection searchQuery={searchQuery} />}
@@ -173,7 +173,7 @@ export default function ToolsDrawer({
             {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} />}
             {activeSection === "presentations" && <PresentationsSection searchQuery={searchQuery} />}
           </div>
-        </ScrollArea>
+        </div>
       </div>
     );
   };
@@ -189,15 +189,15 @@ export default function ToolsDrawer({
                   <DrawerTitle className="sr-only">Tools Hub</DrawerTitle>
                 </DrawerHeader>
               )}
-              <div className="flex-1 overflow-hidden">
-                <ScrollArea className="h-full">{renderContent()}</ScrollArea>
+              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+                {renderContent()}
               </div>
             </div>
           </DrawerContent>
         </Drawer>
       ) : (
         <Sheet open={open} onOpenChange={onOpenChange}>
-          <SheetContent side="right" className="w-[480px] sm:max-w-[480px] p-0">
+          <SheetContent side="right" className="w-[480px] sm:max-w-[480px] p-0 overflow-x-hidden">
             <SheetHeader className="sr-only">
               <SheetTitle>Tools Hub</SheetTitle>
             </SheetHeader>
