@@ -1,88 +1,92 @@
 
-# Mobile-Friendly Branches Category Tabs Optimization
 
-## Current Issues (from your screenshot)
-1. Category chip labels are heavily truncated ("Br...", "L...", "Vis...", "Mi...")
-2. Chips appear cramped with labels not readable
-3. Grid layout exists but text doesn't fit well
+# Fix Directory Category Tabs Clipping/Overflow Bug
 
-## Proposed Solution
+## Problem
+The second column of Directory category tabs (Branches, Visayas, International) is being pushed off-screen on mobile and desktop due to nested `ScrollArea` components causing width mis-measurement issues.
 
-### Approach: Vertical Stacked Tabs with Full Labels
+## Root Cause
+1. **Nested ScrollAreas**: Mobile drawer has an outer `ScrollArea` (line 193) wrapping `renderContent()`, which itself contains another `ScrollArea` (line 168). This causes Radix viewport width calculation bugs.
+2. **Missing width constraints**: The content wrapper lacks `max-w-full` and `overflow-x-hidden` to prevent horizontal overflow.
+3. **Desktop SheetContent**: Missing `overflow-x-hidden` to prevent clipping issues.
 
-Instead of forcing all tabs into a grid that truncates labels, we'll create a **mobile-first vertical tab list** that shows full labels clearly, then switch to horizontal on larger screens.
+## Solution
 
-### UI Changes
+### File 1: `src/components/tools/ToolsDrawer.tsx`
 
-**Mobile (below 640px):**
-- Single column layout (6 rows)
-- Each tab shows full label + count badge
-- Large touch targets (48px height)
-- Clear active state highlighting
-
-**Tablet (640px-1024px):**
-- 2 columns (3 rows)
-- Labels still fully visible
-
-**Desktop (1024px+):**
-- 3 or 6 columns (1-2 rows)
-- Compact but readable
-
-### Technical Implementation
-
-**File: `src/components/tools/sections/DirectoryCategoryChips.tsx`**
-
+**Change A - Remove outer ScrollArea in mobile drawer (lines 192-194)**
 ```
-Mobile Layout Changes:
-├── Change grid from "grid-cols-2" to "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-├── Increase chip height on mobile (h-12 vs h-11)
-├── Remove truncate on mobile, allow full text display
-├── Add icon for each category for visual recognition
-├── Use shorter mobile-friendly labels (optional toggle)
-└── Improve count badge visibility
+Before:
+<div className="flex-1 overflow-hidden">
+  <ScrollArea className="h-full">{renderContent()}</ScrollArea>
+</div>
+
+After:
+<div className="flex-1 overflow-y-auto overflow-x-hidden">
+  {renderContent()}
+</div>
 ```
 
-**Styling Updates:**
-- Remove `truncate` class on mobile viewport
-- Use `text-left` alignment for better readability
-- Add subtle icons per category for quick visual scanning
-- Ensure count badges don't compress
+**Change B - Replace inner ScrollArea with native scroll (lines 168-176)**
+```
+Before:
+<ScrollArea className="flex-1">
+  <div className="p-4">
+    {activeSection === "trainings" && ...}
+  </div>
+</ScrollArea>
 
-### Alternative: Horizontal Scrolling Pill Bar (Optional)
+After:
+<div className="flex-1 overflow-y-auto overflow-x-hidden">
+  <div className="p-4">
+    {activeSection === "trainings" && ...}
+  </div>
+</div>
+```
 
-If vertical stacking takes too much space, we could use a horizontal scrollable row with:
-- `overflow-x-auto` with `scrollbar-hide`
-- Fixed-width pills that don't truncate
-- Snap scrolling for smooth navigation
+**Change C - Add width constraints to renderContent() root wrapper (line 131)**
+```
+Before:
+<div className="flex flex-col h-full">
 
-But this violates your "no horizontal scrolling" requirement.
+After:
+<div className="flex flex-col h-full w-full max-w-full overflow-x-hidden">
+```
 
----
+**Change D - Add overflow constraints to sticky header (line 132)**
+```
+Before:
+<div className="sticky top-0 z-10 bg-background border-b p-4 space-y-3">
 
-## Recommended Final Layout
+After:
+<div className="sticky top-0 z-10 bg-background border-b p-4 space-y-3 w-full max-w-full overflow-x-hidden">
+```
 
-| Viewport | Columns | Rows | Label Display |
-|----------|---------|------|---------------|
-| < 640px  | 1       | 6    | Full labels   |
-| 640-1024px | 2     | 3    | Full labels   |
-| > 1024px | 3 or 6  | 1-2  | Full labels   |
+**Change E - Add overflow-x-hidden to desktop SheetContent (line 200)**
+```
+Before:
+<SheetContent side="right" className="w-[480px] sm:max-w-[480px] p-0">
+
+After:
+<SheetContent side="right" className="w-[480px] sm:max-w-[480px] p-0 overflow-x-hidden">
+```
+
+### File 2: `src/components/tools/sections/DirectoryCategoryChips.tsx`
+
+**Replace entire file with robust 2-column grid implementation:**
+- Parent container: `w-full max-w-full overflow-hidden box-border`
+- Grid: `grid grid-cols-2 gap-2` (simple, no extra constraints)
+- Buttons: `w-full min-w-0 h-12` to properly fill grid cells
+- Labels: `truncate` with `min-w-0` to prevent text overflow pushing columns
+
+## Expected Result
+- Directory tabs always show 2 columns (3 rows) on mobile and desktop
+- No column gets pushed off-screen
+- No horizontal scrolling needed
+- Sticky header remains stable
+- Scroll works correctly inside drawer/sheet
 
 ## Files to Modify
+1. `src/components/tools/ToolsDrawer.tsx` - 5 changes
+2. `src/components/tools/sections/DirectoryCategoryChips.tsx` - Full replacement
 
-1. `src/components/tools/sections/DirectoryCategoryChips.tsx`
-   - Update grid classes
-   - Remove/conditionally apply truncate
-   - Add category icons for visual aid
-   - Increase touch target size
-
-2. `src/components/tools/sections/DirectorySection.tsx`
-   - Pass icons for each category
-   - Possibly add mobile-friendly short labels
-
-## Senior-Friendly Enhancements
-
-- **Larger tap targets**: 48px minimum height
-- **High contrast**: Clear active/inactive states
-- **Icons**: Visual cues alongside text
-- **No truncation**: Full readable labels
-- **Consistent spacing**: Easy to tap without mistakes
