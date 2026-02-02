@@ -679,9 +679,9 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                   </div>
 
                   {/* Info */}
-                  <div className="flex-1 min-w-0 space-y-1">
-                    <div className="flex items-start gap-2 pr-8">
-                      <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight truncate">
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex flex-wrap items-start gap-2 pr-8">
+                      <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight break-words">
                         {highlightText(item.location, searchQuery) || "Unknown Location"}
                       </h4>
                       {hasDistance && (
@@ -697,7 +697,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                     </div>
 
                     {item.address && (
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="text-xs sm:text-sm text-muted-foreground break-words line-clamp-2">
                         {highlightText(item.address, searchQuery)}
                       </p>
                     )}
@@ -716,9 +716,9 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                     </div>
 
                     {item.operating_hours && (
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="truncate">{item.operating_hours}</span>
+                      <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
+                        <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                        <span className="break-words">{item.operating_hours}</span>
                       </div>
                     )}
                   </div>
