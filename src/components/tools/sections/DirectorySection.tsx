@@ -163,6 +163,8 @@ interface DirectoryEntry {
   phone_3: string | null;
   sites: string | null;
   is_active: boolean;
+  owner_photo_url: string | null;
+  location_image_url: string | null;
 }
 
 interface DirectoryEntryWithDistance extends DirectoryEntry {
@@ -669,15 +671,22 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                 )}
 
                 <div className="flex gap-3 sm:gap-4">
-                  {/* Icon */}
+                  {/* Location Image or Icon */}
                   <div
                     className={cn(
-                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 flex items-center justify-center",
-                      "bg-gradient-to-br from-primary/20 to-primary/5",
-                      "border border-primary/20",
+                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 overflow-hidden",
+                      !item.location_image_url && "flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20",
                     )}
                   >
-                    <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                    {item.location_image_url ? (
+                      <img
+                        src={item.location_image_url}
+                        alt={item.location || "Location"}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                    )}
                   </div>
 
                   {/* Info */}
@@ -716,6 +725,24 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                         </Badge>
                       )}
                     </div>
+
+                    {/* Owner with photo */}
+                    {item.owner && (
+                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                        {item.owner_photo_url ? (
+                          <img
+                            src={item.owner_photo_url}
+                            alt={item.owner}
+                            className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0 text-[10px] font-medium">
+                            {item.owner.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <span className="break-words">{item.owner}</span>
+                      </div>
+                    )}
 
                     {item.operating_hours && (
                       <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">

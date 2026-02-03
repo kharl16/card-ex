@@ -572,9 +572,11 @@ export type Database = {
           id: number
           is_active: boolean
           location: string | null
+          location_image_url: string | null
           maps_link: string | null
           operating_hours: string | null
           owner: string | null
+          owner_photo_url: string | null
           phone_1: string | null
           phone_2: string | null
           phone_3: string | null
@@ -591,9 +593,11 @@ export type Database = {
           id?: number
           is_active?: boolean
           location?: string | null
+          location_image_url?: string | null
           maps_link?: string | null
           operating_hours?: string | null
           owner?: string | null
+          owner_photo_url?: string | null
           phone_1?: string | null
           phone_2?: string | null
           phone_3?: string | null
@@ -610,9 +614,11 @@ export type Database = {
           id?: number
           is_active?: boolean
           location?: string | null
+          location_image_url?: string | null
           maps_link?: string | null
           operating_hours?: string | null
           owner?: string | null
+          owner_photo_url?: string | null
           phone_1?: string | null
           phone_2?: string | null
           phone_3?: string | null
