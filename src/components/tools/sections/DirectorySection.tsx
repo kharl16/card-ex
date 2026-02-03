@@ -873,6 +873,17 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* Location Image */}
+            {selectedEntry?.location_image_url && (
+              <div className="w-full aspect-video rounded-xl overflow-hidden bg-muted">
+                <img
+                  src={selectedEntry.location_image_url}
+                  alt={selectedEntry.location || "Location"}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
             {selectedEntry?.sites && (
               <Badge variant="secondary" className="text-sm">
                 {selectedEntry.sites}
@@ -889,7 +900,20 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
             {selectedEntry?.owner && (
               <div className="p-4 rounded-xl bg-muted/50 space-y-1">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Owner</p>
-                <p className="text-foreground">{selectedEntry.owner}</p>
+                <div className="flex items-center gap-3">
+                  {selectedEntry.owner_photo_url ? (
+                    <img
+                      src={selectedEntry.owner_photo_url}
+                      alt={selectedEntry.owner}
+                      className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-primary/20"
+                    />
+                  ) : (
+                    <span className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0 text-lg font-medium border-2 border-primary/20">
+                      {selectedEntry.owner.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                  <p className="text-foreground font-medium">{selectedEntry.owner}</p>
+                </div>
               </div>
             )}
 
