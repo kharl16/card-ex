@@ -100,14 +100,16 @@ function generateDirectoryVCard(entry: DirectoryEntry): string {
     lines.push(`URL;TYPE=WORK:${entry.facebook_page}`);
   }
 
-  // Operating hours as note
-  if (entry.operating_hours) {
-    lines.push(`NOTE:Operating Hours: ${entry.operating_hours}`);
-  }
-
-  // Owner
+  // Build NOTE field with owner and operating hours
+  const notesParts: string[] = [];
   if (entry.owner) {
-    lines.push(`X-OWNER:${entry.owner}`);
+    notesParts.push(`Owner: ${entry.owner}`);
+  }
+  if (entry.operating_hours) {
+    notesParts.push(`Operating Hours: ${entry.operating_hours}`);
+  }
+  if (notesParts.length > 0) {
+    lines.push(`NOTE:${notesParts.join("\\n")}`);
   }
 
   // Maps link as geo URL
