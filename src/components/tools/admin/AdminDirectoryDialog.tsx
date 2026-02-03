@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Save, Trash2 } from "lucide-react";
+import { Loader2, Save, Trash2, Upload, X, User, MapPin } from "lucide-react";
 
 interface DirectoryEntry {
   id?: number;
@@ -22,6 +22,8 @@ interface DirectoryEntry {
   phone_3: string | null;
   sites: string | null;
   is_active: boolean;
+  owner_photo_url: string | null;
+  location_image_url: string | null;
 }
 
 interface AdminDirectoryDialogProps {
@@ -43,6 +45,8 @@ const emptyItem: DirectoryEntry = {
   phone_3: null,
   sites: null,
   is_active: true,
+  owner_photo_url: null,
+  location_image_url: null,
 };
 
 export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved }: AdminDirectoryDialogProps) {
@@ -51,6 +55,10 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
   const [deleting, setDeleting] = useState(false);
   const [siteOptions, setSiteOptions] = useState<string[]>([]);
   const [siteOptionsLoading, setSiteOptionsLoading] = useState(false);
+  const [uploadingOwnerPhoto, setUploadingOwnerPhoto] = useState(false);
+  const [uploadingLocationImage, setUploadingLocationImage] = useState(false);
+  const ownerPhotoInputRef = useRef<HTMLInputElement>(null);
+  const locationImageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -99,6 +107,40 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleImageUpload = async (
+    file: File,
+    type: "owner_photo" | "location_image"
+  ) => {
+    const setUploading = type === "owner_photo" ? setUploadingOwnerPhoto : setUploadingLocationImage;
+    setUploading(true);
+
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+      const timestamp = Date.now();
+      const path = `directory/${type}_${timestamp}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("media")
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: true,
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
+
+      const field = type === "owner_photo" ? "owner_photo_url" : "location_image_url";
+      handleChange(field, urlData.publicUrl);
+      toast.success(`${type === "owner_photo" ? "Owner photo" : "Location image"} uploaded`);
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      toast.error(err.message || "Failed to upload image");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!formData.location?.trim()) {
       toast.error("Location is required");
@@ -122,6 +164,8 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
             phone_3: formData.phone_3,
             sites: formData.sites,
             is_active: formData.is_active,
+            owner_photo_url: formData.owner_photo_url,
+            location_image_url: formData.location_image_url,
             updated_at: new Date().toISOString(),
           })
           .eq("id", formData.id);
@@ -142,6 +186,8 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
           phone_3: formData.phone_3,
           sites: formData.sites,
           is_active: formData.is_active,
+          owner_photo_url: formData.owner_photo_url,
+          location_image_url: formData.location_image_url,
         });
 
         if (error) throw error;
@@ -235,6 +281,115 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
               onChange={(e) => handleChange("owner", e.target.value || null)}
               placeholder="Branch owner name"
             />
+          </div>
+
+          {/* Image Upload Fields */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Owner Photo */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                <User className="w-4 h-4" /> Owner Photo
+              </Label>
+              <input
+                ref={ownerPhotoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file, "owner_photo");
+                  e.target.value = "";
+                }}
+              />
+              {formData.owner_photo_url ? (
+                <div className="relative w-full aspect-square rounded-lg overflow-hidden border bg-muted">
+                  <img
+                    src={formData.owner_photo_url}
+                    alt="Owner"
+                    className="w-full h-full object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 h-6 w-6"
+                    onClick={() => handleChange("owner_photo_url", null)}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-24 flex flex-col gap-1"
+                  onClick={() => ownerPhotoInputRef.current?.click()}
+                  disabled={uploadingOwnerPhoto}
+                >
+                  {uploadingOwnerPhoto ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5" />
+                      <span className="text-xs">Upload Photo</span>
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+
+            {/* Location Image */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-1">
+                <MapPin className="w-4 h-4" /> Location Image
+              </Label>
+              <input
+                ref={locationImageInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleImageUpload(file, "location_image");
+                  e.target.value = "";
+                }}
+              />
+              {formData.location_image_url ? (
+                <div className="relative w-full aspect-square rounded-lg overflow-hidden border bg-muted">
+                  <img
+                    src={formData.location_image_url}
+                    alt="Location"
+                    className="w-full h-full object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-1 right-1 h-6 w-6"
+                    onClick={() => handleChange("location_image_url", null)}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-24 flex flex-col gap-1"
+                  onClick={() => locationImageInputRef.current?.click()}
+                  disabled={uploadingLocationImage}
+                >
+                  {uploadingLocationImage ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Upload className="w-5 h-5" />
+                      <span className="text-xs">Upload Image</span>
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2">

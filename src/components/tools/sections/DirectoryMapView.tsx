@@ -43,6 +43,8 @@ interface DirectoryEntry {
   phone_3: string | null;
   sites: string | null;
   is_active: boolean;
+  owner_photo_url: string | null;
+  location_image_url: string | null;
 }
 
 interface LocationWithCoords extends DirectoryEntry {
