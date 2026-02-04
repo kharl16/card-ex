@@ -873,14 +873,15 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           </DialogHeader>
 
           <div className="space-y-4">
-            {/* Location Image */}
+            {/* Location Image - Full view without cropping */}
             {selectedEntry?.location_image_url && (
-              <div className="w-full aspect-video rounded-xl overflow-hidden bg-muted">
+              <div className="w-full rounded-xl overflow-hidden bg-muted p-2">
                 <img
                   src={selectedEntry.location_image_url}
                   alt={selectedEntry.location || "Location"}
-                  className="w-full h-full object-cover"
+                  className="w-full h-auto max-h-64 object-contain mx-auto rounded-lg"
                 />
+                <p className="text-xs text-muted-foreground text-center mt-2">Location Image</p>
               </div>
             )}
 
@@ -898,22 +899,18 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
             )}
 
             {selectedEntry?.owner && (
-              <div className="p-4 rounded-xl bg-muted/50 space-y-1">
+              <div className="p-4 rounded-xl bg-muted/50 space-y-3">
                 <p className="text-xs text-muted-foreground uppercase tracking-wide">Owner</p>
-                <div className="flex items-center gap-3">
-                  {selectedEntry.owner_photo_url ? (
+                {selectedEntry.owner_photo_url && (
+                  <div className="w-full rounded-lg overflow-hidden bg-background">
                     <img
                       src={selectedEntry.owner_photo_url}
                       alt={selectedEntry.owner}
-                      className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-primary/20"
+                      className="w-full h-auto max-h-48 object-contain mx-auto"
                     />
-                  ) : (
-                    <span className="w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0 text-lg font-medium border-2 border-primary/20">
-                      {selectedEntry.owner.charAt(0).toUpperCase()}
-                    </span>
-                  )}
-                  <p className="text-foreground font-medium">{selectedEntry.owner}</p>
-                </div>
+                  </div>
+                )}
+                <p className="text-foreground font-medium text-center">{selectedEntry.owner}</p>
               </div>
             )}
 
