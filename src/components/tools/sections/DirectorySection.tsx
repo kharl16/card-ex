@@ -875,13 +875,16 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           <div className="space-y-4">
             {/* Location Image - Full view without cropping */}
             {selectedEntry?.location_image_url && (
-              <div className="w-full rounded-xl overflow-hidden bg-muted p-2">
-                <img
-                  src={selectedEntry.location_image_url}
-                  alt={selectedEntry.location || "Location"}
-                  className="w-full h-auto max-h-64 object-contain mx-auto rounded-lg"
-                />
-                <p className="text-xs text-muted-foreground text-center mt-2">Location Image</p>
+              <div className="w-full rounded-xl overflow-hidden bg-muted/30 p-3">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Location Image</p>
+                <div className="w-full bg-background rounded-lg overflow-hidden">
+                  <img
+                    src={selectedEntry.location_image_url}
+                    alt={selectedEntry.location || "Location"}
+                    className="w-full h-auto object-contain mx-auto"
+                    style={{ maxHeight: '300px' }}
+                  />
+                </div>
               </div>
             )}
 
