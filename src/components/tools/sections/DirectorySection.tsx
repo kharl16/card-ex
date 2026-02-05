@@ -76,8 +76,30 @@ function extractCoordsFromUrl(url: string | null): { lat: number; lng: number } 
   return null;
 }
 
-// Generate vCard for a directory entry
-function generateDirectoryVCard(entry: DirectoryEntry): string {
+// Fetch image and convert to base64
+async function fetchImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        // Extract base64 data after the comma (data:image/...;base64,)
+        const base64 = result.split(',')[1];
+        resolve(base64 || null);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+// Generate vCard for a directory entry (async to support photo)
+async function generateDirectoryVCard(entry: DirectoryEntry): Promise<string> {
   const lines: string[] = ["BEGIN:VCARD", "VERSION:3.0"];
 
   // Organization name (use location as the org)
@@ -99,6 +121,15 @@ function generateDirectoryVCard(entry: DirectoryEntry): string {
   // Facebook as URL
   if (entry.facebook_page) {
     lines.push(`URL;TYPE=WORK:${entry.facebook_page}`);
+  }
+
+  // Owner's photo
+  if (entry.owner_photo_url) {
+    const photoBase64 = await fetchImageAsBase64(entry.owner_photo_url);
+    if (photoBase64) {
+      const imgType = entry.owner_photo_url.toLowerCase().includes('.png') ? 'PNG' : 'JPEG';
+      lines.push(`PHOTO;ENCODING=b;TYPE=${imgType}:${photoBase64}`);
+    }
   }
 
   // Build NOTE field with owner and operating hours
@@ -278,9 +309,10 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     }
   };
 
-  const handleAddToContacts = (entry: DirectoryEntry) => {
+  const handleAddToContacts = async (entry: DirectoryEntry) => {
     try {
-      const vcardContent = generateDirectoryVCard(entry);
+      toast.info("Generating contact file...");
+      const vcardContent = await generateDirectoryVCard(entry);
       const blob = new Blob([vcardContent], {
         type: "text/vcard;charset=utf-8",
       });
