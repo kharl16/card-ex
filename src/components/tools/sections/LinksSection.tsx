@@ -151,73 +151,71 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
       )}
 
       {/* Links Grid */}
-      <div className="grid gap-4">
+      <div className="flex flex-col gap-3 w-full">
         {filteredItems.map((item) => (
           <div
             key={item.id}
             className={cn(
-              "flex items-center gap-4 p-4 rounded-2xl relative",
+              "flex items-center gap-3 p-3 rounded-xl w-full",
               "bg-card border border-border/50 shadow-sm",
               "hover:shadow-md hover:border-primary/30 transition-all"
             )}
           >
-            {/* Admin Edit Button */}
-            {isAdmin && (
-              <Button
-                variant="secondary"
-                size="icon"
-                className="absolute top-2 right-2 h-8 w-8"
-                onClick={() => handleEdit(item)}
-              >
-                <Pencil className="w-4 h-4" />
-              </Button>
-            )}
-
             {/* Icon */}
             <div
               className={cn(
-                "w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center",
+                "w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center",
                 "bg-gradient-to-br from-primary/20 to-primary/5",
                 "border border-primary/20"
               )}
             >
               {item.icon_url ? (
-                <img src={item.icon_url} alt="" className="w-8 h-8 object-contain" />
+                <img src={item.icon_url} alt="" className="w-7 h-7 object-contain" />
               ) : (
-                <LinkIcon className="w-6 h-6 text-primary" />
+                <LinkIcon className="w-5 h-5 text-primary" />
               )}
             </div>
 
             {/* Info */}
-            <div className="flex-1 min-w-0 pr-10">
-              <h4 className="font-semibold text-foreground text-lg truncate">{item.name}</h4>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-foreground text-base truncate">{item.name}</h4>
               {item.category && (
-                <Badge variant="secondary" className="mt-1">
+                <Badge variant="secondary" className="mt-1 text-xs">
                   {item.category}
                 </Badge>
               )}
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-2">
+            {/* Actions - compact for mobile */}
+            <div className="flex gap-1.5 flex-shrink-0">
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-10 w-10 rounded-lg"
+                  onClick={() => handleEdit(item)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => handleCopy(item)}
-                className="h-12 w-12 rounded-xl"
+                className="h-10 w-10 rounded-lg"
               >
                 {copiedId === item.id ? (
-                  <Check className="h-5 w-5 text-green-500" />
+                  <Check className="h-4 w-4 text-green-500" />
                 ) : (
-                  <Copy className="h-5 w-5" />
+                  <Copy className="h-4 w-4" />
                 )}
               </Button>
               <Button
                 onClick={() => handleOpen(item)}
-                className="h-12 px-6 rounded-xl gap-2 text-base"
+                size="icon"
+                className="h-10 w-10 rounded-lg"
               >
-                <ExternalLink className="h-5 w-5" />
-                Open
+                <ExternalLink className="h-4 w-4" />
               </Button>
             </div>
           </div>
