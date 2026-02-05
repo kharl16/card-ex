@@ -24,6 +24,7 @@ import {
   Loader2,
   List,
   Map,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
@@ -867,12 +868,24 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
       {/* Detail Modal */}
       <Dialog open={!!selectedEntry} onOpenChange={() => setSelectedEntry(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{selectedEntry?.location || "Branch Details"}</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
+          {/* Sticky Header with Back Button */}
+          <div className="sticky top-0 z-10 bg-background border-b p-4 flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setSelectedEntry(null)}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <DialogHeader className="flex-1 space-y-0">
+              <DialogTitle className="text-lg">{selectedEntry?.location || "Branch Details"}</DialogTitle>
+            </DialogHeader>
+          </div>
 
-          <div className="space-y-4">
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* Location Image - Full view without cropping */}
             {selectedEntry?.location_image_url && (
               <div className="w-full rounded-xl overflow-hidden bg-muted/30 p-3">
