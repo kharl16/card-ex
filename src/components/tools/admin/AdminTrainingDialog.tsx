@@ -78,7 +78,7 @@ export default function AdminTrainingDialog({ open, onOpenChange, item, onSaved 
           .eq("id", formData.id);
 
         if (error) throw error;
-        toast.success("Training updated successfully");
+        toast.success("Video updated successfully");
       } else {
         // Create
         const { error } = await supabase.from("training_items").insert({
@@ -92,14 +92,14 @@ export default function AdminTrainingDialog({ open, onOpenChange, item, onSaved 
         });
 
         if (error) throw error;
-        toast.success("Training created successfully");
+        toast.success("Video created successfully");
       }
 
       onSaved();
       onOpenChange(false);
     } catch (err: any) {
       console.error("Save error:", err);
-      toast.error(err.message || "Failed to save training");
+      toast.error(err.message || "Failed to save video");
     } finally {
       setSaving(false);
     }
@@ -117,12 +117,12 @@ export default function AdminTrainingDialog({ open, onOpenChange, item, onSaved 
 
       if (error) throw error;
 
-      toast.success("Training deleted");
+      toast.success("Video deleted");
       onSaved();
       onOpenChange(false);
     } catch (err: any) {
       console.error("Delete error:", err);
-      toast.error(err.message || "Failed to delete training");
+      toast.error(err.message || "Failed to delete video");
     } finally {
       setDeleting(false);
     }
@@ -132,7 +132,7 @@ export default function AdminTrainingDialog({ open, onOpenChange, item, onSaved 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{item ? "Edit Training" : "Add Training"}</DialogTitle>
+          <DialogTitle>{item ? "Edit Video" : "Add Video"}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -141,7 +141,7 @@ export default function AdminTrainingDialog({ open, onOpenChange, item, onSaved 
             <Input
               value={formData.title}
               onChange={(e) => handleChange("title", e.target.value)}
-              placeholder="Training title"
+              placeholder="Video title"
             />
           </div>
 
