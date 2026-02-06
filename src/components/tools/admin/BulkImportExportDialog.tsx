@@ -27,7 +27,7 @@ const RESOURCE_CONFIGS: Record<ResourceType, {
     table: "training_items",
     columns: ["title", "description", "video_url", "thumbnail_url", "source_type", "category", "is_active"],
     requiredColumns: ["title"],
-    displayName: "Trainings",
+    displayName: "Videos",
   },
   links: {
     table: "iam_links",
@@ -273,7 +273,7 @@ export default function BulkImportExportDialog({ open, onOpenChange, onImported 
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="trainings">Trainings</SelectItem>
+                <SelectItem value="trainings">Videos</SelectItem>
                 <SelectItem value="links">Links</SelectItem>
                 <SelectItem value="files">Files</SelectItem>
               </SelectContent>
