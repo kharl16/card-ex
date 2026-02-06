@@ -116,7 +116,7 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
   if (items.length === 0 && !isAdmin) {
     return (
       <div className="text-center py-12">
-        <p className="text-lg text-muted-foreground">No trainings available yet</p>
+        <p className="text-lg text-muted-foreground">No videos available yet</p>
       </div>
     );
   }
@@ -247,7 +247,7 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
 
       {filteredItems.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-lg text-muted-foreground">No trainings match your search</p>
+          <p className="text-lg text-muted-foreground">No videos match your search</p>
         </div>
       )}
 
