@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Play, Plus, Pencil, FolderOpen, ArrowLeft } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+
 import { useAuth } from "@/contexts/AuthContext";
 import AdminTrainingDialog from "../admin/AdminTrainingDialog";
 import AdminVideoFolderDialog from "../admin/AdminVideoFolderDialog";
@@ -332,57 +332,54 @@ function VideoItemsView({
         </Button>
       )}
 
-      <ScrollArea className="w-full">
-        <div className="flex gap-4 pb-4">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className={cn(
-                "flex-shrink-0 w-64 rounded-2xl overflow-hidden relative",
-                "bg-card border border-border/50 shadow-md",
-                "hover:shadow-lg hover:border-primary/30 transition-all"
+      <div className="grid grid-cols-2 gap-3">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className={cn(
+              "rounded-2xl overflow-hidden relative",
+              "bg-card border border-border/50 shadow-md",
+              "hover:shadow-lg hover:border-primary/30 transition-all"
+            )}
+          >
+            {isAdmin && (
+              <Button
+                variant="secondary" size="icon"
+                className="absolute top-2 right-2 z-10 h-8 w-8"
+                onClick={() => onEdit(item)}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            )}
+            <div className="relative aspect-video bg-muted">
+              {item.thumbnail_url ? (
+                <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                  <Play className="w-12 h-12 text-primary/50" />
+                </div>
               )}
-            >
-              {isAdmin && (
-                <Button
-                  variant="secondary" size="icon"
-                  className="absolute top-2 right-2 z-10 h-8 w-8"
-                  onClick={() => onEdit(item)}
+              {item.video_url && (
+                <button
+                  onClick={() => onWatch(item)}
+                  className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
                 >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-              )}
-              <div className="relative aspect-video bg-muted">
-                {item.thumbnail_url ? (
-                  <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                    <Play className="w-12 h-12 text-primary/50" />
+                  <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
+                    <Play className="w-6 h-6 text-primary-foreground ml-1" />
                   </div>
-                )}
-                {item.video_url && (
-                  <button
-                    onClick={() => onWatch(item)}
-                    className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
-                  >
-                    <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
-                      <Play className="w-6 h-6 text-primary-foreground ml-1" />
-                    </div>
-                  </button>
-                )}
-              </div>
-              <div className="p-4 space-y-2">
-                <h4 className="font-semibold text-foreground line-clamp-2 min-h-[48px]">{item.title}</h4>
-                {item.description && <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>}
-                <Button onClick={() => onWatch(item)} className="w-full h-12 text-base gap-2" disabled={!item.video_url}>
-                  <Play className="w-5 h-5" /> Watch
-                </Button>
-              </div>
+                </button>
+              )}
             </div>
-          ))}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+            <div className="p-3 space-y-2">
+              <h4 className="font-semibold text-foreground line-clamp-2 text-sm min-h-[40px]">{item.title}</h4>
+              {item.description && <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>}
+              <Button onClick={() => onWatch(item)} className="w-full h-10 text-sm gap-2" disabled={!item.video_url}>
+                <Play className="w-4 h-4" /> Watch
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {items.length === 0 && (
         <div className="text-center py-12">
@@ -416,64 +413,61 @@ function AmbassadorClipsView({
         </Button>
       )}
 
-      <ScrollArea className="w-full">
-        <div className="flex gap-4 pb-4">
-          {clips.map((clip) => {
-            const hasVideo = !!(clip.video_file_url || clip.drive_share_link || clip.drive_link);
-            return (
-              <div
-                key={clip.id}
-                className={cn(
-                  "flex-shrink-0 w-64 rounded-2xl overflow-hidden relative",
-                  "bg-card border border-border/50 shadow-md",
-                  "hover:shadow-lg hover:border-primary/30 transition-all"
+      <div className="grid grid-cols-2 gap-3">
+        {clips.map((clip) => {
+          const hasVideo = !!(clip.video_file_url || clip.drive_share_link || clip.drive_link);
+          return (
+            <div
+              key={clip.id}
+              className={cn(
+                "rounded-2xl overflow-hidden relative",
+                "bg-card border border-border/50 shadow-md",
+                "hover:shadow-lg hover:border-primary/30 transition-all"
+              )}
+            >
+              {isAdmin && (
+                <Button
+                  variant="secondary" size="icon"
+                  className="absolute top-2 right-2 z-10 h-8 w-8"
+                  onClick={() => onEdit(clip)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
+              <div className="relative aspect-video bg-muted">
+                {clip.thumbnail ? (
+                  <img src={clip.thumbnail} alt={clip.endorser || "Ambassador"} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                    <Play className="w-12 h-12 text-primary/50" />
+                  </div>
                 )}
-              >
-                {isAdmin && (
-                  <Button
-                    variant="secondary" size="icon"
-                    className="absolute top-2 right-2 z-10 h-8 w-8"
-                    onClick={() => onEdit(clip)}
+                {hasVideo && (
+                  <button
+                    onClick={() => onWatch(clip)}
+                    className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
                   >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                )}
-                <div className="relative aspect-video bg-muted">
-                  {clip.thumbnail ? (
-                    <img src={clip.thumbnail} alt={clip.endorser || "Ambassador"} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                      <Play className="w-12 h-12 text-primary/50" />
+                    <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
+                      <Play className="w-6 h-6 text-primary-foreground ml-1" />
                     </div>
-                  )}
-                  {hasVideo && (
-                    <button
-                      onClick={() => onWatch(clip)}
-                      className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
-                    >
-                      <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
-                        <Play className="w-6 h-6 text-primary-foreground ml-1" />
-                      </div>
-                    </button>
-                  )}
-                </div>
-                <div className="p-4 space-y-2">
-                  <h4 className="font-semibold text-foreground line-clamp-2 min-h-[48px]">
-                    {clip.endorser || "Unknown Ambassador"}
-                  </h4>
-                  {clip.product_endorsed && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">{clip.product_endorsed}</p>
-                  )}
-                  <Button onClick={() => onWatch(clip)} className="w-full h-12 text-base gap-2" disabled={!hasVideo}>
-                    <Play className="w-5 h-5" /> Watch
-                  </Button>
-                </div>
+                  </button>
+                )}
               </div>
-            );
-          })}
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+              <div className="p-3 space-y-2">
+                <h4 className="font-semibold text-foreground line-clamp-2 text-sm min-h-[40px]">
+                  {clip.endorser || "Unknown Ambassador"}
+                </h4>
+                {clip.product_endorsed && (
+                  <p className="text-xs text-muted-foreground line-clamp-1">{clip.product_endorsed}</p>
+                )}
+                <Button onClick={() => onWatch(clip)} className="w-full h-10 text-sm gap-2" disabled={!hasVideo}>
+                  <Play className="w-4 h-4" /> Watch
+                </Button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {clips.length === 0 && (
         <div className="text-center py-12">
