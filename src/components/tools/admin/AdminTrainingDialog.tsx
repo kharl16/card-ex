@@ -25,6 +25,7 @@ interface AdminTrainingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item: TrainingItem | null;
+  defaultCategory?: string;
   onSaved: () => void;
 }
 
@@ -38,16 +39,16 @@ const emptyItem: TrainingItem = {
   is_active: true,
 };
 
-export default function AdminTrainingDialog({ open, onOpenChange, item, onSaved }: AdminTrainingDialogProps) {
+export default function AdminTrainingDialog({ open, onOpenChange, item, defaultCategory, onSaved }: AdminTrainingDialogProps) {
   const [formData, setFormData] = useState<TrainingItem>(emptyItem);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (open) {
-      setFormData(item || emptyItem);
+      setFormData(item || { ...emptyItem, category: defaultCategory || null });
     }
-  }, [open, item]);
+  }, [open, item, defaultCategory]);
 
   const handleChange = (field: keyof TrainingItem, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
