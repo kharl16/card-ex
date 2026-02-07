@@ -10,6 +10,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminTrainingDialog from "../admin/AdminTrainingDialog";
 import AdminVideoFolderDialog from "../admin/AdminVideoFolderDialog";
+import AdminAmbassadorClipDialog from "../admin/AdminAmbassadorClipDialog";
 
 interface TrainingItem {
   id: string;
@@ -19,6 +20,18 @@ interface TrainingItem {
   video_url: string | null;
   source_type: string | null;
   category: string | null;
+  is_active: boolean;
+}
+
+interface AmbassadorClip {
+  id: string;
+  endorser: string | null;
+  product_endorsed: string | null;
+  thumbnail: string | null;
+  video_file_url: string | null;
+  drive_link: string | null;
+  drive_share_link: string | null;
+  folder_name: string | null;
   is_active: boolean;
 }
 
@@ -33,10 +46,13 @@ interface TrainingsSectionProps {
   searchQuery: string;
 }
 
+const AMBASSADOR_FOLDER = "Ambassador Clips";
+
 export default function TrainingsSection({ searchQuery }: TrainingsSectionProps) {
   const { isAdmin } = useAuth();
   const [folders, setFolders] = useState<VideoFolder[]>([]);
   const [items, setItems] = useState<TrainingItem[]>([]);
+  const [ambassadorClips, setAmbassadorClips] = useState<AmbassadorClip[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVideo, setSelectedVideo] = useState<TrainingItem | null>(null);
   const [activeFolder, setActiveFolder] = useState<VideoFolder | null>(null);
@@ -46,6 +62,10 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
   const [editingFolder, setEditingFolder] = useState<VideoFolder | null>(null);
   const [videoDialogOpen, setVideoDialogOpen] = useState(false);
   const [editingVideo, setEditingVideo] = useState<TrainingItem | null>(null);
+  const [clipDialogOpen, setClipDialogOpen] = useState(false);
+  const [editingClip, setEditingClip] = useState<AmbassadorClip | null>(null);
+
+  const isAmbassadorFolder = activeFolder?.folder_name === AMBASSADOR_FOLDER;
 
   useEffect(() => {
     fetchFolders();
@@ -53,7 +73,11 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
 
   useEffect(() => {
     if (activeFolder) {
-      fetchItems(activeFolder.folder_name);
+      if (activeFolder.folder_name === AMBASSADOR_FOLDER) {
+        fetchAmbassadorClips();
+      } else {
+        fetchItems(activeFolder.folder_name);
+      }
     }
   }, [activeFolder]);
 
@@ -89,6 +113,20 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
     }
   };
 
+  const fetchAmbassadorClips = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("ambassadors_library")
+        .select("*")
+        .eq("is_active", true)
+        .order("endorser", { ascending: true });
+      if (error) throw error;
+      setAmbassadorClips(data || []);
+    } catch (err) {
+      console.error("Error fetching ambassador clips:", err);
+    }
+  };
+
   const filteredFolders = folders.filter(
     (f) => !searchQuery || f.folder_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -98,6 +136,13 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
       !searchQuery ||
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredClips = ambassadorClips.filter(
+    (clip) =>
+      !searchQuery ||
+      clip.endorser?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      clip.product_endorsed?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const getYouTubeEmbedUrl = (url: string) => {
@@ -114,81 +159,48 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
     }
   };
 
+  const handleWatchClip = (clip: AmbassadorClip) => {
+    const url = clip.video_file_url || clip.drive_share_link || clip.drive_link;
+    if (url) window.open(url, "_blank");
+  };
+
+  const handleBackToFolders = () => {
+    setActiveFolder(null);
+    setItems([]);
+    setAmbassadorClips([]);
+  };
+
   if (loading) return <ToolsSkeleton type="card" count={4} />;
 
-  // ── Inside a folder: show videos ──
+  // ── Inside a folder ──
   if (activeFolder) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" className="gap-2 -ml-2" onClick={() => { setActiveFolder(null); setItems([]); }}>
+        <Button variant="ghost" className="gap-2 -ml-2" onClick={handleBackToFolders}>
           <ArrowLeft className="w-4 h-4" /> Back to Folders
         </Button>
 
         <h2 className="text-xl font-bold text-foreground">{activeFolder.folder_name}</h2>
 
-        {isAdmin && (
-          <Button onClick={() => { setEditingVideo(null); setVideoDialogOpen(true); }} className="w-full gap-2">
-            <Plus className="w-4 h-4" /> Add Video
-          </Button>
-        )}
-
-        {/* Video cards */}
-        <ScrollArea className="w-full">
-          <div className="flex gap-4 pb-4">
-            {filteredItems.map((item) => (
-              <div
-                key={item.id}
-                className={cn(
-                  "flex-shrink-0 w-64 rounded-2xl overflow-hidden relative",
-                  "bg-card border border-border/50 shadow-md",
-                  "hover:shadow-lg hover:border-primary/30 transition-all"
-                )}
-              >
-                {isAdmin && (
-                  <Button
-                    variant="secondary" size="icon"
-                    className="absolute top-2 right-2 z-10 h-8 w-8"
-                    onClick={() => { setEditingVideo(item); setVideoDialogOpen(true); }}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                )}
-                <div className="relative aspect-video bg-muted">
-                  {item.thumbnail_url ? (
-                    <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                      <Play className="w-12 h-12 text-primary/50" />
-                    </div>
-                  )}
-                  {item.video_url && (
-                    <button
-                      onClick={() => handleWatch(item)}
-                      className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
-                    >
-                      <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
-                        <Play className="w-6 h-6 text-primary-foreground ml-1" />
-                      </div>
-                    </button>
-                  )}
-                </div>
-                <div className="p-4 space-y-2">
-                  <h4 className="font-semibold text-foreground line-clamp-2 min-h-[48px]">{item.title}</h4>
-                  {item.description && <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>}
-                  <Button onClick={() => handleWatch(item)} className="w-full h-12 text-base gap-2" disabled={!item.video_url}>
-                    <Play className="w-5 h-5" /> Watch
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-
-        {filteredItems.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">No videos in this folder yet</p>
-          </div>
+        {/* Ambassador Clips view */}
+        {isAmbassadorFolder ? (
+          <AmbassadorClipsView
+            clips={filteredClips}
+            isAdmin={isAdmin}
+            searchQuery={searchQuery}
+            onEdit={(clip) => { setEditingClip(clip); setClipDialogOpen(true); }}
+            onAdd={() => { setEditingClip(null); setClipDialogOpen(true); }}
+            onWatch={handleWatchClip}
+          />
+        ) : (
+          <VideoItemsView
+            items={filteredItems}
+            isAdmin={isAdmin}
+            searchQuery={searchQuery}
+            onEdit={(item) => { setEditingVideo(item); setVideoDialogOpen(true); }}
+            onAdd={() => { setEditingVideo(null); setVideoDialogOpen(true); }}
+            onWatch={handleWatch}
+          />
         )}
 
         {/* Video Modal */}
@@ -216,6 +228,14 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
           item={editingVideo}
           defaultCategory={activeFolder.folder_name}
           onSaved={() => fetchItems(activeFolder.folder_name)}
+        />
+
+        <AdminAmbassadorClipDialog
+          open={clipDialogOpen}
+          onOpenChange={setClipDialogOpen}
+          item={editingClip}
+          defaultFolderName={AMBASSADOR_FOLDER}
+          onSaved={fetchAmbassadorClips}
         />
       </div>
     );
@@ -270,7 +290,6 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
               </div>
             )}
 
-            {/* Overlay label */}
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
               <h3 className="text-sm font-semibold text-white line-clamp-2">{folder.folder_name}</h3>
             </div>
@@ -285,5 +304,182 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
         onSaved={fetchFolders}
       />
     </div>
+  );
+}
+
+// ── Sub-components ──
+
+function VideoItemsView({
+  items,
+  isAdmin,
+  searchQuery,
+  onEdit,
+  onAdd,
+  onWatch,
+}: {
+  items: TrainingItem[];
+  isAdmin: boolean;
+  searchQuery: string;
+  onEdit: (item: TrainingItem) => void;
+  onAdd: () => void;
+  onWatch: (item: TrainingItem) => void;
+}) {
+  return (
+    <>
+      {isAdmin && (
+        <Button onClick={onAdd} className="w-full gap-2">
+          <Plus className="w-4 h-4" /> Add Video
+        </Button>
+      )}
+
+      <ScrollArea className="w-full">
+        <div className="flex gap-4 pb-4">
+          {items.map((item) => (
+            <div
+              key={item.id}
+              className={cn(
+                "flex-shrink-0 w-64 rounded-2xl overflow-hidden relative",
+                "bg-card border border-border/50 shadow-md",
+                "hover:shadow-lg hover:border-primary/30 transition-all"
+              )}
+            >
+              {isAdmin && (
+                <Button
+                  variant="secondary" size="icon"
+                  className="absolute top-2 right-2 z-10 h-8 w-8"
+                  onClick={() => onEdit(item)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
+              <div className="relative aspect-video bg-muted">
+                {item.thumbnail_url ? (
+                  <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                    <Play className="w-12 h-12 text-primary/50" />
+                  </div>
+                )}
+                {item.video_url && (
+                  <button
+                    onClick={() => onWatch(item)}
+                    className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
+                  >
+                    <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
+                      <Play className="w-6 h-6 text-primary-foreground ml-1" />
+                    </div>
+                  </button>
+                )}
+              </div>
+              <div className="p-4 space-y-2">
+                <h4 className="font-semibold text-foreground line-clamp-2 min-h-[48px]">{item.title}</h4>
+                {item.description && <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>}
+                <Button onClick={() => onWatch(item)} className="w-full h-12 text-base gap-2" disabled={!item.video_url}>
+                  <Play className="w-5 h-5" /> Watch
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+
+      {items.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">No videos in this folder yet</p>
+        </div>
+      )}
+    </>
+  );
+}
+
+function AmbassadorClipsView({
+  clips,
+  isAdmin,
+  searchQuery,
+  onEdit,
+  onAdd,
+  onWatch,
+}: {
+  clips: AmbassadorClip[];
+  isAdmin: boolean;
+  searchQuery: string;
+  onEdit: (clip: AmbassadorClip) => void;
+  onAdd: () => void;
+  onWatch: (clip: AmbassadorClip) => void;
+}) {
+  return (
+    <>
+      {isAdmin && (
+        <Button onClick={onAdd} className="w-full gap-2">
+          <Plus className="w-4 h-4" /> Add Ambassador Clip
+        </Button>
+      )}
+
+      <ScrollArea className="w-full">
+        <div className="flex gap-4 pb-4">
+          {clips.map((clip) => {
+            const hasVideo = !!(clip.video_file_url || clip.drive_share_link || clip.drive_link);
+            return (
+              <div
+                key={clip.id}
+                className={cn(
+                  "flex-shrink-0 w-64 rounded-2xl overflow-hidden relative",
+                  "bg-card border border-border/50 shadow-md",
+                  "hover:shadow-lg hover:border-primary/30 transition-all"
+                )}
+              >
+                {isAdmin && (
+                  <Button
+                    variant="secondary" size="icon"
+                    className="absolute top-2 right-2 z-10 h-8 w-8"
+                    onClick={() => onEdit(clip)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                )}
+                <div className="relative aspect-video bg-muted">
+                  {clip.thumbnail ? (
+                    <img src={clip.thumbnail} alt={clip.endorser || "Ambassador"} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                      <Play className="w-12 h-12 text-primary/50" />
+                    </div>
+                  )}
+                  {hasVideo && (
+                    <button
+                      onClick={() => onWatch(clip)}
+                      className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity"
+                    >
+                      <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center">
+                        <Play className="w-6 h-6 text-primary-foreground ml-1" />
+                      </div>
+                    </button>
+                  )}
+                </div>
+                <div className="p-4 space-y-2">
+                  <h4 className="font-semibold text-foreground line-clamp-2 min-h-[48px]">
+                    {clip.endorser || "Unknown Ambassador"}
+                  </h4>
+                  {clip.product_endorsed && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">{clip.product_endorsed}</p>
+                  )}
+                  <Button onClick={() => onWatch(clip)} className="w-full h-12 text-base gap-2" disabled={!hasVideo}>
+                    <Play className="w-5 h-5" /> Watch
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+
+      {clips.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-lg text-muted-foreground">No ambassador clips yet</p>
+        </div>
+      )}
+    </>
   );
 }
