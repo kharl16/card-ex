@@ -434,9 +434,9 @@ function AmbassadorClipsView({
                   <Pencil className="w-4 h-4" />
                 </Button>
               )}
-              <div className="relative aspect-video bg-muted">
+              <div className="relative aspect-video bg-black">
                 {clip.thumbnail ? (
-                  <img src={clip.thumbnail} alt={clip.endorser || "Ambassador"} className="w-full h-full object-cover" />
+                  <img src={clip.thumbnail} alt={clip.endorser || "Ambassador"} className="w-full h-full object-contain" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                     <Play className="w-12 h-12 text-primary/50" />
