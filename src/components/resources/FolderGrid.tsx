@@ -17,12 +17,12 @@ export function FolderGrid({ folders, basePath = "/resources/files" }: FolderGri
           to={`${basePath}?folder=${encodeURIComponent(folder.folder_name)}`}
         >
           <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 cursor-pointer">
-            <div className="relative aspect-video overflow-hidden bg-muted">
+            <div className="relative aspect-video overflow-hidden bg-black">
               {folder.images ? (
                 <img
                   src={folder.images}
                   alt={folder.folder_name}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
                   loading="lazy"
                 />
               ) : (

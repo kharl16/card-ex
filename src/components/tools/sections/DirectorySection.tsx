@@ -715,7 +715,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                       <img
                         src={item.location_image_url}
                         alt={item.location || "Location"}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     ) : (
                       <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
