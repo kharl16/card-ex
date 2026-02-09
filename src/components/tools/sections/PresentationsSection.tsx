@@ -160,12 +160,12 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
             )}
 
             {/* Thumbnail */}
-            <div className="relative aspect-[4/3] bg-muted">
+            <div className="relative aspect-[4/3] bg-black">
               {item.thumbnail_url ? (
                 <img
                   src={item.thumbnail_url}
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">

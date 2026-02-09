@@ -34,12 +34,12 @@ export function AmbassadorCard({
 
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 bg-card/80 backdrop-blur border-border/50 min-w-[200px] flex-shrink-0">
-      <div className="relative aspect-square overflow-hidden bg-muted">
+      <div className="relative aspect-square overflow-hidden bg-black">
         {ambassador.thumbnail ? (
           <img
             src={ambassador.thumbnail}
             alt={`${ambassador.endorser} - ${ambassador.product_endorsed}`}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
           />
         ) : (

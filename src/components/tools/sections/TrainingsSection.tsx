@@ -283,7 +283,7 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
             )}
 
             {folder.images ? (
-              <img src={folder.images} alt={folder.folder_name} className="w-full h-full object-cover" />
+              <img src={folder.images} alt={folder.folder_name} className="w-full h-full object-contain bg-black" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                 <FolderOpen className="w-12 h-12 text-primary/40" />
@@ -351,9 +351,9 @@ function VideoItemsView({
                 <Pencil className="w-4 h-4" />
               </Button>
             )}
-            <div className="relative aspect-video bg-muted">
+            <div className="relative aspect-video bg-black">
               {item.thumbnail_url ? (
-                <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover" />
+                <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-contain" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                   <Play className="w-12 h-12 text-primary/50" />

@@ -160,14 +160,14 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
                 )}
 
                 <div
-                  className="relative aspect-square bg-muted cursor-pointer"
+                  className="relative aspect-square bg-black cursor-pointer"
                   onClick={() => setSelectedFile(item)}
                 >
                   {thumbnail ? (
                     <img
                       src={thumbnail}
                       alt={item.file_name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
@@ -343,7 +343,7 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
             )}
           >
             {folder.images ? (
-              <img src={folder.images} alt={folder.folder_name} className="w-full h-full object-cover" />
+              <img src={folder.images} alt={folder.folder_name} className="w-full h-full object-contain bg-black" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                 <FolderOpen className="w-12 h-12 text-primary/40" />
