@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { useToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
 import { Save, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ImageUpload } from "@/components/ImageUpload";
+import ImageUpload from "@/components/ImageUpload";
 
 interface ToolsOrbCustomizerProps {
   open: boolean;
