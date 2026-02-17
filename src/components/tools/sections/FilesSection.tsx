@@ -56,13 +56,30 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
 
   const fetchFolders = async () => {
     try {
+      // Get distinct folder names from IAM Files table
       const { data, error } = await supabase
-        .from("resource_folders")
-        .select("*")
-        .eq("is_active", true)
-        .order("folder_name", { ascending: true });
+        .from("IAM Files")
+        .select('"Folder Name", "Images"');
       if (error) throw error;
-      setFolders(data || []);
+
+      // Derive unique folders from the data
+      const folderMap = new Map<string, ResourceFolder>();
+      (data || []).forEach((row: any) => {
+        const name = row["Folder Name"];
+        if (name && !folderMap.has(name)) {
+          folderMap.set(name, {
+            id: name,
+            folder_name: name,
+            images: row["Images"] || null,
+            is_active: true,
+          });
+        }
+      });
+
+      const folderList = Array.from(folderMap.values()).sort((a, b) =>
+        a.folder_name.localeCompare(b.folder_name)
+      );
+      setFolders(folderList);
     } catch (err) {
       console.error("Error fetching folders:", err);
     } finally {
@@ -73,14 +90,28 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
   const fetchItems = async (folderName: string) => {
     try {
       const { data, error } = await supabase
-        .from("files_repository")
+        .from("IAM Files")
         .select("*")
-        .eq("is_active", true)
-        .eq("folder_name", folderName)
-        .order("sort_order", { ascending: true })
-        .order("file_name", { ascending: true });
+        .eq("Folder Name", folderName)
+        .order("File Name", { ascending: true });
       if (error) throw error;
-      setItems(data || []);
+
+      // Map IAM Files columns to our FileItem interface
+      const mapped: FileItem[] = (data || []).map((row: any) => ({
+        id: row.id,
+        file_name: row["File Name"] || "",
+        description: row["Description"] || null,
+        images: row["Images"] || null,
+        folder_name: row["Folder Name"] || null,
+        drive_link_download: row["Drive Link Download"] || null,
+        drive_link_share: row["Drive Link share"] || null,
+        view_video_url: row["View Video URL"] || null,
+        price_dp: row["Price (DP)"] || null,
+        price_srp: row["Price (SRP)"] || null,
+        is_active: true,
+      }));
+
+      setItems(mapped);
     } catch (err) {
       console.error("Error fetching files:", err);
     }
