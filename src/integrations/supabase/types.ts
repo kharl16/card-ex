@@ -710,6 +710,69 @@ export type Database = {
         }
         Relationships: []
       }
+      "IAM Files": {
+        Row: {
+          "Check Match": string | null
+          Description: string | null
+          "Drive Link Download": string | null
+          "Drive Link share": string | null
+          "File Name": string | null
+          "Folder Name": string | null
+          "Give Me 5": string | null
+          id: number
+          Images: string | null
+          Infinity: string | null
+          "Just 4 You": string | null
+          "Package Points (SMC)": string | null
+          "Price (DP)": string | null
+          "Price (SRP)": string | null
+          RQV: string | null
+          "Unilevel Points": number | null
+          "View Video URL": string | null
+          "Wholesale Package Commission": string | null
+        }
+        Insert: {
+          "Check Match"?: string | null
+          Description?: string | null
+          "Drive Link Download"?: string | null
+          "Drive Link share"?: string | null
+          "File Name"?: string | null
+          "Folder Name"?: string | null
+          "Give Me 5"?: string | null
+          id: number
+          Images?: string | null
+          Infinity?: string | null
+          "Just 4 You"?: string | null
+          "Package Points (SMC)"?: string | null
+          "Price (DP)"?: string | null
+          "Price (SRP)"?: string | null
+          RQV?: string | null
+          "Unilevel Points"?: number | null
+          "View Video URL"?: string | null
+          "Wholesale Package Commission"?: string | null
+        }
+        Update: {
+          "Check Match"?: string | null
+          Description?: string | null
+          "Drive Link Download"?: string | null
+          "Drive Link share"?: string | null
+          "File Name"?: string | null
+          "Folder Name"?: string | null
+          "Give Me 5"?: string | null
+          id?: number
+          Images?: string | null
+          Infinity?: string | null
+          "Just 4 You"?: string | null
+          "Package Points (SMC)"?: string | null
+          "Price (DP)"?: string | null
+          "Price (SRP)"?: string | null
+          RQV?: string | null
+          "Unilevel Points"?: number | null
+          "View Video URL"?: string | null
+          "Wholesale Package Commission"?: string | null
+        }
+        Relationships: []
+      }
       iam_links: {
         Row: {
           allowed_sites: string[] | null
