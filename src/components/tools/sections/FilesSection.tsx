@@ -7,6 +7,7 @@ import { Download, Share2, Play, FolderOpen, Eye, Plus, Pencil, ArrowLeft } from
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import AdminFileDialog from "../admin/AdminFileDialog";
 
 interface FileItem {
@@ -149,6 +150,25 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
     setItems([]);
   };
 
+  const handleShareFile = async (item: FileItem) => {
+    const shareUrl = item.drive_link_share || item.drive_link_download || item.view_video_url || "";
+    const shareText = `📁 ${item.file_name}${item.description ? `\n${item.description}` : ""}${shareUrl ? `\n${shareUrl}` : ""}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: item.file_name, text: shareText });
+        return;
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(shareText);
+      toast.success("File info copied to clipboard!");
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+
   if (loading) return <ToolsSkeleton type="grid" count={4} />;
 
   // ── Inside a folder ──
@@ -231,8 +251,8 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
                         className="flex-1 h-10 gap-1 text-xs"
                         onClick={() => window.open(item.drive_link_share!, "_blank")}
                       >
-                        <Share2 className="w-4 h-4" />
-                        Share
+                        <Eye className="w-4 h-4" />
+                        View
                       </Button>
                     )}
                     {item.view_video_url && (
@@ -257,6 +277,15 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
                       </Button>
                     )}
                   </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="w-full h-8 gap-1 text-xs text-muted-foreground"
+                    onClick={() => handleShareFile(item)}
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    Share
+                  </Button>
                 </div>
               </div>
             );

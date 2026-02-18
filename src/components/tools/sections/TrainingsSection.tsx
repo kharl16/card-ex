@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Play, Plus, Pencil, FolderOpen, ArrowLeft } from "lucide-react";
+import { Play, Plus, Pencil, FolderOpen, ArrowLeft, Share2 } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 import { useAuth } from "@/contexts/AuthContext";
 import AdminTrainingDialog from "../admin/AdminTrainingDialog";
@@ -376,6 +377,19 @@ function VideoItemsView({
               <Button onClick={() => onWatch(item)} className="w-full h-10 text-sm gap-2" disabled={!item.video_url}>
                 <Play className="w-4 h-4" /> Watch
               </Button>
+              <Button
+                variant="ghost"
+                className="w-full h-8 text-xs text-muted-foreground gap-1"
+                onClick={async () => {
+                  const shareText = `🎬 ${item.title}${item.description ? `\n${item.description}` : ""}${item.video_url ? `\n${item.video_url}` : ""}`;
+                  if (navigator.share) {
+                    try { await navigator.share({ title: item.title, text: shareText }); return; } catch (err) { if ((err as Error).name === "AbortError") return; }
+                  }
+                  try { await navigator.clipboard.writeText(shareText); toast.success("Video info copied!"); } catch { toast.error("Failed to copy"); }
+                }}
+              >
+                <Share2 className="w-3.5 h-3.5" /> Share
+              </Button>
             </div>
           </div>
         ))}
@@ -462,6 +476,20 @@ function AmbassadorClipsView({
                 )}
                 <Button onClick={() => onWatch(clip)} className="w-full h-10 text-sm gap-2" disabled={!hasVideo}>
                   <Play className="w-4 h-4" /> Watch
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full h-8 text-xs text-muted-foreground gap-1"
+                  onClick={async () => {
+                    const url = clip.video_file_url || clip.drive_share_link || clip.drive_link || "";
+                    const shareText = `🎥 ${clip.endorser || "Ambassador Clip"}${clip.product_endorsed ? ` - ${clip.product_endorsed}` : ""}${url ? `\n${url}` : ""}`;
+                    if (navigator.share) {
+                      try { await navigator.share({ title: clip.endorser || "Ambassador Clip", text: shareText }); return; } catch (err) { if ((err as Error).name === "AbortError") return; }
+                    }
+                    try { await navigator.clipboard.writeText(shareText); toast.success("Clip info copied!"); } catch { toast.error("Failed to copy"); }
+                  }}
+                >
+                  <Share2 className="w-3.5 h-3.5" /> Share
                 </Button>
               </div>
             </div>
