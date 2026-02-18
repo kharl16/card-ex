@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Download, Presentation, Plus, Pencil } from "lucide-react";
+import { ExternalLink, Download, Presentation, Plus, Pencil, Share2 } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import AdminPresentationDialog from "../admin/AdminPresentationDialog";
 
 interface PresentationItem {
@@ -211,6 +212,21 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
                   </Button>
                 )}
               </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="w-full h-8 gap-1 text-xs text-muted-foreground"
+                onClick={async () => {
+                  const shareUrl = item.presentation_url || item.download_url || "";
+                  const shareText = `📊 ${item.title}${item.description ? `\n${item.description}` : ""}${shareUrl ? `\n${shareUrl}` : ""}`;
+                  if (navigator.share) {
+                    try { await navigator.share({ title: item.title, text: shareText }); return; } catch (err) { if ((err as Error).name === "AbortError") return; }
+                  }
+                  try { await navigator.clipboard.writeText(shareText); toast.success("Presentation info copied!"); } catch { toast.error("Failed to copy"); }
+                }}
+              >
+                <Share2 className="w-3.5 h-3.5" /> Share
+              </Button>
             </div>
           </div>
         ))}

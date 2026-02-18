@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil } from "lucide-react";
+import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2 } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -84,6 +84,24 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
 
   const handleOpen = (item: IAMLink) => {
     window.open(item.link, "_blank");
+  };
+
+  const handleShareLink = async (item: IAMLink) => {
+    const shareText = `🔗 ${item.name}\n${item.link}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: item.name, url: item.link });
+        return;
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(shareText);
+      toast.success("Link info copied!");
+    } catch {
+      toast.error("Failed to copy");
+    }
   };
 
   const handleEdit = (item: IAMLink) => {
@@ -198,6 +216,15 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
                   <Pencil className="w-4 h-4" />
                 </Button>
               )}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleShareLink(item)}
+                className="h-10 w-10 rounded-lg"
+                title="Share"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
               <Button
                 variant="outline"
                 size="icon"
