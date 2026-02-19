@@ -1613,6 +1613,45 @@ export type Database = {
         }
         Relationships: []
       }
+      Videos: {
+        Row: {
+          Author: string | null
+          Description: string | null
+          "Drive Link": string | null
+          "Drive Link Share": string | null
+          "Duration (minutes)": number | null
+          "Folder Name": string | null
+          ID: number
+          "Thumbnail Image": string | null
+          Title: string | null
+          "Video File URL": string | null
+        }
+        Insert: {
+          Author?: string | null
+          Description?: string | null
+          "Drive Link"?: string | null
+          "Drive Link Share"?: string | null
+          "Duration (minutes)"?: number | null
+          "Folder Name"?: string | null
+          ID: number
+          "Thumbnail Image"?: string | null
+          Title?: string | null
+          "Video File URL"?: string | null
+        }
+        Update: {
+          Author?: string | null
+          Description?: string | null
+          "Drive Link"?: string | null
+          "Drive Link Share"?: string | null
+          "Duration (minutes)"?: number | null
+          "Folder Name"?: string | null
+          ID?: number
+          "Thumbnail Image"?: string | null
+          Title?: string | null
+          "Video File URL"?: string | null
+        }
+        Relationships: []
+      }
       ways_13: {
         Row: {
           allowed_sites: string[] | null
