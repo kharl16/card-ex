@@ -49,9 +49,21 @@ export default function ToolsDrawer({
   items,
 }: ToolsDrawerProps) {
   const { isAdmin } = useAuth();
-  const isMobile = useIsMobile();
+  const isMobileLive = useIsMobile();
+  // Lock the layout (Drawer vs Sheet) when open to prevent orientation changes
+  // from unmounting the active container and losing state (e.g. video playback).
+  const [lockedMobile, setLockedMobile] = useState<boolean | null>(null);
+  const isMobile = lockedMobile ?? isMobileLive;
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      setLockedMobile(isMobileLive);
+    } else {
+      setLockedMobile(null);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
