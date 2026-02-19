@@ -196,7 +196,7 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-foreground text-base truncate">{item.name}</h4>
+              <h4 className="font-semibold text-foreground text-base break-words">{item.name}</h4>
               {item.category && (
                 <Badge variant="secondary" className="mt-1 text-xs">
                   {item.category}
