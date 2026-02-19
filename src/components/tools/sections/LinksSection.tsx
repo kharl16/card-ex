@@ -196,7 +196,7 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <h4 className="font-semibold text-foreground text-base break-words">{item.name}</h4>
+              <a href={item.link} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline text-base break-words">{item.name}</a>
               {item.category && (
                 <Badge variant="secondary" className="mt-1 text-xs">
                   {item.category}
@@ -236,13 +236,6 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
-              </Button>
-              <Button
-                onClick={() => handleOpen(item)}
-                size="icon"
-                className="h-10 w-10 rounded-lg"
-              >
-                <ExternalLink className="h-4 w-4" />
               </Button>
             </div>
           </div>
