@@ -84,10 +84,22 @@ export default function Signup() {
       });
       if (error) throw error;
       
-      // Check if user already exists (Supabase returns user with empty identities for duplicate emails)
+      // Check if user already exists
+      // Case 1: Confirmed user — Supabase returns empty identities
       if (data.user && data.user.identities && data.user.identities.length === 0) {
         toast.error("This email is already registered. Please sign in or use a different email.");
         return;
+      }
+      
+      // Case 2: Unconfirmed existing user — Supabase resends confirmation and returns the user
+      // Detect by checking if created_at is NOT recent (more than 10 seconds ago)
+      if (data.user?.created_at) {
+        const createdAt = new Date(data.user.created_at).getTime();
+        const now = Date.now();
+        if (now - createdAt > 10000) {
+          toast.error("This email is already registered. Please check your inbox for a verification email, or sign in.");
+          return;
+        }
       }
       
       toast.success("Account created! Check your email to verify.");
