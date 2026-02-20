@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from "react";
+import React, { useCallback, useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, X, Download, Share2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -66,6 +66,7 @@ export default function LightboxDialog({
     }
   }, [currentImage, shareUrl]);
 
+  const panContainerRef = useRef<HTMLDivElement>(null);
   const resetPan = useCallback(() => setPanOffset({ x: 0, y: 0 }), []);
 
   // Reset zoom + pan together
@@ -79,30 +80,47 @@ export default function LightboxDialog({
     if (zoomLevel <= 1.5) resetPan();
   }, [onZoomOut, zoomLevel, resetPan]);
 
-  // Single-finger pan — only active when zoomed in
-  const handleTouchStart = useCallback(
-    (e: React.TouchEvent) => {
-      if (zoomLevel <= 1 || e.touches.length !== 1) return;
-      panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      panOrigin.current = { x: panOffset.x, y: panOffset.y };
-    },
-    [zoomLevel, panOffset]
-  );
+  // Use a ref for zoomLevel so native event listeners always see the latest value
+  const zoomLevelRef = useRef(zoomLevel);
+  useEffect(() => { zoomLevelRef.current = zoomLevel; }, [zoomLevel]);
 
-  const handleTouchMove = useCallback(
-    (e: React.TouchEvent) => {
-      if (zoomLevel <= 1 || e.touches.length !== 1 || !panStart.current) return;
-      e.preventDefault();
+  const panOffsetRef = useRef(panOffset);
+  useEffect(() => { panOffsetRef.current = panOffset; }, [panOffset]);
+
+  // Attach native (non-passive) touch listeners so preventDefault() actually works
+  // Radix Dialog blocks React synthetic touch events from calling preventDefault
+  useEffect(() => {
+    const el = panContainerRef.current;
+    if (!el) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (zoomLevelRef.current <= 1 || e.touches.length !== 1) return;
+      panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      panOrigin.current = { x: panOffsetRef.current.x, y: panOffsetRef.current.y };
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (zoomLevelRef.current <= 1 || e.touches.length !== 1 || !panStart.current) return;
+      e.preventDefault(); // Works because listener is non-passive
       const dx = e.touches[0].clientX - panStart.current.x;
       const dy = e.touches[0].clientY - panStart.current.y;
       setPanOffset({ x: panOrigin.current.x + dx, y: panOrigin.current.y + dy });
-    },
-    [zoomLevel]
-  );
+    };
 
-  const handleTouchEnd = useCallback(() => {
-    panStart.current = null;
-  }, []);
+    const onTouchEnd = () => {
+      panStart.current = null;
+    };
+
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    return () => {
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []); // empty deps — refs keep values current
 
   return (
     <>
@@ -193,12 +211,10 @@ export default function LightboxDialog({
               </>
             )}
 
-            {/* Image — touch pan with 1 finger when zoomed */}
+            {/* Image — touch pan with 1 finger when zoomed (native listeners attached via ref) */}
             <div
+              ref={panContainerRef}
               className="w-full h-full flex items-center justify-center p-8 overflow-hidden"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
               style={{ touchAction: zoomLevel > 1 ? "none" : "auto" }}
             >
               {currentImage && (
