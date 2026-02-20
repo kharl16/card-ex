@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, X, Download, Share2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -41,30 +41,68 @@ export default function LightboxDialog({
   shareUrl,
 }: LightboxDialogProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const panStart = useRef<{ x: number; y: number } | null>(null);
+  const panOrigin = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Download current image
   const handleDownload = useCallback(async () => {
     if (!currentImage?.url) return;
     await downloadSingleImage(currentImage.url);
-    onDownload(); // Call the original callback for analytics
+    onDownload();
   }, [currentImage, onDownload]);
 
   // Share current image
   const handleShare = useCallback(async () => {
     if (!currentImage?.url) return;
-    
     const result = await shareSingleImage({
       imageUrl: currentImage.url,
       title: currentImage.alt || "Check out this image!",
       text: currentImage.shareText || "Check out this image from Card-Ex",
       url: shareUrl,
     });
-
-    // If Web Share not available, open the modal
     if (result.showModal) {
       setShareModalOpen(true);
     }
   }, [currentImage, shareUrl]);
+
+  const resetPan = useCallback(() => setPanOffset({ x: 0, y: 0 }), []);
+
+  // Reset zoom + pan together
+  const handleResetZoom = useCallback(() => {
+    onResetZoom();
+    resetPan();
+  }, [onResetZoom, resetPan]);
+
+  const handleZoomOut = useCallback(() => {
+    onZoomOut();
+    if (zoomLevel <= 1.5) resetPan();
+  }, [onZoomOut, zoomLevel, resetPan]);
+
+  // Single-finger pan — only active when zoomed in
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (zoomLevel <= 1 || e.touches.length !== 1) return;
+      panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      panOrigin.current = { x: panOffset.x, y: panOffset.y };
+    },
+    [zoomLevel, panOffset]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (zoomLevel <= 1 || e.touches.length !== 1 || !panStart.current) return;
+      e.preventDefault();
+      const dx = e.touches[0].clientX - panStart.current.x;
+      const dy = e.touches[0].clientY - panStart.current.y;
+      setPanOffset({ x: panOrigin.current.x + dx, y: panOrigin.current.y + dy });
+    },
+    [zoomLevel]
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    panStart.current = null;
+  }, []);
 
   return (
     <>
@@ -87,7 +125,7 @@ export default function LightboxDialog({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={onZoomOut}
+                onClick={handleZoomOut}
                 disabled={zoomLevel <= 0.5}
                 className="bg-black/60 hover:bg-black/80 text-white rounded-full"
                 aria-label="Zoom out"
@@ -97,7 +135,7 @@ export default function LightboxDialog({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={onResetZoom}
+                onClick={handleResetZoom}
                 className="bg-black/60 hover:bg-black/80 text-white rounded-full"
                 aria-label="Reset zoom"
               >
@@ -113,7 +151,6 @@ export default function LightboxDialog({
               >
                 <ZoomIn className="h-5 w-5" />
               </Button>
-              {/* Download button */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -123,7 +160,6 @@ export default function LightboxDialog({
               >
                 <Download className="h-5 w-5" />
               </Button>
-              {/* Share button */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -135,7 +171,7 @@ export default function LightboxDialog({
               </Button>
             </div>
 
-            {/* Navigation arrows in lightbox */}
+            {/* Navigation arrows */}
             {count > 1 && (
               <>
                 <button
@@ -157,14 +193,23 @@ export default function LightboxDialog({
               </>
             )}
 
-            {/* Image */}
-            <div className="w-full h-full overflow-auto flex items-center justify-center p-8">
+            {/* Image — touch pan with 1 finger when zoomed */}
+            <div
+              className="w-full h-full flex items-center justify-center p-8 overflow-hidden"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              style={{ touchAction: zoomLevel > 1 ? "none" : "auto" }}
+            >
               {currentImage && (
                 <img
                   src={currentImage.url}
                   alt={currentImage.alt ?? ""}
                   className="max-w-full max-h-full object-contain transition-transform duration-200"
-                  style={{ transform: `scale(${zoomLevel})` }}
+                  style={{
+                    transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
+                  }}
+                  draggable={false}
                 />
               )}
             </div>
@@ -179,7 +224,6 @@ export default function LightboxDialog({
         </DialogContent>
       </Dialog>
 
-      {/* ShareModal fallback */}
       {currentImage && (
         <ShareModal
           open={shareModalOpen}
