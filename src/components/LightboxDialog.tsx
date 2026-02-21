@@ -154,7 +154,7 @@ export default function LightboxDialog({
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
     };
-  }, []);
+  }, [open]);
 
   return (
     <>
