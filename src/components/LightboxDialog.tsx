@@ -116,7 +116,7 @@ export default function LightboxDialog({
         panStart.current = null;
         return;
       }
-      if (e.touches.length === 1 && zoomLevelRef.current > 1) {
+      if (e.touches.length === 1) {
         panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         panOrigin.current = { x: panOffsetRef.current.x, y: panOffsetRef.current.y };
       }
@@ -131,7 +131,7 @@ export default function LightboxDialog({
         setZoomLevel(newZoom);
         return;
       }
-      if (e.touches.length === 1 && zoomLevelRef.current > 1 && panStart.current) {
+      if (e.touches.length === 1 && panStart.current) {
         e.preventDefault();
         const dx = e.touches[0].clientX - panStart.current.x;
         const dy = e.touches[0].clientY - panStart.current.y;
