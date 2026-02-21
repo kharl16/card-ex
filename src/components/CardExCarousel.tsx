@@ -290,6 +290,7 @@ function RouletteMode({
           index={lightbox.lightboxIndex}
           count={lightbox.count}
           zoomLevel={lightbox.zoomLevel}
+          setZoomLevel={lightbox.setZoomLevel}
           onZoomIn={lightbox.zoomIn}
           onZoomOut={lightbox.zoomOut}
           onResetZoom={lightbox.resetZoom}
@@ -483,6 +484,7 @@ function FlatMode({
           index={lightbox.lightboxIndex}
           count={lightbox.count}
           zoomLevel={lightbox.zoomLevel}
+          setZoomLevel={lightbox.setZoomLevel}
           onZoomIn={lightbox.zoomIn}
           onZoomOut={lightbox.zoomOut}
           onResetZoom={lightbox.resetZoom}
