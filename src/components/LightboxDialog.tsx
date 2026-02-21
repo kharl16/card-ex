@@ -254,9 +254,10 @@ export default function LightboxDialog({
                 <img
                   src={currentImage.url}
                   alt={currentImage.alt ?? ""}
-                  className="max-w-full max-h-full object-contain transition-transform duration-200"
+                  className="max-w-full max-h-full object-contain"
                   style={{
                     transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
+                    willChange: "transform",
                   }}
                   draggable={false}
                 />
