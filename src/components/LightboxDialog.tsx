@@ -13,6 +13,7 @@ export interface LightboxDialogProps {
   index: number;
   count: number;
   zoomLevel: number;
+  setZoomLevel: React.Dispatch<React.SetStateAction<number>>;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetZoom: () => void;
@@ -31,6 +32,7 @@ export default function LightboxDialog({
   index,
   count,
   zoomLevel,
+  setZoomLevel,
   onZoomIn,
   onZoomOut,
   onResetZoom,
@@ -80,38 +82,70 @@ export default function LightboxDialog({
     if (zoomLevel <= 1.5) resetPan();
   }, [onZoomOut, zoomLevel, resetPan]);
 
-  // Use a ref for zoomLevel so native event listeners always see the latest value
+  // Refs so native event listeners always see the latest values
   const zoomLevelRef = useRef(zoomLevel);
   useEffect(() => { zoomLevelRef.current = zoomLevel; }, [zoomLevel]);
 
   const panOffsetRef = useRef(panOffset);
   useEffect(() => { panOffsetRef.current = panOffset; }, [panOffset]);
 
-  // Attach native (non-passive) touch listeners so preventDefault() actually works
-  // Radix Dialog blocks React synthetic touch events from calling preventDefault
+  // Track pinch-to-zoom gesture
+  const pinchStartDist = useRef<number | null>(null);
+  const pinchStartZoom = useRef<number>(1);
+
+  // Attach native (non-passive) touch listeners for both pinch-zoom and single-finger pan
   useEffect(() => {
     const el = panContainerRef.current;
     if (!el) return;
 
+    const getDistance = (t1: Touch, t2: Touch) =>
+      Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+
     const onTouchStart = (e: TouchEvent) => {
-      if (zoomLevelRef.current <= 1 || e.touches.length !== 1) return;
-      panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      panOrigin.current = { x: panOffsetRef.current.x, y: panOffsetRef.current.y };
+      // 2-finger pinch start
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        pinchStartDist.current = getDistance(e.touches[0], e.touches[1]);
+        pinchStartZoom.current = zoomLevelRef.current;
+        panStart.current = null; // cancel any pan
+        return;
+      }
+      // 1-finger pan start (only when zoomed)
+      if (e.touches.length === 1 && zoomLevelRef.current > 1) {
+        panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        panOrigin.current = { x: panOffsetRef.current.x, y: panOffsetRef.current.y };
+      }
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      if (zoomLevelRef.current <= 1 || e.touches.length !== 1 || !panStart.current) return;
-      e.preventDefault(); // Works because listener is non-passive
-      const dx = e.touches[0].clientX - panStart.current.x;
-      const dy = e.touches[0].clientY - panStart.current.y;
-      setPanOffset({ x: panOrigin.current.x + dx, y: panOrigin.current.y + dy });
+      // 2-finger pinch zoom
+      if (e.touches.length === 2 && pinchStartDist.current !== null) {
+        e.preventDefault();
+        const dist = getDistance(e.touches[0], e.touches[1]);
+        const scale = dist / pinchStartDist.current;
+        const newZoom = Math.min(3, Math.max(0.5, pinchStartZoom.current * scale));
+        setZoomLevel(newZoom);
+        return;
+      }
+      // 1-finger pan (only when zoomed)
+      if (e.touches.length === 1 && zoomLevelRef.current > 1 && panStart.current) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - panStart.current.x;
+        const dy = e.touches[0].clientY - panStart.current.y;
+        setPanOffset({ x: panOrigin.current.x + dx, y: panOrigin.current.y + dy });
+      }
     };
 
-    const onTouchEnd = () => {
-      panStart.current = null;
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        pinchStartDist.current = null;
+      }
+      if (e.touches.length === 0) {
+        panStart.current = null;
+      }
     };
 
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
     el.addEventListener("touchmove", onTouchMove, { passive: false });
     el.addEventListener("touchend", onTouchEnd, { passive: true });
 
@@ -120,7 +154,7 @@ export default function LightboxDialog({
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
     };
-  }, []); // empty deps — refs keep values current
+  }, []);
 
   return (
     <>
@@ -215,7 +249,7 @@ export default function LightboxDialog({
             <div
               ref={panContainerRef}
               className="w-full h-full flex items-center justify-center p-8 overflow-hidden"
-              style={{ touchAction: zoomLevel > 1 ? "none" : "auto" }}
+              style={{ touchAction: "none" }}
             >
               {currentImage && (
                 <img

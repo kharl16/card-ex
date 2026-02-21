@@ -18,6 +18,7 @@ export interface UseLightboxResult {
   lightboxOpen: boolean;
   lightboxIndex: number;
   zoomLevel: number;
+  setZoomLevel: React.Dispatch<React.SetStateAction<number>>;
   openLightbox: (index: number) => void;
   closeLightbox: () => void;
   setLightboxOpen: (open: boolean) => void;
@@ -142,6 +143,7 @@ export function useLightbox({
     lightboxOpen,
     lightboxIndex,
     zoomLevel,
+    setZoomLevel,
     openLightbox,
     closeLightbox,
     setLightboxOpen,
