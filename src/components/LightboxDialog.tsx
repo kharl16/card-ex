@@ -68,7 +68,6 @@ export default function LightboxDialog({
     }
   }, [currentImage, shareUrl]);
 
-  const panContainerRef = useRef<HTMLDivElement>(null);
   const resetPan = useCallback(() => setPanOffset({ x: 0, y: 0 }), []);
 
   // Reset zoom + pan together
@@ -93,24 +92,30 @@ export default function LightboxDialog({
   const pinchStartDist = useRef<number | null>(null);
   const pinchStartZoom = useRef<number>(1);
 
-  // Attach native (non-passive) touch listeners for both pinch-zoom and single-finger pan
-  useEffect(() => {
-    const el = panContainerRef.current;
+  // Cleanup ref for native listeners
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  // Callback ref: attaches native touch listeners the moment the DOM node mounts
+  const panContainerRef = useCallback((el: HTMLDivElement | null) => {
+    // Always clean up previous listeners
+    if (cleanupRef.current) {
+      cleanupRef.current();
+      cleanupRef.current = null;
+    }
+
     if (!el) return;
 
     const getDistance = (t1: Touch, t2: Touch) =>
       Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
 
     const onTouchStart = (e: TouchEvent) => {
-      // 2-finger pinch start
       if (e.touches.length === 2) {
         e.preventDefault();
         pinchStartDist.current = getDistance(e.touches[0], e.touches[1]);
         pinchStartZoom.current = zoomLevelRef.current;
-        panStart.current = null; // cancel any pan
+        panStart.current = null;
         return;
       }
-      // 1-finger pan start (only when zoomed)
       if (e.touches.length === 1 && zoomLevelRef.current > 1) {
         panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         panOrigin.current = { x: panOffsetRef.current.x, y: panOffsetRef.current.y };
@@ -118,7 +123,6 @@ export default function LightboxDialog({
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      // 2-finger pinch zoom
       if (e.touches.length === 2 && pinchStartDist.current !== null) {
         e.preventDefault();
         const dist = getDistance(e.touches[0], e.touches[1]);
@@ -127,7 +131,6 @@ export default function LightboxDialog({
         setZoomLevel(newZoom);
         return;
       }
-      // 1-finger pan (only when zoomed)
       if (e.touches.length === 1 && zoomLevelRef.current > 1 && panStart.current) {
         e.preventDefault();
         const dx = e.touches[0].clientX - panStart.current.x;
@@ -137,24 +140,20 @@ export default function LightboxDialog({
     };
 
     const onTouchEnd = (e: TouchEvent) => {
-      if (e.touches.length < 2) {
-        pinchStartDist.current = null;
-      }
-      if (e.touches.length === 0) {
-        panStart.current = null;
-      }
+      if (e.touches.length < 2) pinchStartDist.current = null;
+      if (e.touches.length === 0) panStart.current = null;
     };
 
     el.addEventListener("touchstart", onTouchStart, { passive: false });
     el.addEventListener("touchmove", onTouchMove, { passive: false });
     el.addEventListener("touchend", onTouchEnd, { passive: true });
 
-    return () => {
+    cleanupRef.current = () => {
       el.removeEventListener("touchstart", onTouchStart);
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
     };
-  }, [open]);
+  }, [setZoomLevel]);
 
   return (
     <>
@@ -245,7 +244,7 @@ export default function LightboxDialog({
               </>
             )}
 
-            {/* Image — touch pan with 1 finger when zoomed (native listeners attached via ref) */}
+            {/* Image — touch pan with 1 finger when zoomed (callback ref attaches native listeners) */}
             <div
               ref={panContainerRef}
               className="w-full h-full flex items-center justify-center p-8 overflow-hidden"
