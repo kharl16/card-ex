@@ -77,6 +77,7 @@ export function TemplatePreviewDialog({
     // Design versioning
     design_version: 1,
     last_design_patch_id: null,
+    video_items: (layoutData.video_items as unknown) as Json || [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };

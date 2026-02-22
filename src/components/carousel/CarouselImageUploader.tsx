@@ -425,6 +425,7 @@ export default function CarouselImageUploader({
     products: "Products",
     packages: "Packages",
     testimonies: "Testimonies",
+    videos: "Videos",
   };
 
   return (

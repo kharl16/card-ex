@@ -420,6 +420,7 @@ export type Database = {
           updated_at: string
           user_id: string
           vcard_url: string | null
+          video_items: Json
           views_count: number | null
           wallet_pass_url: string | null
           website: string | null
@@ -474,6 +475,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           vcard_url?: string | null
+          video_items?: Json
           views_count?: number | null
           wallet_pass_url?: string | null
           website?: string | null
@@ -528,6 +530,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vcard_url?: string | null
+          video_items?: Json
           views_count?: number | null
           wallet_pass_url?: string | null
           website?: string | null

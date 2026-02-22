@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRenderer";
+import VideoSectionRenderer from "@/components/video/VideoSectionRenderer";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
@@ -303,6 +304,9 @@ export default function CardView({
           const packageImagesData = normalizeCarouselImages((card as any).package_images);
           const testimonyImagesData = normalizeCarouselImages((card as any).testimony_images);
           
+          // Extract video items
+          const videoItems = Array.isArray((card as any).video_items) ? (card as any).video_items : [];
+          
           // Extract the card slug for share page navigation
           const cardSlug = card.slug;
           
@@ -336,6 +340,14 @@ export default function CardView({
                 isInteractive={isInteractive}
                 shareUrl={publicCardUrl}
                 cardSlug={cardSlug}
+                className="my-3"
+              />
+              <VideoSectionRenderer
+                section={carouselSettings.videos}
+                videos={videoItems}
+                contactInfo={contactInfo}
+                isInteractive={isInteractive}
+                shareUrl={publicCardUrl}
                 className="my-3"
               />
             </>
