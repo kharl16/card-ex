@@ -84,6 +84,9 @@ export interface CardSnapshot {
   package_images: CarouselImage[];
   testimony_images: CarouselImage[];
   
+  // Video items
+  video_items: any[];
+  
   // Source reference
   source_card_id: string | null;
 }
@@ -202,6 +205,9 @@ export function buildCardSnapshot(
     package_images: packageImages,
     testimony_images: testimonyImages,
     
+    // Video items
+    video_items: Array.isArray(card.video_items) ? card.video_items : [],
+    
     // Source reference
     source_card_id: card.id || null,
   };
@@ -272,6 +278,9 @@ export function buildCardInsertFromSnapshot(
     product_images: snapshot.product_images,
     package_images: snapshot.package_images,
     testimony_images: snapshot.testimony_images,
+    
+    // Video items (JSONB)
+    video_items: snapshot.video_items,
     
     // Card type
     card_type: 'publishable',

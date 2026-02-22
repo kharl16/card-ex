@@ -1,7 +1,7 @@
 // Carousel types for the three independent carousel sections
 // All stored in cards.carousel_settings JSON column
 
-export type CarouselKey = "products" | "packages" | "testimonies";
+export type CarouselKey = "products" | "packages" | "testimonies" | "videos";
 
 export type CarouselBackgroundType = "solid" | "gradient" | "transparent";
 export type CarouselGradientDirection = "to-r" | "to-l" | "to-b" | "to-t" | "to-tr" | "to-br" | "to-tl" | "to-bl";
@@ -88,6 +88,7 @@ export interface CarouselSettingsData {
   products: CarouselSection;
   packages: CarouselSection;
   testimonies: CarouselSection;
+  videos: CarouselSection;
 }
 
 // Default CTA styles per carousel type
@@ -116,6 +117,14 @@ export const DEFAULT_CTA_STYLES: Record<CarouselKey, CTAStyle> = {
     glow: true,
     glowIntensity: 25,
   },
+  videos: {
+    variant: "solid",
+    shape: "pill",
+    size: "md",
+    width: "fit",
+    glow: true,
+    glowIntensity: 25,
+  },
 };
 
 // Default CTA labels per carousel type
@@ -123,11 +132,12 @@ export const DEFAULT_CTA_LABELS: Record<CarouselKey, string> = {
   products: "Inquire Now",
   packages: "View Packages",
   testimonies: "Message Us",
+  videos: "Watch More",
 };
 
 // Default carousel section factory
 export function createDefaultCarouselSection(key: CarouselKey): CarouselSection {
-  const maxImages = key === "testimonies" ? 200 : 50;
+  const maxImages = key === "testimonies" ? 200 : key === "videos" ? 25 : 50;
   const direction = key === "packages" ? "rtl" : "ltr";
   const title = key.charAt(0).toUpperCase() + key.slice(1);
 
@@ -162,6 +172,7 @@ export function createDefaultCarouselSettings(): CarouselSettingsData {
     products: createDefaultCarouselSection("products"),
     packages: createDefaultCarouselSection("packages"),
     testimonies: createDefaultCarouselSection("testimonies"),
+    videos: createDefaultCarouselSection("videos"),
   };
 }
 
@@ -177,6 +188,7 @@ export function mergeCarouselSettings(
     products: mergeSection(defaults.products, existing.products),
     packages: mergeSection(defaults.packages, existing.packages),
     testimonies: mergeSection(defaults.testimonies, existing.testimonies),
+    videos: mergeSection(defaults.videos, existing.videos),
   };
 }
 

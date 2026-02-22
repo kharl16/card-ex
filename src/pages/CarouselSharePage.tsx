@@ -22,6 +22,7 @@ const CAROUSEL_LABELS: Record<CarouselKey, string> = {
   products: "Products",
   packages: "Packages", 
   testimonies: "Testimonies",
+  videos: "Videos",
 };
 
 // Image with optional alt/caption

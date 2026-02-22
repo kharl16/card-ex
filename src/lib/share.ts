@@ -2,7 +2,7 @@ import JSZip from "jszip";
 import { toast } from "@/hooks/use-toast";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 
-export type CarouselKind = "products" | "packages" | "testimonies";
+export type CarouselKind = "products" | "packages" | "testimonies" | "videos";
 
 export interface ShareSingleOptions {
   imageUrl: string;

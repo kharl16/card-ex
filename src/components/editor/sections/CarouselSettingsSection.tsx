@@ -10,7 +10,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload } from "lucide-react";
+import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical } from "lucide-react";
+import { parseVideoUrl, detectVideoSource, type VideoItem } from "@/lib/videoUtils";
 import {
   type CarouselKey,
   type CarouselSection,
@@ -42,12 +43,14 @@ const CAROUSEL_ICONS: Record<CarouselKey, React.ReactNode> = {
   products: <Package className="h-4 w-4" />,
   packages: <Image className="h-4 w-4" />,
   testimonies: <MessageSquare className="h-4 w-4" />,
+  videos: <Film className="h-4 w-4" />,
 };
 
 const CAROUSEL_DESCRIPTIONS: Record<CarouselKey, string> = {
   products: "Showcase your products (max 50 images, scrolls right→left)",
   packages: "Display packages or services (max 50 images, scrolls left→right)",
   testimonies: "Show customer testimonials (max 200 images, scrolls right→left)",
+  videos: "Share video content from YouTube or Google Drive (max 25 videos)",
 };
 
 export function CarouselSettingsSection({ card, onCardChange }: CarouselSettingsSectionProps) {
@@ -106,6 +109,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
       products: "product_images",
       packages: "package_images",
       testimonies: "testimony_images",
+      videos: "video_items",
     };
     onCardChange({ [columnMap[key]]: images } as any);
   };
@@ -114,38 +118,28 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
     products: 50,
     packages: 50,
     testimonies: 200,
+    videos: 25,
   };
 
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as CarouselKey)}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="products" className="flex items-center gap-2">
             {CAROUSEL_ICONS.products}
             <span className="hidden sm:inline">Products</span>
-            {carouselSettings.products.images.length > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {carouselSettings.products.images.length}
-              </Badge>
-            )}
           </TabsTrigger>
           <TabsTrigger value="packages" className="flex items-center gap-2">
             {CAROUSEL_ICONS.packages}
             <span className="hidden sm:inline">Packages</span>
-            {carouselSettings.packages.images.length > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {carouselSettings.packages.images.length}
-              </Badge>
-            )}
           </TabsTrigger>
           <TabsTrigger value="testimonies" className="flex items-center gap-2">
             {CAROUSEL_ICONS.testimonies}
             <span className="hidden sm:inline">Testimonies</span>
-            {carouselSettings.testimonies.images.length > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {carouselSettings.testimonies.images.length}
-              </Badge>
-            )}
+          </TabsTrigger>
+          <TabsTrigger value="videos" className="flex items-center gap-2">
+            {CAROUSEL_ICONS.videos}
+            <span className="hidden sm:inline">Videos</span>
           </TabsTrigger>
         </TabsList>
 
@@ -868,6 +862,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                       products: "product_images",
                       packages: "package_images",
                       testimonies: "testimony_images",
+                      videos: "video_items",
                     };
                     return ((card as any)[columnMap[key]] || []) as CarouselImage[];
                   })()}
@@ -878,7 +873,178 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
             </Card>
           </TabsContent>
         ))}
+
+        {/* Videos Tab - URL-based input instead of image uploader */}
+        <TabsContent value="videos" className="space-y-6 mt-4">
+          <p className="text-sm text-muted-foreground">{CAROUSEL_DESCRIPTIONS.videos}</p>
+
+          {/* Enable Toggle */}
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label>Enable Video Carousel</Label>
+              <p className="text-xs text-muted-foreground">Show video carousel on your card</p>
+            </div>
+            <Switch
+              checked={carouselSettings.videos.settings.enabled}
+              onCheckedChange={(v) => updateSettings("videos", { enabled: v })}
+            />
+          </div>
+
+          <Separator />
+
+          {/* Video Behavior Settings */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Behavior
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Title</Label>
+                <Input
+                  value={carouselSettings.videos.title}
+                  onChange={(e) => updateCarouselSection("videos", { title: e.target.value })}
+                  placeholder="Section title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Video Size</Label>
+                <Select
+                  value={carouselSettings.videos.settings.imageSize || "md"}
+                  onValueChange={(v) => updateSettings("videos", { imageSize: v as "sm" | "md" | "lg" })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sm">Small</SelectItem>
+                    <SelectItem value="md">Medium</SelectItem>
+                    <SelectItem value="lg">Large</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Video URL Manager */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Film className="h-4 w-4" />
+                Videos ({((card as any).video_items || []).length} / {MAX_IMAGES.videos})
+              </CardTitle>
+              <CardDescription>
+                Add YouTube or Google Drive video URLs.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <VideoUrlManager
+                videos={((card as any).video_items || []) as VideoItem[]}
+                maxVideos={MAX_IMAGES.videos}
+                onVideosChange={(videos) => onCardChange({ video_items: videos } as any)}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+// Inline VideoUrlManager component for the videos tab
+function VideoUrlManager({
+  videos,
+  maxVideos,
+  onVideosChange,
+}: {
+  videos: VideoItem[];
+  maxVideos: number;
+  onVideosChange: (videos: VideoItem[]) => void;
+}) {
+  const [newUrl, setNewUrl] = useState("");
+
+  const handleAdd = () => {
+    const trimmed = newUrl.trim();
+    if (!trimmed) return;
+    const parsed = parseVideoUrl(trimmed, videos.length);
+    if (!parsed) {
+      return;
+    }
+    if (videos.length >= maxVideos) return;
+    onVideosChange([...videos, parsed]);
+    setNewUrl("");
+  };
+
+  const handleRemove = (index: number) => {
+    const updated = videos.filter((_, i) => i !== index);
+    onVideosChange(updated.map((v, i) => ({ ...v, order: i })));
+  };
+
+  const handleTitleChange = (index: number, title: string) => {
+    const updated = [...videos];
+    updated[index] = { ...updated[index], title };
+    onVideosChange(updated);
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Add new video URL */}
+      <div className="flex gap-2">
+        <Input
+          value={newUrl}
+          onChange={(e) => setNewUrl(e.target.value)}
+          placeholder="Paste YouTube or Google Drive URL..."
+          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+          className="flex-1"
+        />
+        <Button
+          type="button"
+          size="sm"
+          onClick={handleAdd}
+          disabled={videos.length >= maxVideos || !newUrl.trim()}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Supports YouTube and Google Drive video links
+      </p>
+
+      {/* Video list */}
+      {videos.map((video, index) => (
+        <div key={index} className="flex items-center gap-2 p-2 rounded-lg border border-border bg-muted/30">
+          <div className="flex-shrink-0">
+            <Badge variant="outline" className="text-[10px]">
+              {video.source === "youtube" ? "YT" : "GD"}
+            </Badge>
+          </div>
+          <div className="flex-1 min-w-0 space-y-1">
+            <Input
+              value={video.title || ""}
+              onChange={(e) => handleTitleChange(index, e.target.value)}
+              placeholder="Video title (optional)"
+              className="h-7 text-xs"
+            />
+            <p className="text-[10px] text-muted-foreground truncate">{video.url}</p>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 flex-shrink-0 text-destructive hover:text-destructive"
+            onClick={() => handleRemove(index)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      ))}
+
+      {videos.length === 0 && (
+        <div className="text-center py-6 text-muted-foreground text-sm">
+          <Film className="h-8 w-8 mx-auto mb-2 opacity-40" />
+          No videos added yet
+        </div>
+      )}
     </div>
   );
 }

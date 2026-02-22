@@ -214,6 +214,7 @@ export default function CarouselSectionRenderer({
     products: "products",
     packages: "packages",
     testimonies: "testimonies",
+    videos: "videos",
   };
   const carouselKind = carouselKindMap[carouselKey];
   const imageUrls = carouselItems.map((item) => item.url);
