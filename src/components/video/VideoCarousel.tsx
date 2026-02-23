@@ -90,7 +90,7 @@ export default function VideoCarousel({
 
   return (
     <>
-      <div className="relative w-full px-8">
+      <div className="relative w-full px-12">
         <Carousel
           setApi={setApi}
           opts={{ align: "center", loop: true }}
