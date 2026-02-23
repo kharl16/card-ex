@@ -143,7 +143,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
           </TabsTrigger>
         </TabsList>
 
-        {(["products", "packages", "testimonies"] as CarouselKey[]).map((key) => (
+        {(["products", "packages", "testimonies", "videos"] as CarouselKey[]).map((key) => (
           <TabsContent key={key} value={key} className="space-y-6 mt-4">
             <p className="text-sm text-muted-foreground">{CAROUSEL_DESCRIPTIONS[key]}</p>
 
@@ -840,112 +840,59 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
               </CardContent>
             </Card>
 
-            {/* Image Upload Section */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  Images
-                </CardTitle>
-                <CardDescription>
-                  Upload and manage images for this carousel. Drag to reorder.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CarouselImageUploader
-                  carouselKey={key}
-                  cardId={card.id}
-                  ownerId={card.user_id}
-                  images={(() => {
-                    // Read images from the new dedicated columns
-                    const columnMap: Record<CarouselKey, string> = {
-                      products: "product_images",
-                      packages: "package_images",
-                      testimonies: "testimony_images",
-                      videos: "video_items",
-                    };
-                    return ((card as any)[columnMap[key]] || []) as CarouselImage[];
-                  })()}
-                  maxImages={MAX_IMAGES[key]}
-                  onImagesChange={(images) => updateImages(key, images)}
-                />
-              </CardContent>
-            </Card>
+            {/* Upload Section - Images for image carousels, URL manager for videos */}
+            {key === "videos" ? (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Film className="h-4 w-4" />
+                    Videos ({((card as any).video_items || []).length} / {MAX_IMAGES.videos})
+                  </CardTitle>
+                  <CardDescription>
+                    Add YouTube or Google Drive video URLs.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <VideoUrlManager
+                    videos={((card as any).video_items || []) as VideoItem[]}
+                    maxVideos={MAX_IMAGES.videos}
+                    onVideosChange={(videos) => onCardChange({ video_items: videos } as any)}
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Upload className="h-4 w-4" />
+                    Images
+                  </CardTitle>
+                  <CardDescription>
+                    Upload and manage images for this carousel. Drag to reorder.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <CarouselImageUploader
+                    carouselKey={key}
+                    cardId={card.id}
+                    ownerId={card.user_id}
+                    images={(() => {
+                      const columnMap: Record<CarouselKey, string> = {
+                        products: "product_images",
+                        packages: "package_images",
+                        testimonies: "testimony_images",
+                        videos: "video_items",
+                      };
+                      return ((card as any)[columnMap[key]] || []) as CarouselImage[];
+                    })()}
+                    maxImages={MAX_IMAGES[key]}
+                    onImagesChange={(images) => updateImages(key, images)}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         ))}
-
-        {/* Videos Tab - URL-based input instead of image uploader */}
-        <TabsContent value="videos" className="space-y-6 mt-4">
-          <p className="text-sm text-muted-foreground">{CAROUSEL_DESCRIPTIONS.videos}</p>
-
-          {/* Enable Toggle */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label>Enable Video Carousel</Label>
-              <p className="text-xs text-muted-foreground">Show video carousel on your card</p>
-            </div>
-            <Switch
-              checked={carouselSettings.videos.settings.enabled}
-              onCheckedChange={(v) => updateSettings("videos", { enabled: v })}
-            />
-          </div>
-
-          <Separator />
-
-          {/* Video Behavior Settings */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Behavior
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Title</Label>
-                <Input
-                  value={carouselSettings.videos.title}
-                  onChange={(e) => updateCarouselSection("videos", { title: e.target.value })}
-                  placeholder="Section title"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Video Size</Label>
-                <Select
-                  value={carouselSettings.videos.settings.imageSize || "md"}
-                  onValueChange={(v) => updateSettings("videos", { imageSize: v as "sm" | "md" | "lg" })}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sm">Small</SelectItem>
-                    <SelectItem value="md">Medium</SelectItem>
-                    <SelectItem value="lg">Large</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Video URL Manager */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Film className="h-4 w-4" />
-                Videos ({((card as any).video_items || []).length} / {MAX_IMAGES.videos})
-              </CardTitle>
-              <CardDescription>
-                Add YouTube or Google Drive video URLs.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <VideoUrlManager
-                videos={((card as any).video_items || []) as VideoItem[]}
-                maxVideos={MAX_IMAGES.videos}
-                onVideosChange={(videos) => onCardChange({ video_items: videos } as any)}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );
