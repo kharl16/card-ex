@@ -90,7 +90,7 @@ export default function VideoCarousel({
 
   return (
     <>
-      <div className="relative w-full px-12">
+      <div className="relative w-full">
         <Carousel
           setApi={setApi}
           opts={{ align: "center", loop: true }}
@@ -212,8 +212,8 @@ export default function VideoCarousel({
               );
             })}
           </CarouselContent>
-          <CarouselPrevious className="left-0" />
-          <CarouselNext className="right-0" />
+          <CarouselPrevious className="-left-3" />
+          <CarouselNext className="-right-3" />
         </Carousel>
       </div>
 
