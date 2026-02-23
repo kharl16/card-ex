@@ -7,6 +7,7 @@ import {
   CarouselNext,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import AutoScroll from "embla-carousel-auto-scroll";
 import { cn } from "@/lib/utils";
 import { Play, Share2, Download, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -92,7 +93,15 @@ export default function VideoCarousel({
       <div className="relative w-full px-8">
         <Carousel
           setApi={setApi}
-          opts={{ align: "center", loop: true, direction: direction === "rtl" ? "rtl" : "ltr" }}
+          opts={{ align: "center", loop: true }}
+          plugins={[
+            AutoScroll({
+              speed: 0.8,
+              direction: direction === "rtl" ? "forward" : "backward",
+              stopOnInteraction: false,
+              stopOnMouseEnter: true,
+            }),
+          ]}
           className="w-full"
         >
           <CarouselContent
