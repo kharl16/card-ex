@@ -97,7 +97,7 @@ export default function VideoCarousel({
           plugins={[
             AutoScroll({
               speed: 0.8,
-              direction: direction === "rtl" ? "forward" : "backward",
+              direction: direction === "rtl" ? "backward" : "forward",
               stopOnInteraction: false,
               stopOnMouseEnter: true,
             }),
