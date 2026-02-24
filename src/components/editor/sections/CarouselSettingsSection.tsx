@@ -27,6 +27,7 @@ import {
   type CTAGlowColorMode,
   type CarouselBackgroundType,
   type CarouselGradientDirection,
+  type DescriptionTableColumns,
   mergeCarouselSettings,
 } from "@/lib/carouselTypes";
 import CarouselImageUploader from "@/components/carousel/CarouselImageUploader";
@@ -100,6 +101,13 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
         ...current.cta,
         style: { ...current.cta.style, ...updates },
       },
+    });
+  };
+
+  const updateDescriptionTable = (key: CarouselKey, updates: Partial<NonNullable<CarouselSection["descriptionTable"]>>) => {
+    const current = carouselSettings[key];
+    updateCarouselSection(key, {
+      descriptionTable: { ...current.descriptionTable!, ...updates },
     });
   };
 
@@ -223,6 +231,40 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                     max={32}
                     step={4}
                   />
+                </div>
+
+                <Separator />
+
+                {/* Description Table Settings */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label>Description Table</Label>
+                      <p className="text-xs text-muted-foreground">Show item descriptions below the carousel</p>
+                    </div>
+                    <Switch
+                      checked={carouselSettings[key].descriptionTable?.enabled ?? false}
+                      onCheckedChange={(v) => updateDescriptionTable(key, { enabled: v })}
+                    />
+                  </div>
+
+                  {carouselSettings[key].descriptionTable?.enabled && (
+                    <div className="space-y-2">
+                      <Label>Table Columns</Label>
+                      <Select
+                        value={String(carouselSettings[key].descriptionTable?.columns ?? 1)}
+                        onValueChange={(v) => updateDescriptionTable(key, { columns: parseInt(v) as DescriptionTableColumns })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 Column</SelectItem>
+                          <SelectItem value="2">2 Columns</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -933,6 +975,12 @@ function VideoUrlManager({
     onVideosChange(updated);
   };
 
+  const handleDescriptionChange = (index: number, description: string) => {
+    const updated = [...videos];
+    updated[index] = { ...updated[index], description };
+    onVideosChange(updated);
+  };
+
   return (
     <div className="space-y-3">
       {/* Add new video URL */}
@@ -970,6 +1018,12 @@ function VideoUrlManager({
               value={video.title || ""}
               onChange={(e) => handleTitleChange(index, e.target.value)}
               placeholder="Video title (optional)"
+              className="h-7 text-xs"
+            />
+            <Input
+              value={video.description || ""}
+              onChange={(e) => handleDescriptionChange(index, e.target.value)}
+              placeholder="Description (optional)"
               className="h-7 text-xs"
             />
             <p className="text-[10px] text-muted-foreground truncate">{video.url}</p>

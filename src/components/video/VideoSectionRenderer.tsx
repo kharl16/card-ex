@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import VideoCarousel from "@/components/video/VideoCarousel";
+import DescriptionTable from "@/components/carousel/DescriptionTable";
 import { cn } from "@/lib/utils";
 import {
   type CarouselSection,
@@ -11,7 +12,7 @@ import {
 } from "@/lib/carouselTypes";
 import { toast } from "sonner";
 import { Share2 } from "lucide-react";
-import { getShareUrl, type VideoItem } from "@/lib/videoUtils";
+import { getShareUrl, getThumbnailUrl, type VideoItem } from "@/lib/videoUtils";
 
 interface ContactInfo {
   phone?: string | null;
@@ -186,6 +187,18 @@ export default function VideoSectionRenderer({
             {cta?.label || "Click"}
           </Button>
         </div>
+      )}
+
+      {/* Description Table */}
+      {section?.descriptionTable?.enabled && (
+        <DescriptionTable
+          items={displayVideos.map((v) => ({
+            imageUrl: v.thumbnail || getThumbnailUrl(v.url) || undefined,
+            title: v.title,
+            description: v.description,
+          }))}
+          columns={section.descriptionTable.columns}
+        />
       )}
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
