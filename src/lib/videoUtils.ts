@@ -11,6 +11,7 @@ export interface VideoItem {
   title?: string;
   thumbnail?: string;
   order?: number;
+  description?: string;
 }
 
 /** Extract YouTube video ID from various URL formats */

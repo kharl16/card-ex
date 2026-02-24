@@ -74,6 +74,14 @@ export interface CarouselImage {
   alt?: string;
   order?: number;
   shareText?: string; // optional caption override for sharing
+  description?: string; // description shown in table below carousel
+}
+
+export type DescriptionTableColumns = 1 | 2;
+
+export interface DescriptionTableSettings {
+  enabled: boolean;
+  columns: DescriptionTableColumns;
 }
 
 export interface CarouselSection {
@@ -82,6 +90,7 @@ export interface CarouselSection {
   background: CarouselBackground;
   settings: CarouselSettings;
   cta: CarouselCTA;
+  descriptionTable?: DescriptionTableSettings;
 }
 
 export interface CarouselSettingsData {
@@ -163,6 +172,10 @@ export function createDefaultCarouselSection(key: CarouselKey): CarouselSection 
       placement: "below",
       style: DEFAULT_CTA_STYLES[key],
     },
+    descriptionTable: {
+      enabled: false,
+      columns: 1,
+    },
   };
 }
 
@@ -230,6 +243,10 @@ function mergeSection(
         ...defaultSection.cta.style,
         ...existing.cta?.style,
       },
+    },
+    descriptionTable: {
+      ...defaultSection.descriptionTable!,
+      ...existing.descriptionTable,
     },
   };
 }

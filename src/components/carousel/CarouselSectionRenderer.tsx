@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselShareHeader from "@/components/carousel/CarouselShareHeader";
+import DescriptionTable from "@/components/carousel/DescriptionTable";
 import { cn } from "@/lib/utils";
 import {
   type CarouselSection,
@@ -304,6 +305,18 @@ export default function CarouselSectionRenderer({
             {cta?.label || "Click"}
           </Button>
         </div>
+      )}
+
+      {/* Description Table */}
+      {section?.descriptionTable?.enabled && (
+        <DescriptionTable
+          items={images.map((img) => ({
+            imageUrl: img.url,
+            title: img.alt,
+            description: img.description,
+          }))}
+          columns={section.descriptionTable.columns}
+        />
       )}
 
       {/* Modal dialog */}

@@ -117,27 +117,29 @@ function SortableImageItem({ image, index, onDelete, onEdit }: SortableImageItem
   );
 }
 
-// Edit dialog for image alt text and caption
+// Edit dialog for image alt text, caption, and description
 interface ImageEditDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   image: CarouselImage | null;
-  onSave: (alt: string, shareText: string) => void;
+  onSave: (alt: string, shareText: string, description: string) => void;
 }
 
 function ImageEditDialog({ open, onOpenChange, image, onSave }: ImageEditDialogProps) {
   const [alt, setAlt] = useState("");
   const [shareText, setShareText] = useState("");
+  const [description, setDescription] = useState("");
 
   React.useEffect(() => {
     if (image) {
       setAlt(image.alt || "");
       setShareText(image.shareText || "");
+      setDescription(image.description || "");
     }
   }, [image]);
 
   const handleSave = () => {
-    onSave(alt.trim(), shareText.trim());
+    onSave(alt.trim(), shareText.trim(), description.trim());
     onOpenChange(false);
   };
 
@@ -174,6 +176,22 @@ function ImageEditDialog({ open, onOpenChange, image, onSave }: ImageEditDialogP
               </p>
             </div>
 
+            {/* Description field */}
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Add a description for this item..."
+                rows={3}
+                maxLength={1000}
+              />
+              <p className="text-xs text-muted-foreground">
+                Shown in the description table below the carousel. {description.length}/1000
+              </p>
+            </div>
+
             {/* Caption/share text field */}
             <div className="space-y-2">
               <Label htmlFor="share-text">Caption (optional)</Label>
@@ -182,7 +200,7 @@ function ImageEditDialog({ open, onOpenChange, image, onSave }: ImageEditDialogP
                 value={shareText}
                 onChange={(e) => setShareText(e.target.value)}
                 placeholder="Add a caption for sharing..."
-                rows={3}
+                rows={2}
                 maxLength={500}
               />
               <p className="text-xs text-muted-foreground">
@@ -408,11 +426,11 @@ export default function CarouselImageUploader({
   }, []);
 
   const handleEditSave = useCallback(
-    (alt: string, shareText: string) => {
+    (alt: string, shareText: string, description: string) => {
       if (editingIndex === null) return;
       
       const updated = images.map((img, i) =>
-        i === editingIndex ? { ...img, alt, shareText } : img
+        i === editingIndex ? { ...img, alt, shareText, description } : img
       );
       onImagesChange(updated);
       setEditingIndex(null);
