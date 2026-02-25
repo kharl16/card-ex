@@ -123,6 +123,7 @@ export default function CarouselSectionRenderer({
       id: `${carouselKey}-${idx}`,
       url: img.url,
       alt: img.alt,
+      description: img.description,
     }));
 
   // Background styles - generate CSS including padding and border
