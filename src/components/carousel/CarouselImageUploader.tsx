@@ -49,6 +49,7 @@ interface SortableImageItemProps {
   index: number;
   onDelete: (index: number) => void;
   onEdit: (index: number) => void;
+  onDescriptionChange: (index: number, description: string) => void;
 }
 
 interface PendingImage {
@@ -56,7 +57,7 @@ interface PendingImage {
   previewUrl: string;
 }
 
-function SortableImageItem({ image, index, onDelete, onEdit }: SortableImageItemProps) {
+function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange }: SortableImageItemProps) {
   const {
     attributes,
     listeners,
@@ -101,17 +102,27 @@ function SortableImageItem({ image, index, onDelete, onEdit }: SortableImageItem
           </Button>
         </div>
       </div>
-      <div className="p-2 flex items-center gap-2">
-        <button
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded"
-        >
-          <GripVertical className="h-4 w-4 text-muted-foreground" />
-        </button>
-        <span className="text-xs text-muted-foreground truncate flex-1">
-          {image.alt || `Image ${index + 1}`}
-        </span>
+      <div className="p-2 space-y-1.5">
+        <div className="flex items-center gap-2">
+          <button
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded"
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </button>
+          <span className="text-xs text-muted-foreground truncate flex-1">
+            {image.alt || `Image ${index + 1}`}
+          </span>
+        </div>
+        <textarea
+          value={image.description || ""}
+          onChange={(e) => onDescriptionChange(index, e.target.value)}
+          placeholder="Add description..."
+          rows={2}
+          maxLength={1000}
+          className="w-full text-xs rounded-md border border-input bg-background px-2 py-1.5 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
+        />
       </div>
     </div>
   );
@@ -425,6 +436,16 @@ export default function CarouselImageUploader({
     setShowEditDialog(true);
   }, []);
 
+  const handleInlineDescriptionChange = useCallback(
+    (index: number, description: string) => {
+      const updated = images.map((img, i) =>
+        i === index ? { ...img, description } : img
+      );
+      onImagesChange(updated);
+    },
+    [images, onImagesChange]
+  );
+
   const handleEditSave = useCallback(
     (alt: string, shareText: string, description: string) => {
       if (editingIndex === null) return;
@@ -472,6 +493,7 @@ export default function CarouselImageUploader({
                   index={index}
                   onDelete={handleDelete}
                   onEdit={handleEdit}
+                  onDescriptionChange={handleInlineDescriptionChange}
                 />
               ))}
             </div>
