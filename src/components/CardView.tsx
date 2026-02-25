@@ -287,7 +287,7 @@ export default function CardView({
           );
           const contactInfo = { phone: card.phone, email: card.email, website: card.website };
 
-          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number }[] => {
+          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number; description?: string }[] => {
             if (!raw || !Array.isArray(raw)) return [];
 
             return raw
@@ -295,6 +295,7 @@ export default function CardView({
                 url: (typeof img?.url === "string" ? img.url : img?.image_url) as string | undefined,
                 alt: (img?.alt ?? img?.alt_text) as string | undefined,
                 order: (img?.order ?? img?.sort_order ?? idx) as number,
+                description: (img?.description as string | undefined),
               }))
               .filter((img) => !!img.url);
           };
