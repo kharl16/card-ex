@@ -308,17 +308,7 @@ export default function CarouselSectionRenderer({
         </div>
       )}
 
-      {/* Description Table */}
-      {section?.descriptionTable?.enabled && (
-        <DescriptionTable
-          items={images.map((img) => ({
-            imageUrl: img.url,
-            title: img.alt,
-            description: img.description,
-          }))}
-          columns={section.descriptionTable.columns}
-        />
-      )}
+      {/* Description Table removed – descriptions now shown only in lightbox */}
 
       {/* Modal dialog */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
