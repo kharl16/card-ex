@@ -189,17 +189,7 @@ export default function VideoSectionRenderer({
         </div>
       )}
 
-      {/* Description Table */}
-      {section?.descriptionTable?.enabled && (
-        <DescriptionTable
-          items={displayVideos.map((v) => ({
-            imageUrl: v.thumbnail || getThumbnailUrl(v.url) || undefined,
-            title: v.title,
-            description: v.description,
-          }))}
-          columns={section.descriptionTable.columns}
-        />
-      )}
+      {/* Description Table removed – descriptions now shown only in lightbox */}
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
