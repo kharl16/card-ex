@@ -102,7 +102,7 @@ function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange
           </Button>
         </div>
       </div>
-      <div className="p-2 space-y-1.5">
+      <div className="p-2">
         <div className="flex items-center gap-2">
           <button
             {...attributes}
@@ -115,14 +115,6 @@ function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange
             {image.alt || `Image ${index + 1}`}
           </span>
         </div>
-        <textarea
-          value={image.description || ""}
-          onChange={(e) => onDescriptionChange(index, e.target.value)}
-          placeholder="Add description..."
-          rows={2}
-          maxLength={1000}
-          className="w-full text-xs rounded-md border border-input bg-background px-2 py-1.5 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
-        />
       </div>
     </div>
   );
