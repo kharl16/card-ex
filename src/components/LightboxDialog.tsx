@@ -264,30 +264,30 @@ export default function LightboxDialog({
                   />
                 )}
               </div>
+            </div>
 
-              {/* Caption & Description */}
+            {/* Caption, Description & Counter — fixed overlay at bottom */}
+            <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none flex flex-col items-center gap-1 pb-4">
               {(currentImage?.alt || currentImage?.description) && (
-                <div className="w-full px-6 pb-4 pt-2 space-y-1 text-center shrink-0">
+                <div className="w-full max-w-lg px-4 space-y-0 text-center pointer-events-auto max-h-[40vh] overflow-y-auto">
                   {currentImage?.alt && (
-                    <h3 className="text-white font-semibold text-base bg-black/50 backdrop-blur-sm rounded-t-lg px-4 pt-3 pb-1">
+                    <h3 className="text-white font-semibold text-base bg-black/60 backdrop-blur-sm rounded-t-lg px-4 pt-3 pb-1">
                       {currentImage.alt}
                     </h3>
                   )}
                   {currentImage?.description && (
-                    <p className="text-white/85 text-sm leading-relaxed bg-black/50 backdrop-blur-sm rounded-b-lg px-4 pb-3 pt-1 max-h-40 overflow-y-auto">
+                    <p className="text-white/85 text-sm leading-relaxed bg-black/60 backdrop-blur-sm rounded-b-lg px-4 pb-3 pt-1">
                       {currentImage.description}
                     </p>
                   )}
                 </div>
               )}
+              {count > 1 && (
+                <div className="bg-black/60 text-white px-4 py-1.5 rounded-full text-sm pointer-events-auto">
+                  {index + 1} / {count}
+                </div>
+              )}
             </div>
-
-            {/* Image counter */}
-            {count > 1 && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm z-10">
-                {index + 1} / {count}
-              </div>
-            )}
           </div>
         </DialogContent>
       </Dialog>
