@@ -247,8 +247,8 @@ export default function LightboxDialog({
             {/* Image — touch pan with 1 finger when zoomed (callback ref attaches native listeners) */}
             <div
               ref={panContainerRef}
-              className="w-full h-full flex flex-col items-center justify-center overflow-hidden"
-              style={{ touchAction: "none" }}
+              className="w-full h-full flex flex-col items-center overflow-y-auto"
+              style={{ touchAction: zoomLevel > 1 ? "none" : "pan-y" }}
             >
               <div className="flex-1 flex items-center justify-center w-full p-8 min-h-0">
                 {currentImage && (
@@ -265,12 +265,19 @@ export default function LightboxDialog({
                 )}
               </div>
 
-              {/* Description caption */}
-              {currentImage?.description && (
-                <div className="w-full px-6 pb-2 text-center">
-                  <p className="text-white/90 text-sm leading-relaxed bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2 max-h-24 overflow-y-auto">
-                    {currentImage.description}
-                  </p>
+              {/* Caption & Description */}
+              {(currentImage?.alt || currentImage?.description) && (
+                <div className="w-full px-6 pb-4 pt-2 space-y-1 text-center shrink-0">
+                  {currentImage?.alt && (
+                    <h3 className="text-white font-semibold text-base bg-black/50 backdrop-blur-sm rounded-t-lg px-4 pt-3 pb-1">
+                      {currentImage.alt}
+                    </h3>
+                  )}
+                  {currentImage?.description && (
+                    <p className="text-white/85 text-sm leading-relaxed bg-black/50 backdrop-blur-sm rounded-b-lg px-4 pb-3 pt-1 max-h-40 overflow-y-auto">
+                      {currentImage.description}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
