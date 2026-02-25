@@ -247,26 +247,37 @@ export default function LightboxDialog({
             {/* Image — touch pan with 1 finger when zoomed (callback ref attaches native listeners) */}
             <div
               ref={panContainerRef}
-              className="w-full h-full flex items-center justify-center p-8 overflow-hidden"
+              className="w-full h-full flex flex-col items-center justify-center overflow-hidden"
               style={{ touchAction: "none" }}
             >
-              {currentImage && (
-                <img
-                  src={currentImage.url}
-                  alt={currentImage.alt ?? ""}
-                  className="max-w-full max-h-full object-contain"
-                  style={{
-                    transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
-                    willChange: "transform",
-                  }}
-                  draggable={false}
-                />
+              <div className="flex-1 flex items-center justify-center w-full p-8 min-h-0">
+                {currentImage && (
+                  <img
+                    src={currentImage.url}
+                    alt={currentImage.alt ?? ""}
+                    className="max-w-full max-h-full object-contain"
+                    style={{
+                      transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
+                      willChange: "transform",
+                    }}
+                    draggable={false}
+                  />
+                )}
+              </div>
+
+              {/* Description caption */}
+              {currentImage?.description && (
+                <div className="w-full px-6 pb-2 text-center">
+                  <p className="text-white/90 text-sm leading-relaxed bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2 max-h-24 overflow-y-auto">
+                    {currentImage.description}
+                  </p>
+                </div>
               )}
             </div>
 
             {/* Image counter */}
             {count > 1 && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm">
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm z-10">
                 {index + 1} / {count}
               </div>
             )}
