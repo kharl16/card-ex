@@ -268,11 +268,11 @@ export default function LightboxDialog({
 
             {/* Caption, Description & Counter — fixed overlay at bottom */}
             <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none flex flex-col items-center gap-1 pb-4">
-              {(currentImage?.alt || currentImage?.description) && (
+              {(currentImage?.shareText || currentImage?.alt || currentImage?.description) && (
                 <div className="w-full max-w-lg px-4 space-y-0 text-center pointer-events-auto max-h-[40vh] overflow-y-auto">
-                  {currentImage?.alt && (
+                  {(currentImage?.shareText || currentImage?.alt) && (
                     <h3 className="text-white font-semibold text-base bg-black/60 backdrop-blur-sm rounded-t-lg px-4 pt-3 pb-1">
-                      {currentImage.alt}
+                      {currentImage?.shareText || currentImage?.alt}
                     </h3>
                   )}
                   {currentImage?.description && (

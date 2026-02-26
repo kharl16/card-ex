@@ -123,6 +123,7 @@ export default function CarouselSectionRenderer({
       id: `${carouselKey}-${idx}`,
       url: img.url,
       alt: img.alt,
+      shareText: img.shareText,
       description: img.description,
     }));
 

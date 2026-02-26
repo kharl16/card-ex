@@ -287,15 +287,16 @@ export default function CardView({
           );
           const contactInfo = { phone: card.phone, email: card.email, website: card.website };
 
-          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number; description?: string }[] => {
+          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number; description?: string; shareText?: string }[] => {
             if (!raw || !Array.isArray(raw)) return [];
 
             return raw
               .map((img: any, idx: number) => ({
                 url: (typeof img?.url === "string" ? img.url : img?.image_url) as string | undefined,
-                alt: (img?.alt ?? img?.alt_text) as string | undefined,
+                alt: (img?.alt ?? img?.alt_text ?? img?.title ?? img?.name) as string | undefined,
                 order: (img?.order ?? img?.sort_order ?? idx) as number,
-                description: (img?.description as string | undefined),
+                description: (img?.description ?? img?.desc) as string | undefined,
+                shareText: (img?.shareText ?? img?.share_text ?? img?.caption) as string | undefined,
               }))
               .filter((img) => !!img.url);
           };
