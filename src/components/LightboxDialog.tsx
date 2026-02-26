@@ -267,6 +267,7 @@ export default function LightboxDialog({
             </div>
 
             {/* Caption, Description & Counter — fixed overlay at bottom */}
+            {(() => { console.log("[LightboxDebug] currentImage:", JSON.stringify({ alt: currentImage?.alt, shareText: currentImage?.shareText, description: currentImage?.description, url: currentImage?.url?.slice(-30) })); return null; })()}
             <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none flex flex-col items-center gap-1 pb-4">
               {(currentImage?.shareText || currentImage?.alt || currentImage?.description) && (
                 <div className="w-full max-w-lg px-4 space-y-0 text-center pointer-events-auto max-h-[40vh] overflow-y-auto">
