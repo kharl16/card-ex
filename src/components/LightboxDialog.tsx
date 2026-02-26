@@ -159,7 +159,7 @@ export default function LightboxDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30">
-          <div className="relative w-full h-full flex items-center justify-center">
+          <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
             {/* Close button */}
             <Button
               variant="ghost"
@@ -266,25 +266,24 @@ export default function LightboxDialog({
               </div>
             </div>
 
-            {/* Caption, Description & Counter — fixed overlay at bottom */}
-            {(() => { console.log("[LightboxDebug] currentImage:", JSON.stringify({ alt: currentImage?.alt, shareText: currentImage?.shareText, description: currentImage?.description, url: currentImage?.url?.slice(-30) })); return null; })()}
-            <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none flex flex-col items-center gap-1 pb-4">
+            {/* Caption, Description & Counter — fixed position to ensure visibility */}
+            <div className="fixed bottom-0 left-0 right-0 z-[60] pointer-events-none flex flex-col items-center gap-1 pb-4">
               {(currentImage?.shareText || currentImage?.alt || currentImage?.description) && (
                 <div className="w-full max-w-lg px-4 space-y-0 text-center pointer-events-auto max-h-[40vh] overflow-y-auto">
                   {(currentImage?.shareText || currentImage?.alt) && (
-                    <h3 className="text-white font-semibold text-base bg-black/60 backdrop-blur-sm rounded-t-lg px-4 pt-3 pb-1">
+                    <h3 className="text-white font-semibold text-base bg-black/70 backdrop-blur-md rounded-t-lg px-4 pt-3 pb-1">
                       {currentImage?.shareText || currentImage?.alt}
                     </h3>
                   )}
                   {currentImage?.description && (
-                    <p className="text-white/85 text-sm leading-relaxed bg-black/60 backdrop-blur-sm rounded-b-lg px-4 pb-3 pt-1">
+                    <p className="text-white/90 text-sm leading-relaxed bg-black/70 backdrop-blur-md rounded-b-lg px-4 pb-3 pt-1">
                       {currentImage.description}
                     </p>
                   )}
                 </div>
               )}
               {count > 1 && (
-                <div className="bg-black/60 text-white px-4 py-1.5 rounded-full text-sm pointer-events-auto">
+                <div className="bg-black/70 text-white px-4 py-1.5 rounded-full text-sm pointer-events-auto">
                   {index + 1} / {count}
                 </div>
               )}
