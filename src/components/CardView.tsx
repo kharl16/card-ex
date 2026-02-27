@@ -10,6 +10,7 @@ import {
   Youtube,
   Github,
 } from "lucide-react";
+import CollapsibleCardSection from "@/components/CollapsibleCardSection";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import CardExCarousel from "@/components/CardExCarousel";
@@ -280,7 +281,7 @@ export default function CardView({
           {card.bio && <p className="mt-3 text-sm text-muted-foreground transition-colors duration-500">{card.bio}</p>}
         </div>
 
-        {/* Three Carousel Sections */}
+        {/* Carousel Sections */}
         {(() => {
           const carouselSettings = mergeCarouselSettings(
             (card as any).carousel_settings as Partial<CarouselSettingsData> | null
@@ -301,71 +302,89 @@ export default function CardView({
               .filter((img) => !!img.url);
           };
 
-          // Extract images from the dedicated JSON columns (supports both legacy shapes)
           const productImagesData = normalizeCarouselImages((card as any).product_images);
           const packageImagesData = normalizeCarouselImages((card as any).package_images);
           const testimonyImagesData = normalizeCarouselImages((card as any).testimony_images);
-          
-          // Extract video items
           const videoItems = Array.isArray((card as any).video_items) ? (card as any).video_items : [];
-          
-          // Extract the card slug for share page navigation
           const cardSlug = card.slug;
           
           return (
             <>
-              <CarouselSectionRenderer
-                carouselKey="products"
-                section={carouselSettings.products}
-                images={productImagesData}
-                contactInfo={contactInfo}
-                isInteractive={isInteractive}
-                shareUrl={publicCardUrl}
-                cardSlug={cardSlug}
-                className="mt-2 mb-3"
-              />
-              <CarouselSectionRenderer
-                carouselKey="packages"
-                section={carouselSettings.packages}
-                images={packageImagesData}
-                contactInfo={contactInfo}
-                isInteractive={isInteractive}
-                shareUrl={publicCardUrl}
-                cardSlug={cardSlug}
-                className="my-3"
-              />
-              <CarouselSectionRenderer
-                carouselKey="testimonies"
-                section={carouselSettings.testimonies}
-                images={testimonyImagesData}
-                contactInfo={contactInfo}
-                isInteractive={isInteractive}
-                shareUrl={publicCardUrl}
-                cardSlug={cardSlug}
-                className="my-3"
-              />
-              <VideoSectionRenderer
-                section={carouselSettings.videos}
-                videos={videoItems}
-                contactInfo={contactInfo}
-                isInteractive={isInteractive}
-                shareUrl={publicCardUrl}
-                className="my-3"
-              />
+              <CollapsibleCardSection
+                title={carouselSettings.products?.title || "Products"}
+                hide={productImagesData.length === 0}
+                className="mt-2 mb-1"
+              >
+                <CarouselSectionRenderer
+                  carouselKey="products"
+                  section={carouselSettings.products}
+                  images={productImagesData}
+                  contactInfo={contactInfo}
+                  isInteractive={isInteractive}
+                  shareUrl={publicCardUrl}
+                  cardSlug={cardSlug}
+                />
+              </CollapsibleCardSection>
+              <CollapsibleCardSection
+                title={carouselSettings.packages?.title || "Packages"}
+                hide={packageImagesData.length === 0}
+                className="my-1"
+              >
+                <CarouselSectionRenderer
+                  carouselKey="packages"
+                  section={carouselSettings.packages}
+                  images={packageImagesData}
+                  contactInfo={contactInfo}
+                  isInteractive={isInteractive}
+                  shareUrl={publicCardUrl}
+                  cardSlug={cardSlug}
+                />
+              </CollapsibleCardSection>
+              <CollapsibleCardSection
+                title={carouselSettings.testimonies?.title || "Testimonies"}
+                hide={testimonyImagesData.length === 0}
+                className="my-1"
+              >
+                <CarouselSectionRenderer
+                  carouselKey="testimonies"
+                  section={carouselSettings.testimonies}
+                  images={testimonyImagesData}
+                  contactInfo={contactInfo}
+                  isInteractive={isInteractive}
+                  shareUrl={publicCardUrl}
+                  cardSlug={cardSlug}
+                />
+              </CollapsibleCardSection>
+              <CollapsibleCardSection
+                title={carouselSettings.videos?.title || "Videos"}
+                hide={videoItems.length === 0}
+                className="my-1"
+              >
+                <VideoSectionRenderer
+                  section={carouselSettings.videos}
+                  videos={videoItems}
+                  contactInfo={contactInfo}
+                  isInteractive={isInteractive}
+                  shareUrl={publicCardUrl}
+                />
+              </CollapsibleCardSection>
             </>
           );
         })()}
 
         {/* Social Media Links */}
-        {resolvedSocialLinks.length > 0 && (
-          <div className="flex flex-wrap gap-3 justify-center px-4 pb-4">
+        <CollapsibleCardSection
+          title="Social Media"
+          hide={resolvedSocialLinks.length === 0}
+          className="pb-2"
+        >
+          <div className="flex flex-wrap gap-3 justify-center pb-2">
             {resolvedSocialLinks.map((link, index) => {
               const IconComponent = iconMap[link.icon];
               const customIconSrc = customIconMap[link.icon];
               const brandConfig = socialBrandConfig[link.kind] || { bg: "bg-primary", glow: "hover:shadow-[0_0_16px_rgba(212,175,55,0.5)]" };
               const bounceDelay = `${index * 0.1}s`;
 
-              // Common classes for brand-aware hover/active animations
               const iconContainerClasses = `
                 flex h-12 w-12 items-center justify-center rounded-full 
                 ${brandConfig.bg} ${brandConfig.glow}
@@ -375,7 +394,6 @@ export default function CardView({
                 animate-[bounce_0.6s_ease-out]
               `.trim().replace(/\s+/g, ' ');
 
-              // Render the icon - either custom PNG or lucide icon
               const renderIcon = () => {
                 if (customIconSrc) {
                   return <img src={customIconSrc} alt={link.label} className="h-6 w-6 object-contain" />;
@@ -412,234 +430,204 @@ export default function CardView({
               );
             })}
           </div>
-        )}
+        </CollapsibleCardSection>
 
         {/* Unified Contact Buttons (primary + additional together) */}
-        <div className="space-y-3 px-4 pb-4">
-          {(() => {
-            type CombinedKind = "email" | "phone" | "url" | "custom";
+        <CollapsibleCardSection
+          title="Contact"
+          hide={!card.email && !card.phone && !card.website && !card.location && additionalContacts.length === 0}
+        >
+          <div className="space-y-3 pb-2">
+            {(() => {
+              type CombinedKind = "email" | "phone" | "url" | "custom";
 
-            interface CombinedContact {
-              id: string;
-              source: "primary" | "additional";
-              kind: CombinedKind;
-              label: string;
-              sublabel: string;
-              icon: React.ReactNode;
-              colorClass: string;
-              href?: string;
-              additionalIndex?: number;
-            }
+              interface CombinedContact {
+                id: string;
+                source: "primary" | "additional";
+                kind: CombinedKind;
+                label: string;
+                sublabel: string;
+                icon: React.ReactNode;
+                colorClass: string;
+                href?: string;
+                additionalIndex?: number;
+              }
 
-            const contacts: CombinedContact[] = [];
+              const contacts: CombinedContact[] = [];
 
-            // primary contacts
-            if (card.email) {
-              contacts.push({
-                id: "primary-email",
-                source: "primary",
-                kind: "email",
-                label: card.email,
-                sublabel: "Personal",
-                icon: <Mail className="h-6 w-6 text-white" />,
-                colorClass: contactBrandColors.email,
-                href: `mailto:${card.email}`,
+              if (card.email) {
+                contacts.push({
+                  id: "primary-email",
+                  source: "primary",
+                  kind: "email",
+                  label: card.email,
+                  sublabel: "Personal",
+                  icon: <Mail className="h-6 w-6 text-white" />,
+                  colorClass: contactBrandColors.email,
+                  href: `mailto:${card.email}`,
+                });
+              }
+
+              if (card.phone) {
+                contacts.push({
+                  id: "primary-phone",
+                  source: "primary",
+                  kind: "phone",
+                  label: card.phone,
+                  sublabel: "Mobile",
+                  icon: <Phone className="h-6 w-6 text-white" />,
+                  colorClass: contactBrandColors.phone,
+                  href: `tel:${card.phone}`,
+                });
+              }
+
+              if (card.website) {
+                contacts.push({
+                  id: "primary-website",
+                  source: "primary",
+                  kind: "url",
+                  label: card.website,
+                  sublabel: "Website",
+                  icon: <Globe className="h-6 w-6 text-white" />,
+                  colorClass: contactBrandColors.website,
+                  href: card.website,
+                });
+              }
+
+              if (card.location) {
+                contacts.push({
+                  id: "primary-location",
+                  source: "primary",
+                  kind: "custom",
+                  label: card.location,
+                  sublabel: "Location",
+                  icon: <MapPin className="h-6 w-6 text-white" />,
+                  colorClass: contactBrandColors.location,
+                });
+              }
+
+              const getTypeLabel = (type: AdditionalContact["contactType"]) => {
+                switch (type) {
+                  case "work": return "Work";
+                  case "home": return "Home";
+                  case "mobile": return "Mobile";
+                  case "office": return "Office";
+                  default: return "Other";
+                }
+              };
+
+              const getContactIcon = (kind: AdditionalContact["kind"]) => {
+                switch (kind) {
+                  case "email": return <Mail className="h-6 w-6 text-white" />;
+                  case "phone": return <Phone className="h-6 w-6 text-white" />;
+                  case "url": return <Globe className="h-6 w-6 text-white" />;
+                  default: return <MapPin className="h-6 w-6 text-white" />;
+                }
+              };
+
+              const getContactColor = (kind: AdditionalContact["kind"]) => {
+                switch (kind) {
+                  case "email": return contactBrandColors.email;
+                  case "phone": return contactBrandColors.phone;
+                  case "url": return contactBrandColors.website;
+                  default: return contactBrandColors.location;
+                }
+              };
+
+              const getHref = (kind: AdditionalContact["kind"], value: string) => {
+                if (!value) return undefined;
+                switch (kind) {
+                  case "email": return `mailto:${value}`;
+                  case "phone": return `tel:${value}`;
+                  case "url": return value;
+                  default: return undefined;
+                }
+              };
+
+              additionalContacts.forEach((contact, index) => {
+                if (!contact.value) return;
+                contacts.push({
+                  id: contact.id,
+                  source: "additional",
+                  kind: contact.kind,
+                  label: contact.value,
+                  sublabel: getTypeLabel(contact.contactType),
+                  icon: getContactIcon(contact.kind),
+                  colorClass: getContactColor(contact.kind),
+                  href: getHref(contact.kind, contact.value),
+                  additionalIndex: index,
+                });
               });
-            }
 
-            if (card.phone) {
-              contacts.push({
-                id: "primary-phone",
-                source: "primary",
-                kind: "phone",
-                label: card.phone,
-                sublabel: "Mobile",
-                icon: <Phone className="h-6 w-6 text-white" />,
-                colorClass: contactBrandColors.phone,
-                href: `tel:${card.phone}`,
+              const kindRank = (kind: CombinedKind) => {
+                switch (kind) {
+                  case "email": return 1;
+                  case "phone": return 2;
+                  case "url": return 3;
+                  default: return 4;
+                }
+              };
+
+              contacts.sort((a, b) => {
+                const kd = kindRank(a.kind) - kindRank(b.kind);
+                if (kd !== 0) return kd;
+                const sd = (a.source === "primary" ? 0 : 1) - (b.source === "primary" ? 0 : 1);
+                if (sd !== 0) return sd;
+                if (a.source === "additional" && b.source === "additional") {
+                  return (a.additionalIndex ?? 0) - (b.additionalIndex ?? 0);
+                }
+                return 0;
               });
-            }
 
-            if (card.website) {
-              contacts.push({
-                id: "primary-website",
-                source: "primary",
-                kind: "url",
-                label: card.website,
-                sublabel: "Website",
-                icon: <Globe className="h-6 w-6 text-white" />,
-                colorClass: contactBrandColors.website,
-                href: card.website,
-              });
-            }
-
-            if (card.location) {
-              contacts.push({
-                id: "primary-location",
-                source: "primary",
-                kind: "custom",
-                label: card.location,
-                sublabel: "Location",
-                icon: <MapPin className="h-6 w-6 text-white" />,
-                colorClass: contactBrandColors.location,
-              });
-            }
-
-            // helpers
-            const getTypeLabel = (type: AdditionalContact["contactType"]) => {
-              switch (type) {
-                case "work":
-                  return "Work";
-                case "home":
-                  return "Home";
-                case "mobile":
-                  return "Mobile";
-                case "office":
-                  return "Office";
-                default:
-                  return "Other";
-              }
-            };
-
-            const getContactIcon = (kind: AdditionalContact["kind"]) => {
-              switch (kind) {
-                case "email":
-                  return <Mail className="h-6 w-6 text-white" />;
-                case "phone":
-                  return <Phone className="h-6 w-6 text-white" />;
-                case "url":
-                  return <Globe className="h-6 w-6 text-white" />;
-                case "custom":
-                default:
-                  return <MapPin className="h-6 w-6 text-white" />;
-              }
-            };
-
-            const getContactColor = (kind: AdditionalContact["kind"]) => {
-              switch (kind) {
-                case "email":
-                  return contactBrandColors.email;
-                case "phone":
-                  return contactBrandColors.phone;
-                case "url":
-                  return contactBrandColors.website;
-                case "custom":
-                default:
-                  return contactBrandColors.location;
-              }
-            };
-
-            const getHref = (kind: AdditionalContact["kind"], value: string) => {
-              if (!value) return undefined;
-              switch (kind) {
-                case "email":
-                  return `mailto:${value}`;
-                case "phone":
-                  return `tel:${value}`;
-                case "url":
-                  return value;
-                default:
-                  return undefined;
-              }
-            };
-
-            // additional contacts
-            additionalContacts.forEach((contact, index) => {
-              if (!contact.value) return;
-
-              contacts.push({
-                id: contact.id,
-                source: "additional",
-                kind: contact.kind,
-                label: contact.value,
-                sublabel: getTypeLabel(contact.contactType),
-                icon: getContactIcon(contact.kind),
-                colorClass: getContactColor(contact.kind),
-                href: getHref(contact.kind, contact.value),
-                additionalIndex: index,
-              });
-            });
-
-            // sort contacts
-            const kindRank = (kind: CombinedKind) => {
-              switch (kind) {
-                case "email":
-                  return 1;
-                case "phone":
-                  return 2;
-                case "url":
-                  return 3;
-                case "custom":
-                default:
-                  return 4;
-              }
-            };
-
-            contacts.sort((a, b) => {
-              const kd = kindRank(a.kind) - kindRank(b.kind);
-              if (kd !== 0) return kd;
-
-              const sd = (a.source === "primary" ? 0 : 1) - (b.source === "primary" ? 0 : 1);
-              if (sd !== 0) return sd;
-
-              if (a.source === "additional" && b.source === "additional") {
-                return (a.additionalIndex ?? 0) - (b.additionalIndex ?? 0);
-              }
-
-              return 0;
-            });
-
-            // render contacts
-            return contacts.map((item, index) => {
-              const delay = 0.1 + index * 0.1;
-
-              const handleClick =
-                isInteractive && item.href
-                  ? () => {
-                      if (item.kind === "url") {
-                        window.open(item.href, "_blank");
-                      } else {
-                        window.open(item.href);
+              return contacts.map((item, index) => {
+                const delay = 0.1 + index * 0.1;
+                const handleClick =
+                  isInteractive && item.href
+                    ? () => {
+                        if (item.kind === "url") {
+                          window.open(item.href, "_blank");
+                        } else {
+                          window.open(item.href);
+                        }
                       }
-                    }
-                  : undefined;
+                    : undefined;
 
-              return (
-                <div
-                  key={item.id}
-                  className="animate-fade-in"
-                  style={{
-                    animationDelay: `${delay}s`,
-                    animationFillMode: "backwards",
-                  }}
-                >
-                  <ContactButton
-                    icon={item.icon}
-                    label={item.label}
-                    sublabel={item.sublabel}
-                    colorClass={item.colorClass}
-                    onClick={handleClick}
-                    isInteractive={isInteractive}
-                  />
-                </div>
-              );
-            });
-          })()}
-        </div>
+                return (
+                  <div
+                    key={item.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${delay}s`, animationFillMode: "backwards" }}
+                  >
+                    <ContactButton
+                      icon={item.icon}
+                      label={item.label}
+                      sublabel={item.sublabel}
+                      colorClass={item.colorClass}
+                      onClick={handleClick}
+                      isInteractive={isInteractive}
+                    />
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </CollapsibleCardSection>
 
         {/* QR Code */}
         {showQRCode && card.public_url && (
-          <div className="flex flex-col items-center gap-3 p-6 transition-colors duration-500">
-            <QRCodeDisplay
-              url={card.public_url}
-              settings={theme?.qr}
-              size={192}
-              className="transition-all duration-300"
-              showDownload={isInteractive}
-              downloadFileName={`${card.full_name?.replace(/\s+/g, "-") || "card"}-qr`}
-            />
-            <p className="text-xs text-muted-foreground">Scan to view this card</p>
-          </div>
+          <CollapsibleCardSection title="QR Code">
+            <div className="flex flex-col items-center gap-3 py-4 transition-colors duration-500">
+              <QRCodeDisplay
+                url={card.public_url}
+                settings={theme?.qr}
+                size={192}
+                className="transition-all duration-300"
+                showDownload={isInteractive}
+                downloadFileName={`${card.full_name?.replace(/\s+/g, "-") || "card"}-qr`}
+              />
+              <p className="text-xs text-muted-foreground">Scan to view this card</p>
+            </div>
+          </CollapsibleCardSection>
         )}
 
         {/* Save Contact Button (always show) */}
