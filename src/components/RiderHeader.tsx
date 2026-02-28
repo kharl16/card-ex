@@ -44,13 +44,12 @@ export default function RiderHeader({
   logoDisplayMode = "contain",
 }: RiderHeaderProps) {
   const basePrimary = primaryColor;
-  const lighterPrimary = adjustHexColor(basePrimary, 30);
+  const lighterPrimary = adjustHexColor(basePrimary, 50);
   const darkerPrimary = adjustHexColor(basePrimary, -40);
 
   return (
-    // Higher z-index so header (and avatar/logo) sit above other content
     <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-x-clip overflow-y-visible z-30">
-      {/* Cover image is now the positioning parent for avatar/logo */}
+      {/* Cover image */}
       <div
         className="relative h-48 sm:h-56 w-full overflow-hidden"
         style={{
@@ -69,27 +68,43 @@ export default function RiderHeader({
           />
         )}
 
-        {/* Gradient overlay for better contrast */}
-        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
+        {/* Luxury gradient overlay – deeper, more dramatic */}
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
       </div>
 
-      {/* Avatar & Logo row – positioned at cover bottom, OUTSIDE overflow-hidden container */}
+      {/* Gold accent line under cover */}
+      <div
+        className="absolute left-0 right-0 h-[2px] animate-gold-pulse"
+        style={{
+          top: "calc(100% - 5.5rem)",
+          background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${lighterPrimary} 50%, ${basePrimary}80 70%, transparent 100%)`,
+        }}
+      />
+
+      {/* Avatar & Logo row */}
       <div className="absolute left-0 right-0 top-48 sm:top-56 -translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
-        {/* Avatar */}
+        {/* Avatar with animated rotating ring */}
         <div
-          className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-lg transition-all duration-300 hover:scale-105 group/avatar pointer-events-auto"
-          style={{
-            background: `conic-gradient(from 180deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 120deg, ${darkerPrimary} 240deg, ${lighterPrimary} 360deg)`,
-            boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
-          }}
+          className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-luxury transition-all duration-500 hover:scale-105 group/avatar pointer-events-auto"
         >
+          {/* Rotating conic-gradient ring */}
           <div
-            className="absolute inset-0 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300 blur-xl -z-10"
+            className="absolute inset-0 rounded-full animate-ring-rotate"
             style={{
-              background: `radial-gradient(circle, ${basePrimary}80 0%, transparent 70%)`,
-              transform: "scale(1.5)",
+              background: `conic-gradient(from 0deg at 50% 50%, ${lighterPrimary} 0deg, ${basePrimary} 90deg, ${darkerPrimary} 180deg, ${basePrimary} 270deg, ${lighterPrimary} 360deg)`,
             }}
           />
+
+          {/* Outer glow on hover */}
+          <div
+            className="absolute inset-0 rounded-full opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-500 blur-2xl -z-10"
+            style={{
+              background: `radial-gradient(circle, ${basePrimary}60 0%, transparent 70%)`,
+              transform: "scale(1.6)",
+            }}
+          />
+
+          {/* Inner black circle + avatar */}
           <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
             <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
               {avatarUrl && (
@@ -105,9 +120,17 @@ export default function RiderHeader({
           </div>
         </div>
 
-        {/* Company logo – square */}
+        {/* Company logo – glassmorphic square */}
         {companyLogoUrl && (
-          <div className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl bg-black/90 border border-white/10 overflow-hidden shadow-lg flex items-center justify-center p-2 hover:scale-105 transition-transform duration-300 pointer-events-auto">
+          <div
+            className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden shadow-luxury flex items-center justify-center p-2 hover:scale-105 transition-all duration-500 pointer-events-auto"
+            style={{
+              background: "var(--glass-bg)",
+              backdropFilter: "blur(var(--glass-blur))",
+              WebkitBackdropFilter: "blur(var(--glass-blur))",
+              border: "1px solid var(--glass-border)",
+            }}
+          >
             <img
               src={companyLogoUrl}
               alt="Company logo"
@@ -119,15 +142,31 @@ export default function RiderHeader({
         )}
       </div>
 
-      {/* Spacer so content doesn't overlap avatar/logo */}
+      {/* Spacer */}
       <div className="h-20 sm:h-24" />
 
-      {/* Name/title positioned below avatar area */}
+      {/* Name/title – glassmorphic overlay */}
       {(name || title) && (
         <div className="pl-8 sm:pl-10 pr-6 pt-2 pb-2">
-          <div className="flex flex-col space-y-1 leading-relaxed">
-            {name && <h1 className="text-xl sm:text-2xl font-bold">{name}</h1>}
-            {title && <p className="text-sm sm:text-base text-muted-foreground">{title}</p>}
+          <div className="flex flex-col space-y-0.5 leading-relaxed">
+            {name && (
+              <h1
+                className="text-xl sm:text-2xl font-bold tracking-tight"
+                style={{
+                  background: `linear-gradient(135deg, ${lighterPrimary}, #ffffff)`,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {name}
+              </h1>
+            )}
+            {title && (
+              <p className="text-sm sm:text-base text-muted-foreground font-light tracking-wide uppercase" style={{ letterSpacing: "0.08em" }}>
+                {title}
+              </p>
+            )}
           </div>
         </div>
       )}
