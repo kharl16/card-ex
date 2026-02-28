@@ -77,6 +77,7 @@ export default {
         md: "var(--shadow-md)",
         lg: "var(--shadow-lg)",
         gold: "var(--shadow-gold)",
+        luxury: "var(--shadow-luxury)",
       },
       keyframes: {
         shimmer: {
@@ -85,6 +86,18 @@ export default {
         'parallax-float': {
           '0%': { transform: 'translateY(-5%)' },
           '100%': { transform: 'translateY(-15%)' },
+        },
+        'ring-rotate': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        'gold-pulse': {
+          '0%, 100%': { opacity: '0.4' },
+          '50%': { opacity: '0.8' },
+        },
+        'slide-up-fade': {
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         "accordion-down": {
           from: {
@@ -106,6 +119,9 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "ring-rotate": "ring-rotate 4s linear infinite",
+        "gold-pulse": "gold-pulse 3s ease-in-out infinite",
+        "slide-up-fade": "slide-up-fade 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       },
     },
   },
