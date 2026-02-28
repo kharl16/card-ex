@@ -10,7 +10,6 @@ import {
   Youtube,
   Github,
 } from "lucide-react";
-import CollapsibleCardSection from "@/components/CollapsibleCardSection";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import CardExCarousel from "@/components/CardExCarousel";
@@ -310,75 +309,63 @@ export default function CardView({
           
           return (
             <>
-              <CollapsibleCardSection
-                title={carouselSettings.products?.title || "Products"}
-                hide={productImagesData.length === 0}
-                className="mt-2 mb-1"
-              >
-                <CarouselSectionRenderer
-                  carouselKey="products"
-                  section={carouselSettings.products}
-                  images={productImagesData}
-                  contactInfo={contactInfo}
-                  isInteractive={isInteractive}
-                  shareUrl={publicCardUrl}
-                  cardSlug={cardSlug}
-                />
-              </CollapsibleCardSection>
-              <CollapsibleCardSection
-                title={carouselSettings.packages?.title || "Packages"}
-                hide={packageImagesData.length === 0}
-                className="my-1"
-              >
-                <CarouselSectionRenderer
-                  carouselKey="packages"
-                  section={carouselSettings.packages}
-                  images={packageImagesData}
-                  contactInfo={contactInfo}
-                  isInteractive={isInteractive}
-                  shareUrl={publicCardUrl}
-                  cardSlug={cardSlug}
-                />
-              </CollapsibleCardSection>
-              <CollapsibleCardSection
-                title={carouselSettings.testimonies?.title || "Testimonies"}
-                hide={testimonyImagesData.length === 0}
-                className="my-1"
-              >
-                <CarouselSectionRenderer
-                  carouselKey="testimonies"
-                  section={carouselSettings.testimonies}
-                  images={testimonyImagesData}
-                  contactInfo={contactInfo}
-                  isInteractive={isInteractive}
-                  shareUrl={publicCardUrl}
-                  cardSlug={cardSlug}
-                />
-              </CollapsibleCardSection>
-              <CollapsibleCardSection
-                title={carouselSettings.videos?.title || "Videos"}
-                hide={videoItems.length === 0}
-                className="my-1"
-              >
-                <VideoSectionRenderer
-                  section={carouselSettings.videos}
-                  videos={videoItems}
-                  contactInfo={contactInfo}
-                  isInteractive={isInteractive}
-                  shareUrl={publicCardUrl}
-                />
-              </CollapsibleCardSection>
+              {productImagesData.length > 0 && (
+                <div className="px-4 mt-2 mb-1">
+                  <CarouselSectionRenderer
+                    carouselKey="products"
+                    section={carouselSettings.products}
+                    images={productImagesData}
+                    contactInfo={contactInfo}
+                    isInteractive={isInteractive}
+                    shareUrl={publicCardUrl}
+                    cardSlug={cardSlug}
+                  />
+                </div>
+              )}
+              {packageImagesData.length > 0 && (
+                <div className="px-4 my-1">
+                  <CarouselSectionRenderer
+                    carouselKey="packages"
+                    section={carouselSettings.packages}
+                    images={packageImagesData}
+                    contactInfo={contactInfo}
+                    isInteractive={isInteractive}
+                    shareUrl={publicCardUrl}
+                    cardSlug={cardSlug}
+                  />
+                </div>
+              )}
+              {testimonyImagesData.length > 0 && (
+                <div className="px-4 my-1">
+                  <CarouselSectionRenderer
+                    carouselKey="testimonies"
+                    section={carouselSettings.testimonies}
+                    images={testimonyImagesData}
+                    contactInfo={contactInfo}
+                    isInteractive={isInteractive}
+                    shareUrl={publicCardUrl}
+                    cardSlug={cardSlug}
+                  />
+                </div>
+              )}
+              {videoItems.length > 0 && (
+                <div className="px-4 my-1">
+                  <VideoSectionRenderer
+                    section={carouselSettings.videos}
+                    videos={videoItems}
+                    contactInfo={contactInfo}
+                    isInteractive={isInteractive}
+                    shareUrl={publicCardUrl}
+                  />
+                </div>
+              )}
             </>
           );
         })()}
 
         {/* Social Media Links */}
-        <CollapsibleCardSection
-          title="Social Media"
-          hide={resolvedSocialLinks.length === 0}
-          className="pb-2"
-        >
-          <div className="flex flex-wrap gap-3 justify-center pb-2">
+        {resolvedSocialLinks.length > 0 && (
+          <div className="flex flex-wrap gap-3 justify-center px-4 pb-2">
             {resolvedSocialLinks.map((link, index) => {
               const IconComponent = iconMap[link.icon];
               const customIconSrc = customIconMap[link.icon];
@@ -430,14 +417,11 @@ export default function CardView({
               );
             })}
           </div>
-        </CollapsibleCardSection>
+        )}
 
         {/* Unified Contact Buttons (primary + additional together) */}
-        <CollapsibleCardSection
-          title="Contact"
-          hide={!card.email && !card.phone && !card.website && !card.location && additionalContacts.length === 0}
-        >
-          <div className="space-y-3 pb-2">
+        {(card.email || card.phone || card.website || card.location || additionalContacts.length > 0) && (
+          <div className="px-4 space-y-3 pb-2">
             {(() => {
               type CombinedKind = "email" | "phone" | "url" | "custom";
 
@@ -611,23 +595,21 @@ export default function CardView({
               });
             })()}
           </div>
-        </CollapsibleCardSection>
+        )}
 
         {/* QR Code */}
         {showQRCode && card.public_url && (
-          <CollapsibleCardSection title="QR Code">
-            <div className="flex flex-col items-center gap-3 py-4 transition-colors duration-500">
-              <QRCodeDisplay
-                url={card.public_url}
-                settings={theme?.qr}
-                size={192}
-                className="transition-all duration-300"
-                showDownload={isInteractive}
-                downloadFileName={`${card.full_name?.replace(/\s+/g, "-") || "card"}-qr`}
-              />
-              <p className="text-xs text-muted-foreground">Scan to view this card</p>
-            </div>
-          </CollapsibleCardSection>
+          <div className="px-4 flex flex-col items-center gap-3 py-4 transition-colors duration-500">
+            <QRCodeDisplay
+              url={card.public_url}
+              settings={theme?.qr}
+              size={192}
+              className="transition-all duration-300"
+              showDownload={isInteractive}
+              downloadFileName={`${card.full_name?.replace(/\s+/g, "-") || "card"}-qr`}
+            />
+            <p className="text-xs text-muted-foreground">Scan to view this card</p>
+          </div>
         )}
 
         {/* Save Contact Button (always show) */}
