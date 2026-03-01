@@ -64,15 +64,15 @@ All colors MUST be HSL.
     /* Glass effect – high-contrast frosted luxury */
     --glass-bg: linear-gradient(
       145deg,
-      hsl(220 12% 14% / 0.85) 0%,
-      hsl(220 10% 8% / 0.75) 100%
+      hsl(220 14% 16% / 0.65) 0%,
+      hsl(220 12% 10% / 0.55) 100%
     );
-    --glass-bg-solid: hsl(220 10% 11% / 0.8);
-    --glass-border: hsl(45 55% 65% / 0.22);
-    --glass-border-highlight: hsl(0 0% 100% / 0.12);
-    --glass-blur: 28px;
-    --glass-inner-glow: inset 0 1px 1px 0 hsl(0 0% 100% / 0.1), inset 0 0 20px 0 hsl(45 60% 55% / 0.04);
-    --glass-shadow: 0 8px 32px -6px hsl(0 0% 0% / 0.6), 0 2px 6px hsl(0 0% 0% / 0.35), 0 0 1px hsl(0 0% 0% / 0.5);
+    --glass-bg-solid: hsl(220 10% 11% / 0.7);
+    --glass-border: hsl(45 60% 68% / 0.3);
+    --glass-border-highlight: hsl(0 0% 100% / 0.18);
+    --glass-blur: 36px;
+    --glass-inner-glow: inset 0 1px 1px 0 hsl(0 0% 100% / 0.14), inset 0 0 30px 0 hsl(45 60% 55% / 0.06);
+    --glass-shadow: 0 8px 40px -6px hsl(0 0% 0% / 0.65), 0 2px 8px hsl(0 0% 0% / 0.4), 0 0 0 0.5px hsl(45 50% 60% / 0.15);
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
