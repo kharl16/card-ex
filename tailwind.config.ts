@@ -95,6 +95,10 @@ export default {
           '0%, 100%': { opacity: '0.4' },
           '50%': { opacity: '0.8' },
         },
+        'glass-shimmer': {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
         'slide-up-fade': {
           '0%': { opacity: '0', transform: 'translateY(16px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
@@ -122,6 +126,7 @@ export default {
         "ring-rotate": "ring-rotate 4s linear infinite",
         "gold-pulse": "gold-pulse 3s ease-in-out infinite",
         "slide-up-fade": "slide-up-fade 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards",
+        "glass-shimmer": "glass-shimmer 6s ease-in-out infinite",
       },
     },
   },

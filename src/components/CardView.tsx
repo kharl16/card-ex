@@ -276,7 +276,7 @@ export default function CardView({
         {(card.company || card.bio) && (
           <div className="px-6 pb-4 transition-colors duration-500">
             <div
-              className="rounded-2xl p-4 animate-slide-up-fade"
+              className="rounded-2xl p-4 animate-slide-up-fade glass-shimmer"
               style={{
                 background: "var(--glass-bg)",
                 backdropFilter: "blur(var(--glass-blur))",
@@ -709,7 +709,7 @@ function ContactTile({ icon, label, sublabel, colorClass, onClick, isInteractive
     </div>
   );
 
-  const wrapperClasses = "group w-full rounded-2xl transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] cursor-pointer";
+  const wrapperClasses = "group w-full rounded-2xl transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] cursor-pointer glass-shimmer";
   const wrapperStyle: React.CSSProperties = {
     background: "var(--glass-bg)",
     backdropFilter: "blur(var(--glass-blur))",
