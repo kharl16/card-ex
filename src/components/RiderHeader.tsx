@@ -74,10 +74,11 @@ export default function RiderHeader({
 
       {/* Gold accent line under cover */}
       <div
-        className="absolute left-0 right-0 h-[2px] animate-gold-pulse"
+        className="absolute left-0 right-0 h-[3px] animate-gold-pulse"
         style={{
           top: "calc(100% - 5.5rem)",
           background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${lighterPrimary} 50%, ${basePrimary}80 70%, transparent 100%)`,
+          boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30`,
         }}
       />
 
