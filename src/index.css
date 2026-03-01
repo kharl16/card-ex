@@ -118,6 +118,41 @@ All colors MUST be HSL.
     }
   }
 
+  /* Glass shimmer border overlay */
+  .glass-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      110deg,
+      transparent 20%,
+      hsl(45 70% 65% / 0.25) 40%,
+      hsl(45 80% 75% / 0.4) 50%,
+      hsl(45 70% 65% / 0.25) 60%,
+      transparent 80%
+    );
+    background-size: 200% 100%;
+    animation: glass-shimmer-sweep 6s ease-in-out infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  @keyframes glass-shimmer-sweep {
+    0% { background-position: 200% 0; }
+    50% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
   /* 3D Carousel utilities */
   .shadow-cardex {
     box-shadow: 0 14px 40px rgba(16, 185, 129, 0.35), 
