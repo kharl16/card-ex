@@ -9,7 +9,7 @@ import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import ToolsOrb from "@/components/tools/ToolsOrb";
 
 type CardData = Tables<"cards">;
@@ -251,16 +251,18 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
     }
   };
 
+  const saveButtonColor = theme?.buttonColor || theme?.primary || "#22c55e";
+
   return (
     <div
-      className="min-h-screen bg-background transition-all duration-500 overflow-x-hidden max-w-[100vw]"
+      className="min-h-screen bg-background transition-colors duration-500 overflow-x-hidden max-w-[100vw]"
       style={{
         ...getBackgroundStyle(),
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
       
-      <div className="mx-auto max-w-2xl transition-all duration-500 overflow-x-hidden">
+      <div className="mx-auto max-w-2xl overflow-x-hidden">
         <CardView
           card={cardWithEffectiveTheme}
           socialLinks={socialLinks}
@@ -288,7 +290,35 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
             Get your professional digital business card
           </p>
         </div>
+
+        {/* Bottom spacer for floating FAB */}
+        <div className="h-20" />
       </div>
+
+      {/* Floating Save Contact FAB – outside transformed container */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+        <div
+          className="mx-auto max-w-2xl px-5 pb-5 pt-3 pointer-events-auto"
+          style={{ background: `linear-gradient(to top, ${theme?.background || "hsl(var(--background))"} 70%, transparent)` }}
+        >
+          <Button
+            className="w-full h-12 gap-2 text-base font-semibold rounded-2xl transition-all duration-500 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent shadow-lg"
+            style={{
+              backgroundColor: saveButtonColor,
+              boxShadow: `0 8px 30px ${saveButtonColor}50, 0 0 0 1px ${saveButtonColor}30`,
+            }}
+            onClick={() => {
+              // Trigger vcard download via CardView's exposed handler
+              const vcardBtn = document.querySelector('[data-vcard-download]') as HTMLButtonElement;
+              if (vcardBtn) vcardBtn.click();
+            }}
+          >
+            <Download className="h-5 w-5 relative z-10" />
+            <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
+          </Button>
+        </div>
+      </div>
+
       <ToolsOrb mode="public" />
     </div>
   );
