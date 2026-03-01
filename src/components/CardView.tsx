@@ -272,13 +272,25 @@ export default function CardView({
 
       {/* Everything below the header – normal stacking, avatar/logo stay above because of z-index in RiderHeader */}
       <div className="relative z-0">
-        {/* Company and Bio */}
-        <div className="px-6 pb-4 transition-colors duration-500">
-          {card.company && (
-            <p className="text-sm text-muted-foreground transition-colors duration-500 tracking-wide uppercase font-light" style={{ letterSpacing: "0.06em" }}>{card.company}</p>
-          )}
-          {card.bio && <p className="mt-3 text-sm text-muted-foreground transition-colors duration-500 leading-relaxed">{card.bio}</p>}
-        </div>
+        {/* Company and Bio – Glassmorphic Card */}
+        {(card.company || card.bio) && (
+          <div className="px-6 pb-4 transition-colors duration-500">
+            <div
+              className="rounded-2xl p-4 animate-slide-up-fade"
+              style={{
+                background: "var(--glass-bg)",
+                backdropFilter: "blur(var(--glass-blur))",
+                WebkitBackdropFilter: "blur(var(--glass-blur))",
+                border: "1px solid var(--glass-border)",
+              }}
+            >
+              {card.company && (
+                <p className="text-xs text-muted-foreground tracking-widest uppercase font-light" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
+              )}
+              {card.bio && <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{card.bio}</p>}
+            </div>
+          </div>
+        )}
 
         {/* Carousel Sections */}
         {(() => {
@@ -363,10 +375,11 @@ export default function CardView({
           );
         })()}
 
-        {/* Gold Divider before Social Links */}
+        {/* Gold Divider + Section Label before Social Links */}
         {resolvedSocialLinks.length > 0 && (
-          <div className="px-6 py-3">
+          <div className="px-6 pt-3 pb-1">
             <div className="h-[3px] w-full animate-gold-pulse rounded-full" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
+            <p className="text-[10px] tracking-[0.2em] uppercase font-medium text-center mt-3 mb-1" style={{ background: `linear-gradient(135deg, ${basePrimary}, #ffffff80)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Connect</p>
           </div>
         )}
 
@@ -429,11 +442,12 @@ export default function CardView({
         {/* Unified Contact Buttons (primary + additional together) */}
         {(card.email || card.phone || card.website || card.location || additionalContacts.length > 0) && (
           <>
-            {/* Gold Divider before Contacts */}
-            <div className="px-6 py-3">
+            {/* Gold Divider + Section Label before Contacts */}
+            <div className="px-6 pt-3 pb-1">
               <div className="h-[3px] w-full animate-gold-pulse rounded-full" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
+              <p className="text-[10px] tracking-[0.2em] uppercase font-medium text-center mt-3 mb-1" style={{ background: `linear-gradient(135deg, ${basePrimary}, #ffffff80)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Contact</p>
             </div>
-            <div className="px-6 space-y-2 pb-3">
+            <div className="px-6 pb-3">
             {(() => {
               type CombinedKind = "email" | "phone" | "url" | "custom";
 
@@ -575,36 +589,40 @@ export default function CardView({
                 return 0;
               });
 
-              return contacts.map((item, index) => {
-                const delay = 0.1 + index * 0.1;
-                const handleClick =
-                  isInteractive && item.href
-                    ? () => {
-                        if (item.kind === "url") {
-                          window.open(item.href, "_blank");
-                        } else {
-                          window.open(item.href);
-                        }
-                      }
-                    : undefined;
+              return (
+                <div className="grid grid-cols-2 gap-2.5">
+                  {contacts.map((item, index) => {
+                    const delay = 0.08 + index * 0.08;
+                    const handleClick =
+                      isInteractive && item.href
+                        ? () => {
+                            if (item.kind === "url") {
+                              window.open(item.href, "_blank");
+                            } else {
+                              window.open(item.href);
+                            }
+                          }
+                        : undefined;
 
-                return (
-                  <div
-                    key={item.id}
-                    className="animate-fade-in"
-                    style={{ animationDelay: `${delay}s`, animationFillMode: "backwards" }}
-                  >
-                    <ContactButton
-                      icon={item.icon}
-                      label={item.label}
-                      sublabel={item.sublabel}
-                      colorClass={item.colorClass}
-                      onClick={handleClick}
-                      isInteractive={isInteractive}
-                    />
-                  </div>
-                );
-              });
+                    return (
+                      <div
+                        key={item.id}
+                        className="animate-slide-up-fade"
+                        style={{ animationDelay: `${delay}s`, animationFillMode: "backwards" }}
+                      >
+                        <ContactTile
+                          icon={item.icon}
+                          label={item.label}
+                          sublabel={item.sublabel}
+                          colorClass={item.colorClass}
+                          onClick={handleClick}
+                          isInteractive={isInteractive}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              );
             })()}
             </div>
           </>
@@ -630,38 +648,41 @@ export default function CardView({
           </>
         )}
 
-        {/* Save Contact Button */}
-        <div className="px-6 pb-6 pt-4 animate-fade-in" style={{ animationDelay: "0.5s", animationFillMode: "backwards" }}>
-          {isInteractive && showVCardButtons ? (
-            <Button
-              className="w-full h-14 gap-2 text-lg font-semibold rounded-xl transition-all duration-500 hover:brightness-110 hover:scale-[1.02] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
-              style={{
-                backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
-                boxShadow: `0 8px 30px ${(theme.buttonColor || theme.primary || "#22c55e")}40`,
-              }}
-              onClick={() => handleDownloadVCard(true)}
-            >
-              <Download className="h-5 w-5 relative z-10" />
-              <span className="relative z-10 tracking-wide">Save Contact</span>
-            </Button>
-          ) : (
-            <button
-              className="w-full h-14 text-white text-lg font-semibold rounded-xl transition-all duration-500 hover:brightness-110 hover:scale-[1.02] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
-              style={{
-                backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
-                boxShadow: `0 8px 30px ${(theme.buttonColor || theme.primary || "#22c55e")}40`,
-              }}
-            >
-              <span className="relative z-10 tracking-wide">Save Contact</span>
-            </button>
-          )}
-        </div>
+        {/* Spacer for sticky FAB */}
+        <div className="h-20" />
+      </div>
+
+      {/* Sticky Save Contact FAB */}
+      <div className="sticky bottom-0 left-0 right-0 z-50 px-5 pb-4 pt-2" style={{ background: `linear-gradient(to top, ${theme.background || "hsl(var(--background))"} 60%, transparent)` }}>
+        {isInteractive && showVCardButtons ? (
+          <Button
+            className="w-full h-12 gap-2 text-base font-semibold rounded-2xl transition-all duration-500 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
+            style={{
+              backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
+              boxShadow: `0 8px 30px ${(theme.buttonColor || theme.primary || "#22c55e")}50, 0 0 0 1px ${(theme.buttonColor || theme.primary || "#22c55e")}30`,
+            }}
+            onClick={() => handleDownloadVCard(true)}
+          >
+            <Download className="h-5 w-5 relative z-10" />
+            <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
+          </Button>
+        ) : (
+          <button
+            className="w-full h-12 text-white text-base font-semibold rounded-2xl transition-all duration-500 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
+            style={{
+              backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
+              boxShadow: `0 8px 30px ${(theme.buttonColor || theme.primary || "#22c55e")}50, 0 0 0 1px ${(theme.buttonColor || theme.primary || "#22c55e")}30`,
+            }}
+          >
+            <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
+          </button>
+        )}
       </div>
     </Card>
   );
 }
 
-interface ContactButtonProps {
+interface ContactTileProps {
   icon: React.ReactNode;
   label: string;
   sublabel: string;
@@ -670,35 +691,41 @@ interface ContactButtonProps {
   isInteractive?: boolean;
 }
 
-function ContactButton({ icon, label, sublabel, colorClass, onClick, isInteractive }: ContactButtonProps) {
+function ContactTile({ icon, label, sublabel, colorClass, onClick, isInteractive }: ContactTileProps) {
   const content = (
-    <>
+    <div className="flex flex-col items-center gap-2 py-3 px-2">
       <div
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${colorClass} group-hover:scale-110 group-hover:shadow-lg transition-all duration-300 shadow-md`}
+        className={`flex h-10 w-10 items-center justify-center rounded-full ${colorClass} group-hover:scale-110 transition-all duration-300 shadow-md`}
       >
         {icon}
       </div>
-      <div className="flex-1 min-w-0 transition-transform duration-300 group-hover:translate-x-1">
-        <p className="text-sm font-medium truncate group-hover:text-primary transition-colors duration-300">
+      <div className="text-center min-w-0 w-full">
+        <p className="text-[11px] text-muted-foreground tracking-[0.15em] uppercase font-medium mb-0.5">{sublabel}</p>
+        <p className="text-xs font-medium truncate group-hover:text-primary transition-colors duration-300">
           {label}
         </p>
-        <p className="text-[11px] text-muted-foreground tracking-wide uppercase">{sublabel}</p>
       </div>
-    </>
+    </div>
   );
 
-  const wrapperClasses = "flex w-full items-center gap-3 text-left group transition-all duration-300 rounded-xl p-2.5 -ml-1 hover:bg-white/[0.04] border border-transparent hover:border-white/[0.06]";
+  const wrapperClasses = "group w-full rounded-2xl transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] cursor-pointer";
+  const wrapperStyle: React.CSSProperties = {
+    background: "var(--glass-bg)",
+    backdropFilter: "blur(var(--glass-blur))",
+    WebkitBackdropFilter: "blur(var(--glass-blur))",
+    border: "1px solid var(--glass-border)",
+  };
 
   if (isInteractive && onClick) {
     return (
-      <button onClick={onClick} className={wrapperClasses}>
+      <button onClick={onClick} className={wrapperClasses} style={wrapperStyle}>
         {content}
       </button>
     );
   }
 
   return (
-    <div className={wrapperClasses}>
+    <div className={wrapperClasses} style={wrapperStyle}>
       {content}
     </div>
   );
