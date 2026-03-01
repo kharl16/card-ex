@@ -648,12 +648,12 @@ export default function CardView({
           </>
         )}
 
-        {/* Spacer for sticky FAB */}
-        <div className="h-20" />
+        {/* Bottom padding */}
+        <div className="h-6" />
       </div>
 
-      {/* Sticky Save Contact FAB */}
-      <div className="sticky bottom-0 left-0 right-0 z-50 px-5 pb-4 pt-2" style={{ background: `linear-gradient(to top, ${theme.background || "hsl(var(--background))"} 60%, transparent)` }}>
+      {/* Save Contact Button – inline at bottom of card */}
+      <div className="px-5 pb-5 pt-1">
         {isInteractive && showVCardButtons ? (
           <Button
             className="w-full h-12 gap-2 text-base font-semibold rounded-2xl transition-all duration-500 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
