@@ -652,22 +652,20 @@ export default function CardView({
         <div className="h-6" />
       </div>
 
-      {/* Save Contact Button – inline */}
-      <div className="px-5 pb-5 pt-1">
-        {isInteractive && showVCardButtons ? (
-          <Button
-            data-vcard-download
-            className="w-full h-12 gap-2 text-base font-semibold rounded-2xl transition-all duration-500 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
-            style={{
-              backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
-              boxShadow: `0 8px 30px ${(theme.buttonColor || theme.primary || "#22c55e")}50, 0 0 0 1px ${(theme.buttonColor || theme.primary || "#22c55e")}30`,
-            }}
-            onClick={() => handleDownloadVCard(true)}
-          >
-            <Download className="h-5 w-5 relative z-10" />
-            <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
-          </Button>
-        ) : (
+      {/* Save Contact Button – hidden trigger for floating FAB in PublicCard */}
+      {isInteractive && showVCardButtons && (
+        <button
+          data-vcard-download
+          className="sr-only"
+          onClick={() => handleDownloadVCard(true)}
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+      )}
+
+      {/* Save Contact Button – visible only in editor preview */}
+      {!isInteractive && (
+        <div className="px-5 pb-5 pt-1">
           <button
             className="w-full h-12 text-white text-base font-semibold rounded-2xl relative overflow-hidden"
             style={{
@@ -677,8 +675,8 @@ export default function CardView({
           >
             <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </Card>
   );
 }
