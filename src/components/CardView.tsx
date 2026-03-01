@@ -249,6 +249,7 @@ export default function CardView({
   const basePrimary = theme.primary || "#D4AF37";
 
   return (
+    <>
     <Card
       className="relative border-0 rounded-2xl shadow-luxury transition-all duration-500 ease-out overflow-visible"
       style={{
@@ -648,13 +649,15 @@ export default function CardView({
           </>
         )}
 
-        {/* Bottom padding */}
-        <div className="h-6" />
+        {/* Bottom padding to account for floating FAB */}
+        <div className="h-20" />
       </div>
+    </Card>
 
-      {/* Save Contact Button – inline at bottom of card */}
-      <div className="px-5 pb-5 pt-1">
-        {isInteractive && showVCardButtons ? (
+    {/* Floating Save Contact FAB – fixed to bottom of viewport */}
+    {(isInteractive && showVCardButtons) && (
+      <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
+        <div className="mx-auto max-w-2xl px-5 pb-5 pt-3 pointer-events-auto" style={{ background: `linear-gradient(to top, ${theme.background || "hsl(var(--background))"} 70%, transparent)` }}>
           <Button
             className="w-full h-12 gap-2 text-base font-semibold rounded-2xl transition-all duration-500 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
             style={{
@@ -666,19 +669,25 @@ export default function CardView({
             <Download className="h-5 w-5 relative z-10" />
             <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
           </Button>
-        ) : (
-          <button
-            className="w-full h-12 text-white text-base font-semibold rounded-2xl transition-all duration-500 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent"
-            style={{
-              backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
-              boxShadow: `0 8px 30px ${(theme.buttonColor || theme.primary || "#22c55e")}50, 0 0 0 1px ${(theme.buttonColor || theme.primary || "#22c55e")}30`,
-            }}
-          >
-            <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
-          </button>
-        )}
+        </div>
       </div>
-    </Card>
+    )}
+
+    {/* Non-interactive fallback (editor preview) */}
+    {!(isInteractive && showVCardButtons) && (
+      <div className="px-5 pb-5 pt-1">
+        <button
+          className="w-full h-12 text-white text-base font-semibold rounded-2xl relative overflow-hidden"
+          style={{
+            backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
+            boxShadow: `0 8px 30px ${(theme.buttonColor || theme.primary || "#22c55e")}50`,
+          }}
+        >
+          <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
+        </button>
+      </div>
+    )}
+    </>
   );
 }
 
