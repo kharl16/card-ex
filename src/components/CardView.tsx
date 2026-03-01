@@ -366,7 +366,7 @@ export default function CardView({
         {/* Gold Divider before Social Links */}
         {resolvedSocialLinks.length > 0 && (
           <div className="px-6 py-3">
-            <div className="h-[2px] w-full animate-gold-pulse" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)` }} />
+            <div className="h-[3px] w-full animate-gold-pulse rounded-full" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
           </div>
         )}
 
@@ -431,7 +431,7 @@ export default function CardView({
           <>
             {/* Gold Divider before Contacts */}
             <div className="px-6 py-3">
-              <div className="h-[2px] w-full animate-gold-pulse" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)` }} />
+              <div className="h-[3px] w-full animate-gold-pulse rounded-full" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
             </div>
             <div className="px-6 space-y-2 pb-3">
             {(() => {
@@ -614,7 +614,7 @@ export default function CardView({
         {showQRCode && card.public_url && (
           <>
             <div className="px-6 py-3">
-              <div className="h-[2px] w-full animate-gold-pulse" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)` }} />
+              <div className="h-[3px] w-full animate-gold-pulse rounded-full" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
             </div>
             <div className="px-6 flex flex-col items-center gap-3 py-2 transition-colors duration-500">
               <QRCodeDisplay
