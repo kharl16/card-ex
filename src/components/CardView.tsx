@@ -282,6 +282,8 @@ export default function CardView({
                 backdropFilter: "blur(var(--glass-blur))",
                 WebkitBackdropFilter: "blur(var(--glass-blur))",
                 border: "1px solid var(--glass-border)",
+                borderTop: "1px solid var(--glass-border-highlight)",
+                boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
               }}
             >
               {card.company && (
@@ -713,6 +715,8 @@ function ContactTile({ icon, label, sublabel, colorClass, onClick, isInteractive
     backdropFilter: "blur(var(--glass-blur))",
     WebkitBackdropFilter: "blur(var(--glass-blur))",
     border: "1px solid var(--glass-border)",
+    borderTop: "1px solid var(--glass-border-highlight)",
+    boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
   };
 
   if (isInteractive && onClick) {

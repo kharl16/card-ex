@@ -130,6 +130,8 @@ export default function RiderHeader({
               backdropFilter: "blur(var(--glass-blur))",
               WebkitBackdropFilter: "blur(var(--glass-blur))",
               border: "1px solid var(--glass-border)",
+              borderTop: "1px solid var(--glass-border-highlight)",
+              boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
             }}
           >
             <img

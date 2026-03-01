@@ -61,10 +61,18 @@ All colors MUST be HSL.
     --shadow-gold: 0 4px 20px 0 hsl(45 72% 53% / 0.2);
     --shadow-luxury: 0 20px 60px -10px rgb(0 0 0 / 0.7), 0 0 40px -15px hsl(45 72% 53% / 0.15);
 
-    /* Glass effect */
-    --glass-bg: hsl(220 7% 7% / 0.65);
-    --glass-border: hsl(45 72% 53% / 0.15);
-    --glass-blur: 16px;
+    /* Glass effect – refined luxury */
+    --glass-bg: linear-gradient(
+      135deg,
+      hsl(220 10% 10% / 0.72) 0%,
+      hsl(220 8% 6% / 0.58) 100%
+    );
+    --glass-bg-solid: hsl(220 9% 8% / 0.68);
+    --glass-border: hsl(45 50% 60% / 0.12);
+    --glass-border-highlight: hsl(45 60% 70% / 0.08);
+    --glass-blur: 20px;
+    --glass-inner-glow: inset 0 1px 0 0 hsl(0 0% 100% / 0.06);
+    --glass-shadow: 0 4px 24px -4px hsl(0 0% 0% / 0.5), 0 1px 3px hsl(0 0% 0% / 0.3);
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
