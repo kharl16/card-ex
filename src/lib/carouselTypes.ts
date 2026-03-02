@@ -221,6 +221,7 @@ function mergeSection(
     innerPadding: existingBackground?.innerPadding ?? defaultSection.background.innerPadding ?? 8,
     borderWidth: existingBackground?.borderWidth ?? defaultSection.background.borderWidth ?? 0,
     borderColor: existingBackground?.borderColor ?? defaultSection.background.borderColor ?? "#ffffff",
+    glassShimmer: existingBackground?.glassShimmer ?? defaultSection.background.glassShimmer ?? true,
     // Always ensure gradient object exists with proper defaults
     gradient: {
       from: existingBackground?.gradient?.from ?? "#000000",
