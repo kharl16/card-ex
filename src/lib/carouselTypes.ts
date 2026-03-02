@@ -18,6 +18,7 @@ export interface CarouselBackground {
   innerPadding?: number; // pixels (0-32), default 8
   borderWidth?: number;  // pixels (0-8), default 0
   borderColor?: string;  // hex color for border
+  glassShimmer?: boolean; // enable glass-shimmer effect, default true
 }
 
 export type CTAAction = "link" | "scroll" | "contact" | "modal";
