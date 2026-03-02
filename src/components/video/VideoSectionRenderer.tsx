@@ -148,10 +148,18 @@ export default function VideoSectionRenderer({
       <div className="relative w-full">
         <div
           className={cn(
-            "relative w-full py-3 rounded-xl overflow-hidden",
+            "relative w-full py-3 rounded-xl overflow-hidden glass-shimmer",
             hasBackground && "shadow-inner"
           )}
-          style={hasAnyBackgroundStyling ? backgroundStyle : undefined}
+          style={{
+            ...(hasAnyBackgroundStyling ? backgroundStyle : {}),
+            background: hasAnyBackgroundStyling ? backgroundStyle?.background : "var(--glass-bg)",
+            backdropFilter: "blur(var(--glass-blur))",
+            WebkitBackdropFilter: "blur(var(--glass-blur))",
+            border: "1px solid var(--glass-border)",
+            borderTop: "1px solid var(--glass-border-highlight)",
+            boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
+          }}
         >
           <VideoCarousel
             videos={displayVideos}

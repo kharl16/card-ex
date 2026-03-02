@@ -636,7 +636,17 @@ export default function CardView({
             <div className="px-6 py-3">
               <div className="h-[3px] w-full animate-gold-pulse rounded-full glass-shimmer" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
             </div>
-            <div className="px-6 flex flex-col items-center gap-3 py-2 transition-colors duration-500">
+            <div
+              className="px-6 flex flex-col items-center gap-3 py-4 transition-colors duration-500 rounded-2xl glass-shimmer mx-6"
+              style={{
+                background: "var(--glass-bg)",
+                backdropFilter: "blur(var(--glass-blur))",
+                WebkitBackdropFilter: "blur(var(--glass-blur))",
+                border: "1px solid var(--glass-border)",
+                borderTop: "1px solid var(--glass-border-highlight)",
+                boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
+              }}
+            >
               <QRCodeDisplay
                 url={card.public_url}
                 settings={theme?.qr}
