@@ -302,10 +302,12 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           style={{ background: `linear-gradient(to top, ${theme?.background || "hsl(var(--background))"} 70%, transparent)` }}
         >
           <Button
-            className="w-full h-12 gap-2 text-base font-semibold rounded-2xl transition-all duration-500 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent shadow-lg"
+            className="w-full h-12 gap-2 text-base font-semibold rounded-2xl transition-all duration-500 hover:brightness-110 hover:scale-[1.01] active:scale-[0.98] relative overflow-hidden glass-shimmer shadow-lg"
             style={{
               backgroundColor: saveButtonColor,
               boxShadow: `0 8px 30px ${saveButtonColor}50, 0 0 0 1px ${saveButtonColor}30`,
+              border: "1px solid var(--glass-border)",
+              borderTop: "1px solid var(--glass-border-highlight)",
             }}
             onClick={() => {
               // Trigger vcard download via CardView's exposed handler
