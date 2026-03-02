@@ -380,7 +380,7 @@ export default function CardView({
         {/* Gold Divider + Section Label before Social Links */}
         {resolvedSocialLinks.length > 0 && (
           <div className="px-6 pt-3 pb-1">
-            <div className="h-[3px] w-full animate-gold-pulse rounded-full" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
+            <div className="h-[3px] w-full animate-gold-pulse rounded-full glass-shimmer" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
             <p className="text-[10px] tracking-[0.2em] uppercase font-medium text-center mt-3 mb-1" style={{ background: `linear-gradient(135deg, ${basePrimary}, #ffffff80)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Connect</p>
           </div>
         )}
@@ -446,7 +446,7 @@ export default function CardView({
           <>
             {/* Gold Divider + Section Label before Contacts */}
             <div className="px-6 pt-3 pb-1">
-              <div className="h-[3px] w-full animate-gold-pulse rounded-full" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
+              <div className="h-[3px] w-full animate-gold-pulse rounded-full glass-shimmer" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
               <p className="text-[10px] tracking-[0.2em] uppercase font-medium text-center mt-3 mb-1" style={{ background: `linear-gradient(135deg, ${basePrimary}, #ffffff80)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Contact</p>
             </div>
             <div className="px-6 pb-3">
@@ -634,7 +634,7 @@ export default function CardView({
         {showQRCode && card.public_url && (
           <>
             <div className="px-6 py-3">
-              <div className="h-[3px] w-full animate-gold-pulse rounded-full" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
+              <div className="h-[3px] w-full animate-gold-pulse rounded-full glass-shimmer" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
             </div>
             <div className="px-6 flex flex-col items-center gap-3 py-2 transition-colors duration-500">
               <QRCodeDisplay
@@ -669,10 +669,12 @@ export default function CardView({
       {!isInteractive && (
         <div className="px-5 pb-5 pt-1">
           <button
-            className="w-full h-12 text-white text-base font-semibold rounded-2xl relative overflow-hidden"
+            className="w-full h-12 text-white text-base font-semibold rounded-2xl relative overflow-hidden glass-shimmer"
             style={{
               backgroundColor: theme.buttonColor || theme.primary || "#22c55e",
               boxShadow: `0 8px 30px ${(theme.buttonColor || theme.primary || "#22c55e")}50`,
+              border: "1px solid var(--glass-border)",
+              borderTop: "1px solid var(--glass-border-highlight)",
             }}
           >
             <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
