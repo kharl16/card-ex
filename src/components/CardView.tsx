@@ -256,7 +256,6 @@ export default function CardView({
         color: theme?.text || undefined,
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
         boxShadow: `var(--shadow-luxury), 0 0 0 1px ${basePrimary}15`,
-        textShadow: `0 2px 8px ${theme?.background || '#0B0B0C'}90, 0 1px 3px ${theme?.background || '#0B0B0C'}60`,
       }}
     >
       {/* Header using RiderHeader component */}
