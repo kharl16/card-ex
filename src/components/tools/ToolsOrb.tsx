@@ -13,10 +13,15 @@ import {
   Settings,
   Sparkles,
   Plus,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ToolsDrawer from "./ToolsDrawer";
 import ToolsOrbCustomizer from "./ToolsOrbCustomizer";
+import ToolsAuthDialog from "./ToolsAuthDialog";
+import { useToolsAuth } from "@/hooks/useToolsAuth";
+import { toast } from "sonner";
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
   GraduationCap,
@@ -26,6 +31,8 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   Presentation,
   Settings,
   Sparkles,
+  Lock,
+  Unlock,
 };
 
 const POSITION_KEY_PREFIX = "tools_orb_position";
@@ -43,6 +50,7 @@ interface ToolsOrbProps {
 export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProps) {
   const { settings, loading } = useToolsOrb();
   const { isAdmin, user } = useAuth();
+  const toolsAuth = useToolsAuth();
 
   const isPreview = mode === "preview";
   const positionKey = `${POSITION_KEY_PREFIX}_${mode}`;
@@ -56,6 +64,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
 
   // Motion values for smooth dragging - the orb position
   const motionX = useMotionValue(0);
@@ -188,10 +197,34 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
     setCustomizerOpen(true);
   };
 
+  const handleLockToggle = () => {
+    setIsOpen(false);
+    if (toolsAuth.isSetup) {
+      // Already set up — lock the session
+      toolsAuth.lock();
+      toast.success("Tools locked");
+    } else {
+      // Not set up — open setup dialog
+      setAuthDialogOpen(true);
+    }
+  };
+
   const handleOrbClick = () => {
     if (!isDragging) {
-      setIsOpen(v => !v);
+      // If auth is not set up or already unlocked, open directly
+      if (!toolsAuth.isSetup || toolsAuth.isUnlocked) {
+        setIsOpen(v => !v);
+      } else {
+        // Need to authenticate first
+        setAuthDialogOpen(true);
+      }
     }
+  };
+
+  // When auth succeeds, open the orb
+  const handleAuthSuccess = () => {
+    setAuthDialogOpen(false);
+    setIsOpen(true);
   };
 
   if (loading || !settings.enabled) return null;
@@ -199,7 +232,16 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
   if (!initialized) return null;
 
   const enabledItems = settings.items.filter(it => it.enabled).sort((a, b) => a.order - b.order);
-  const allItems = [...enabledItems, ...(isAdmin ? [{ id: "settings", label: "Settings", icon_name: "Settings" }] : [])] as (ToolsOrbItem | { id: string; label: string; icon_name: string })[];
+  const lockItem = { 
+    id: "lock", 
+    label: toolsAuth.isSetup ? "Lock" : "Set Lock", 
+    icon_name: toolsAuth.isSetup ? "Lock" : "Unlock" 
+  };
+  const allItems = [
+    ...enabledItems,
+    lockItem,
+    ...(isAdmin ? [{ id: "settings", label: "Settings", icon_name: "Settings" }] : []),
+  ] as (ToolsOrbItem | { id: string; label: string; icon_name: string })[];
   const totalItems = allItems.length;
 
   // Radial geometry constants - consistent sizing for seamless look across all views
@@ -304,6 +346,8 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
         <AnimatePresence>
           {isOpen && allItems.map((item, index) => {
             const isSettingsItem = item.id === "settings";
+            const isLockItem = item.id === "lock";
+            const isUtilityItem = isSettingsItem || isLockItem;
             const IconComponent = ICON_MAP[item.icon_name] || Sparkles;
             const pos = getRadialPosition(index);
 
@@ -347,7 +391,12 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                 >
                   {/* Button with relative positioning for label anchor */}
                   <button
-                    onClick={() => isSettingsItem ? handleSettingsClick() : handleItemClick(item as ToolsOrbItem)}
+                    onClick={() => {
+                      const isLockItem = item.id === "lock";
+                      if (isSettingsItem) handleSettingsClick();
+                      else if (isLockItem) handleLockToggle();
+                      else handleItemClick(item as ToolsOrbItem);
+                    }}
                     className="relative flex flex-col items-center outline-none focus:outline-none group"
                     style={{ 
                       width: iconSize, 
@@ -361,14 +410,14 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                         "rounded-full flex items-center justify-center",
                         "transition-transform duration-200 ease-out",
                         "group-hover:scale-110 group-active:scale-95",
-                        isSettingsItem
+                        isUtilityItem
                           ? "bg-gradient-to-br from-zinc-600 to-zinc-700 border-2 border-zinc-500/30"
                           : "bg-gradient-to-br from-primary via-primary/95 to-primary/80 border-2 border-primary-foreground/20"
                       )}
                       style={{ 
                         width: iconSize, 
                         height: iconSize,
-                        boxShadow: isSettingsItem 
+                        boxShadow: isUtilityItem 
                           ? '0 4px 20px rgba(0,0,0,0.3)' 
                           : '0 4px 20px rgba(212, 175, 55, 0.4), 0 0 30px rgba(212, 175, 55, 0.2)'
                       }}
@@ -383,7 +432,7 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
                         <IconComponent
                           className={cn(
                             "w-6 h-6",
-                            isSettingsItem ? "text-zinc-200" : "text-primary-foreground"
+                            isUtilityItem ? "text-zinc-200" : "text-primary-foreground"
                           )}
                         />
                       )}
@@ -568,6 +617,28 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
       <ToolsOrbCustomizer
         open={customizerOpen}
         onOpenChange={setCustomizerOpen}
+      />
+
+      <ToolsAuthDialog
+        open={authDialogOpen}
+        onOpenChange={(v) => {
+          setAuthDialogOpen(v);
+          if (!v && toolsAuth.isUnlocked) {
+            handleAuthSuccess();
+          }
+        }}
+        isSetup={toolsAuth.isSetup}
+        hasBiometric={toolsAuth.hasBiometric}
+        hasPin={toolsAuth.hasPin}
+        biometricAvailable={toolsAuth.biometricAvailable}
+        onRegisterBiometric={toolsAuth.registerBiometric}
+        onAuthenticateBiometric={toolsAuth.authenticateBiometric}
+        onSetupPin={async (pin) => {
+          const success = await toolsAuth.setupPin(pin);
+          if (success) toolsAuth.unlock();
+          return success;
+        }}
+        onVerifyPin={toolsAuth.verifyPin}
       />
     </>
   );
