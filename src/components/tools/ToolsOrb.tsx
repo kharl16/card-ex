@@ -45,9 +45,11 @@ interface Position {
 interface ToolsOrbProps {
   mode?: "preview" | "public";
   containerRef?: RefObject<HTMLElement>;
+  /** When set, only the card owner (matching user_id) can see the orb */
+  cardOwnerId?: string;
 }
 
-export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProps) {
+export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }: ToolsOrbProps) {
   const { settings, loading } = useToolsOrb();
   const { isAdmin, user } = useAuth();
   const toolsAuth = useToolsAuth();
@@ -229,6 +231,8 @@ export default function ToolsOrb({ mode = "public", containerRef }: ToolsOrbProp
 
   if (loading || !settings.enabled) return null;
   if (isPreview && !user) return null;
+  // On public cards, only show orb to the card's owner (must be logged in)
+  if (!isPreview && cardOwnerId && (!user || user.id !== cardOwnerId)) return null;
   if (!initialized) return null;
 
   const enabledItems = settings.items.filter(it => it.enabled).sort((a, b) => a.order - b.order);

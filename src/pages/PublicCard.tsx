@@ -321,7 +321,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         </div>
       </div>
 
-      <ToolsOrb mode="public" />
+      <ToolsOrb mode="public" cardOwnerId={card?.user_id} />
     </div>
   );
 }
