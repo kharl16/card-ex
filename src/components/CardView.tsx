@@ -276,7 +276,7 @@ export default function CardView({
         {(card.company || card.bio) && (
           <div className="px-6 pb-4 transition-colors duration-500">
             <div
-              className="rounded-2xl p-4 animate-slide-up-fade glass-shimmer"
+              className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-fit max-w-full"
               style={{
                 background: "var(--glass-bg)",
                 backdropFilter: "blur(var(--glass-blur))",
