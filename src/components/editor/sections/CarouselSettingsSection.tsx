@@ -278,6 +278,20 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Glass Shimmer Effect */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Glass Shimmer</Label>
+                    <p className="text-xs text-muted-foreground">Frosted glass effect with animated light sweep</p>
+                  </div>
+                  <Switch
+                    checked={carouselSettings[key].background.glassShimmer !== false}
+                    onCheckedChange={(v) => updateBackground(key, { glassShimmer: v })}
+                  />
+                </div>
+
+                <Separator />
+
                 <div className="flex items-center justify-between">
                   <Label>Enable Background</Label>
                   <Switch
@@ -585,19 +599,6 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                       </div>
                     )}
 
-                    <Separator />
-
-                    {/* Glass Shimmer Effect */}
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label>Glass Shimmer</Label>
-                        <p className="text-xs text-muted-foreground">Frosted glass effect with animated light sweep</p>
-                      </div>
-                      <Switch
-                        checked={carouselSettings[key].background.glassShimmer !== false}
-                        onCheckedChange={(v) => updateBackground(key, { glassShimmer: v })}
-                      />
-                    </div>
                   </>
                 )}
               </CardContent>
