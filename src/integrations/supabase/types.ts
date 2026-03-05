@@ -1592,6 +1592,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_orb_overrides: {
+        Row: {
+          created_at: string
+          id: string
+          items: Json
+          orb_image_url: string | null
+          orb_label: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          items?: Json
+          orb_image_url?: string | null
+          orb_label?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          items?: Json
+          orb_image_url?: string | null
+          orb_label?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           granted_at: string | null
