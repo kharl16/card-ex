@@ -265,13 +265,6 @@ export default function Dashboard() {
               </Button>
             )}
             <AdminButton />
-            <Button onClick={() => navigate("/tools")} variant="outline" size="sm" className="gap-2">
-              <Wrench className="h-4 w-4" />
-              Tools
-            </Button>
-            <Button onClick={() => navigate("/gallery")} variant="outline" size="sm">
-              Gallery
-            </Button>
             <NotificationBell />
             <SignOutButton />
           </div>
