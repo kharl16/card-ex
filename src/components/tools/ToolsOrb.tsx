@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, RefObject, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { createPortal } from "react-dom";
-import { useToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
+import { useMergedToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   GraduationCap,
@@ -50,7 +50,7 @@ interface ToolsOrbProps {
 }
 
 export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }: ToolsOrbProps) {
-  const { settings, loading } = useToolsOrb();
+  const { mergedSettings: settings, loading, hasPaidCard } = useMergedToolsOrb();
   const { isAdmin, user } = useAuth();
   const toolsAuth = useToolsAuth();
 
@@ -241,10 +241,11 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
     label: toolsAuth.isSetup ? "Lock" : "Set Lock", 
     icon_name: toolsAuth.isSetup ? "Lock" : "Unlock" 
   };
+  const showCustomize = isAdmin || (!isAdmin && hasPaidCard);
   const allItems = [
     ...enabledItems,
     lockItem,
-    ...(isAdmin ? [{ id: "settings", label: "Settings", icon_name: "Settings" }] : []),
+    ...(showCustomize ? [{ id: "settings", label: isAdmin ? "Settings" : "Customize", icon_name: "Settings" }] : []),
   ] as (ToolsOrbItem | { id: string; label: string; icon_name: string })[];
   const totalItems = allItems.length;
 
