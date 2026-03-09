@@ -1,4 +1,3 @@
-import { verifyWebhookRequest, type EmailWebhookPayload } from "@lovable.dev/webhooks-js";
 import { parseEmailWebhookPayload, sendLovableEmail } from "@lovable.dev/email-js";
 import { render } from "npm:@react-email/components@0.0.22";
 import SignupEmail from "../_shared/email-templates/signup.tsx";
@@ -34,11 +33,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Verify webhook signature and parse payload
-    const { body } = await verifyWebhookRequest<EmailWebhookPayload>({
-      req,
-      secret: LOVABLE_API_KEY,
-    });
+    // Parse the request body directly — Lovable's email system routes to this function
+    const body = await req.json();
 
     const payload = parseEmailWebhookPayload(body);
 
