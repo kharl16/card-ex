@@ -51,9 +51,9 @@ Deno.serve(async (req) => {
 
     const actionType = email_action_type?.toLowerCase() ?? "signup";
 
-    const confirmationUrl = redirect_to
-      ? `${site_url}/auth/v1/verify?token=${token_hash}&type=${actionType}&redirect_to=${redirect_to}`
-      : `${site_url}/auth/v1/verify?token=${token_hash}&type=${actionType}`;
+    // Always redirect to the app's auth callback so users land on the dashboard
+    const appCallbackUrl = "https://tagex.app/auth/callback";
+    const confirmationUrl = `${site_url}/auth/v1/verify?token=${token_hash}&type=${actionType}&redirect_to=${encodeURIComponent(appCallbackUrl)}`;
 
     const templateProps: Record<string, string> = {
       siteName: "Card-Ex",
