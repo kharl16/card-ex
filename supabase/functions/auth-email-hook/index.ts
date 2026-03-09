@@ -1,5 +1,5 @@
-import { Webhook } from "@lovable.dev/webhooks-js";
-import { Resend } from "@lovable.dev/email-js";
+import { verifyWebhookRequest, type EmailWebhookPayload } from "@lovable.dev/webhooks-js";
+import { parseEmailWebhookPayload, sendLovableEmail } from "@lovable.dev/email-js";
 import { render } from "npm:@react-email/components@0.0.22";
 import SignupEmail from "../_shared/email-templates/signup.tsx";
 import RecoveryEmail from "../_shared/email-templates/recovery.tsx";
@@ -34,33 +34,35 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const webhook = new Webhook(LOVABLE_API_KEY);
-    const payload = await webhook.verify(req);
+    // Verify webhook signature and parse payload
+    const { body } = await verifyWebhookRequest<EmailWebhookPayload>({
+      req,
+      secret: LOVABLE_API_KEY,
+    });
 
-    const {
-      email_data: {
-        email_action_type,
-        token_hash,
-        redirect_to,
-        token,
-        site_url,
-      },
-      email,
-      callback_url,
-    } = payload as any;
+    const payload = parseEmailWebhookPayload(body);
 
-    const actionType = email_action_type?.toLowerCase() ?? "signup";
+    const emailData = payload.data;
+    if (!emailData) {
+      throw new Error("Missing email data in payload");
+    }
+
+    const actionType = (emailData.email_action_type ?? "signup").toLowerCase();
+    const tokenHash = emailData.token_hash ?? "";
+    const token = emailData.token ?? "";
+    const siteUrl = emailData.site_url ?? "";
+    const email = emailData.email ?? "";
 
     // Always redirect to the app's auth callback so users land on the dashboard
     const appCallbackUrl = "https://tagex.app/auth/callback";
-    const confirmationUrl = `${site_url}/auth/v1/verify?token=${token_hash}&type=${actionType}&redirect_to=${encodeURIComponent(appCallbackUrl)}`;
+    const confirmationUrl = `${siteUrl}/auth/v1/verify?token=${tokenHash}&type=${actionType}&redirect_to=${encodeURIComponent(appCallbackUrl)}`;
 
     const templateProps: Record<string, string> = {
       siteName: "Card-Ex",
       siteUrl: "https://tagex.app",
       confirmationUrl,
       recipient: email,
-      token: token ?? "",
+      token: token,
     };
 
     const templateFn = templateMap[actionType] ?? templateMap.signup;
@@ -68,12 +70,20 @@ Deno.serve(async (req) => {
 
     const html = await render(templateFn(templateProps));
 
-    const resend = new Resend(LOVABLE_API_KEY, callback_url);
-    await resend.emails.send({
-      to: [email],
-      subject,
-      html,
-    });
+    const apiBaseUrl = emailData.api_base_url ?? "https://api.lovable.dev";
+
+    await sendLovableEmail(
+      {
+        run_id: payload.run_id ?? crypto.randomUUID(),
+        to: email,
+        from: "Card-Ex <noreply@notify.tagex.app>",
+        subject,
+        html,
+        text: subject,
+        purpose: "transactional",
+      },
+      { apiKey: LOVABLE_API_KEY, apiBaseUrl },
+    );
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
