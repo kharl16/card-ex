@@ -237,16 +237,11 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
     theme: theme as any,
   };
 
-  // Handle "Create your own Card-Ex" button click
+  // Handle "Create your own Card-Ex" button click — always go to signup with referral
   const handleCreateCard = () => {
-    if (currentUser) {
-      // Already logged in, go to dashboard
-      navigate("/dashboard");
-    } else if (ownerReferralCode) {
-      // Not logged in, go to signup with referral
+    if (ownerReferralCode) {
       navigate(`/signup?ref=${ownerReferralCode}`);
     } else {
-      // Fallback: go to signup without referral
       navigate("/signup");
     }
   };
