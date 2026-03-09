@@ -9,60 +9,106 @@ export default function AuthCallback() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
   useEffect(() => {
+    let mounted = true;
+    let cleanupSubscription: (() => void) | undefined;
+
+    const redirectToDestination = () => {
+      const nextParam = searchParams.get("next");
+      return nextParam ? safeRedirectPath(nextParam) : getAndClearAuthNext();
+    };
+
     const handleCallback = async () => {
       if (import.meta.env.DEV) {
         console.log("[AuthCallback] Processing callback...");
         console.log("[AuthCallback] Current URL:", window.location.href);
+        console.log("[AuthCallback] Hash:", window.location.hash);
         console.log("[AuthCallback] App URL:", getAppUrl());
       }
 
-      // First, check for session from OAuth callback
+      // ── 1. Handle PKCE code exchange (email confirmation links) ──
+      // On mobile, email links often include ?code=... which needs explicit exchange
+      const code = searchParams.get("code");
+      if (code) {
+        if (import.meta.env.DEV) {
+          console.log("[AuthCallback] Found PKCE code, exchanging...");
+        }
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          console.error("[AuthCallback] Code exchange failed:", error);
+          // Don't bail out yet — fall through to other methods
+        } else if (data.session && mounted) {
+          setStatus("success");
+          const destination = redirectToDestination();
+          if (import.meta.env.DEV) {
+            console.log("[AuthCallback] PKCE exchange success, redirecting to:", destination);
+          }
+          navigate(destination, { replace: true });
+          return;
+        }
+      }
+
+      // ── 2. Handle hash-based tokens (implicit flow / magic links) ──
+      // The Supabase client auto-detects hash fragments, but on mobile in-app
+      // browsers it can be slow. Give it a moment, then check.
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get("access_token");
+      const refreshToken = hashParams.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        if (import.meta.env.DEV) {
+          console.log("[AuthCallback] Found hash tokens, setting session...");
+        }
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+        if (!error && data.session && mounted) {
+          setStatus("success");
+          const destination = redirectToDestination();
+          navigate(destination, { replace: true });
+          return;
+        }
+        if (error) {
+          console.error("[AuthCallback] setSession from hash failed:", error);
+        }
+      }
+
+      // ── 3. Check for an existing session (OAuth or already-processed) ──
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
+
       if (sessionError) {
         console.error("[AuthCallback] Session error:", sessionError);
-        setStatus("error");
-        setTimeout(() => navigate("/auth", { replace: true }), 2000);
+        if (mounted) {
+          setStatus("error");
+          setTimeout(() => navigate("/auth", { replace: true }), 2000);
+        }
         return;
       }
 
-      if (session) {
+      if (session && mounted) {
         setStatus("success");
-        
-        // Determine where to redirect
-        // Priority: 1) URL query param, 2) sessionStorage, 3) default
-        const nextParam = searchParams.get("next");
-        let destination: string;
-        
-        if (nextParam) {
-          destination = safeRedirectPath(nextParam);
-        } else {
-          destination = getAndClearAuthNext();
-        }
-        
+        const destination = redirectToDestination();
         if (import.meta.env.DEV) {
-          console.log("[AuthCallback] Session found, redirecting to:", destination);
+          console.log("[AuthCallback] Existing session found, redirecting to:", destination);
         }
-        
         navigate(destination, { replace: true });
         return;
       }
 
-      // No session yet - set up listener for OAuth completion
+      // ── 4. No session yet — listen for auth state changes ──
+      if (import.meta.env.DEV) {
+        console.log("[AuthCallback] No session yet, waiting for auth state change...");
+      }
+
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (!mounted) return;
         if (import.meta.env.DEV) {
           console.log("[AuthCallback] Auth event:", event, "Session:", !!session);
         }
-        
+
         if (session) {
           setStatus("success");
-          const nextParam = searchParams.get("next");
-          const destination = nextParam ? safeRedirectPath(nextParam) : getAndClearAuthNext();
-          
-          if (import.meta.env.DEV) {
-            console.log("[AuthCallback] Auth complete, redirecting to:", destination);
-          }
-          
+          const destination = redirectToDestination();
           navigate(destination, { replace: true });
         } else if (event === "SIGNED_OUT") {
           setStatus("error");
@@ -70,13 +116,24 @@ export default function AuthCallback() {
         }
       });
 
-      // Cleanup subscription on unmount
-      return () => {
-        subscription.unsubscribe();
-      };
+      cleanupSubscription = () => subscription.unsubscribe();
+
+      // ── 5. Timeout fallback — if nothing happens after 10s, show error ──
+      setTimeout(() => {
+        if (mounted && status === "loading") {
+          console.warn("[AuthCallback] Timed out waiting for session");
+          setStatus("error");
+          setTimeout(() => navigate("/auth", { replace: true }), 2000);
+        }
+      }, 10000);
     };
 
     handleCallback();
+
+    return () => {
+      mounted = false;
+      cleanupSubscription?.();
+    };
   }, [navigate, searchParams]);
 
   return (
@@ -105,7 +162,7 @@ export default function AuthCallback() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <p className="text-muted-foreground">Authentication failed. Redirecting...</p>
+            <p className="text-muted-foreground">Authentication failed. Redirecting to sign in...</p>
           </>
         )}
       </div>
