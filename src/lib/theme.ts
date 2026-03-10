@@ -115,14 +115,14 @@ export const DEFAULT_THEME: CardTheme = {
     // A: Signature Gold – your hero Card-Ex look
     A: {
       primary: "#FACC15", // Gold
-      background: "#020617", // Deep ink
+      background: "#010309", // Deeper ink
       text: "#F9FAFB",
       accent: "#22C55E", // Green accent – good for "Join / Sign up"
       buttonColor: "#FACC15",
       backgroundType: "gradient",
-      gradientStart: "#020617",
-      gradientEnd: "#111827",
-      gradientDirection: "to-tr",
+      gradientStart: "#010309",
+      gradientEnd: "#0a0f1a",
+      gradientDirection: "to-b",
       font: "Inter",
       patternType: "none",
       patternOpacity: 0,
