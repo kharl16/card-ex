@@ -84,14 +84,14 @@ export const LIGHT_MODE_DEFAULTS: ThemeVariant = {
 // Dark mode defaults – elegant, general-purpose dark card style
 export const DARK_MODE_DEFAULTS: ThemeVariant = {
   primary: "#FACC15", // Gold primary
-  background: "#020617", // Near-black (slate/ink)
+  background: "#010309", // Near-black
   text: "#F9FAFB", // Off-white text
   accent: "#38BDF8", // Cool cyan accent (links / secondary CTAs)
   buttonColor: "#FACC15", // Gold button stands out on dark
   backgroundType: "gradient",
-  gradientStart: "#020617", // Deep navy/ink
-  gradientEnd: "#111827", // Slate
-  gradientDirection: "to-tr",
+  gradientStart: "#010309", // Deep ink
+  gradientEnd: "#0a0f1a", // Dark navy
+  gradientDirection: "to-b",
 };
 
 // Card-Ex MLM Gold default theme
@@ -99,14 +99,14 @@ export const DARK_MODE_DEFAULTS: ThemeVariant = {
 // Variant B = Platinum Gold (subtle premium variation)
 export const DEFAULT_THEME: CardTheme = {
   primary: "#FACC15",
-  background: "#020617",
+  background: "#010309",
   text: "#F9FAFB",
   accent: "#22C55E", // Green accent for "growth / success" CTAs
   buttonColor: "#FACC15",
   backgroundType: "gradient",
-  gradientStart: "#020617",
-  gradientEnd: "#111827",
-  gradientDirection: "to-tr",
+  gradientStart: "#010309",
+  gradientEnd: "#0a0f1a",
+  gradientDirection: "to-b",
   baseMode: "dark",
   mode: "dark",
   activeVariant: "A",
@@ -115,14 +115,14 @@ export const DEFAULT_THEME: CardTheme = {
     // A: Signature Gold – your hero Card-Ex look
     A: {
       primary: "#FACC15", // Gold
-      background: "#020617", // Deep ink
+      background: "#010309", // Deeper ink
       text: "#F9FAFB",
       accent: "#22C55E", // Green accent – good for "Join / Sign up"
       buttonColor: "#FACC15",
       backgroundType: "gradient",
-      gradientStart: "#020617",
-      gradientEnd: "#111827",
-      gradientDirection: "to-tr",
+      gradientStart: "#010309",
+      gradientEnd: "#0a0f1a",
+      gradientDirection: "to-b",
       font: "Inter",
       patternType: "none",
       patternOpacity: 0,
@@ -132,14 +132,14 @@ export const DEFAULT_THEME: CardTheme = {
     // B: Platinum Gold – a cooler, slightly more "tech" variation
     B: {
       primary: "#E5E7EB", // Soft platinum/silver for headings
-      background: "#020617",
+      background: "#010309",
       text: "#F9FAFB",
       accent: "#FACC15", // Gold becomes the accent pop
       buttonColor: "#FACC15",
       backgroundType: "gradient",
-      gradientStart: "#020617",
-      gradientEnd: "#1E293B", // Slightly cooler/navy end
-      gradientDirection: "to-br",
+      gradientStart: "#010309",
+      gradientEnd: "#0d1222", // Slightly cooler/navy end
+      gradientDirection: "to-b",
       font: "Inter",
       patternType: "diagonal-stripes", // Very subtle gold pattern
       patternColor: "rgba(250, 204, 21, 0.12)",
