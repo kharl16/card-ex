@@ -132,14 +132,14 @@ export const DEFAULT_THEME: CardTheme = {
     // B: Platinum Gold – a cooler, slightly more "tech" variation
     B: {
       primary: "#E5E7EB", // Soft platinum/silver for headings
-      background: "#020617",
+      background: "#010309",
       text: "#F9FAFB",
       accent: "#FACC15", // Gold becomes the accent pop
       buttonColor: "#FACC15",
       backgroundType: "gradient",
-      gradientStart: "#020617",
-      gradientEnd: "#1E293B", // Slightly cooler/navy end
-      gradientDirection: "to-br",
+      gradientStart: "#010309",
+      gradientEnd: "#0d1222", // Slightly cooler/navy end
+      gradientDirection: "to-b",
       font: "Inter",
       patternType: "diagonal-stripes", // Very subtle gold pattern
       patternColor: "rgba(250, 204, 21, 0.12)",
