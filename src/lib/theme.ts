@@ -99,14 +99,14 @@ export const DARK_MODE_DEFAULTS: ThemeVariant = {
 // Variant B = Platinum Gold (subtle premium variation)
 export const DEFAULT_THEME: CardTheme = {
   primary: "#FACC15",
-  background: "#020617",
+  background: "#010309",
   text: "#F9FAFB",
   accent: "#22C55E", // Green accent for "growth / success" CTAs
   buttonColor: "#FACC15",
   backgroundType: "gradient",
-  gradientStart: "#020617",
-  gradientEnd: "#111827",
-  gradientDirection: "to-tr",
+  gradientStart: "#010309",
+  gradientEnd: "#0a0f1a",
+  gradientDirection: "to-b",
   baseMode: "dark",
   mode: "dark",
   activeVariant: "A",
