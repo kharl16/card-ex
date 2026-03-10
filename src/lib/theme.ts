@@ -84,14 +84,14 @@ export const LIGHT_MODE_DEFAULTS: ThemeVariant = {
 // Dark mode defaults – elegant, general-purpose dark card style
 export const DARK_MODE_DEFAULTS: ThemeVariant = {
   primary: "#FACC15", // Gold primary
-  background: "#020617", // Near-black (slate/ink)
+  background: "#010309", // Near-black
   text: "#F9FAFB", // Off-white text
   accent: "#38BDF8", // Cool cyan accent (links / secondary CTAs)
   buttonColor: "#FACC15", // Gold button stands out on dark
   backgroundType: "gradient",
-  gradientStart: "#020617", // Deep navy/ink
-  gradientEnd: "#111827", // Slate
-  gradientDirection: "to-tr",
+  gradientStart: "#010309", // Deep ink
+  gradientEnd: "#0a0f1a", // Dark navy
+  gradientDirection: "to-b",
 };
 
 // Card-Ex MLM Gold default theme
