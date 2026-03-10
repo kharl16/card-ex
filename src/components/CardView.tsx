@@ -287,9 +287,9 @@ export default function CardView({
               }}
             >
               {card.company && (
-                <p className="text-sm sm:text-base text-foreground tracking-widest uppercase font-light" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
+                <p className="text-sm sm:text-base text-foreground/80 tracking-widest uppercase font-light" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
               )}
-              {card.bio && <p className="mt-2 text-sm text-foreground/90 leading-relaxed">{card.bio}</p>}
+              {card.bio && <p className="mt-2 text-sm text-foreground/70 leading-relaxed">{card.bio}</p>}
             </div>
           </div>
         )}
