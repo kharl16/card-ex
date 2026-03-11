@@ -54,9 +54,6 @@ const Index = () => {
             <Button size="lg" onClick={() => navigate("/auth")} className="gap-2">
               ​Welcome!  
             </Button>
-            <Button size="lg" variant="outline" onClick={() => navigate("/c/demo")}>
-              View Demo
-            </Button>
           </div>
         </div>
 
