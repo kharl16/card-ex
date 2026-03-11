@@ -289,7 +289,16 @@ export default function CardView({
               {card.company && (
                 <p className="text-sm sm:text-base text-foreground/80 tracking-widest uppercase font-light" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
               )}
-              {card.bio && <p className="mt-2 text-sm text-foreground/70 leading-relaxed">{card.bio}</p>}
+              {card.company && card.bio && (
+                <div
+                  className="my-3 h-[1px] w-full animate-gold-pulse"
+                  style={{
+                    background: `linear-gradient(90deg, transparent 0%, ${activeTheme.primary || '#FACC15'}60 20%, ${activeTheme.primary || '#FACC15'} 50%, ${activeTheme.primary || '#FACC15'}60 80%, transparent 100%)`,
+                    boxShadow: `0 0 6px ${activeTheme.primary || '#FACC15'}40, 0 0 12px ${activeTheme.primary || '#FACC15'}20`,
+                  }}
+                />
+              )}
+              {card.bio && <p className="text-sm text-foreground/70 leading-relaxed">{card.bio}</p>}
             </div>
           </div>
         )}
