@@ -293,8 +293,8 @@ export default function CardView({
                 <div
                   className="my-3 h-[1px] w-full animate-gold-pulse"
                   style={{
-                    background: `linear-gradient(90deg, transparent 0%, ${activeTheme.primary || '#FACC15'}60 20%, ${activeTheme.primary || '#FACC15'} 50%, ${activeTheme.primary || '#FACC15'}60 80%, transparent 100%)`,
-                    boxShadow: `0 0 6px ${activeTheme.primary || '#FACC15'}40, 0 0 12px ${activeTheme.primary || '#FACC15'}20`,
+                    background: `linear-gradient(90deg, transparent 0%, ${basePrimary}60 20%, ${basePrimary} 50%, ${basePrimary}60 80%, transparent 100%)`,
+                    boxShadow: `0 0 6px ${basePrimary}40, 0 0 12px ${basePrimary}20`,
                   }}
                 />
               )}
