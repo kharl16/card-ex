@@ -1,7 +1,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X, ExternalLink, Maximize2, Minimize2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toEmbedUrl, detectPresentationSource } from "@/lib/presentationUtils";
 
 interface PresentationViewerDialogProps {
@@ -21,6 +21,15 @@ export default function PresentationViewerDialog({
   const [loadError, setLoadError] = useState(false);
   const embedUrl = toEmbedUrl(url);
   const source = detectPresentationSource(url);
+  const isGoogleSource = source === "Google Slides" || source === "Google Drive";
+
+  useEffect(() => {
+    setLoadError(false);
+  }, [open, url]);
+
+  const openOriginal = () => {
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -46,7 +55,7 @@ export default function PresentationViewerDialog({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              onClick={() => window.open(url, "_blank")}
+              onClick={openOriginal}
               title="Open original"
             >
               <ExternalLink className="w-4 h-4" />
@@ -80,16 +89,27 @@ export default function PresentationViewerDialog({
             style={{ minHeight: "calc(90vh - 48px)" }}
             allowFullScreen
             sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            onLoad={() => setLoadError(false)}
             onError={() => setLoadError(true)}
           />
+
+          {isGoogleSource && !loadError && (
+            <div className="absolute bottom-3 right-3">
+              <Button onClick={openOriginal} size="sm" variant="secondary" className="gap-2 shadow-sm">
+                <ExternalLink className="w-4 h-4" />
+                Open original (large files)
+              </Button>
+            </div>
+          )}
+
           {loadError && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/95">
               <p className="text-muted-foreground text-sm text-center max-w-xs">
-                This file may be too large to preview inline. Open it directly in Google Drive instead.
+                Inline preview failed. This usually happens with large files. Open the original file to continue.
               </p>
-              <Button onClick={() => window.open(url, "_blank")} className="gap-2">
+              <Button onClick={openOriginal} className="gap-2">
                 <ExternalLink className="w-4 h-4" />
-                Open in Google Drive
+                Open original
               </Button>
             </div>
           )}
