@@ -18,6 +18,7 @@ export default function PresentationViewerDialog({
   url,
 }: PresentationViewerDialogProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const embedUrl = toEmbedUrl(url);
   const source = detectPresentationSource(url);
 
