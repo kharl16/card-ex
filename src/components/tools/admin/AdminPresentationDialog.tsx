@@ -170,6 +170,11 @@ export default function AdminPresentationDialog({ open, onOpenChange, item, onSa
               onChange={(e) => handleChange("presentation_url", e.target.value || null)}
               placeholder="Google Slides, Canva, etc."
             />
+            {formData.presentation_url && (
+              <p className="text-xs text-muted-foreground">
+                Detected: <span className="font-medium text-primary">{detectPresentationSource(formData.presentation_url)}</span> — will auto-embed for in-app viewing
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
