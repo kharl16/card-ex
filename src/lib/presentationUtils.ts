@@ -116,6 +116,10 @@ export function detectPresentationSource(url: string): string {
     if (u.hostname.includes("canva.com")) return "Canva";
     if (u.hostname.includes("youtube.com") || u.hostname === "youtu.be") return "YouTube";
     if (u.hostname.includes("vimeo.com")) return "Vimeo";
+    const pathname = u.pathname.toLowerCase();
+    if (pathname.endsWith(".pptx") || pathname.endsWith(".ppt")) return "PowerPoint";
+    if (pathname.endsWith(".docx")) return "Word";
+    if (pathname.endsWith(".xlsx") || pathname.endsWith(".xls")) return "Excel";
     return "Link";
   } catch {
     return "Link";
