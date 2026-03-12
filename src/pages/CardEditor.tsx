@@ -1016,16 +1016,15 @@ export default function CardEditor() {
         </div>
 
         {/* Live Preview */}
-        <div className="w-full max-w-full overflow-hidden lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
-          <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full h-full flex flex-col">
-            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3 shrink-0">
+        <div className="w-full max-w-full overflow-x-hidden lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scrollbar-thin">
+          <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full">
+            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3">
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
-            <CardContent className="p-2 sm:p-4 flex-1 overflow-hidden" ref={previewWrapperRef}>
+            <CardContent className="p-2 sm:p-4">
               <div 
                 ref={previewContainerRef}
-                className="relative w-full max-w-full rounded-xl origin-top transition-transform duration-300 ease-out"
-                style={{ transform: `scale(${previewScale})` }}
+                className="relative w-full max-w-full rounded-xl"
               >
                 <CardView
                   card={card}
