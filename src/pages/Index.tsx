@@ -46,9 +46,7 @@ const Index = () => {
             </span>
           </h1>
           <p className="mb-8 text-xl text-muted-foreground">
-            Create stunning, shareable digital business cards in minutes.
-            <br />
-            Track engagement, manage contacts, and make lasting impressions.
+            Card-Ex lets you create stunning, shareable digital business cards in minutes. Track engagement, manage contacts, host business files, and showcase your brand through a powerful personal landing page—all in one smart platform.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" onClick={() => navigate("/auth")} className="gap-2">
