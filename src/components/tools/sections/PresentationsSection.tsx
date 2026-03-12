@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Download, Presentation, Plus, Pencil, Share2 } from "lucide-react";
+import { Play, Download, Presentation, Plus, Pencil, Share2 } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import AdminPresentationDialog from "../admin/AdminPresentationDialog";
+import PresentationViewerDialog from "./PresentationViewerDialog";
+import { detectPresentationSource } from "@/lib/presentationUtils";
 
 interface PresentationItem {
   id: string;
@@ -34,6 +36,10 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PresentationItem | null>(null);
 
+  // Viewer state
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerItem, setViewerItem] = useState<PresentationItem | null>(null);
+
   useEffect(() => {
     fetchItems();
   }, []);
@@ -48,10 +54,7 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
         .order("title", { ascending: true });
 
       if (error) throw error;
-
       setItems(data || []);
-
-      // Extract unique categories
       const cats = [...new Set((data || []).map((item) => item.category).filter(Boolean))] as string[];
       setCategories(cats);
     } catch (err) {
@@ -67,11 +70,18 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.category?.toLowerCase().includes(searchQuery.toLowerCase());
-
     const matchesCategory = !activeCategory || item.category === activeCategory;
-
     return matchesSearch && matchesCategory;
   });
+
+  const handlePresent = (item: PresentationItem) => {
+    if (!item.presentation_url) {
+      toast.error("No presentation URL available");
+      return;
+    }
+    setViewerItem(item);
+    setViewerOpen(true);
+  };
 
   const handleEdit = (item: PresentationItem) => {
     setEditingItem(item);
@@ -83,9 +93,7 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
     setAdminDialogOpen(true);
   };
 
-  if (loading) {
-    return <ToolsSkeleton type="grid" count={4} />;
-  }
+  if (loading) return <ToolsSkeleton type="grid" count={4} />;
 
   if (items.length === 0 && !isAdmin) {
     return (
@@ -139,103 +147,139 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
 
       {/* Presentations Grid */}
       <div className="grid grid-cols-2 gap-4">
-        {filteredItems.map((item) => (
-          <div
-            key={item.id}
-            className={cn(
-              "rounded-2xl overflow-hidden relative",
-              "bg-card border border-border/50 shadow-sm",
-              "hover:shadow-md hover:border-primary/30 transition-all"
-            )}
-          >
-            {/* Admin Edit Button */}
-            {isAdmin && (
-              <Button
-                variant="secondary"
-                size="icon"
-                className="absolute top-2 right-2 z-10 h-8 w-8"
-                onClick={() => handleEdit(item)}
+        {filteredItems.map((item) => {
+          const source = item.presentation_url ? detectPresentationSource(item.presentation_url) : null;
+
+          return (
+            <div
+              key={item.id}
+              className={cn(
+                "rounded-2xl overflow-hidden relative group",
+                "bg-card border border-border/50 shadow-sm",
+                "hover:shadow-md hover:border-primary/30 transition-all"
+              )}
+            >
+              {/* Admin Edit Button */}
+              {isAdmin && (
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="absolute top-2 right-2 z-10 h-8 w-8"
+                  onClick={() => handleEdit(item)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              )}
+
+              {/* Thumbnail - clickable to present */}
+              <button
+                className="relative aspect-[4/3] bg-black w-full cursor-pointer"
+                onClick={() => handlePresent(item)}
+                disabled={!item.presentation_url}
               >
-                <Pencil className="w-4 h-4" />
-              </Button>
-            )}
+                {item.thumbnail_url ? (
+                  <img
+                    src={item.thumbnail_url}
+                    alt={item.title}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                    <Presentation className="w-12 h-12 text-primary/50" />
+                  </div>
+                )}
 
-            {/* Thumbnail */}
-            <div className="relative aspect-[4/3] bg-black">
-              {item.thumbnail_url ? (
-                <img
-                  src={item.thumbnail_url}
-                  alt={item.title}
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                  <Presentation className="w-12 h-12 text-primary/50" />
-                </div>
-              )}
-
-              {/* Category badge */}
-              {item.category && (
-                <Badge className="absolute top-2 left-2 bg-black/60 text-white text-xs">
-                  {item.category}
-                </Badge>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="p-3 space-y-2">
-              <h4 className="font-semibold text-foreground text-sm line-clamp-2 min-h-[40px]">
-                {item.title}
-              </h4>
-
-              {/* Actions */}
-              <div className="flex gap-2">
+                {/* Play overlay on hover */}
                 {item.presentation_url && (
-                  <Button
-                    size="sm"
-                    className="flex-1 h-10 gap-1 text-xs"
-                    onClick={() => window.open(item.presentation_url!, "_blank")}
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Open
-                  </Button>
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="bg-primary rounded-full p-3 shadow-lg">
+                      <Play className="w-6 h-6 text-primary-foreground fill-current" />
+                    </div>
+                  </div>
                 )}
-                {item.download_url && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1 h-10 gap-1 text-xs"
-                    onClick={() => window.open(item.download_url!, "_blank")}
-                  >
-                    <Download className="w-4 h-4" />
-                    Download
-                  </Button>
+
+                {/* Category + source badges */}
+                <div className="absolute top-2 left-2 flex gap-1">
+                  {item.category && (
+                    <Badge className="bg-black/60 text-white text-xs">{item.category}</Badge>
+                  )}
+                  {source && (
+                    <Badge variant="outline" className="bg-black/60 text-white/80 text-xs border-white/20">
+                      {source}
+                    </Badge>
+                  )}
+                </div>
+              </button>
+
+              {/* Info */}
+              <div className="p-3 space-y-2">
+                <h4 className="font-semibold text-foreground text-sm line-clamp-2 min-h-[40px]">
+                  {item.title}
+                </h4>
+
+                {item.description && (
+                  <p className="text-xs text-muted-foreground line-clamp-2">{item.description}</p>
                 )}
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  {item.presentation_url && (
+                    <Button
+                      size="sm"
+                      className="flex-1 h-10 gap-1 text-xs"
+                      onClick={() => handlePresent(item)}
+                    >
+                      <Play className="w-4 h-4" />
+                      Present
+                    </Button>
+                  )}
+                  {item.download_url && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 h-10 gap-1 text-xs"
+                      onClick={() => window.open(item.download_url!, "_blank")}
+                    >
+                      <Download className="w-4 h-4" />
+                      Download
+                    </Button>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="w-full h-8 gap-1 text-xs text-muted-foreground"
+                  onClick={async () => {
+                    const shareUrl = item.presentation_url || item.download_url || "";
+                    const shareText = `📊 ${item.title}${item.description ? `\n${item.description}` : ""}${shareUrl ? `\n${shareUrl}` : ""}`;
+                    if (navigator.share) {
+                      try { await navigator.share({ title: item.title, text: shareText }); return; } catch (err) { if ((err as Error).name === "AbortError") return; }
+                    }
+                    try { await navigator.clipboard.writeText(shareText); toast.success("Presentation info copied!"); } catch { toast.error("Failed to copy"); }
+                  }}
+                >
+                  <Share2 className="w-3.5 h-3.5" /> Share
+                </Button>
               </div>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="w-full h-8 gap-1 text-xs text-muted-foreground"
-                onClick={async () => {
-                  const shareUrl = item.presentation_url || item.download_url || "";
-                  const shareText = `📊 ${item.title}${item.description ? `\n${item.description}` : ""}${shareUrl ? `\n${shareUrl}` : ""}`;
-                  if (navigator.share) {
-                    try { await navigator.share({ title: item.title, text: shareText }); return; } catch (err) { if ((err as Error).name === "AbortError") return; }
-                  }
-                  try { await navigator.clipboard.writeText(shareText); toast.success("Presentation info copied!"); } catch { toast.error("Failed to copy"); }
-                }}
-              >
-                <Share2 className="w-3.5 h-3.5" /> Share
-              </Button>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredItems.length === 0 && (
         <div className="text-center py-12">
           <p className="text-lg text-muted-foreground">No presentations match your search</p>
         </div>
+      )}
+
+      {/* Viewer Dialog */}
+      {viewerItem && (
+        <PresentationViewerDialog
+          open={viewerOpen}
+          onOpenChange={setViewerOpen}
+          title={viewerItem.title}
+          url={viewerItem.presentation_url!}
+        />
       )}
 
       {/* Admin Dialog */}
