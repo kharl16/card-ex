@@ -143,6 +143,9 @@ export default function CardEditor() {
   const initialLoadRef = useRef(true);
   const lastSavedCardRef = useRef<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const previewViewportRef = useRef<HTMLDivElement>(null);
+  const previewScaleTargetRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
