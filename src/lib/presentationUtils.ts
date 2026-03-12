@@ -80,6 +80,23 @@ export function toEmbedUrl(url: string): string | null {
       return `${url}${url.includes("?") ? "&" : "?"}embed`;
     }
 
+    // Direct file links (.pptx, .ppt, .docx, .xlsx) → Microsoft Office Online Viewer
+    const officeExtensions = [".pptx", ".ppt", ".docx", ".xlsx", ".xls"];
+    const pathname = u.pathname.toLowerCase();
+    if (officeExtensions.some((ext) => pathname.endsWith(ext))) {
+      return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
+    }
+
+    // Google Drive file URLs for Office docs → convert to direct download then use Office viewer
+    if (u.hostname === "drive.google.com" && u.pathname.includes("/file/d/")) {
+      // Already handled above for preview; this catch is for when we detect it's an office file via query hint
+      const match = u.pathname.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) {
+        const directUrl = `https://drive.google.com/uc?export=download&id=${match[1]}`;
+        return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(directUrl)}`;
+      }
+    }
+
     // Fallback
     return url;
   } catch {
@@ -99,6 +116,10 @@ export function detectPresentationSource(url: string): string {
     if (u.hostname.includes("canva.com")) return "Canva";
     if (u.hostname.includes("youtube.com") || u.hostname === "youtu.be") return "YouTube";
     if (u.hostname.includes("vimeo.com")) return "Vimeo";
+    const pathname = u.pathname.toLowerCase();
+    if (pathname.endsWith(".pptx") || pathname.endsWith(".ppt")) return "PowerPoint";
+    if (pathname.endsWith(".docx")) return "Word";
+    if (pathname.endsWith(".xlsx") || pathname.endsWith(".xls")) return "Excel";
     return "Link";
   } catch {
     return "Link";
