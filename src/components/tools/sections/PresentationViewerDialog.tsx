@@ -70,8 +70,8 @@ export default function PresentationViewerDialog({
           </div>
         </div>
 
-        {/* Iframe */}
-        <div className="flex-1 w-full h-full">
+        {/* Iframe with fallback */}
+        <div className="flex-1 w-full h-full relative">
           <iframe
             src={embedUrl}
             title={title}
@@ -79,7 +79,19 @@ export default function PresentationViewerDialog({
             style={{ minHeight: "calc(90vh - 48px)" }}
             allowFullScreen
             sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+            onError={() => setLoadError(true)}
           />
+          {loadError && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-background/95">
+              <p className="text-muted-foreground text-sm text-center max-w-xs">
+                This file may be too large to preview inline. Open it directly in Google Drive instead.
+              </p>
+              <Button onClick={() => window.open(url, "_blank")} className="gap-2">
+                <ExternalLink className="w-4 h-4" />
+                Open in Google Drive
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
