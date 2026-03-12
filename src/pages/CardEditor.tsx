@@ -143,28 +143,6 @@ export default function CardEditor() {
   const initialLoadRef = useRef(true);
   const lastSavedCardRef = useRef<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
-  const previewWrapperRef = useRef<HTMLDivElement>(null);
-  const [previewScale, setPreviewScale] = useState(1);
-
-  // Auto-scale preview to fit viewport without scrollbar
-  useEffect(() => {
-    const wrapper = previewWrapperRef.current;
-    const container = previewContainerRef.current;
-    if (!wrapper || !container) return;
-
-    const ro = new ResizeObserver(() => {
-      const availableHeight = wrapper.clientHeight;
-      const contentHeight = container.scrollHeight;
-      if (contentHeight > 0 && availableHeight > 0) {
-        const ratio = availableHeight / contentHeight;
-        setPreviewScale(ratio < 1 ? ratio : 1);
-      }
-    });
-
-    ro.observe(wrapper);
-    ro.observe(container);
-    return () => ro.disconnect();
-  }, [card, socialLinks, productImages]);
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
