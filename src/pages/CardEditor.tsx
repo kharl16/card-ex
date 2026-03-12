@@ -143,9 +143,6 @@ export default function CardEditor() {
   const initialLoadRef = useRef(true);
   const lastSavedCardRef = useRef<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
-  const previewViewportRef = useRef<HTMLDivElement>(null);
-  const previewScaleTargetRef = useRef<HTMLDivElement>(null);
-  const [previewScale, setPreviewScale] = useState(1);
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
@@ -872,53 +869,6 @@ export default function CardEditor() {
     }));
   };
 
-  const updatePreviewScale = useCallback(() => {
-    if (typeof window === "undefined") return;
-
-    // Keep mobile/tablet preview natural-size and scrollable with page
-    if (window.innerWidth < 1024) {
-      setPreviewScale(1);
-      return;
-    }
-
-    const viewportEl = previewViewportRef.current;
-    const targetEl = previewScaleTargetRef.current;
-
-    if (!viewportEl || !targetEl) return;
-
-    const availableHeight = viewportEl.clientHeight;
-    const contentHeight = targetEl.scrollHeight;
-
-    if (!availableHeight || !contentHeight) {
-      setPreviewScale(1);
-      return;
-    }
-
-    const nextScale = Math.min(1, availableHeight / contentHeight);
-    setPreviewScale((prev) => (Math.abs(prev - nextScale) < 0.01 ? prev : nextScale));
-  }, []);
-
-  useEffect(() => {
-    updatePreviewScale();
-  }, [updatePreviewScale, card, socialLinks, productImages, additionalContacts]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const handleResize = () => updatePreviewScale();
-    window.addEventListener("resize", handleResize);
-
-    const observer = new ResizeObserver(() => updatePreviewScale());
-    if (previewViewportRef.current) {
-      observer.observe(previewViewportRef.current);
-    }
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      observer.disconnect();
-    };
-  }, [updatePreviewScale]);
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -1066,43 +1016,28 @@ export default function CardEditor() {
         </div>
 
         {/* Live Preview */}
-        <div className="w-full max-w-full overflow-x-hidden lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] lg:overflow-hidden">
-          <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full lg:h-full lg:flex lg:flex-col">
-            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3 shrink-0">
+        <div className="w-full max-w-full overflow-x-hidden lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scrollbar-thin">
+          <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full">
+            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3">
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
-            <CardContent className="p-2 sm:p-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden">
-              <div ref={previewViewportRef} className="relative w-full max-w-full rounded-xl lg:h-full lg:overflow-hidden">
-                <div
-                  ref={previewScaleTargetRef}
-                  className="w-full max-w-full transition-transform duration-300 ease-out lg:origin-top lg:will-change-transform"
-                  style={
-                    previewScale < 1
-                      ? {
-                          transform: `scale(${previewScale})`,
-                          width: `${100 / previewScale}%`,
-                        }
-                      : undefined
-                  }
-                >
-                  <div
-                    ref={previewContainerRef}
-                    className="relative transition-all duration-500 ease-out w-full max-w-full rounded-xl"
-                  >
-                    <CardView
-                      card={card}
-                      socialLinks={socialLinks}
-                      productImages={productImages}
-                      additionalContacts={additionalContacts}
-                      isInteractive={false}
-                      showQRCode={true}
-                      showVCardButtons={false}
-                      publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
-                    />
-                    {/* ToolsOrb inside preview */}
-                    <ToolsOrb mode="preview" containerRef={previewContainerRef} />
-                  </div>
-                </div>
+            <CardContent className="p-2 sm:p-4">
+              <div 
+                ref={previewContainerRef}
+                className="relative transition-all duration-500 ease-out w-full max-w-full rounded-xl"
+              >
+                <CardView
+                  card={card}
+                  socialLinks={socialLinks}
+                  productImages={productImages}
+                  additionalContacts={additionalContacts}
+                  isInteractive={false}
+                  showQRCode={true}
+                  showVCardButtons={false}
+                  publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
+                />
+                {/* ToolsOrb inside preview */}
+                <ToolsOrb mode="preview" containerRef={previewContainerRef} />
               </div>
             </CardContent>
           </Card>
