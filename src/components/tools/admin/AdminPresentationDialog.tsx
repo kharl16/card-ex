@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import { detectPresentationSource } from "@/lib/presentationUtils";
 
 interface PresentationItem {
   id?: string;
