@@ -143,6 +143,28 @@ export default function CardEditor() {
   const initialLoadRef = useRef(true);
   const lastSavedCardRef = useRef<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const previewWrapperRef = useRef<HTMLDivElement>(null);
+  const [previewScale, setPreviewScale] = useState(1);
+
+  // Auto-scale preview to fit viewport without scrollbar
+  useEffect(() => {
+    const wrapper = previewWrapperRef.current;
+    const container = previewContainerRef.current;
+    if (!wrapper || !container) return;
+
+    const ro = new ResizeObserver(() => {
+      const availableHeight = wrapper.clientHeight;
+      const contentHeight = container.scrollHeight;
+      if (contentHeight > 0 && availableHeight > 0) {
+        const ratio = availableHeight / contentHeight;
+        setPreviewScale(ratio < 1 ? ratio : 1);
+      }
+    });
+
+    ro.observe(wrapper);
+    ro.observe(container);
+    return () => ro.disconnect();
+  }, [card, socialLinks, productImages]);
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
@@ -1016,15 +1038,16 @@ export default function CardEditor() {
         </div>
 
         {/* Live Preview */}
-        <div className="w-full max-w-full overflow-x-hidden lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scrollbar-thin">
-          <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full">
-            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3">
+        <div className="w-full max-w-full overflow-hidden lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
+          <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full h-full flex flex-col">
+            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3 shrink-0">
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
-            <CardContent className="p-2 sm:p-4">
+            <CardContent className="p-2 sm:p-4 flex-1 overflow-hidden" ref={previewWrapperRef}>
               <div 
                 ref={previewContainerRef}
-                className="relative transition-all duration-500 ease-out w-full max-w-full rounded-xl"
+                className="relative w-full max-w-full rounded-xl origin-top transition-transform duration-300 ease-out"
+                style={{ transform: `scale(${previewScale})` }}
               >
                 <CardView
                   card={card}
