@@ -1066,28 +1066,43 @@ export default function CardEditor() {
         </div>
 
         {/* Live Preview */}
-        <div className="w-full max-w-full overflow-x-hidden lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scrollbar-thin">
-          <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full">
-            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3">
+        <div className="w-full max-w-full overflow-x-hidden lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)] lg:overflow-hidden">
+          <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full lg:h-full lg:flex lg:flex-col">
+            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3 shrink-0">
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
             </CardHeader>
-            <CardContent className="p-2 sm:p-4">
-              <div 
-                ref={previewContainerRef}
-                className="relative transition-all duration-500 ease-out w-full max-w-full rounded-xl"
-              >
-                <CardView
-                  card={card}
-                  socialLinks={socialLinks}
-                  productImages={productImages}
-                  additionalContacts={additionalContacts}
-                  isInteractive={false}
-                  showQRCode={true}
-                  showVCardButtons={false}
-                  publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
-                />
-                {/* ToolsOrb inside preview */}
-                <ToolsOrb mode="preview" containerRef={previewContainerRef} />
+            <CardContent className="p-2 sm:p-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden">
+              <div ref={previewViewportRef} className="relative w-full max-w-full rounded-xl lg:h-full lg:overflow-hidden">
+                <div
+                  ref={previewScaleTargetRef}
+                  className="w-full max-w-full transition-transform duration-300 ease-out lg:origin-top lg:will-change-transform"
+                  style={
+                    previewScale < 1
+                      ? {
+                          transform: `scale(${previewScale})`,
+                          width: `${100 / previewScale}%`,
+                        }
+                      : undefined
+                  }
+                >
+                  <div
+                    ref={previewContainerRef}
+                    className="relative transition-all duration-500 ease-out w-full max-w-full rounded-xl"
+                  >
+                    <CardView
+                      card={card}
+                      socialLinks={socialLinks}
+                      productImages={productImages}
+                      additionalContacts={additionalContacts}
+                      isInteractive={false}
+                      showQRCode={true}
+                      showVCardButtons={false}
+                      publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
+                    />
+                    {/* ToolsOrb inside preview */}
+                    <ToolsOrb mode="preview" containerRef={previewContainerRef} />
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
