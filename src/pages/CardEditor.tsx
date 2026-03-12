@@ -872,6 +872,53 @@ export default function CardEditor() {
     }));
   };
 
+  const updatePreviewScale = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    // Keep mobile/tablet preview natural-size and scrollable with page
+    if (window.innerWidth < 1024) {
+      setPreviewScale(1);
+      return;
+    }
+
+    const viewportEl = previewViewportRef.current;
+    const targetEl = previewScaleTargetRef.current;
+
+    if (!viewportEl || !targetEl) return;
+
+    const availableHeight = viewportEl.clientHeight;
+    const contentHeight = targetEl.scrollHeight;
+
+    if (!availableHeight || !contentHeight) {
+      setPreviewScale(1);
+      return;
+    }
+
+    const nextScale = Math.min(1, availableHeight / contentHeight);
+    setPreviewScale((prev) => (Math.abs(prev - nextScale) < 0.01 ? prev : nextScale));
+  }, []);
+
+  useEffect(() => {
+    updatePreviewScale();
+  }, [updatePreviewScale, card, socialLinks, productImages, additionalContacts]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleResize = () => updatePreviewScale();
+    window.addEventListener("resize", handleResize);
+
+    const observer = new ResizeObserver(() => updatePreviewScale());
+    if (previewViewportRef.current) {
+      observer.observe(previewViewportRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      observer.disconnect();
+    };
+  }, [updatePreviewScale]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
