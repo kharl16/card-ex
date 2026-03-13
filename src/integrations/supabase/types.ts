@@ -171,6 +171,56 @@ export type Database = {
         }
         Relationships: []
       }
+      card_appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          card_id: string
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          visitor_email: string
+          visitor_message: string | null
+          visitor_name: string
+          visitor_phone: string | null
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          card_id: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          visitor_email: string
+          visitor_message?: string | null
+          visitor_name: string
+          visitor_phone?: string | null
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          card_id?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          visitor_email?: string
+          visitor_message?: string | null
+          visitor_name?: string
+          visitor_phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_appointments_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_events: {
         Row: {
           card_id: string
