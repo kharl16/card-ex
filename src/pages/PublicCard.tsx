@@ -11,6 +11,7 @@ import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
 import { Plus, Download } from "lucide-react";
 import ToolsOrb from "@/components/tools/ToolsOrb";
+import AIChatWidget from "@/components/ai/AIChatWidget";
 
 type CardData = Tables<"cards">;
 
@@ -316,6 +317,11 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         </div>
       </div>
 
+      <AIChatWidget
+        cardId={card.id}
+        cardOwnerName={card.full_name}
+        accentColor={theme?.primary || "#D4AF37"}
+      />
       <ToolsOrb mode="public" cardOwnerId={card?.user_id} />
     </div>
   );
