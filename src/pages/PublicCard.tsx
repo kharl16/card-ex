@@ -317,6 +317,11 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         </div>
       </div>
 
+      <AIChatWidget
+        cardId={card.id}
+        cardOwnerName={card.full_name}
+        accentColor={theme?.primary || "#D4AF37"}
+      />
       <ToolsOrb mode="public" cardOwnerId={card?.user_id} />
     </div>
   );
