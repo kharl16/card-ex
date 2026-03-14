@@ -171,6 +171,56 @@ export type Database = {
         }
         Relationships: []
       }
+      availability_settings: {
+        Row: {
+          booking_enabled: boolean
+          buffer_minutes: number
+          created_at: string
+          end_time: string
+          id: string
+          meeting_duration_minutes: number
+          meeting_purposes: Json
+          start_time: string
+          updated_at: string
+          user_id: string
+          working_days: Json
+        }
+        Insert: {
+          booking_enabled?: boolean
+          buffer_minutes?: number
+          created_at?: string
+          end_time?: string
+          id?: string
+          meeting_duration_minutes?: number
+          meeting_purposes?: Json
+          start_time?: string
+          updated_at?: string
+          user_id: string
+          working_days?: Json
+        }
+        Update: {
+          booking_enabled?: boolean
+          buffer_minutes?: number
+          created_at?: string
+          end_time?: string
+          id?: string
+          meeting_duration_minutes?: number
+          meeting_purposes?: Json
+          start_time?: string
+          updated_at?: string
+          user_id?: string
+          working_days?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_appointments: {
         Row: {
           appointment_date: string
@@ -178,6 +228,8 @@ export type Database = {
           card_id: string
           created_at: string
           id: string
+          meeting_purpose: string | null
+          owner_user_id: string | null
           status: string
           updated_at: string
           visitor_email: string
@@ -191,6 +243,8 @@ export type Database = {
           card_id: string
           created_at?: string
           id?: string
+          meeting_purpose?: string | null
+          owner_user_id?: string | null
           status?: string
           updated_at?: string
           visitor_email: string
@@ -204,6 +258,8 @@ export type Database = {
           card_id?: string
           created_at?: string
           id?: string
+          meeting_purpose?: string | null
+          owner_user_id?: string | null
           status?: string
           updated_at?: string
           visitor_email?: string
@@ -217,6 +273,13 @@ export type Database = {
             columns: ["card_id"]
             isOneToOne: false
             referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_appointments_owner_user_id_fkey"
+            columns: ["owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
