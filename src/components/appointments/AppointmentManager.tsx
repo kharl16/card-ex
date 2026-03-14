@@ -206,7 +206,7 @@ export default function AppointmentManager() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="gap-1 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="gap-1 text-primary hover:bg-primary/10"
                         onClick={() => updateStatus(apt.id, "confirmed")}
                       >
                         <CheckCircle className="h-3.5 w-3.5" /> Confirm
