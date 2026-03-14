@@ -214,7 +214,7 @@ export default function AppointmentManager() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="gap-1 text-destructive hover:bg-destructive/10"
                         onClick={() => updateStatus(apt.id, "cancelled")}
                       >
                         <XCircle className="h-3.5 w-3.5" /> Decline

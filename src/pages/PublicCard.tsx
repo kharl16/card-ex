@@ -347,6 +347,17 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         accentColor={theme?.primary || "#D4AF37"}
       />
       <ToolsOrb mode="public" cardOwnerId={card?.user_id} />
+
+      {bookingEnabled && card && (
+        <AppointmentBookingDialog
+          open={bookingDialogOpen}
+          onOpenChange={setBookingDialogOpen}
+          cardId={card.id}
+          cardOwnerUserId={card.user_id}
+          cardOwnerName={card.full_name}
+          accentColor={theme?.primary || "#D4AF37"}
+        />
+      )}
     </div>
   );
 }
