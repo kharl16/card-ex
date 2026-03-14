@@ -282,16 +282,28 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
         />
         
+        {/* Book Appointment Button */}
+        {bookingEnabled && (
+          <div className="px-4 pt-4">
+            <Button
+              onClick={() => setBookingDialogOpen(true)}
+              className="w-full gap-2 h-12 text-base font-semibold rounded-2xl"
+              style={{ backgroundColor: theme?.primary || "#D4AF37" }}
+            >
+              <CalendarDays className="h-5 w-5" />
+              Book Appointment
+            </Button>
+          </div>
+        )}
+
         {/* Create your own Card-Ex button */}
-        <div className="px-4 pb-8 pt-4">
+        <div className="px-4 pb-8 pt-3">
           <Button
             onClick={handleCreateCard}
-            className="w-full gap-2 h-12 text-base font-semibold"
-            style={{
-              backgroundColor: theme?.primary || "#D4AF37",
-            }}
+            variant="outline"
+            className="w-full gap-2 h-11 text-sm font-semibold"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
             Create your own Card-Ex
           </Button>
           <p className="text-center text-xs text-muted-foreground mt-2">
