@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy, Trash2, Pencil, Search, DollarSign, Wrench } from "lucide-react";
+import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy, Trash2, Pencil, Search, DollarSign, Wrench, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -258,6 +258,10 @@ export default function Dashboard() {
             <span className="text-xl font-bold">Card-Ex</span>
           </div>
           <div className="flex items-center gap-2">
+            <Button onClick={() => navigate("/dashboard/appointments")} variant="outline" size="sm" className="gap-2">
+              <CalendarDays className="h-4 w-4" />
+              Appointments
+            </Button>
             {isAdmin && (
               <Button onClick={() => setTemplateManagerOpen(true)} variant="outline" size="sm" className="gap-2">
                 <Palette className="h-4 w-4" />

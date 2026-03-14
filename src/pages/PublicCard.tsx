@@ -9,9 +9,10 @@ import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
-import { Plus, Download } from "lucide-react";
+import { Plus, Download, CalendarDays } from "lucide-react";
 import ToolsOrb from "@/components/tools/ToolsOrb";
 import AIChatWidget from "@/components/ai/AIChatWidget";
+import AppointmentBookingDialog from "@/components/appointments/AppointmentBookingDialog";
 
 type CardData = Tables<"cards">;
 
@@ -40,6 +41,8 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   const [loading, setLoading] = useState(true);
   const [ownerReferralCode, setOwnerReferralCode] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [bookingEnabled, setBookingEnabled] = useState(false);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   // Get the effective theme (with A/B variant support)
   const rawTheme = (card?.theme ?? null) as unknown as CardTheme | null;
@@ -106,6 +109,15 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       if (referralCodeResult) {
         setOwnerReferralCode(referralCodeResult);
       }
+
+      // Check if appointment booking is enabled
+      const { data: availSettings } = await supabase
+        .from("availability_settings")
+        .select("booking_enabled")
+        .eq("user_id", data.user_id)
+        .maybeSingle();
+      
+      setBookingEnabled(availSettings?.booking_enabled === true);
       
       // Track view through Edge Function (with rate limiting)
       supabase.functions
@@ -270,16 +282,28 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
         />
         
+        {/* Book Appointment Button */}
+        {bookingEnabled && (
+          <div className="px-4 pt-4">
+            <Button
+              onClick={() => setBookingDialogOpen(true)}
+              className="w-full gap-2 h-12 text-base font-semibold rounded-2xl"
+              style={{ backgroundColor: theme?.primary || "#D4AF37" }}
+            >
+              <CalendarDays className="h-5 w-5" />
+              Book Appointment
+            </Button>
+          </div>
+        )}
+
         {/* Create your own Card-Ex button */}
-        <div className="px-4 pb-8 pt-4">
+        <div className="px-4 pb-8 pt-3">
           <Button
             onClick={handleCreateCard}
-            className="w-full gap-2 h-12 text-base font-semibold"
-            style={{
-              backgroundColor: theme?.primary || "#D4AF37",
-            }}
+            variant="outline"
+            className="w-full gap-2 h-11 text-sm font-semibold"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
             Create your own Card-Ex
           </Button>
           <p className="text-center text-xs text-muted-foreground mt-2">
@@ -323,6 +347,17 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         accentColor={theme?.primary || "#D4AF37"}
       />
       <ToolsOrb mode="public" cardOwnerId={card?.user_id} />
+
+      {bookingEnabled && card && (
+        <AppointmentBookingDialog
+          open={bookingDialogOpen}
+          onOpenChange={setBookingDialogOpen}
+          cardId={card.id}
+          cardOwnerUserId={card.user_id}
+          cardOwnerName={card.full_name}
+          accentColor={theme?.primary || "#D4AF37"}
+        />
+      )}
     </div>
   );
 }
