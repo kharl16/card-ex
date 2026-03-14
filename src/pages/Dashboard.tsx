@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy, Trash2, Pencil, Search, DollarSign, Wrench } from "lucide-react";
+import { Plus, CreditCard, TrendingUp, Share2, Palette, Copy, Trash2, Pencil, Search, DollarSign, Wrench, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
