@@ -109,6 +109,15 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       if (referralCodeResult) {
         setOwnerReferralCode(referralCodeResult);
       }
+
+      // Check if appointment booking is enabled
+      const { data: availSettings } = await supabase
+        .from("availability_settings")
+        .select("booking_enabled")
+        .eq("user_id", data.user_id)
+        .maybeSingle();
+      
+      setBookingEnabled(availSettings?.booking_enabled === true);
       
       // Track view through Edge Function (with rate limiting)
       supabase.functions
