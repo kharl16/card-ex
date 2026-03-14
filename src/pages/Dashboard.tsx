@@ -258,6 +258,10 @@ export default function Dashboard() {
             <span className="text-xl font-bold">Card-Ex</span>
           </div>
           <div className="flex items-center gap-2">
+            <Button onClick={() => navigate("/dashboard/appointments")} variant="outline" size="sm" className="gap-2">
+              <CalendarDays className="h-4 w-4" />
+              Appointments
+            </Button>
             {isAdmin && (
               <Button onClick={() => setTemplateManagerOpen(true)} variant="outline" size="sm" className="gap-2">
                 <Palette className="h-4 w-4" />
