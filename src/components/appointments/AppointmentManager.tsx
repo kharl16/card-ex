@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Table, TableHeader, TableBody, TableHead, TableRow, TableCell
-} from "@/components/ui/table";
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
-  CalendarDays, Clock, User, Mail, Phone, MessageSquare,
-  CheckCircle, XCircle, Loader2, Inbox
+  CalendarDays, Clock, Mail, Phone, MessageSquare,
+  CheckCircle, XCircle, Loader2, Inbox, Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,6 +42,7 @@ export default function AppointmentManager() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<Appointment | null>(null);
 
   useEffect(() => {
     if (user?.id) loadAppointments();
@@ -90,6 +92,21 @@ export default function AppointmentManager() {
         prev.map((a) => (a.id === id ? { ...a, status } : a))
       );
     }
+  };
+
+  const deleteAppointment = async () => {
+    if (!deleteTarget) return;
+    const { error } = await supabase
+      .from("card_appointments")
+      .delete()
+      .eq("id", deleteTarget.id);
+    if (error) {
+      toast.error("Failed to delete appointment");
+    } else {
+      toast.success("Appointment deleted");
+      setAppointments((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+    }
+    setDeleteTarget(null);
   };
 
   const formatTime12h = (time24: string) => {
@@ -219,17 +236,46 @@ export default function AppointmentManager() {
                       >
                         <XCircle className="h-3.5 w-3.5" /> Decline
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteTarget(apt)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   )}
 
                   {apt.status === "confirmed" && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1"
+                        onClick={() => updateStatus(apt.id, "completed")}
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" /> Complete
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteTarget(apt)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {(apt.status === "cancelled" || apt.status === "completed") && (
                     <Button
                       size="sm"
-                      variant="outline"
-                      className="gap-1"
-                      onClick={() => updateStatus(apt.id, "completed")}
+                      variant="ghost"
+                      className="text-destructive hover:bg-destructive/10 shrink-0"
+                      onClick={() => setDeleteTarget(apt)}
                     >
-                      <CheckCircle className="h-3.5 w-3.5" /> Complete
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   )}
                 </div>
@@ -238,6 +284,26 @@ export default function AppointmentManager() {
           </div>
         )}
       </CardContent>
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Appointment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the appointment with "{deleteTarget?.visitor_name}"? This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={deleteAppointment}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
