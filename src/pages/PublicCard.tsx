@@ -44,6 +44,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [bookingEnabled, setBookingEnabled] = useState(false);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [orgSlug, setOrgSlug] = useState<string | null>(null);
 
   // Get the effective theme (with A/B variant support)
   const rawTheme = (card?.theme ?? null) as unknown as CardTheme | null;
