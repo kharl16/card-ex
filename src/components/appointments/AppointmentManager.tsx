@@ -94,6 +94,21 @@ export default function AppointmentManager() {
     }
   };
 
+  const deleteAppointment = async () => {
+    if (!deleteTarget) return;
+    const { error } = await supabase
+      .from("card_appointments")
+      .delete()
+      .eq("id", deleteTarget.id);
+    if (error) {
+      toast.error("Failed to delete appointment");
+    } else {
+      toast.success("Appointment deleted");
+      setAppointments((prev) => prev.filter((a) => a.id !== deleteTarget.id));
+    }
+    setDeleteTarget(null);
+  };
+
   const formatTime12h = (time24: string) => {
     const [h, m] = time24.split(":").map(Number);
     const ampm = h >= 12 ? "PM" : "AM";
