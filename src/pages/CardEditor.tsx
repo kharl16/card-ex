@@ -26,6 +26,7 @@ import {
   CloudOff,
   Loader2,
   FileDown,
+  CalendarDays,
 } from "lucide-react";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import type { Tables } from "@/integrations/supabase/types";

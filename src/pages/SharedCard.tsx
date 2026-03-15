@@ -40,6 +40,8 @@ export default function SharedCard() {
   const [loading, setLoading] = useState(true);
   const [ownerReferralCode, setOwnerReferralCode] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [bookingEnabled, setBookingEnabled] = useState(false);
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
 
   // Get the effective theme (with A/B variant support)
   const rawTheme = (card?.theme ?? null) as unknown as CardTheme | null;
