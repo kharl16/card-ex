@@ -1049,6 +1049,18 @@ export default function CardEditor() {
                   showVCardButtons={false}
                   publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
                 />
+                {/* Book Appointment preview */}
+                {bookingEnabled && (
+                  <div className="px-4 pt-3">
+                    <Button
+                      disabled
+                      className="w-full gap-2 h-10 text-sm font-semibold rounded-2xl opacity-80"
+                    >
+                      <CalendarDays className="h-4 w-4" />
+                      Book Appointment
+                    </Button>
+                  </div>
+                )}
                 {/* ToolsOrb inside preview */}
                 <ToolsOrb mode="preview" containerRef={previewContainerRef} />
               </div>
