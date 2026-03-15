@@ -36,6 +36,7 @@ import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
 import RequireAuth from "./components/auth/RequireAuth";
 import Appointments from "./pages/Appointments";
 import Leads from "./pages/Leads";
+import TeamDirectory from "./pages/TeamDirectory";
 import NotFound from "./pages/NotFound";
 import PageTransition from "./components/PageTransition";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -126,6 +127,7 @@ const AnimatedRoutes = () => {
         <Route path="/c/:slug" element={<PageTransition><PublicCard /></PageTransition>} />
         <Route path="/c/:slug/share/:carouselKind" element={<PageTransition><CarouselSharePage /></PageTransition>} />
         <Route path="/s/:code" element={<PageTransition><SharedCard /></PageTransition>} />
+        <Route path="/team/:orgSlug" element={<PageTransition><TeamDirectory /></PageTransition>} />
         {/* Custom slug route - must be after all other routes except catch-all */}
         <Route path="/:customSlug" element={<PageTransition><PublicCard customSlug={true} /></PageTransition>} />
         <Route

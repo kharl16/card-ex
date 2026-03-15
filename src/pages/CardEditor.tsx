@@ -26,6 +26,7 @@ import {
   CloudOff,
   Loader2,
   FileDown,
+  CalendarDays,
 } from "lucide-react";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import type { Tables } from "@/integrations/supabase/types";
@@ -125,6 +126,7 @@ export default function CardEditor() {
   const [regeneratingQR, setRegeneratingQR] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const [bookingEnabled, setBookingEnabled] = useState(false);
   
   // Layout mode: "accordion" or "wizard"
   const [layoutMode, setLayoutMode] = useState<"accordion" | "wizard">("accordion");
@@ -167,7 +169,19 @@ export default function CardEditor() {
     loadCard();
     loadSocialLinks();
     loadProductImages();
+    loadBookingStatus();
   }, [id]);
+
+  const loadBookingStatus = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    const { data } = await supabase
+      .from("availability_settings")
+      .select("booking_enabled")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+    setBookingEnabled(data?.booking_enabled === true);
+  };
 
   const loadCard = async () => {
     if (!id) return;
@@ -1036,6 +1050,18 @@ export default function CardEditor() {
                   showVCardButtons={false}
                   publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
                 />
+                {/* Book Appointment preview */}
+                {bookingEnabled && (
+                  <div className="px-4 pt-3">
+                    <Button
+                      disabled
+                      className="w-full gap-2 h-10 text-sm font-semibold rounded-2xl opacity-80"
+                    >
+                      <CalendarDays className="h-4 w-4" />
+                      Book Appointment
+                    </Button>
+                  </div>
+                )}
                 {/* ToolsOrb inside preview */}
                 <ToolsOrb mode="preview" containerRef={previewContainerRef} />
               </div>

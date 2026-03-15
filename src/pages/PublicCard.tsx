@@ -9,10 +9,11 @@ import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
-import { Plus, Download, CalendarDays } from "lucide-react";
+import { Plus, Download, CalendarDays, Users } from "lucide-react";
 import ToolsOrb from "@/components/tools/ToolsOrb";
 import AIChatWidget from "@/components/ai/AIChatWidget";
 import AppointmentBookingDialog from "@/components/appointments/AppointmentBookingDialog";
+import { Link } from "react-router-dom";
 
 type CardData = Tables<"cards">;
 
@@ -43,6 +44,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [bookingEnabled, setBookingEnabled] = useState(false);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [orgSlug, setOrgSlug] = useState<string | null>(null);
 
   // Get the effective theme (with A/B variant support)
   const rawTheme = (card?.theme ?? null) as unknown as CardTheme | null;
@@ -118,6 +120,16 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         .maybeSingle();
       
       setBookingEnabled(availSettings?.booking_enabled === true);
+
+      // Check if card owner belongs to an organization (for team directory link)
+      if (data.organization_id) {
+        const { data: orgData } = await supabase
+          .from("organizations")
+          .select("slug")
+          .eq("id", data.organization_id)
+          .single();
+        if (orgData) setOrgSlug(orgData.slug);
+      }
       
       // Track view through Edge Function (with rate limiting)
       supabase.functions
@@ -293,6 +305,21 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
               <CalendarDays className="h-5 w-5" />
               Book Appointment
             </Button>
+          </div>
+        )}
+
+        {/* View Team button */}
+        {orgSlug && (
+          <div className="px-4 pt-3">
+            <Link to={`/team/${orgSlug}`}>
+              <Button
+                variant="outline"
+                className="w-full gap-2 h-11 text-sm font-semibold"
+              >
+                <Users className="h-4 w-4" />
+                View Team Directory
+              </Button>
+            </Link>
           </div>
         )}
 
