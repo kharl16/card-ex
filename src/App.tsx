@@ -37,6 +37,7 @@ import RequireAuth from "./components/auth/RequireAuth";
 import Appointments from "./pages/Appointments";
 import Leads from "./pages/Leads";
 import TeamDirectory from "./pages/TeamDirectory";
+import DistributorLocator from "./pages/DistributorLocator";
 import NotFound from "./pages/NotFound";
 import PageTransition from "./components/PageTransition";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -127,6 +128,7 @@ const AnimatedRoutes = () => {
         <Route path="/c/:slug" element={<PageTransition><PublicCard /></PageTransition>} />
         <Route path="/c/:slug/share/:carouselKind" element={<PageTransition><CarouselSharePage /></PageTransition>} />
         <Route path="/s/:code" element={<PageTransition><SharedCard /></PageTransition>} />
+        <Route path="/locator" element={<PageTransition><DistributorLocator /></PageTransition>} />
         <Route path="/team/:orgSlug" element={<PageTransition><TeamDirectory /></PageTransition>} />
         {/* Custom slug route - must be after all other routes except catch-all */}
         <Route path="/:customSlug" element={<PageTransition><PublicCard customSlug={true} /></PageTransition>} />
