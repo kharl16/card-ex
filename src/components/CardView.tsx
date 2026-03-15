@@ -693,6 +693,12 @@ export default function CardView({
           </button>
         </div>
       )}
+
+      {bottomAction && (
+        <div className={isInteractive ? "px-5 pb-5 pt-1" : "px-5 pb-5 pt-0"}>
+          {bottomAction}
+        </div>
+      )}
     </Card>
   );
 }
