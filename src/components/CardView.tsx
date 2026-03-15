@@ -166,6 +166,7 @@ export default function CardView({
   showQRCode = false,
   showVCardButtons = false,
   publicCardUrl,
+  bottomAction,
 }: CardViewProps) {
   // Normalize social links whether passed as a prop or loaded from Supabase JSON
   const resolvedSocialLinks: SocialLink[] = React.useMemo(() => {
