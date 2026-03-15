@@ -190,6 +190,26 @@ export default function AppointmentBookingDialog({
       });
 
       if (error) throw error;
+
+      // Auto-create lead from appointment
+      await supabase.from("leads").insert({
+        owner_user_id: cardOwnerUserId,
+        name: visitorName.trim(),
+        email: visitorEmail.trim(),
+        phone: visitorPhone.trim() || null,
+        source: "appointment",
+        card_id: cardId,
+        notes: meetingPurpose ? `Appointment: ${meetingPurpose}` : "Booked an appointment",
+        metadata: {
+          meeting_purpose: meetingPurpose || null,
+          appointment_date: format(selectedDate, "yyyy-MM-dd"),
+          appointment_time: selectedTime,
+          message: visitorMessage.trim() || null,
+        },
+      }).then(({ error: leadErr }) => {
+        if (leadErr) console.warn("Lead auto-capture failed:", leadErr);
+      });
+
       setStep("success");
       toast.success("Appointment booked successfully!");
     } catch (err) {
