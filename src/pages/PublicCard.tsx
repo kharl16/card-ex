@@ -120,6 +120,16 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         .maybeSingle();
       
       setBookingEnabled(availSettings?.booking_enabled === true);
+
+      // Check if card owner belongs to an organization (for team directory link)
+      if (data.organization_id) {
+        const { data: orgData } = await supabase
+          .from("organizations")
+          .select("slug")
+          .eq("id", data.organization_id)
+          .single();
+        if (orgData) setOrgSlug(orgData.slug);
+      }
       
       // Track view through Edge Function (with rate limiting)
       supabase.functions
