@@ -119,6 +119,15 @@ export default function SharedCard() {
       if (referralCodeResult) {
         setOwnerReferralCode(referralCodeResult);
       }
+
+      // Check if appointment booking is enabled
+      const { data: availSettings } = await supabase
+        .from("availability_settings")
+        .select("booking_enabled")
+        .eq("user_id", data.user_id)
+        .maybeSingle();
+      
+      setBookingEnabled(availSettings?.booking_enabled === true);
       
       // Track view with share code
       supabase.functions.invoke('track-card-event', {
