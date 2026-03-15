@@ -234,7 +234,7 @@ export default function AppointmentSettings() {
                 maxLength={50}
                 onKeyDown={(e) => e.key === "Enter" && addPurpose()}
               />
-              <Button variant="outline" size="icon" onClick={addPurpose}>
+              <Button type="button" variant="outline" size="icon" onClick={addPurpose}>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
