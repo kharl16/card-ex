@@ -42,6 +42,7 @@ export default function AppointmentManager() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<Appointment | null>(null);
 
   useEffect(() => {
     if (user?.id) loadAppointments();
