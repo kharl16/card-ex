@@ -35,6 +35,7 @@ import UserRolesPage from "./pages/superadmin/UserRolesPage";
 import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
 import RequireAuth from "./components/auth/RequireAuth";
 import Appointments from "./pages/Appointments";
+import Leads from "./pages/Leads";
 import NotFound from "./pages/NotFound";
 import PageTransition from "./components/PageTransition";
 import { AuthProvider } from "./contexts/AuthContext";
