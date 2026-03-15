@@ -9,7 +9,8 @@ import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, CalendarDays } from "lucide-react";
+import AppointmentBookingDialog from "@/components/appointments/AppointmentBookingDialog";
 
 type CardData = Tables<"cards">;
 
