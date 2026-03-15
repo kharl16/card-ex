@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Table, TableHeader, TableBody, TableHead, TableRow, TableCell
-} from "@/components/ui/table";
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
-  CalendarDays, Clock, User, Mail, Phone, MessageSquare,
-  CheckCircle, XCircle, Loader2, Inbox
+  CalendarDays, Clock, Mail, Phone, MessageSquare,
+  CheckCircle, XCircle, Loader2, Inbox, Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 
