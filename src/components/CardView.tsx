@@ -89,6 +89,8 @@ interface CardViewProps {
   showVCardButtons?: boolean;
   /** Public card URL for sharing - must be https://tagex.app/c/{slug}, never editor URL */
   publicCardUrl?: string;
+  /** Optional extra CTA rendered at the bottom of the card body */
+  bottomAction?: React.ReactNode;
 }
 
 const iconMap: Record<string, any> = {
