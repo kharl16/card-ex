@@ -308,6 +308,21 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           </div>
         )}
 
+        {/* View Team button */}
+        {orgSlug && (
+          <div className="px-4 pt-3">
+            <Link to={`/team/${orgSlug}`}>
+              <Button
+                variant="outline"
+                className="w-full gap-2 h-11 text-sm font-semibold"
+              >
+                <Users className="h-4 w-4" />
+                View Team Directory
+              </Button>
+            </Link>
+          </div>
+        )}
+
         {/* Create your own Card-Ex button */}
         <div className="px-4 pb-8 pt-3">
           <Button
