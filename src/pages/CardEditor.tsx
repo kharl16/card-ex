@@ -125,6 +125,7 @@ export default function CardEditor() {
   const [regeneratingQR, setRegeneratingQR] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const [bookingEnabled, setBookingEnabled] = useState(false);
   
   // Layout mode: "accordion" or "wizard"
   const [layoutMode, setLayoutMode] = useState<"accordion" | "wizard">("accordion");
