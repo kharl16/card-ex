@@ -9,10 +9,11 @@ import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
-import { Plus, Download, CalendarDays } from "lucide-react";
+import { Plus, Download, CalendarDays, Users } from "lucide-react";
 import ToolsOrb from "@/components/tools/ToolsOrb";
 import AIChatWidget from "@/components/ai/AIChatWidget";
 import AppointmentBookingDialog from "@/components/appointments/AppointmentBookingDialog";
+import { Link } from "react-router-dom";
 
 type CardData = Tables<"cards">;
 
