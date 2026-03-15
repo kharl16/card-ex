@@ -287,21 +287,19 @@ export default function SharedCard() {
           showQRCode={true}
           showVCardButtons={true}
           publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
+          bottomAction={
+            bookingEnabled ? (
+              <Button
+                onClick={() => setBookingDialogOpen(true)}
+                className="w-full gap-2 h-12 text-base font-semibold rounded-2xl"
+                style={{ backgroundColor: theme?.primary || "#D4AF37" }}
+              >
+                <CalendarDays className="h-5 w-5" />
+                Book Appointment
+              </Button>
+            ) : undefined
+          }
         />
-        
-        {/* Book Appointment Button */}
-        {bookingEnabled && (
-          <div className="px-4 pt-4">
-            <Button
-              onClick={() => setBookingDialogOpen(true)}
-              className="w-full gap-2 h-12 text-base font-semibold rounded-2xl"
-              style={{ backgroundColor: theme?.primary || "#D4AF37" }}
-            >
-              <CalendarDays className="h-5 w-5" />
-              Book Appointment
-            </Button>
-          </div>
-        )}
 
         {/* Create your own Card-Ex button */}
         <div className="px-4 pb-8 pt-3">
