@@ -168,7 +168,19 @@ export default function CardEditor() {
     loadCard();
     loadSocialLinks();
     loadProductImages();
+    loadBookingStatus();
   }, [id]);
+
+  const loadBookingStatus = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+    const { data } = await supabase
+      .from("availability_settings")
+      .select("booking_enabled")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+    setBookingEnabled(data?.booking_enabled === true);
+  };
 
   const loadCard = async () => {
     if (!id) return;
