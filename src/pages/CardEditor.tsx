@@ -1049,19 +1049,21 @@ export default function CardEditor() {
                   showQRCode={true}
                   showVCardButtons={false}
                   publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
+                  bottomAction={
+                    bookingEnabled ? (
+                      <div className="pointer-events-none">
+                        <Button
+                          className="w-full gap-2 h-10 text-sm font-semibold rounded-2xl"
+                          style={{ backgroundColor: (card.theme as any)?.primary || undefined }}
+                          aria-label="Book Appointment preview"
+                        >
+                          <CalendarDays className="h-4 w-4" />
+                          Book Appointment
+                        </Button>
+                      </div>
+                    ) : undefined
+                  }
                 />
-                {/* Book Appointment preview */}
-                {bookingEnabled && (
-                  <div className="px-4 pt-3">
-                    <Button
-                      disabled
-                      className="w-full gap-2 h-10 text-sm font-semibold rounded-2xl opacity-80"
-                    >
-                      <CalendarDays className="h-4 w-4" />
-                      Book Appointment
-                    </Button>
-                  </div>
-                )}
                 {/* ToolsOrb inside preview */}
                 <ToolsOrb mode="preview" containerRef={previewContainerRef} />
               </div>

@@ -89,6 +89,8 @@ interface CardViewProps {
   showVCardButtons?: boolean;
   /** Public card URL for sharing - must be https://tagex.app/c/{slug}, never editor URL */
   publicCardUrl?: string;
+  /** Optional extra CTA rendered at the bottom of the card body */
+  bottomAction?: React.ReactNode;
 }
 
 const iconMap: Record<string, any> = {
@@ -164,6 +166,7 @@ export default function CardView({
   showQRCode = false,
   showVCardButtons = false,
   publicCardUrl,
+  bottomAction,
 }: CardViewProps) {
   // Normalize social links whether passed as a prop or loaded from Supabase JSON
   const resolvedSocialLinks: SocialLink[] = React.useMemo(() => {
@@ -688,6 +691,12 @@ export default function CardView({
           >
             <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
           </button>
+        </div>
+      )}
+
+      {bottomAction && (
+        <div className={isInteractive ? "px-5 pb-5 pt-1" : "px-5 pb-5 pt-0"}>
+          {bottomAction}
         </div>
       )}
     </Card>
