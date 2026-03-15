@@ -127,6 +127,7 @@ const AnimatedRoutes = () => {
         <Route path="/c/:slug" element={<PageTransition><PublicCard /></PageTransition>} />
         <Route path="/c/:slug/share/:carouselKind" element={<PageTransition><CarouselSharePage /></PageTransition>} />
         <Route path="/s/:code" element={<PageTransition><SharedCard /></PageTransition>} />
+        <Route path="/team/:orgSlug" element={<PageTransition><TeamDirectory /></PageTransition>} />
         {/* Custom slug route - must be after all other routes except catch-all */}
         <Route path="/:customSlug" element={<PageTransition><PublicCard customSlug={true} /></PageTransition>} />
         <Route
