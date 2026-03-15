@@ -236,17 +236,46 @@ export default function AppointmentManager() {
                       >
                         <XCircle className="h-3.5 w-3.5" /> Decline
                       </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteTarget(apt)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   )}
 
                   {apt.status === "confirmed" && (
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1"
+                        onClick={() => updateStatus(apt.id, "completed")}
+                      >
+                        <CheckCircle className="h-3.5 w-3.5" /> Complete
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteTarget(apt)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  )}
+
+                  {(apt.status === "cancelled" || apt.status === "completed") && (
                     <Button
                       size="sm"
-                      variant="outline"
-                      className="gap-1"
-                      onClick={() => updateStatus(apt.id, "completed")}
+                      variant="ghost"
+                      className="text-destructive hover:bg-destructive/10 shrink-0"
+                      onClick={() => setDeleteTarget(apt)}
                     >
-                      <CheckCircle className="h-3.5 w-3.5" /> Complete
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   )}
                 </div>
