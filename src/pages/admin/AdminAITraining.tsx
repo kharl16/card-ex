@@ -20,6 +20,8 @@ import {
   Save,
   Loader2,
 } from "lucide-react";
+import { BulkImportDialog } from "@/components/ai-training/BulkImportDialog";
+import { TemplateQADialog } from "@/components/ai-training/TemplateQADialog";
 import {
   AlertDialog,
   AlertDialogAction,
