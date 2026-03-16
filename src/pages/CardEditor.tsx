@@ -891,6 +891,14 @@ export default function CardEditor() {
           </div>
         ),
       },
+      "ai-training": {
+        id: "ai-training",
+        title: "AI Chat Training",
+        description: "Custom Q&A for your card's AI chatbot",
+        icon: <Settings className="h-4 w-4" />,
+        progress: 100,
+        content: <AITrainingSection cardId={id!} />,
+      },
     };
 
     // Return sections in the correct order
