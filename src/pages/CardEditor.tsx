@@ -50,6 +50,7 @@ import { ContactInformationSection, AdditionalContact } from "@/components/edito
 
 import { CarouselSettingsSection } from "@/components/editor/sections/CarouselSettingsSection";
 import { CustomUrlSection } from "@/components/editor/sections/CustomUrlSection";
+import { AITrainingSection } from "@/components/editor/sections/AITrainingSection";
 
 type CardData = Tables<"cards">;
 
