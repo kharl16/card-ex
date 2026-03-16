@@ -110,6 +110,7 @@ const DEFAULT_SECTION_ORDER = [
   "qr",
   "theme",
   "custom-url",
+  "ai-training",
 ];
 
 type AutosaveStatus = "saved" | "saving" | "unsaved" | "error";

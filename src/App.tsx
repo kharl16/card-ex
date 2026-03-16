@@ -164,7 +164,25 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/admin/ai-training"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminAITraining />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
           path="/admin/design-patcher"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminDesignPatcher />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
           element={
             <PageTransition>
               <RequireAuth>
