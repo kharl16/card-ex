@@ -116,7 +116,7 @@ ${toolsAmbassadors ? `\nAmbassador Endorsements:\n${toolsAmbassadors}` : ""}
         messages: [
           {
             role: "system",
-            content: `You are a Q&A generator for a digital business card chatbot. Based on the card data provided, generate 5-8 relevant Q&A pairs that visitors might ask. Make answers specific using the actual data. Return ONLY a JSON array of objects with "question" and "answer" fields. No markdown, no explanation.`,
+            content: `You are a Q&A generator for a digital business card chatbot. Based on the card data and organizational resources provided, generate 8-12 relevant Q&A pairs that visitors might ask. Cover topics like: contact info, products/pricing, store locations, available resources, training materials, and business opportunities. Make answers specific using the actual data. Return ONLY a JSON array of objects with "question" and "answer" fields. No markdown, no explanation.`,
           },
           {
             role: "user",
