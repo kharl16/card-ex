@@ -182,15 +182,6 @@ const AnimatedRoutes = () => {
               </RequireAuth>
             </PageTransition>
           }
-        />
-          element={
-            <PageTransition>
-              <RequireAuth>
-                <AdminDesignPatcher />
-              </RequireAuth>
-            </PageTransition>
-          }
-        />
         <Route
           path="/gallery"
           element={
