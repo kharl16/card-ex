@@ -151,7 +151,7 @@ export function BulkImportDialog({ cardId, onImported, existingCount }: BulkImpo
 
           {parsed.length > 0 && (
             <div className="border rounded-lg p-3 space-y-2">
-              <p className="text-xs font-medium text-green-600">
+              <p className="text-xs font-medium text-primary">
                 ✓ {parsed.length} Q&A pairs detected:
               </p>
               <div className="max-h-40 overflow-y-auto space-y-1.5">
