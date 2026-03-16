@@ -181,6 +181,12 @@ export default function AdminAITraining() {
           </CardContent>
         </Card>
 
+        {/* Quick actions */}
+        <div className="flex flex-wrap gap-2">
+          <BulkImportDialog cardId={null} onImported={fetchGlobalQA} existingCount={qaItems.length} />
+          <TemplateQADialog cardId={null} onImported={fetchGlobalQA} existingCount={qaItems.length} />
+        </div>
+
         {/* Add new Q&A */}
         <Card>
           <CardHeader>

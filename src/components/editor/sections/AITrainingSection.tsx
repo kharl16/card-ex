@@ -122,6 +122,13 @@ export function AITrainingSection({ cardId }: AITrainingSectionProps) {
         the global knowledge base set by the admin.
       </p>
 
+      {/* Quick actions */}
+      <div className="flex flex-wrap gap-2">
+        <BulkImportDialog cardId={cardId} onImported={fetchCardQA} existingCount={qaItems.length} />
+        <TemplateQADialog cardId={cardId} onImported={fetchCardQA} existingCount={qaItems.length} />
+        <AIGenerateQADialog cardId={cardId} onImported={fetchCardQA} existingCount={qaItems.length} />
+      </div>
+
       {/* Existing items */}
       {qaItems.map((item) => (
         <div
