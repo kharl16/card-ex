@@ -7,6 +7,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2, Loader2, Brain } from "lucide-react";
+import { BulkImportDialog } from "@/components/ai-training/BulkImportDialog";
+import { TemplateQADialog } from "@/components/ai-training/TemplateQADialog";
+import { AIGenerateQADialog } from "@/components/ai-training/AIGenerateQADialog";
 
 interface QAItem {
   id: string;
@@ -118,6 +121,13 @@ export function AITrainingSection({ cardId }: AITrainingSectionProps) {
         Add custom Q&A pairs to train your card's AI chatbot. These supplement
         the global knowledge base set by the admin.
       </p>
+
+      {/* Quick actions */}
+      <div className="flex flex-wrap gap-2">
+        <BulkImportDialog cardId={cardId} onImported={fetchCardQA} existingCount={qaItems.length} />
+        <TemplateQADialog cardId={cardId} onImported={fetchCardQA} existingCount={qaItems.length} />
+        <AIGenerateQADialog cardId={cardId} onImported={fetchCardQA} existingCount={qaItems.length} />
+      </div>
 
       {/* Existing items */}
       {qaItems.map((item) => (

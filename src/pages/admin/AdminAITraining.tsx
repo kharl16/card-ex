@@ -20,6 +20,8 @@ import {
   Save,
   Loader2,
 } from "lucide-react";
+import { BulkImportDialog } from "@/components/ai-training/BulkImportDialog";
+import { TemplateQADialog } from "@/components/ai-training/TemplateQADialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -178,6 +180,12 @@ export default function AdminAITraining() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Quick actions */}
+        <div className="flex flex-wrap gap-2">
+          <BulkImportDialog cardId={null} onImported={fetchGlobalQA} existingCount={qaItems.length} />
+          <TemplateQADialog cardId={null} onImported={fetchGlobalQA} existingCount={qaItems.length} />
+        </div>
 
         {/* Add new Q&A */}
         <Card>
