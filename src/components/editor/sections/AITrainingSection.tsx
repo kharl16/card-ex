@@ -7,6 +7,9 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2, Loader2, Brain } from "lucide-react";
+import { BulkImportDialog } from "@/components/ai-training/BulkImportDialog";
+import { TemplateQADialog } from "@/components/ai-training/TemplateQADialog";
+import { AIGenerateQADialog } from "@/components/ai-training/AIGenerateQADialog";
 
 interface QAItem {
   id: string;
