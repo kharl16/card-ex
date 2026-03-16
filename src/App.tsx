@@ -182,6 +182,7 @@ const AnimatedRoutes = () => {
               </RequireAuth>
             </PageTransition>
           }
+        />
         <Route
           path="/gallery"
           element={
