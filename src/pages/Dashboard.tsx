@@ -258,6 +258,10 @@ export default function Dashboard() {
             <span className="text-xl font-bold">Card-Ex</span>
           </div>
           <div className="flex items-center gap-2">
+            <Button onClick={() => navigate("/locator")} variant="outline" size="sm" className="gap-2">
+              <Users className="h-4 w-4" />
+              Locator
+            </Button>
             <Button onClick={() => navigate("/dashboard/leads")} variant="outline" size="sm" className="gap-2">
               <Users className="h-4 w-4" />
               Leads
