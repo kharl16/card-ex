@@ -46,11 +46,44 @@ serve(async (req) => {
       .select("kind, label, value")
       .eq("card_id", cardId);
 
+    // Fetch Tools Orb content in parallel
+    const [linksRes, filesRes, presentationsRes, trainingsRes, directoryRes, ambassadorsRes] = await Promise.all([
+      supabase.from("iam_links").select("name, link, category").eq("is_active", true).limit(30),
+      supabase.from("files_repository").select("file_name, description, folder_name, price_srp, price_dp").eq("is_active", true).limit(30),
+      supabase.from("presentations").select("title, description, category").eq("is_active", true).limit(20),
+      supabase.from("training_items").select("title, description, category").eq("is_active", true).limit(20),
+      supabase.from("directory_entries").select("owner, location, address, sites, operating_hours").eq("is_active", true).limit(20),
+      supabase.from("ambassadors_library").select("endorser, product_endorsed").eq("is_active", true).limit(20),
+    ]);
+
     const productImages = Array.isArray(card.product_images) ? card.product_images : [];
     const products = productImages.map((p: any) => p.alt_text || p.description).filter(Boolean).join(", ");
     const socialLinks = Array.isArray(card.social_links) ? card.social_links : [];
     const socials = socialLinks.map((s: any) => `${s.label || s.kind}: ${s.value}`).join(", ");
     const links = (cardLinks || []).map((l: any) => `${l.label} (${l.kind}): ${l.value}`).join(", ");
+
+    // Build Tools Orb context
+    const toolsLinks = (linksRes.data || []).map((l: any) => `${l.name}${l.category ? ` [${l.category}]` : ""}: ${l.link}`).join("\n");
+    const toolsFiles = (filesRes.data || []).map((f: any) => {
+      const parts = [f.file_name];
+      if (f.description) parts.push(f.description);
+      if (f.folder_name) parts.push(`Folder: ${f.folder_name}`);
+      if (f.price_srp) parts.push(`SRP: ${f.price_srp}`);
+      if (f.price_dp) parts.push(`DP: ${f.price_dp}`);
+      return parts.join(" | ");
+    }).join("\n");
+    const toolsPresentations = (presentationsRes.data || []).map((p: any) => `${p.title}${p.category ? ` [${p.category}]` : ""}${p.description ? `: ${p.description}` : ""}`).join("\n");
+    const toolsTrainings = (trainingsRes.data || []).map((t: any) => `${t.title}${t.category ? ` [${t.category}]` : ""}${t.description ? `: ${t.description}` : ""}`).join("\n");
+    const toolsDirectory = (directoryRes.data || []).map((d: any) => {
+      const parts = [];
+      if (d.owner) parts.push(d.owner);
+      if (d.location) parts.push(d.location);
+      if (d.address) parts.push(d.address);
+      if (d.sites) parts.push(`Sites: ${d.sites}`);
+      if (d.operating_hours) parts.push(`Hours: ${d.operating_hours}`);
+      return parts.join(" | ");
+    }).join("\n");
+    const toolsAmbassadors = (ambassadorsRes.data || []).map((a: any) => `${a.endorser || "Unknown"} endorses ${a.product_endorsed || "N/A"}`).join("\n");
 
     const cardContext = `
 Name: ${card.full_name}
@@ -64,6 +97,12 @@ ${card.location ? `Location: ${card.location}` : ""}
 ${products ? `Products/Services: ${products}` : ""}
 ${socials ? `Social Media: ${socials}` : ""}
 ${links ? `Links: ${links}` : ""}
+${toolsLinks ? `\nAvailable Quick Links:\n${toolsLinks}` : ""}
+${toolsFiles ? `\nProducts/Files Catalog:\n${toolsFiles}` : ""}
+${toolsPresentations ? `\nPresentations:\n${toolsPresentations}` : ""}
+${toolsTrainings ? `\nTraining Materials:\n${toolsTrainings}` : ""}
+${toolsDirectory ? `\nStore/Distributor Directory:\n${toolsDirectory}` : ""}
+${toolsAmbassadors ? `\nAmbassador Endorsements:\n${toolsAmbassadors}` : ""}
 `.trim();
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -77,7 +116,7 @@ ${links ? `Links: ${links}` : ""}
         messages: [
           {
             role: "system",
-            content: `You are a Q&A generator for a digital business card chatbot. Based on the card data provided, generate 5-8 relevant Q&A pairs that visitors might ask. Make answers specific using the actual data. Return ONLY a JSON array of objects with "question" and "answer" fields. No markdown, no explanation.`,
+            content: `You are a Q&A generator for a digital business card chatbot. Based on the card data and organizational resources provided, generate 8-12 relevant Q&A pairs that visitors might ask. Cover topics like: contact info, products/pricing, store locations, available resources, training materials, and business opportunities. Make answers specific using the actual data. Return ONLY a JSON array of objects with "question" and "answer" fields. No markdown, no explanation.`,
           },
           {
             role: "user",
