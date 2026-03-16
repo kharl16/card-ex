@@ -30,6 +30,7 @@ import LinksPage from "./pages/resources/LinksPage";
 import DirectoryPage from "./pages/resources/DirectoryPage";
 import WaysPage from "./pages/resources/WaysPage";
 import AdminResources from "./pages/admin/AdminResources";
+import AdminAITraining from "./pages/admin/AdminAITraining";
 import SuperAdminConsole from "./pages/superadmin/SuperAdminConsole";
 import UserRolesPage from "./pages/superadmin/UserRolesPage";
 import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
@@ -158,6 +159,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <AdminReferrals />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/ai-training"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminAITraining />
               </RequireAuth>
             </PageTransition>
           }

@@ -67,6 +67,47 @@ export type Database = {
           },
         ]
       }
+      ai_training_qa: {
+        Row: {
+          answer: string
+          card_id: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          question: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          card_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          card_id?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          question?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_training_qa_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ambassadors_library: {
         Row: {
           allowed_sites: string[] | null

@@ -48,6 +48,21 @@ serve(async (req) => {
       .select("kind, label, value")
       .eq("card_id", cardId);
 
+    // Fetch custom Q&A: global (card_id IS NULL) + card-specific
+    const { data: globalQA } = await supabase
+      .from("ai_training_qa")
+      .select("question, answer")
+      .is("card_id", null)
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+
+    const { data: cardQA } = await supabase
+      .from("ai_training_qa")
+      .select("question, answer")
+      .eq("card_id", cardId)
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true });
+
     // Build context from card data
     const productImages = Array.isArray(card.product_images) ? card.product_images : [];
     const products = productImages
@@ -64,6 +79,12 @@ serve(async (req) => {
       .map((l: any) => `${l.label} (${l.kind}): ${l.value}`)
       .join("\n");
 
+    // Build Q&A knowledge base section
+    const allQA = [...(globalQA || []), ...(cardQA || [])];
+    const qaSection = allQA.length > 0
+      ? `\n\nCUSTOM KNOWLEDGE BASE (use these for answering questions):\n${allQA.map((qa, i) => `Q${i + 1}: ${qa.question}\nA${i + 1}: ${qa.answer}`).join("\n\n")}`
+      : "";
+
     const systemPrompt = `You are an AI assistant for ${card.full_name}'s digital business card. You answer visitor questions using ONLY the information provided below. Be friendly, professional, and concise. If you don't have the information to answer a question, politely say so and suggest contacting ${card.full_name} directly.
 
 CARD OWNER INFORMATION:
@@ -77,12 +98,13 @@ ${card.website ? `Website: ${card.website}` : ""}
 ${card.location ? `Location: ${card.location}` : ""}
 ${products ? `Products/Services: ${products}` : ""}
 ${socials ? `Social Media:\n${socials}` : ""}
-${links ? `Links:\n${links}` : ""}
+${links ? `Links:\n${links}` : ""}${qaSection}
 
 RULES:
 - Only answer based on the information above
 - Never make up information not present in the card data
 - Keep answers brief and helpful
+- If a question matches the custom knowledge base, prefer those answers
 - If asked about pricing, availability, or details not in the data, suggest contacting the card owner directly
 - You can help with: what services/products are offered, contact information, social media links, location, and general inquiries about the card owner's business`;
 
@@ -96,7 +118,7 @@ RULES:
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          ...(messages || []).slice(-10), // Keep last 10 messages for context
+          ...(messages || []).slice(-10),
         ],
         stream: true,
       }),
