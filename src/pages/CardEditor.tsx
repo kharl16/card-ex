@@ -855,17 +855,38 @@ export default function CardEditor() {
       },
       "custom-url": {
         id: "custom-url",
-        title: "Custom URL",
-        description: "Personalize your short link",
+        title: "Custom URL & Features",
+        description: "Personalize your short link and card features",
         isPremium: true,
         icon: <Link className="h-4 w-4" />,
         progress: calculateProgress("custom-url"),
         content: (
-          <CustomUrlSection
-            card={card}
-            validationErrors={validationErrors}
-            onCardChange={handleCardChange}
-          />
+          <div className="space-y-6">
+            <CustomUrlSection
+              card={card}
+              validationErrors={validationErrors}
+              onCardChange={handleCardChange}
+            />
+            <div className="border-t border-border/50 pt-4">
+              <h4 className="text-sm font-medium mb-3">Card Features</h4>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="show-locator" className="text-sm cursor-pointer">
+                  Show "Find a Distributor" button
+                </Label>
+                <Switch
+                  id="show-locator"
+                  checked={(card.theme as any)?.showLocatorButton !== false}
+                  onCheckedChange={(checked) => {
+                    const currentTheme = (card.theme as any) || {};
+                    setCard({ ...card, theme: { ...currentTheme, showLocatorButton: checked } as any });
+                  }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Display a "Find a Distributor" button on your public card
+              </p>
+            </div>
+          </div>
         ),
       },
     };

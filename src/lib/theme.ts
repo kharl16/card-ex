@@ -53,6 +53,7 @@ export interface ThemeVariant {
   carouselDepth?: "soft" | "medium" | "strong";
   carouselAutoPlay?: boolean;
   carouselSpotlight?: boolean;
+  showLocatorButton?: boolean;
 }
 
 // Full card theme with A/B variants
