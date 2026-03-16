@@ -50,6 +50,13 @@ function SuperAdminConsoleContent() {
       color: "bg-green-500/10 text-green-500",
     },
     {
+      title: "AI Chat Training",
+      description: "Manage global Q&A knowledge base for card AI chatbots",
+      icon: <Brain className="h-8 w-8" />,
+      href: "/admin/ai-training",
+      color: "bg-cyan-500/10 text-cyan-500",
+    },
+    {
       title: "Activity Logs",
       description: "View audit logs and system activity",
       icon: <Activity className="h-8 w-8" />,
