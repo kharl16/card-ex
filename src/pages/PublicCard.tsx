@@ -9,7 +9,7 @@ import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
-import { Plus, Download, CalendarDays, Users } from "lucide-react";
+import { Plus, Download, CalendarDays, Users, MapPin } from "lucide-react";
 import ToolsOrb from "@/components/tools/ToolsOrb";
 import AIChatWidget from "@/components/ai/AIChatWidget";
 import AppointmentBookingDialog from "@/components/appointments/AppointmentBookingDialog";
@@ -320,6 +320,19 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
             </Link>
           </div>
         )}
+
+        {/* Find a Distributor button */}
+        <div className="px-4 pt-3">
+          <Link to="/locator">
+            <Button
+              variant="outline"
+              className="w-full gap-2 h-11 text-sm font-semibold"
+            >
+              <MapPin className="h-4 w-4" />
+              Find a Distributor
+            </Button>
+          </Link>
+        </div>
 
         {/* Create your own Card-Ex button */}
         <div className="px-4 pb-8 pt-3">
