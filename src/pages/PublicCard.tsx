@@ -328,7 +328,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
               variant="outline"
               className="w-full gap-2 h-11 text-sm font-semibold"
             >
-              <Users className="h-4 w-4" />
+              <MapPin className="h-4 w-4" />
               Find a Distributor
             </Button>
           </Link>
