@@ -18,7 +18,7 @@ export function QuickActions({ onNewCard }: QuickActionsProps) {
   ];
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 overflow-hidden">
       {actions.map((action) => (
         <Button
           key={action.label}
