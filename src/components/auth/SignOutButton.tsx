@@ -17,12 +17,13 @@ export default function SignOutButton() {
   return (
     <Button
       variant="outline"
+      size="sm"
       onClick={signOut}
       disabled={loading}
-      className="gap-2"
+      className="gap-1.5"
     >
-      <LogOut className="h-4 w-4" />
-      {loading ? "Signing out..." : "Sign out"}
+      <LogOut className="h-3.5 w-3.5" />
+      <span className="hidden sm:inline">{loading ? "Signing out..." : "Sign out"}</span>
     </Button>
   );
 }

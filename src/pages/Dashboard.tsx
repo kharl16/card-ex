@@ -185,7 +185,7 @@ export default function Dashboard() {
             </div>
             <span className="text-lg font-bold">Card-Ex</span>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 flex-shrink-0">
             {isAdmin && (
               <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="sm" className="gap-1.5 text-xs">
                 <Palette className="h-3.5 w-3.5" />
