@@ -2015,6 +2015,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_analytics_daily: {
+        Args: {
+          p_card_id: string
+          p_day: string
+          p_ip_hash: string
+          p_kind: string
+        }
+        Returns: undefined
+      }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean

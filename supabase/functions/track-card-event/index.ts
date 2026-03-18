@@ -196,73 +196,18 @@ serve(async (req) => {
       );
     }
 
-    // Upsert analytics_daily aggregate
+    // Atomically increment analytics_daily via database function
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-    // Build the increment columns based on event kind
-    const columnMap: Record<string, string> = {
-      view: 'views',
-      qr_scan: 'qr_scans',
-      vcard_download: 'vcard_downloads',
-      cta_click: 'cta_clicks',
-    };
+    const { error: rpcError } = await supabase.rpc('increment_analytics_daily', {
+      p_card_id: card_id,
+      p_day: today,
+      p_kind: kind,
+      p_ip_hash: ipHash,
+    });
 
-    const col = columnMap[kind];
-    if (col) {
-      // Try to get existing row
-      const { data: existing } = await supabase
-        .from('analytics_daily')
-        .select('id, views, unique_views, qr_scans, cta_clicks, vcard_downloads')
-        .eq('card_id', card_id)
-        .eq('day', today)
-        .maybeSingle();
-
-      if (existing) {
-        // Increment the relevant column
-        const updateData: Record<string, number> = {};
-        updateData[col] = (existing[col as keyof typeof existing] as number || 0) + 1;
-        
-        // For views, also track unique views based on ip_hash
-        if (kind === 'view') {
-          const { count } = await supabase
-            .from('card_events')
-            .select('*', { count: 'exact', head: true })
-            .eq('card_id', card_id)
-            .eq('kind', 'view')
-            .eq('ip_hash', ipHash)
-            .gte('created_at', today + 'T00:00:00Z')
-            .lte('created_at', today + 'T23:59:59Z');
-          
-          // If this is first view from this IP today, increment unique_views
-          if (count !== null && count <= 1) {
-            updateData['unique_views'] = (existing.unique_views || 0) + 1;
-          }
-        }
-
-        await supabase
-          .from('analytics_daily')
-          .update(updateData)
-          .eq('id', existing.id);
-      } else {
-        // Create new row for today
-        const insertData: Record<string, any> = {
-          card_id,
-          day: today,
-          views: 0,
-          unique_views: 0,
-          qr_scans: 0,
-          cta_clicks: 0,
-          vcard_downloads: 0,
-        };
-        insertData[col] = 1;
-        if (kind === 'view') {
-          insertData['unique_views'] = 1;
-        }
-
-        await supabase
-          .from('analytics_daily')
-          .insert(insertData);
-      }
+    if (rpcError) {
+      console.error('Failed to increment analytics_daily', { error_code: rpcError.code });
     }
 
     return new Response(
