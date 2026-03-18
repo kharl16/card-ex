@@ -175,7 +175,7 @@ export default function Dashboard() {
   const visibleCards = filteredAndSortedCards;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header */}
       <header className="border-b border-border/30 bg-card/30 backdrop-blur-md">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
