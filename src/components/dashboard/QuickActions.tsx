@@ -25,12 +25,8 @@ export function QuickActions({ onNewCard }: QuickActionsProps) {
     { icon: BarChart3, label: "Analytics", onClick: () => navigate("/analytics") },
     { icon: Users, label: "Leads", onClick: () => navigate("/dashboard/leads") },
     { icon: CalendarDays, label: "Appointments", onClick: () => navigate("/dashboard/appointments") },
-    { icon: Wrench, label: "Tools", onClick: () => navigate("/tools") },
     { icon: MapPin, label: "Locator", onClick: () => navigate("/distributor-locator") },
-    { icon: Image, label: "Gallery", onClick: () => navigate("/gallery") },
-    { icon: CreditCard, label: "Billing", onClick: () => navigate("/billing") },
     { icon: BookOpen, label: "Resources", onClick: () => navigate("/resources") },
-    { icon: UsersRound, label: "Directory", onClick: () => navigate("/team-directory") },
   ];
 
   return (
