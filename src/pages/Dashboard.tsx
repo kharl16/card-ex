@@ -205,7 +205,7 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="mt-4">
-          <QuickActions onNewCard={() => setNewCardDialogOpen(true)} />
+          <QuickActions onNewCard={() => setNewCardDialogOpen(true)} firstCardId={cards.length > 0 ? cards[0].id : null} />
         </div>
 
         {/* Main content grid: cards + sidebar */}
