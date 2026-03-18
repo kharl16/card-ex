@@ -106,6 +106,7 @@ export function DashboardCardTile({ card, onShare, onDuplicate, onDelete, onRena
 
           <div className="flex items-center gap-0.5">
             {[
+              { icon: TrendingUp, title: "Analytics", handler: (e: React.MouseEvent) => { e.stopPropagation(); navigate(`/cards/${card.id}/analytics`); } },
               { icon: Copy, title: "Duplicate", handler: (e: React.MouseEvent) => onDuplicate(card, e) },
               { icon: Share2, title: "Share", handler: (e: React.MouseEvent) => onShare(card.id, e) },
               { icon: Trash2, title: "Delete", handler: (e: React.MouseEvent) => onDelete(card, e), destructive: true },
