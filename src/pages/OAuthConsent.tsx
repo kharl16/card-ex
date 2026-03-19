@@ -67,7 +67,7 @@ export default function OAuthConsent() {
         return;
       }
 
-      setAuthDetails(data as AuthorizationDetails);
+      setAuthDetails(data as unknown as AuthorizationDetails);
       setStatus("ready");
     } catch (err: any) {
       setStatus("error");
