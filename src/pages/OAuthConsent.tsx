@@ -11,8 +11,8 @@ import CardExLogo from "@/assets/Card-Ex-Logo.png";
 type ConsentStatus = "loading" | "ready" | "processing" | "error" | "needs_login";
 
 interface AuthorizationDetails {
-  client: { name: string; id: string };
-  redirect_uri: string;
+  client: { name?: string; id?: string; client_name?: string; client_id?: string };
+  redirect_uri?: string;
   scope?: string;
 }
 
