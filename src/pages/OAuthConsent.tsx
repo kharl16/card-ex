@@ -160,7 +160,7 @@ export default function OAuthConsent() {
               </div>
               <CardTitle className="text-xl">Authorize Application</CardTitle>
               <CardDescription>
-                <span className="font-semibold text-foreground">{authDetails.client.name}</span>
+                <span className="font-semibold text-foreground">{authDetails.client.name || authDetails.client.client_name || "Unknown App"}</span>
                 {" "}wants to access your Card-Ex account.
               </CardDescription>
             </>
