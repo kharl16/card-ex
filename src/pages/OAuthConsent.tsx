@@ -89,8 +89,8 @@ export default function OAuthConsent() {
         return;
       }
 
-      if (data?.redirect_to) {
-        window.location.href = data.redirect_to;
+      if (data?.redirect_url) {
+        window.location.href = data.redirect_url;
       }
     } catch (err: any) {
       setStatus("error");
