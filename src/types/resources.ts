@@ -37,6 +37,8 @@ export interface DirectoryEntry {
   address: string | null;
   maps_link: string | null;
   owner: string | null;
+  owner_photo_url: string | null;
+  location_image_url: string | null;
   facebook_page: string | null;
   operating_hours: string | null;
   phone_1: string | null;
