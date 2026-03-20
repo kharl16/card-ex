@@ -13,6 +13,7 @@ import {
   Plus,
   Pencil,
   X,
+  User,
   SearchX,
   Lightbulb,
   Eye,
@@ -686,153 +687,208 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
               <div
                 key={item.id}
                 className={cn(
-                  "p-3 sm:p-4 rounded-2xl relative w-full",
+                  "rounded-2xl relative w-full overflow-hidden",
                   "bg-card border border-border/50 shadow-sm",
                   "hover:shadow-md hover:border-primary/30 transition-all",
                 )}
               >
-                {/* Admin Edit Button */}
-                {isAdmin && (
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8"
-                    onClick={() => handleEdit(item)}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
+                {/* Two-column image header */}
+                {(item.location_image_url || item.owner_photo_url) && (
+                  <div className="relative h-28 sm:h-32 grid grid-cols-2 overflow-hidden">
+                    {/* Location image */}
+                    <div className="relative overflow-hidden bg-muted">
+                      {item.location_image_url ? (
+                        <img
+                          src={item.location_image_url}
+                          alt={item.location || "Location"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-muted/60">
+                          <Building2 className="h-8 w-8 text-muted-foreground/40" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Owner photo */}
+                    <div className="relative overflow-hidden bg-muted">
+                      {item.owner_photo_url ? (
+                        <img
+                          src={item.owner_photo_url}
+                          alt={item.owner || "Owner"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-muted/80">
+                          <User className="h-8 w-8 text-muted-foreground/40" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
+
+                    {/* Site badge */}
+                    {item.sites && (
+                      <Badge
+                        variant="secondary"
+                        className="absolute top-2 left-2 z-10 text-xs px-2 py-0.5 bg-primary/90 text-primary-foreground border-0"
+                      >
+                        {item.sites}
+                      </Badge>
+                    )}
+
+                    {/* Distance badge */}
+                    {hasDistance && (
+                      <Badge
+                        variant="outline"
+                        className="absolute top-2 right-2 z-10 text-xs bg-card/80 backdrop-blur-sm border-primary/30 text-primary"
+                      >
+                        {itemWithDistance.distance! < 1
+                          ? `${Math.round(itemWithDistance.distance! * 1000)}m`
+                          : `${itemWithDistance.distance!.toFixed(1)}km`}
+                      </Badge>
+                    )}
+
+                    {/* Admin Edit Button */}
+                    {isAdmin && (
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute top-2 right-2 h-7 w-7 z-10 bg-card/70 backdrop-blur-sm"
+                        onClick={() => handleEdit(item)}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
                 )}
 
-                <div className="flex gap-3 sm:gap-4">
-                  {/* Location Image or Icon */}
-                  <div
-                    className={cn(
-                      "w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex-shrink-0 overflow-hidden",
-                      !item.location_image_url && "flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20",
-                    )}
-                  >
-                    {item.location_image_url ? (
-                      <img
-                        src={item.location_image_url}
-                        alt={item.location || "Location"}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
-                    )}
-                  </div>
+                {/* Content */}
+                <div className="p-3 sm:p-4 space-y-2">
+                  {/* Admin edit when no images */}
+                  {!item.location_image_url && !item.owner_photo_url && isAdmin && (
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8"
+                      onClick={() => handleEdit(item)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  )}
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0 space-y-1.5">
-                    <div className="flex flex-wrap items-start gap-2 pr-8">
-                      <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight break-words">
-                        {highlightText(item.location, searchQuery) || "Unknown Location"}
-                      </h4>
-                      {hasDistance && (
-                        <Badge
-                          variant="outline"
-                          className="shrink-0 text-xs bg-primary/10 text-primary border-primary/30"
-                        >
-                          {itemWithDistance.distance! < 1
-                            ? `${Math.round(itemWithDistance.distance! * 1000)}m`
-                            : `${itemWithDistance.distance!.toFixed(1)}km`}
-                        </Badge>
-                      )}
-                    </div>
-
-                    {item.address && (
-                      <p className="text-xs sm:text-sm text-muted-foreground break-words line-clamp-2">
-                        {highlightText(item.address, searchQuery)}
-                      </p>
-                    )}
-
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {item.sites && (
-                        <Badge variant="secondary" className="text-xs">
-                          {item.sites}
-                        </Badge>
-                      )}
-                      {sortByNearest && itemWithDistance.distance === undefined && (
-                        <Badge variant="outline" className="text-xs text-muted-foreground">
-                          No coordinates
-                        </Badge>
-                      )}
-                    </div>
-
-                    {/* Owner with photo */}
-                    {item.owner && (
-                      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
-                        {item.owner_photo_url ? (
-                          <img
-                            src={item.owner_photo_url}
-                            alt={item.owner}
-                            className="w-5 h-5 rounded-full object-cover flex-shrink-0"
-                          />
-                        ) : (
-                          <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0 text-[10px] font-medium">
-                            {item.owner.charAt(0).toUpperCase()}
-                          </span>
-                        )}
-                        <span className="break-words">{item.owner}</span>
+                  {/* Location name + badges when no image header */}
+                  {!item.location_image_url && !item.owner_photo_url && (
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex-shrink-0">
+                        <MapPin className="w-5 h-5 text-primary" />
                       </div>
-                    )}
-
-                    {item.operating_hours && (
-                      <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
-                        <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                        <span className="break-words">{item.operating_hours}</span>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-foreground text-base leading-tight break-words">
+                          {highlightText(item.location, searchQuery) || "Unknown Location"}
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                          {item.sites && (
+                            <Badge variant="secondary" className="text-xs">{item.sites}</Badge>
+                          )}
+                          {hasDistance && (
+                            <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
+                              {itemWithDistance.distance! < 1
+                                ? `${Math.round(itemWithDistance.distance! * 1000)}m`
+                                : `${itemWithDistance.distance!.toFixed(1)}km`}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Location name when image header exists */}
+                  {(item.location_image_url || item.owner_photo_url) && (
+                    <h4 className="font-semibold text-foreground text-base sm:text-lg leading-tight break-words">
+                      {highlightText(item.location, searchQuery) || "Unknown Location"}
+                    </h4>
+                  )}
+
+                  {item.address && (
+                    <p className="text-xs sm:text-sm text-muted-foreground break-words line-clamp-2">
+                      {highlightText(item.address, searchQuery)}
+                    </p>
+                  )}
+
+                  {item.owner && (
+                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                      {item.owner_photo_url ? (
+                        <img
+                          src={item.owner_photo_url}
+                          alt={item.owner}
+                          className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0 text-[10px] font-medium">
+                          {item.owner.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <span className="break-words">{item.owner}</span>
+                    </div>
+                  )}
+
+                  {item.operating_hours && (
+                    <div className="flex items-start gap-2 text-xs sm:text-sm text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                      <span className="break-words">{item.operating_hours}</span>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-3 sm:mt-4">
+                    {item.phone_1 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                        onClick={() => window.open(`tel:${item.phone_1}`, "_self")}
+                      >
+                        <Phone className="w-4 h-4 flex-shrink-0" />
+                        <span className="hidden xxs:inline">Call</span>
+                      </Button>
                     )}
+
+                    {item.maps_link && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                        onClick={() => window.open(item.maps_link!, "_blank")}
+                      >
+                        <Navigation className="w-4 h-4 flex-shrink-0" />
+                        <span className="hidden xxs:inline">Maps</span>
+                      </Button>
+                    )}
+
+                    {item.facebook_page && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
+                        onClick={() => window.open(item.facebook_page!, "_blank")}
+                      >
+                        <Facebook className="w-4 h-4 flex-shrink-0" />
+                        <span className="hidden xxs:inline">FB</span>
+                      </Button>
+                    )}
+
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center bg-primary text-primary-foreground hover:bg-primary/90"
+                      onClick={() => setSelectedEntry(item)}
+                    >
+                      <Eye className="w-4 h-4 flex-shrink-0" />
+                      <span className="hidden xxs:inline">View</span>
+                    </Button>
                   </div>
-                </div>
-
-                {/* Actions - Grid layout for consistent button sizing */}
-                <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-3 sm:mt-4">
-                  {item.phone_1 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                      onClick={() => window.open(`tel:${item.phone_1}`, "_self")}
-                    >
-                      <Phone className="w-4 h-4 flex-shrink-0" />
-                      <span className="hidden xxs:inline">Call</span>
-                    </Button>
-                  )}
-
-                  {item.maps_link && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                      onClick={() => window.open(item.maps_link!, "_blank")}
-                    >
-                      <Navigation className="w-4 h-4 flex-shrink-0" />
-                      <span className="hidden xxs:inline">Maps</span>
-                    </Button>
-                  )}
-
-                  {item.facebook_page && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                      onClick={() => window.open(item.facebook_page!, "_blank")}
-                    >
-                      <Facebook className="w-4 h-4 flex-shrink-0" />
-                      <span className="hidden xxs:inline">FB</span>
-                    </Button>
-                  )}
-
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => setSelectedEntry(item)}
-                  >
-                    <Eye className="w-4 h-4 flex-shrink-0" />
-                    <span className="hidden xxs:inline">View</span>
-                  </Button>
                 </div>
               </div>
             );
