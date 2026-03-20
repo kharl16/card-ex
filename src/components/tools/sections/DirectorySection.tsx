@@ -13,6 +13,7 @@ import {
   Plus,
   Pencil,
   X,
+  User,
   SearchX,
   Lightbulb,
   Eye,
