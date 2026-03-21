@@ -80,6 +80,7 @@ interface UserProfile {
   full_name: string | null;
   created_at: string;
   email?: string;
+  email_confirmed_at?: string | null;
   card_count?: number;
 }
 
