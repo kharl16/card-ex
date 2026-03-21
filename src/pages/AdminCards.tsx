@@ -968,7 +968,49 @@ export default function AdminCards() {
                               </div>
                             </TableCell>
                             <TableCell className="text-sm">{user.email || "—"}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">••••••••</TableCell>
+                            <TableCell>
+                              {user.email_confirmed_at ? (
+                                <Badge variant="default" className="gap-1 bg-green-600 hover:bg-green-700">
+                                  <ShieldCheck className="h-3 w-3" />
+                                  Verified
+                                </Badge>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-1 text-xs border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                                  onClick={async () => {
+                                    try {
+                                      const { data: { session } } = await supabase.auth.getSession();
+                                      if (!session) return;
+                                      const response = await fetch(
+                                        `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-update-user`,
+                                        {
+                                          method: "POST",
+                                          headers: {
+                                            "Content-Type": "application/json",
+                                            Authorization: `Bearer ${session.access_token}`,
+                                          },
+                                          body: JSON.stringify({ user_id: user.id, email_confirm: true }),
+                                        }
+                                      );
+                                      const result = await response.json();
+                                      if (result.success) {
+                                        toast.success(`Email verified for ${user.email}`);
+                                        loadUsers();
+                                      } else {
+                                        toast.error(result.error || "Failed to verify email");
+                                      }
+                                    } catch {
+                                      toast.error("Failed to verify email");
+                                    }
+                                  }}
+                                >
+                                  <Mail className="h-3 w-3" />
+                                  Verify
+                                </Button>
+                              )}
+                            </TableCell>
                             <TableCell>
                               <Badge variant={user.card_count && user.card_count > 0 ? "default" : "secondary"}>
                                 {user.card_count || 0} card{user.card_count !== 1 ? "s" : ""}
