@@ -535,8 +535,9 @@ export default function AdminCards() {
       countMap[card.user_id] = (countMap[card.user_id] || 0) + 1;
     });
 
-    // Fetch user emails from admin edge function
+    // Fetch user emails and verification status from admin edge function
     let emailMap: Record<string, string> = {};
+    let confirmedMap: Record<string, string | null> = {};
     try {
       const {
         data: { session },
@@ -552,6 +553,7 @@ export default function AdminCards() {
         if (response.ok) {
           const result = await response.json();
           emailMap = result.users || {};
+          confirmedMap = result.confirmed || {};
         }
       }
     } catch (e) {
@@ -562,6 +564,7 @@ export default function AdminCards() {
     const usersWithCounts: UserProfile[] = (profiles || []).map((p) => ({
       ...p,
       email: emailMap[p.id] || "",
+      email_confirmed_at: confirmedMap[p.id] || null,
       card_count: countMap[p.id] || 0,
     }));
 
