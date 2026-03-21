@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     }
 
     // Parse request body
-    const { user_id, email, password } = await req.json();
+    const { user_id, email, password, email_confirm } = await req.json();
 
     if (!user_id) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
@@ -92,8 +92,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!email && !password) {
-      return new Response(JSON.stringify({ error: "Email or password is required" }), {
+    if (!email && !password && !email_confirm) {
+      return new Response(JSON.stringify({ error: "Email, password, or email_confirm is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -124,13 +124,15 @@ Deno.serve(async (req) => {
     });
 
     // Build update object
-    const updateData: { email?: string; password?: string } = {};
+    const updateData: { email?: string; password?: string; email_confirm?: boolean } = {};
     if (email) updateData.email = email;
     if (password) updateData.password = password;
+    if (email_confirm) updateData.email_confirm = true;
 
     console.log(`Admin ${currentUserId} updating user ${user_id}:`, {
       email: email ? "***" : undefined,
       password: password ? "[set]" : undefined,
+      email_confirm: email_confirm || undefined,
     });
 
     // Update user

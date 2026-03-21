@@ -31,6 +31,7 @@ import {
   RefreshCw,
   Wand2,
   Settings,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -80,6 +81,7 @@ interface UserProfile {
   full_name: string | null;
   created_at: string;
   email?: string;
+  email_confirmed_at?: string | null;
   card_count?: number;
 }
 
@@ -534,8 +536,9 @@ export default function AdminCards() {
       countMap[card.user_id] = (countMap[card.user_id] || 0) + 1;
     });
 
-    // Fetch user emails from admin edge function
+    // Fetch user emails and verification status from admin edge function
     let emailMap: Record<string, string> = {};
+    let confirmedMap: Record<string, string | null> = {};
     try {
       const {
         data: { session },
@@ -551,6 +554,7 @@ export default function AdminCards() {
         if (response.ok) {
           const result = await response.json();
           emailMap = result.users || {};
+          confirmedMap = result.confirmed || {};
         }
       }
     } catch (e) {
@@ -561,6 +565,7 @@ export default function AdminCards() {
     const usersWithCounts: UserProfile[] = (profiles || []).map((p) => ({
       ...p,
       email: emailMap[p.id] || "",
+      email_confirmed_at: confirmedMap[p.id] || null,
       card_count: countMap[p.id] || 0,
     }));
 
@@ -939,6 +944,7 @@ export default function AdminCards() {
                       <TableRow>
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Verified</TableHead>
                         <TableHead>Password</TableHead>
                         <TableHead>Cards</TableHead>
                         <TableHead>Joined</TableHead>
@@ -948,7 +954,7 @@ export default function AdminCards() {
                     <TableBody>
                       {filteredUsers.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center text-muted-foreground">
+                          <TableCell colSpan={7} className="text-center text-muted-foreground">
                             No users found
                           </TableCell>
                         </TableRow>
@@ -962,6 +968,49 @@ export default function AdminCards() {
                               </div>
                             </TableCell>
                             <TableCell className="text-sm">{user.email || "—"}</TableCell>
+                            <TableCell>
+                              {user.email_confirmed_at ? (
+                                <Badge variant="default" className="gap-1 bg-green-600 hover:bg-green-700">
+                                  <ShieldCheck className="h-3 w-3" />
+                                  Verified
+                                </Badge>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-1 text-xs border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                                  onClick={async () => {
+                                    try {
+                                      const { data: { session } } = await supabase.auth.getSession();
+                                      if (!session) return;
+                                      const response = await fetch(
+                                        `https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/admin-update-user`,
+                                        {
+                                          method: "POST",
+                                          headers: {
+                                            "Content-Type": "application/json",
+                                            Authorization: `Bearer ${session.access_token}`,
+                                          },
+                                          body: JSON.stringify({ user_id: user.id, email_confirm: true }),
+                                        }
+                                      );
+                                      const result = await response.json();
+                                      if (result.success) {
+                                        toast.success(`Email verified for ${user.email}`);
+                                        loadUsers();
+                                      } else {
+                                        toast.error(result.error || "Failed to verify email");
+                                      }
+                                    } catch {
+                                      toast.error("Failed to verify email");
+                                    }
+                                  }}
+                                >
+                                  <Mail className="h-3 w-3" />
+                                  Verify
+                                </Button>
+                              )}
+                            </TableCell>
                             <TableCell className="text-sm text-muted-foreground">••••••••</TableCell>
                             <TableCell>
                               <Badge variant={user.card_count && user.card_count > 0 ? "default" : "secondary"}>

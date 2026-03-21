@@ -102,13 +102,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create a map of user IDs to emails
+    // Create maps of user IDs to user info
     const userEmails: Record<string, string> = {};
+    const userConfirmed: Record<string, string | null> = {};
     authUsers.users.forEach((user) => {
       userEmails[user.id] = user.email || "";
+      userConfirmed[user.id] = user.email_confirmed_at || null;
     });
 
-    return new Response(JSON.stringify({ success: true, users: userEmails }), {
+    return new Response(JSON.stringify({ success: true, users: userEmails, confirmed: userConfirmed }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
