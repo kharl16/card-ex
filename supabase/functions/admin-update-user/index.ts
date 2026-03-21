@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
     }
 
     // Parse request body
-    const { user_id, email, password } = await req.json();
+    const { user_id, email, password, email_confirm } = await req.json();
 
     if (!user_id) {
       return new Response(JSON.stringify({ error: "User ID is required" }), {
@@ -92,8 +92,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!email && !password) {
-      return new Response(JSON.stringify({ error: "Email or password is required" }), {
+    if (!email && !password && !email_confirm) {
+      return new Response(JSON.stringify({ error: "Email, password, or email_confirm is required" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
