@@ -124,13 +124,15 @@ Deno.serve(async (req) => {
     });
 
     // Build update object
-    const updateData: { email?: string; password?: string } = {};
+    const updateData: { email?: string; password?: string; email_confirm?: boolean } = {};
     if (email) updateData.email = email;
     if (password) updateData.password = password;
+    if (email_confirm) updateData.email_confirm = true;
 
     console.log(`Admin ${currentUserId} updating user ${user_id}:`, {
       email: email ? "***" : undefined,
       password: password ? "[set]" : undefined,
+      email_confirm: email_confirm || undefined,
     });
 
     // Update user
