@@ -180,8 +180,6 @@ const patternOptions: { value: QRSettings["pattern"]; label: string }[] = [
   { value: "squares", label: "Squares" },
   { value: "classy", label: "Classy" },
   { value: "rounded", label: "Rounded" },
-  { value: "classy-rounded", label: "Classy Rounded" },
-  { value: "extra-rounded", label: "Extra Rounded" },
   { value: "dots", label: "Dots" },
   { value: "triangle-grid", label: "Triangles" },
 ];
@@ -192,10 +190,8 @@ const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [
   { value: "dot", label: "Dot" },
   { value: "leaf", label: "Leaf" },
   { value: "diamond", label: "Diamond" },
-  { value: "star", label: "Star" },
   { value: "heart", label: "Heart" },
   { value: "shield", label: "Shield" },
-  { value: "soft-corner", label: "Soft Corner" }, // <--- NEW OPTION
 ];
 
 // Helper functions for presets
