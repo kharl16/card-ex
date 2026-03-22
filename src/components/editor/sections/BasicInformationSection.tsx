@@ -19,12 +19,8 @@ interface BasicInformationSectionProps {
   onThemeChange?: (theme: CardTheme) => void;
 }
 
-// Validate name fields for special characters
-const validateNameField = (value: string, fieldName: string): string | null => {
-  const specialChars = /[^a-zA-Z\s\-'\.]/;
-  if (specialChars.test(value)) {
-    return `${fieldName} can only contain letters, spaces, hyphens, apostrophes, and periods`;
-  }
+// Allow all characters in name fields
+const validateNameField = (_value: string, _fieldName: string): string | null => {
   return null;
 };
 
