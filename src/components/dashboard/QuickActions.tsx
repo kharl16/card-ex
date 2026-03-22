@@ -31,7 +31,7 @@ export function QuickActions({ onNewCard, firstCardId }: QuickActionsProps) {
     },
     { icon: Users, label: "Leads", onClick: () => navigate("/dashboard/leads") },
     { icon: CalendarDays, label: "Appointments", onClick: () => navigate("/dashboard/appointments") },
-    { icon: MapPin, label: "Locator", onClick: () => navigate("/distributor-locator") },
+    { icon: MapPin, label: "Locator", onClick: () => navigate("/locator") },
     { icon: BookOpen, label: "Resources", onClick: () => navigate("/resources") },
   ];
 
