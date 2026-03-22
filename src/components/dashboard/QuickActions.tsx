@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
-  BarChart3,
   Users,
   CalendarDays,
   MapPin,
@@ -19,16 +18,6 @@ export function QuickActions({ onNewCard, firstCardId }: QuickActionsProps) {
 
   const actions = [
     { icon: Plus, label: "New Card", onClick: onNewCard, primary: true },
-    {
-      icon: BarChart3,
-      label: "Analytics",
-      onClick: () => {
-        if (firstCardId) {
-          navigate(`/cards/${firstCardId}/analytics`);
-        }
-      },
-      disabled: !firstCardId,
-    },
     { icon: Users, label: "Leads", onClick: () => navigate("/dashboard/leads") },
     { icon: CalendarDays, label: "Appointments", onClick: () => navigate("/dashboard/appointments") },
     { icon: MapPin, label: "Locator", onClick: () => navigate("/locator") },
