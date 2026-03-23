@@ -1,4 +1,4 @@
-import { MapPin, Phone, Clock, Facebook, Heart, Navigation, Eye, User, Building2 } from "lucide-react";
+import { MapPin, Phone, Clock, Facebook, Heart, Navigation, Eye, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -48,25 +48,9 @@ export function DirectoryCard({
       className="group relative rounded-xl overflow-hidden border border-border/40 bg-card shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer"
       onClick={() => setExpanded(!expanded)}
     >
-      {/* Two-column image header */}
-      <div className="relative h-72 md:h-80 grid grid-cols-2 overflow-hidden">
-        {/* Location image */}
-        <div className="relative overflow-hidden bg-muted/80">
-          {entry.location_image_url ? (
-            <img
-              src={entry.location_image_url}
-              alt={entry.location || "Location"}
-              className="w-full h-full object-cover object-top"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-muted/60">
-              <Building2 className="h-8 w-8 text-muted-foreground/40" />
-            </div>
-          )}
-        </div>
-
-        {/* Owner photo */}
-        <div className="relative overflow-hidden bg-muted/80">
+      {/* Owner photo header */}
+      <div className="relative h-72 md:h-80 overflow-hidden">
+        <div className="relative w-full h-full overflow-hidden bg-muted/80">
           {entry.owner_photo_url ? (
             <img
               src={entry.owner_photo_url}
@@ -75,7 +59,7 @@ export function DirectoryCard({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-muted/80">
-              <User className="h-8 w-8 text-muted-foreground/40" />
+              <User className="h-10 w-10 text-muted-foreground/40" />
             </div>
           )}
         </div>
