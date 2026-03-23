@@ -692,35 +692,19 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                   "hover:shadow-md hover:border-primary/30 transition-all",
                 )}
               >
-                {/* Two-column image header */}
-                {(item.location_image_url || item.owner_photo_url) && (
-                  <div className="relative h-72 md:h-80 grid grid-cols-2 overflow-hidden">
-                    {/* Location image */}
-                    <div className="relative overflow-hidden bg-muted/80">
-                      {item.location_image_url ? (
-                        <img
-                          src={item.location_image_url}
-                          alt={item.location || "Location"}
-                          className="w-full h-full object-contain object-top"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-muted/60">
-                          <Building2 className="h-8 w-8 text-muted-foreground/40" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Owner photo */}
-                    <div className="relative overflow-hidden bg-muted/80">
+                {/* Owner photo header */}
+                {(item.owner_photo_url) && (
+                  <div className="relative h-72 md:h-80 overflow-hidden">
+                    <div className="relative w-full h-full overflow-hidden bg-muted/80">
                       {item.owner_photo_url ? (
                         <img
                           src={item.owner_photo_url}
                           alt={item.owner || "Owner"}
-                          className="w-full h-full object-contain object-top"
+                          className="w-full h-full object-cover object-top"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-muted/80">
-                          <User className="h-8 w-8 text-muted-foreground/40" />
+                          <User className="h-10 w-10 text-muted-foreground/40" />
                         </div>
                       )}
                     </div>
