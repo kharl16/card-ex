@@ -49,14 +49,14 @@ export function DirectoryCard({
       onClick={() => setExpanded(!expanded)}
     >
       {/* Two-column image header */}
-      <div className="relative h-52 grid grid-cols-2 overflow-hidden">
+      <div className="relative h-72 md:h-80 grid grid-cols-2 overflow-hidden">
         {/* Location image */}
-        <div className="relative overflow-hidden bg-muted">
+        <div className="relative overflow-hidden bg-muted/80">
           {entry.location_image_url ? (
             <img
               src={entry.location_image_url}
               alt={entry.location || "Location"}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain object-top"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-muted/60">
@@ -66,12 +66,12 @@ export function DirectoryCard({
         </div>
 
         {/* Owner photo */}
-        <div className="relative overflow-hidden bg-muted">
+        <div className="relative overflow-hidden bg-muted/80">
           {entry.owner_photo_url ? (
             <img
               src={entry.owner_photo_url}
               alt={entry.owner || "Owner"}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain object-top"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-muted/80">
