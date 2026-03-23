@@ -49,7 +49,7 @@ export function DirectoryCard({
       onClick={() => setExpanded(!expanded)}
     >
       {/* Two-column image header */}
-      <div className="relative h-40 grid grid-cols-2 overflow-hidden">
+      <div className="relative h-52 grid grid-cols-2 overflow-hidden">
         {/* Location image */}
         <div className="relative overflow-hidden bg-muted">
           {entry.location_image_url ? (
