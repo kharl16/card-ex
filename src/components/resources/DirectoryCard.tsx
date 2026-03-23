@@ -56,7 +56,7 @@ export function DirectoryCard({
             <img
               src={entry.location_image_url}
               alt={entry.location || "Location"}
-              className="w-full h-full object-contain object-top"
+              className="w-full h-full object-cover object-top"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-muted/60">
@@ -71,7 +71,7 @@ export function DirectoryCard({
             <img
               src={entry.owner_photo_url}
               alt={entry.owner || "Owner"}
-              className="w-full h-full object-contain object-top"
+              className="w-full h-full object-cover object-top"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-muted/80">
