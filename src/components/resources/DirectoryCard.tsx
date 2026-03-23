@@ -1,4 +1,4 @@
-import { MapPin, Phone, Clock, Facebook, Heart, Navigation, Eye, User, Building2 } from "lucide-react";
+import { MapPin, Phone, Clock, Facebook, Heart, Navigation, Eye, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
