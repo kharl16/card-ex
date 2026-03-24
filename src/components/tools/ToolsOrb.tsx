@@ -551,7 +551,6 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
         }}
         className="pointer-events-auto cursor-grab active:cursor-grabbing select-none"
         whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.95 }}
       >
         <div
           className={cn(
