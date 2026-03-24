@@ -621,7 +621,10 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
 
       <ToolsOrbCustomizer
         open={customizerOpen}
-        onOpenChange={setCustomizerOpen}
+        onOpenChange={(open) => {
+          setCustomizerOpen(open);
+          if (!open) refetchGlobal();
+        }}
       />
 
       <ToolsAuthDialog
