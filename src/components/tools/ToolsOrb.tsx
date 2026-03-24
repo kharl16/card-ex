@@ -572,7 +572,8 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
             <img 
               src={settings.orb_image_url} 
               alt="Tools" 
-              className={cn("rounded-full object-cover", isPreview ? "w-9 h-9" : "w-10 h-10")}
+              draggable={false}
+              className={cn("rounded-full object-cover pointer-events-none select-none", isPreview ? "w-9 h-9" : "w-10 h-10")}
             />
           ) : (
             <motion.div
