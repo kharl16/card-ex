@@ -532,11 +532,13 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
         dragMomentum={false}
         dragElastic={0.08}
         onDragStart={() => setIsDragging(true)}
-        onDrag={(_, info) => {
-          motionX.set(info.point.x - orbSize / 2);
-          motionY.set(info.point.y - orbSize / 2);
+        onDragEnd={() => {
+          setIsDragging(false);
+          const pos = clampPosition({ x: motionX.get(), y: motionY.get() });
+          motionX.set(pos.x);
+          motionY.set(pos.y);
+          localStorage.setItem(positionKey, JSON.stringify(pos));
         }}
-        onDragEnd={handleDragEnd}
         onClick={handleOrbClick}
         style={{ 
           x: motionX,
@@ -547,7 +549,7 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
           left: 0,
           top: 0,
         }}
-        className="pointer-events-auto cursor-grab active:cursor-grabbing"
+        className="pointer-events-auto cursor-grab active:cursor-grabbing select-none"
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
       >
