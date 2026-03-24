@@ -550,25 +550,25 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
         <div
           className={cn(
             "rounded-full flex items-center justify-center relative",
-            "bg-gradient-to-br from-primary via-primary/90 to-primary/70",
-            "border-2 border-primary-foreground/30",
             "transition-all duration-300 ease-out"
           )}
           style={{ 
             width: orbSize, 
             height: orbSize,
+            background: '#050505',
+            border: '2px solid rgba(212, 175, 55, 0.6)',
             boxShadow: isDragging
-              ? '0 0 50px rgba(212, 175, 55, 0.7), 0 0 80px rgba(212, 175, 55, 0.4), 0 0 100px rgba(212, 175, 55, 0.2)'
+              ? '0 0 20px rgba(212, 175, 55, 0.5), inset 0 0 8px rgba(212, 175, 55, 0.15)'
               : isOpen 
-                ? '0 0 40px rgba(212, 175, 55, 0.6), 0 0 60px rgba(212, 175, 55, 0.3)'
-                : '0 0 25px rgba(212, 175, 55, 0.4), 0 0 40px rgba(212, 175, 55, 0.2)'
+                ? '0 0 15px rgba(212, 175, 55, 0.4), inset 0 0 6px rgba(212, 175, 55, 0.1)'
+                : '0 0 10px rgba(212, 175, 55, 0.3), inset 0 0 4px rgba(212, 175, 55, 0.08)'
           }}
         >
           {settings.orb_image_url ? (
             <img 
               src={settings.orb_image_url} 
               alt="Tools" 
-              className={cn("rounded-full object-cover", isPreview ? "w-7 h-7" : "w-8 h-8")}
+              className={cn("rounded-full object-cover", isPreview ? "w-9 h-9" : "w-10 h-10")}
             />
           ) : (
             <motion.div
@@ -576,9 +576,9 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
               transition={{ duration: 0.2 }}
             >
               {isOpen ? (
-                <X className={cn("text-primary-foreground", isPreview ? "w-6 h-6" : "w-7 h-7")} strokeWidth={2.5} />
+                <X className={cn("text-primary-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")} strokeWidth={2.5} />
               ) : (
-                <Plus className={cn("text-primary-foreground", isPreview ? "w-6 h-6" : "w-7 h-7")} strokeWidth={2.5} />
+                <Plus className={cn("text-primary-foreground", isPreview ? "w-5 h-5" : "w-6 h-6")} strokeWidth={2.5} />
               )}
             </motion.div>
           )}
