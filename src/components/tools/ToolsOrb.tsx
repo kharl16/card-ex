@@ -532,11 +532,15 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
         dragMomentum={false}
         dragElastic={0.08}
         onDragStart={() => setIsDragging(true)}
+        onDrag={(_, info) => {
+          motionX.set(info.point.x - orbSize / 2);
+          motionY.set(info.point.y - orbSize / 2);
+        }}
         onDragEnd={handleDragEnd}
         onClick={handleOrbClick}
         style={{ 
-          x: springX,
-          y: springY,
+          x: motionX,
+          y: motionY,
           touchAction: "none", 
           zIndex: 10002,
           position: "absolute",
