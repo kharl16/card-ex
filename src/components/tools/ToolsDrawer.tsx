@@ -33,7 +33,10 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   Building2,
   Presentation,
   Sparkles,
+  UserSearch,
 };
+
+const ROUTE_ITEMS = new Set(["prospects"]);
 
 interface ToolsDrawerProps {
   open: boolean;
