@@ -40,6 +40,7 @@ const DEFAULT_SETTINGS: ToolsOrbSettings = {
     { id: "files", label: "Files", route: "/tools/files", icon_name: "FolderOpen", order: 3, enabled: true },
     { id: "directory", label: "Branches", route: "/tools/directory", icon_name: "Building2", order: 4, enabled: true },
     { id: "presentations", label: "Presentations", route: "/tools/presentations", icon_name: "Presentation", order: 5, enabled: true },
+    { id: "prospects", label: "Prospect List", route: "/leads", icon_name: "UserSearch", order: 6, enabled: true },
   ],
   updated_at: new Date().toISOString(),
 };

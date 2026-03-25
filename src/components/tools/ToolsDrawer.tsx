@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
   Building2,
   Presentation,
   Sparkles,
+  UserSearch,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
@@ -31,7 +33,10 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   Building2,
   Presentation,
   Sparkles,
+  UserSearch,
 };
+
+const ROUTE_ITEMS = new Set(["prospects"]);
 
 interface ToolsDrawerProps {
   open: boolean;
@@ -49,6 +54,7 @@ export default function ToolsDrawer({
   items,
 }: ToolsDrawerProps) {
   const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const isMobileLive = useIsMobile();
   // Lock the layout (Drawer vs Sheet) when open to prevent orientation changes
   // from unmounting the active container and losing state (e.g. video playback).
@@ -105,7 +111,14 @@ export default function ToolsDrawer({
               return (
                 <button
                   key={item.id}
-                  onClick={() => onSectionChange(item.id)}
+                  onClick={() => {
+                    if (ROUTE_ITEMS.has(item.id)) {
+                      onOpenChange(false);
+                      navigate(item.route);
+                    } else {
+                      onSectionChange(item.id);
+                    }
+                  }}
                   className={cn(
                     "flex flex-col items-center gap-3 p-6 rounded-2xl",
                     "bg-gradient-to-br from-card to-card/80",
