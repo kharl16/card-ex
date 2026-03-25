@@ -111,7 +111,14 @@ export default function ToolsDrawer({
               return (
                 <button
                   key={item.id}
-                  onClick={() => onSectionChange(item.id)}
+                  onClick={() => {
+                    if (ROUTE_ITEMS.has(item.id)) {
+                      onOpenChange(false);
+                      navigate(item.route);
+                    } else {
+                      onSectionChange(item.id);
+                    }
+                  }}
                   className={cn(
                     "flex flex-col items-center gap-3 p-6 rounded-2xl",
                     "bg-gradient-to-br from-card to-card/80",
