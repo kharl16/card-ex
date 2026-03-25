@@ -23,6 +23,7 @@ import {
   Building2,
   Presentation,
   Sparkles,
+  UserSearch,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
