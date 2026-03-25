@@ -105,10 +105,9 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
 
   const getDefaultPosition = useCallback((): Position => {
     const b = getBounds();
-    // Default: top-center, aligned between avatar and company logo in the header area
     return clampPosition({
       x: b.width / 2 - orbSize / 2,
-      y: margin + 180, // Below the cover image, between avatar row
+      y: b.height / 2 - orbSize / 2,
     });
   }, [getBounds, clampPosition, orbSize]);
 
