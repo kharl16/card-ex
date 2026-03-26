@@ -1344,6 +1344,198 @@ export type Database = {
           },
         ]
       }
+      prospect_activities: {
+        Row: {
+          activity_at: string
+          activity_note: string | null
+          activity_title: string | null
+          activity_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          owner_user_id: string
+          prospect_id: string
+        }
+        Insert: {
+          activity_at?: string
+          activity_note?: string | null
+          activity_title?: string | null
+          activity_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          owner_user_id: string
+          prospect_id: string
+        }
+        Update: {
+          activity_at?: string
+          activity_note?: string | null
+          activity_title?: string | null
+          activity_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          owner_user_id?: string
+          prospect_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospect_activities_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prospect_followups: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          followup_type: string
+          id: string
+          note: string | null
+          owner_user_id: string
+          prospect_id: string
+          scheduled_at: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          followup_type?: string
+          id?: string
+          note?: string | null
+          owner_user_id: string
+          prospect_id: string
+          scheduled_at: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          followup_type?: string
+          id?: string
+          note?: string | null
+          owner_user_id?: string
+          prospect_id?: string
+          scheduled_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospect_followups_prospect_id_fkey"
+            columns: ["prospect_id"]
+            isOneToOne: false
+            referencedRelation: "prospects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prospects: {
+        Row: {
+          archived_at: string | null
+          card_id: string | null
+          company: string | null
+          converted_at: string | null
+          created_at: string
+          custom_fields: Json | null
+          email: string | null
+          first_name: string | null
+          full_name: string
+          id: string
+          interest_level: string
+          last_activity_at: string | null
+          last_contacted_at: string | null
+          last_name: string | null
+          location: string | null
+          messenger_link: string | null
+          next_follow_up_at: string | null
+          notes: string | null
+          occupation: string | null
+          owner_user_id: string
+          phone: string | null
+          pipeline_status: string
+          priority_level: string
+          source_detail: string | null
+          source_type: string
+          tags: Json | null
+          telegram: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          card_id?: string | null
+          company?: string | null
+          converted_at?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          first_name?: string | null
+          full_name: string
+          id?: string
+          interest_level?: string
+          last_activity_at?: string | null
+          last_contacted_at?: string | null
+          last_name?: string | null
+          location?: string | null
+          messenger_link?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          occupation?: string | null
+          owner_user_id: string
+          phone?: string | null
+          pipeline_status?: string
+          priority_level?: string
+          source_detail?: string | null
+          source_type?: string
+          tags?: Json | null
+          telegram?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          card_id?: string | null
+          company?: string | null
+          converted_at?: string | null
+          created_at?: string
+          custom_fields?: Json | null
+          email?: string | null
+          first_name?: string | null
+          full_name?: string
+          id?: string
+          interest_level?: string
+          last_activity_at?: string | null
+          last_contacted_at?: string | null
+          last_name?: string | null
+          location?: string | null
+          messenger_link?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          occupation?: string | null
+          owner_user_id?: string
+          phone?: string | null
+          pipeline_status?: string
+          priority_level?: string
+          source_detail?: string | null
+          source_type?: string
+          tags?: Json | null
+          telegram?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prospects_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limits: {
         Row: {
           card_id: string
