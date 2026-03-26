@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ArrowLeft, Search, Plus, List, Columns3, CalendarClock,
+  ArrowLeft, Search, Plus, List, Columns3, CalendarClock, Sparkles,
   BarChart3, Loader2
 } from "lucide-react";
 import { useProspects, PIPELINE_STATUSES } from "@/hooks/useProspects";
@@ -47,6 +48,8 @@ export default function ProspectListPage() {
     }
     return list;
   }, [prospects, statusFilter, searchTerm]);
+
+  const hasProspects = prospects.length > 0;
 
   const handleStatusChange = async (prospectId: string, newStatus: string) => {
     const updates: Partial<Prospect> = { pipeline_status: newStatus };
@@ -130,9 +133,33 @@ export default function ProspectListPage() {
           </div>
           <Button onClick={() => setAddOpen(true)} className="h-12 gap-2 shrink-0">
             <Plus className="h-5 w-5" />
-            <span className="hidden sm:inline">Add</span>
+            <span>Add</span>
           </Button>
         </div>
+
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="py-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-sm font-semibold">
+                  {hasProspects ? "Open any prospect to use the AI tools" : "Add a prospect to unlock the AI tools"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  AI Summary, Suggested Reply, Next Best Action, and Script Templates appear inside each prospect's detail screen.
+                </p>
+              </div>
+              {!hasProspects && (
+                <Button onClick={() => setAddOpen(true)} size="sm" className="shrink-0 gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* View Toggle */}
         <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
