@@ -38,6 +38,7 @@ import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
 import RequireAuth from "./components/auth/RequireAuth";
 import Appointments from "./pages/Appointments";
 import Leads from "./pages/Leads";
+import ProspectList from "./pages/ProspectList";
 import TeamDirectory from "./pages/TeamDirectory";
 import DistributorLocator from "./pages/DistributorLocator";
 import NotFound from "./pages/NotFound";
