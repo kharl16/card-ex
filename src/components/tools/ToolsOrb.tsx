@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, RefObject, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { useMergedToolsOrb, ToolsOrbItem } from "@/hooks/useToolsOrb";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -53,6 +54,7 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
   const { mergedSettings: settings, loading, hasPaidCard, refetchGlobal } = useMergedToolsOrb();
   const { isAdmin, user } = useAuth();
   const toolsAuth = useToolsAuth();
+  const navigate = useNavigate();
 
   const isPreview = mode === "preview";
   const positionKey = `${POSITION_KEY_PREFIX}_${mode}`;
@@ -67,6 +69,7 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
   const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const routeItems = useMemo(() => new Set(["prospects"]), []);
 
   // Motion values for smooth dragging - the orb position
   const motionX = useMotionValue(0);
@@ -190,6 +193,14 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
 
   const handleItemClick = (item: ToolsOrbItem) => {
     setIsOpen(false);
+
+    if (routeItems.has(item.id)) {
+      setDrawerOpen(false);
+      setActiveSection(null);
+      navigate(item.route);
+      return;
+    }
+
     setActiveSection(item.id);
     setDrawerOpen(true);
   };
