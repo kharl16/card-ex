@@ -395,6 +395,9 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
             const isLockItem = item.id === "lock";
             const isUtilityItem = isSettingsItem || isLockItem;
             const IconComponent = ICON_MAP[item.icon_name] || Sparkles;
+            const imageUrl = "image_url" in item && typeof item.image_url === "string"
+              ? item.image_url
+              : undefined;
             const pos = getRadialPosition(index);
 
             return (
@@ -468,9 +471,9 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
                           : '0 4px 20px rgba(212, 175, 55, 0.4), 0 0 30px rgba(212, 175, 55, 0.2)'
                       }}
                     >
-                      {'image_url' in item && item.image_url ? (
+                      {imageUrl ? (
                         <img 
-                          src={item.image_url} 
+                          src={imageUrl} 
                           alt={item.label} 
                           className="w-6 h-6 rounded-full object-cover"
                         />
