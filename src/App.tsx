@@ -314,6 +314,8 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
+        {/* Custom slug route - must be after all other routes except catch-all */}
+        <Route path="/:customSlug" element={<PageTransition><PublicCard customSlug={true} /></PageTransition>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>
