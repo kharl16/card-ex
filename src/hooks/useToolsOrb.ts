@@ -81,16 +81,16 @@ export function useToolsOrb() {
         return;
       }
 
-      if (data) {
-        setSettings({
-          id: data.id,
-          enabled: data.enabled,
-          orb_image_url: data.orb_image_url,
-          orb_label: data.orb_label || "Tools",
-          items: (data.items as unknown as ToolsOrbItem[]) || DEFAULT_SETTINGS.items,
-          updated_at: data.updated_at,
-        });
-      }
+        if (data) {
+          setSettings({
+            id: data.id,
+            enabled: data.enabled,
+            orb_image_url: data.orb_image_url,
+            orb_label: data.orb_label || "Tools",
+            items: normalizeOrbItems((data.items as unknown as ToolsOrbItem[]) || DEFAULT_SETTINGS.items),
+            updated_at: data.updated_at,
+          });
+        }
     } catch (err) {
       console.error("Error in fetchSettings:", err);
     } finally {
