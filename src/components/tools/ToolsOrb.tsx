@@ -288,7 +288,7 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
     sweep = 180;
   } else {
     startAngle = -90;
-    sweep = 300;
+    sweep = 340;
   }
 
   // Calculate radial position for each item
