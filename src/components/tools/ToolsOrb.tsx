@@ -241,18 +241,33 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
     label: toolsAuth.isSetup ? "Lock" : "Set Lock", 
     icon_name: toolsAuth.isSetup ? "Lock" : "Unlock" 
   };
+  const settingsItem = { id: "settings", label: isAdmin ? "Settings" : "Customize", icon_name: "Settings" };
   const showCustomize = isAdmin || (!isAdmin && hasPaidCard);
-  const allItems = [
-    ...enabledItems,
-    lockItem,
-    ...(showCustomize ? [{ id: "settings", label: isAdmin ? "Settings" : "Customize", icon_name: "Settings" }] : []),
-  ] as (ToolsOrbItem | { id: string; label: string; icon_name: string })[];
+
+  // Insert Settings between Files and Branches, Lock at end
+  const buildOrderedItems = () => {
+    const items: (ToolsOrbItem | { id: string; label: string; icon_name: string })[] = [];
+    for (const item of enabledItems) {
+      items.push(item);
+      // Insert settings right after "files"
+      if (item.id === "files" && showCustomize) {
+        items.push(settingsItem);
+      }
+    }
+    items.push(lockItem);
+    // Fallback: if "files" wasn't found but we should show customize, append it
+    if (showCustomize && !items.some(i => i.id === "settings")) {
+      items.splice(items.length - 1, 0, settingsItem);
+    }
+    return items;
+  };
+  const allItems = buildOrderedItems();
   const totalItems = allItems.length;
 
   // Radial geometry constants - consistent sizing for seamless look across all views
   const b = getBounds();
-  const radius = 100; // Consistent radius for perfect equidistant spacing
-  const iconSize = 48; // Consistent icon size matching preview
+  const radius = 120; // Increased radius for better spacing with more items
+  const iconSize = 44; // Slightly smaller to prevent overlap
 
   // Get current position for edge detection (use spring values for real-time)
   const currentX = springX.get();
