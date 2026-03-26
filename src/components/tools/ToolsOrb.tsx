@@ -244,28 +244,38 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
   const settingsItem = { id: "settings", label: isAdmin ? "Settings" : "Customize", icon_name: "Settings" };
   const showCustomize = isAdmin || (!isAdmin && hasPaidCard);
 
-  // Symmetrical layout: Settings at far right (index ~2), Lock at far left (index ~6)
-  // Order: [regular items first 2], Settings, [regular items next 3], Lock, [regular item last]
+  // Symmetrical centered layout anchors:
+  // top: Videos, upper-right: IAM Links, far-right: Settings, lower-right: Files,
+  // bottom: Branches, lower-left: Presentations, far-left: Set Lock, upper-left: Prospect List
   const buildOrderedItems = () => {
-    const items: (ToolsOrbItem | { id: string; label: string; icon_name: string })[] = [];
-    const regular = [...enabledItems];
+    const utilityItems = [lockItem, ...(showCustomize ? [settingsItem] : [])];
+    const byId = new Map(
+      [...enabledItems, ...utilityItems].map((item) => [item.id, item] as const)
+    );
 
-    // Place first 2 regular items (top, upper-right)
-    items.push(...regular.slice(0, 2));
-    // Settings at far right position
-    if (showCustomize) items.push(settingsItem);
-    // Next 3 regular items (lower-right, bottom, lower-left)
-    items.push(...regular.slice(2, 5));
-    // Lock at far left position
-    items.push(lockItem);
-    // Remaining regular items (upper-left)
-    items.push(...regular.slice(5));
+    const preferredOrder = [
+      "trainings",
+      "links",
+      "settings",
+      "files",
+      "directory",
+      "presentations",
+      "lock",
+      "prospects",
+    ];
 
-    // Fallback if no customize shown, ensure lock is still included
-    if (!showCustomize && !items.some(i => i.id === "lock")) {
-      items.push(lockItem);
+    const orderedItems = preferredOrder
+      .map((id) => byId.get(id))
+      .filter((item): item is ToolsOrbItem | { id: string; label: string; icon_name: string } => Boolean(item));
+
+    const remainingItems = [...enabledItems]
+      .filter((item) => !preferredOrder.includes(item.id));
+
+    if (!orderedItems.some((item) => item.id === "lock")) {
+      orderedItems.push(lockItem);
     }
-    return items;
+
+    return [...orderedItems, ...remainingItems];
   };
   const allItems = buildOrderedItems();
   const totalItems = allItems.length;
@@ -297,8 +307,18 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
     sweep = 340;
   }
 
+  const centeredSymmetricAngles = [-90, -45, 0, 45, 90, 135, 180, 225];
+
   // Calculate radial position for each item
   const getRadialPosition = (index: number) => {
+    if (sweep === 340 && totalItems === centeredSymmetricAngles.length) {
+      const angleRad = centeredSymmetricAngles[index] * (Math.PI / 180);
+      return {
+        x: Math.cos(angleRad) * radius,
+        y: Math.sin(angleRad) * radius,
+      };
+    }
+
     const step = totalItems > 1 ? sweep / (totalItems - 1) : 0;
     const angleDeg = startAngle + index * step;
     const angleRad = angleDeg * (Math.PI / 180);
@@ -375,6 +395,9 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
             const isLockItem = item.id === "lock";
             const isUtilityItem = isSettingsItem || isLockItem;
             const IconComponent = ICON_MAP[item.icon_name] || Sparkles;
+            const imageUrl = "image_url" in item && typeof item.image_url === "string"
+              ? item.image_url
+              : undefined;
             const pos = getRadialPosition(index);
 
             return (
@@ -448,9 +471,9 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
                           : '0 4px 20px rgba(212, 175, 55, 0.4), 0 0 30px rgba(212, 175, 55, 0.2)'
                       }}
                     >
-                      {'image_url' in item && item.image_url ? (
+                      {imageUrl ? (
                         <img 
-                          src={item.image_url} 
+                          src={imageUrl} 
                           alt={item.label} 
                           className="w-6 h-6 rounded-full object-cover"
                         />
