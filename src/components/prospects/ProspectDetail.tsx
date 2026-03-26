@@ -174,6 +174,12 @@ export default function ProspectDetail({ prospect, onBack, onUpdate, onDelete, o
         </Card>
       )}
 
+      {/* AI Panel */}
+      <ProspectAIPanel prospect={prospect} activities={activities} followups={followups} />
+
+      {/* Script Templates */}
+      <ProspectScripts prospectName={prospect.full_name} />
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-2">
         <Button variant="outline" className="h-12 gap-2" onClick={() => setActivityDialog(true)}>
