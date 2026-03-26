@@ -1432,6 +1432,39 @@ export type Database = {
           },
         ]
       }
+      prospect_scripts: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          is_default: boolean
+          owner_user_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          owner_user_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          owner_user_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       prospects: {
         Row: {
           archived_at: string | null

@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import {
   ArrowLeft, Phone, Mail, MessageSquare, MapPin, Briefcase, Building2,
-  Calendar, StickyNote, Clock, Plus, Trash2, Archive, Loader2, Send
+  Calendar, StickyNote, Clock, Plus, Trash2, Archive, Loader2, Send, Sparkles
 } from "lucide-react";
+import ProspectAIPanel from "./ProspectAIPanel";
+import ProspectScripts from "./ProspectScripts";
 import {
   PIPELINE_STATUSES, INTEREST_LEVELS, SOURCE_TYPES, PRIORITY_LEVELS,
   type Prospect, type ProspectActivity, type ProspectFollowup,
@@ -171,6 +173,12 @@ export default function ProspectDetail({ prospect, onBack, onUpdate, onDelete, o
           </CardContent>
         </Card>
       )}
+
+      {/* AI Panel */}
+      <ProspectAIPanel prospect={prospect} activities={activities} followups={followups} />
+
+      {/* Script Templates */}
+      <ProspectScripts prospectName={prospect.full_name} />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-2">
