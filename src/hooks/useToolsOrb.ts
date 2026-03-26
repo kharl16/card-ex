@@ -45,6 +45,25 @@ const DEFAULT_SETTINGS: ToolsOrbSettings = {
   updated_at: new Date().toISOString(),
 };
 
+const SYSTEM_ITEM_DEFAULTS = new Map(DEFAULT_SETTINGS.items.map((item) => [item.id, item] as const));
+
+const normalizeOrbItems = (items?: ToolsOrbItem[] | null): ToolsOrbItem[] => {
+  if (!items?.length) return DEFAULT_SETTINGS.items;
+
+  return items.map((item) => {
+    const systemDefault = SYSTEM_ITEM_DEFAULTS.get(item.id);
+
+    if (!systemDefault) {
+      return item;
+    }
+
+    return {
+      ...item,
+      route: systemDefault.route,
+    };
+  });
+};
+
 export function useToolsOrb() {
   const [settings, setSettings] = useState<ToolsOrbSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
@@ -62,16 +81,16 @@ export function useToolsOrb() {
         return;
       }
 
-      if (data) {
-        setSettings({
-          id: data.id,
-          enabled: data.enabled,
-          orb_image_url: data.orb_image_url,
-          orb_label: data.orb_label || "Tools",
-          items: (data.items as unknown as ToolsOrbItem[]) || DEFAULT_SETTINGS.items,
-          updated_at: data.updated_at,
-        });
-      }
+        if (data) {
+          setSettings({
+            id: data.id,
+            enabled: data.enabled,
+            orb_image_url: data.orb_image_url,
+            orb_label: data.orb_label || "Tools",
+            items: normalizeOrbItems((data.items as unknown as ToolsOrbItem[]) || DEFAULT_SETTINGS.items),
+            updated_at: data.updated_at,
+          });
+        }
     } catch (err) {
       console.error("Error in fetchSettings:", err);
     } finally {
@@ -195,17 +214,19 @@ export function useMergedToolsOrb() {
       };
     }
 
-    const mergedItems = globalSettings.items.map((globalItem) => {
-      const override = userOverrides.find((uo) => uo.id === globalItem.id);
-      if (!override) return globalItem;
-      return {
-        ...globalItem,
-        label: override.label ?? globalItem.label,
-        enabled: override.enabled ?? globalItem.enabled,
-        order: override.order ?? globalItem.order,
-        image_url: override.image_url !== undefined ? override.image_url : globalItem.image_url,
-      };
-    }).sort((a, b) => a.order - b.order);
+    const mergedItems = normalizeOrbItems(
+      globalSettings.items.map((globalItem) => {
+        const override = userOverrides.find((uo) => uo.id === globalItem.id);
+        if (!override) return globalItem;
+        return {
+          ...globalItem,
+          label: override.label ?? globalItem.label,
+          enabled: override.enabled ?? globalItem.enabled,
+          order: override.order ?? globalItem.order,
+          image_url: override.image_url !== undefined ? override.image_url : globalItem.image_url,
+        };
+      }).sort((a, b) => a.order - b.order)
+    );
 
     return {
       ...globalSettings,
