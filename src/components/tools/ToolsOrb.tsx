@@ -244,20 +244,26 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
   const settingsItem = { id: "settings", label: isAdmin ? "Settings" : "Customize", icon_name: "Settings" };
   const showCustomize = isAdmin || (!isAdmin && hasPaidCard);
 
-  // Insert Settings between Files and Branches, Lock at end
+  // Symmetrical layout: Settings at far right (index ~2), Lock at far left (index ~6)
+  // Order: [regular items first 2], Settings, [regular items next 3], Lock, [regular item last]
   const buildOrderedItems = () => {
     const items: (ToolsOrbItem | { id: string; label: string; icon_name: string })[] = [];
-    for (const item of enabledItems) {
-      items.push(item);
-      // Insert settings right after "files"
-      if (item.id === "files" && showCustomize) {
-        items.push(settingsItem);
-      }
-    }
+    const regular = [...enabledItems];
+
+    // Place first 2 regular items (top, upper-right)
+    items.push(...regular.slice(0, 2));
+    // Settings at far right position
+    if (showCustomize) items.push(settingsItem);
+    // Next 3 regular items (lower-right, bottom, lower-left)
+    items.push(...regular.slice(2, 5));
+    // Lock at far left position
     items.push(lockItem);
-    // Fallback: if "files" wasn't found but we should show customize, append it
-    if (showCustomize && !items.some(i => i.id === "settings")) {
-      items.splice(items.length - 1, 0, settingsItem);
+    // Remaining regular items (upper-left)
+    items.push(...regular.slice(5));
+
+    // Fallback if no customize shown, ensure lock is still included
+    if (!showCustomize && !items.some(i => i.id === "lock")) {
+      items.push(lockItem);
     }
     return items;
   };
