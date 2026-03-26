@@ -214,17 +214,19 @@ export function useMergedToolsOrb() {
       };
     }
 
-    const mergedItems = globalSettings.items.map((globalItem) => {
-      const override = userOverrides.find((uo) => uo.id === globalItem.id);
-      if (!override) return globalItem;
-      return {
-        ...globalItem,
-        label: override.label ?? globalItem.label,
-        enabled: override.enabled ?? globalItem.enabled,
-        order: override.order ?? globalItem.order,
-        image_url: override.image_url !== undefined ? override.image_url : globalItem.image_url,
-      };
-    }).sort((a, b) => a.order - b.order);
+    const mergedItems = normalizeOrbItems(
+      globalSettings.items.map((globalItem) => {
+        const override = userOverrides.find((uo) => uo.id === globalItem.id);
+        if (!override) return globalItem;
+        return {
+          ...globalItem,
+          label: override.label ?? globalItem.label,
+          enabled: override.enabled ?? globalItem.enabled,
+          order: override.order ?? globalItem.order,
+          image_url: override.image_url !== undefined ? override.image_url : globalItem.image_url,
+        };
+      }).sort((a, b) => a.order - b.order)
+    );
 
     return {
       ...globalSettings,
