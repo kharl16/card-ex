@@ -45,6 +45,25 @@ const DEFAULT_SETTINGS: ToolsOrbSettings = {
   updated_at: new Date().toISOString(),
 };
 
+const SYSTEM_ITEM_DEFAULTS = new Map(DEFAULT_SETTINGS.items.map((item) => [item.id, item] as const));
+
+const normalizeOrbItems = (items?: ToolsOrbItem[] | null): ToolsOrbItem[] => {
+  if (!items?.length) return DEFAULT_SETTINGS.items;
+
+  return items.map((item) => {
+    const systemDefault = SYSTEM_ITEM_DEFAULTS.get(item.id);
+
+    if (!systemDefault) {
+      return item;
+    }
+
+    return {
+      ...item,
+      route: systemDefault.route,
+    };
+  });
+};
+
 export function useToolsOrb() {
   const [settings, setSettings] = useState<ToolsOrbSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
