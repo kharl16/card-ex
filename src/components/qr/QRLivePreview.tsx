@@ -10,7 +10,6 @@ interface QRLivePreviewProps {
 const dotTypeMap: Record<string, string> = {
   squares: "square",
   dots: "dots",
-  "mini-dots": "extra-rounded",
 };
 
 // EyeStyle values we expect from QRSettings

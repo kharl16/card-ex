@@ -19,7 +19,7 @@ export interface QRSettings {
   logoUrl?: string;
   logoPosition?: "center" | "background";
   logoOpacity?: number;
-  pattern?: "squares" | "dots" | "mini-dots";
+  pattern?: "squares" | "dots";
   eyeStyle?: "square" | "extra-rounded" | "dot";
   useGradient?: boolean;
   gradientColor1?: string;
@@ -179,7 +179,6 @@ interface QRCodeCustomizerProps {
 const patternOptions: { value: QRSettings["pattern"]; label: string }[] = [
   { value: "squares", label: "Squares" },
   { value: "dots", label: "Dots" },
-  { value: "mini-dots", label: "Mini Dots" },
 ];
 
 const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [
