@@ -100,28 +100,6 @@ export function QRPatternPreview({ pattern, isSelected, onClick, label }: QRPatt
             <circle cx="26" cy="36" r="3" fill="currentColor" />
           </svg>
         );
-      case 'mini-dots':
-        return (
-          <svg viewBox="0 0 40 40" className={baseClass}>
-            <circle cx="4" cy="4" r="2.2" fill="currentColor" />
-            <circle cx="12" cy="4" r="2.2" fill="currentColor" />
-            <circle cx="20" cy="4" r="2.2" fill="currentColor" />
-            <circle cx="28" cy="4" r="2.2" fill="currentColor" />
-            <circle cx="36" cy="4" r="2.2" fill="currentColor" />
-            <circle cx="4" cy="12" r="2.2" fill="currentColor" />
-            <circle cx="20" cy="12" r="2.2" fill="currentColor" />
-            <circle cx="36" cy="12" r="2.2" fill="currentColor" />
-            <circle cx="4" cy="20" r="2.2" fill="currentColor" />
-            <circle cx="12" cy="20" r="2.2" fill="currentColor" />
-            <circle cx="28" cy="20" r="2.2" fill="currentColor" />
-            <circle cx="4" cy="28" r="2.2" fill="currentColor" />
-            <circle cx="20" cy="28" r="2.2" fill="currentColor" />
-            <circle cx="36" cy="28" r="2.2" fill="currentColor" />
-            <circle cx="12" cy="36" r="2.2" fill="currentColor" />
-            <circle cx="20" cy="36" r="2.2" fill="currentColor" />
-            <circle cx="28" cy="36" r="2.2" fill="currentColor" />
-          </svg>
-        );
       default:
         return null;
     }
