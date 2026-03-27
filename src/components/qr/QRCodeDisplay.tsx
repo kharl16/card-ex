@@ -42,6 +42,7 @@ const dotTypeMap: Record<string, string> = {
   "classy-rounded": "classy-rounded",
   "extra-rounded": "extra-rounded",
   dots: "dots",
+  "mini-dots": "rounded",
 };
 
 type EyeStyle = "square" | "extra-rounded" | "dot" | undefined;
