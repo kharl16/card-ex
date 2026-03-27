@@ -19,7 +19,7 @@ export interface QRSettings {
   logoUrl?: string;
   logoPosition?: "center" | "background";
   logoOpacity?: number;
-  pattern?: "squares" | "classy" | "rounded" | "classy-rounded" | "extra-rounded" | "dots" | "triangle-grid";
+  pattern?: "squares" | "dots";
   eyeStyle?: "square" | "extra-rounded" | "dot";
   useGradient?: boolean;
   gradientColor1?: string;
@@ -86,7 +86,7 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
     settings: {
       darkColor: "#3B82F6",
       lightColor: "#FFFFFF",
-      pattern: "extra-rounded",
+      pattern: "dots",
       eyeStyle: "extra-rounded",
       useGradient: true,
       gradientColor1: "#3B82F6",
@@ -101,7 +101,7 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
     settings: {
       darkColor: "#D4AF37",
       lightColor: "#FFF8E7",
-      pattern: "classy",
+      pattern: "dots",
       eyeStyle: "dot",
       useGradient: true,
       gradientColor1: "#D4AF37",
@@ -134,7 +134,7 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
     settings: {
       darkColor: "#EC4899",
       lightColor: "#FFFFFF",
-      pattern: "rounded",
+      pattern: "dots",
       eyeStyle: "extra-rounded",
       useGradient: true,
       gradientColor1: "#EC4899",
@@ -149,7 +149,7 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
     settings: {
       darkColor: "#D4AF37",
       lightColor: "#FFFEF5",
-      pattern: "classy-rounded",
+      pattern: "dots",
       eyeStyle: "extra-rounded",
       useGradient: true,
       gradientColor1: "#D4AF37",
@@ -178,10 +178,7 @@ interface QRCodeCustomizerProps {
 
 const patternOptions: { value: QRSettings["pattern"]; label: string }[] = [
   { value: "squares", label: "Squares" },
-  { value: "classy", label: "Classy" },
-  { value: "rounded", label: "Rounded" },
   { value: "dots", label: "Dots" },
-  { value: "triangle-grid", label: "Triangles" },
 ];
 
 const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [
