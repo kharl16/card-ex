@@ -14,7 +14,8 @@ const dotTypeMap: Record<string, string> = {
   "classy-rounded": "classy-rounded",
   "extra-rounded": "extra-rounded",
   dots: "dots",
-  "triangle-grid": "classy", // Map to classy as fallback - library doesn't support triangles natively
+  "mini-dots": "rounded",
+  "triangle-grid": "classy",
 };
 
 // EyeStyle values we expect from QRSettings
