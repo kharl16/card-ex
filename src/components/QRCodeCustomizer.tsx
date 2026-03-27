@@ -188,10 +188,6 @@ const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [
   { value: "square", label: "Square" },
   { value: "extra-rounded", label: "Rounded" },
   { value: "dot", label: "Dot" },
-  { value: "leaf", label: "Leaf" },
-  { value: "diamond", label: "Diamond" },
-  { value: "heart", label: "Heart" },
-  { value: "shield", label: "Shield" },
 ];
 
 // Helper functions for presets
