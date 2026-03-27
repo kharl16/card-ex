@@ -19,7 +19,7 @@ export interface QRSettings {
   logoUrl?: string;
   logoPosition?: "center" | "background";
   logoOpacity?: number;
-  pattern?: "squares" | "classy" | "rounded" | "classy-rounded" | "extra-rounded" | "dots" | "triangle-grid";
+  pattern?: "squares" | "dots";
   eyeStyle?: "square" | "extra-rounded" | "dot";
   useGradient?: boolean;
   gradientColor1?: string;
