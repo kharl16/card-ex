@@ -14,7 +14,7 @@ const dotTypeMap: Record<string, string> = {
   "classy-rounded": "classy-rounded",
   "extra-rounded": "extra-rounded",
   dots: "dots",
-  "mini-dots": "rounded",
+  "mini-dots": "classy-rounded",
   "triangle-grid": "classy",
 };
 
