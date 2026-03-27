@@ -134,7 +134,7 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
     settings: {
       darkColor: "#EC4899",
       lightColor: "#FFFFFF",
-      pattern: "rounded",
+      pattern: "dots",
       eyeStyle: "extra-rounded",
       useGradient: true,
       gradientColor1: "#EC4899",
