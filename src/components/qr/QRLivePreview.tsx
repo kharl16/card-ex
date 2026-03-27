@@ -9,13 +9,8 @@ interface QRLivePreviewProps {
 // ----- Pattern (dots) mapping -----
 const dotTypeMap: Record<string, string> = {
   squares: "square",
-  classy: "classy",
-  rounded: "rounded",
-  "classy-rounded": "classy-rounded",
-  "extra-rounded": "extra-rounded",
   dots: "dots",
-  "mini-dots": "classy-rounded",
-  "triangle-grid": "classy",
+  "mini-dots": "extra-rounded",
 };
 
 // EyeStyle values we expect from QRSettings
