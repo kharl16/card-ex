@@ -102,7 +102,7 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
       darkColor: "#D4AF37",
       lightColor: "#FFF8E7",
       pattern: "classy",
-      eyeStyle: "leaf",
+      eyeStyle: "dot",
       useGradient: true,
       gradientColor1: "#D4AF37",
       gradientColor2: "#B8860B",

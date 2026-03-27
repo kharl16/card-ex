@@ -18,7 +18,7 @@ const dotTypeMap: Record<string, string> = {
 };
 
 // EyeStyle values we expect from QRSettings
-type EyeStyle = "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield" | "soft-corner" | undefined;
+type EyeStyle = "square" | "extra-rounded" | "dot" | undefined;
 
 // Library-supported corner types
 type CornerSquareType = "square" | "extra-rounded" | "dot";
