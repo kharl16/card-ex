@@ -178,10 +178,7 @@ interface QRCodeCustomizerProps {
 
 const patternOptions: { value: QRSettings["pattern"]; label: string }[] = [
   { value: "squares", label: "Squares" },
-  { value: "classy", label: "Classy" },
-  { value: "rounded", label: "Rounded" },
   { value: "dots", label: "Dots" },
-  { value: "triangle-grid", label: "Triangles" },
 ];
 
 const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [
