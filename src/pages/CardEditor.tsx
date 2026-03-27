@@ -723,7 +723,7 @@ export default function CardEditor() {
         return Math.round((filled / fields.length) * 100);
       }
       case "contact": {
-        const fields = [card.email, card.phone, card.website, card.location];
+        const fields = [card.email, card.phone, card.website];
         const filled = fields.filter((f) => f && f.trim().length > 0).length;
         return Math.round((filled / fields.length) * 100);
       }
