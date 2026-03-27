@@ -44,7 +44,7 @@ const dotTypeMap: Record<string, string> = {
   dots: "dots",
 };
 
-type EyeStyle = "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield" | undefined;
+type EyeStyle = "square" | "extra-rounded" | "dot" | undefined;
 
 async function compositeQRWithBackground(
   qrBlob: Blob,

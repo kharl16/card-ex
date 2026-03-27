@@ -18,7 +18,7 @@ const dotTypeMap: Record<string, string> = {
 };
 
 // EyeStyle values we expect from QRSettings
-type EyeStyle = "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield" | "soft-corner" | undefined;
+type EyeStyle = "square" | "extra-rounded" | "dot" | undefined;
 
 // Library-supported corner types
 type CornerSquareType = "square" | "extra-rounded" | "dot";
@@ -28,27 +28,10 @@ type CornerDotType = "square" | "dot";
 export function getCornerTypesFromEyeStyle(eyeStyle: EyeStyle): { square: CornerSquareType; dot: CornerDotType } {
   switch (eyeStyle) {
     case "extra-rounded":
-      // "Rounded" eyes in the UI
       return { square: "extra-rounded", dot: "square" };
-
-    case "leaf":
-    case "heart":
-      // Softer / organic feel → map to extra-rounded
-      return { square: "extra-rounded", dot: "dot" };
-
-    case "diamond":
-    case "shield":
-      // Strong / angular feel → map to square
-      return { square: "square", dot: "square" };
 
     case "dot":
-    case "star":
-      // Small dot-eyes
       return { square: "dot", dot: "dot" };
-
-    case "soft-corner":
-      // Soft corner frame with rounded inner → extra-rounded outer, square inner
-      return { square: "extra-rounded", dot: "square" };
 
     case "square":
     default:

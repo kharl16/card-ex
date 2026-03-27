@@ -20,7 +20,7 @@ export interface QRSettings {
   logoPosition?: "center" | "background";
   logoOpacity?: number;
   pattern?: "squares" | "classy" | "rounded" | "classy-rounded" | "extra-rounded" | "dots" | "triangle-grid";
-  eyeStyle?: "square" | "extra-rounded" | "leaf" | "diamond" | "dot" | "star" | "heart" | "shield" | "soft-corner";
+  eyeStyle?: "square" | "extra-rounded" | "dot";
   useGradient?: boolean;
   gradientColor1?: string;
   gradientColor2?: string;
@@ -102,7 +102,7 @@ const BUILT_IN_TEMPLATES: { name: string; description: string; settings: Partial
       darkColor: "#D4AF37",
       lightColor: "#FFF8E7",
       pattern: "classy",
-      eyeStyle: "leaf",
+      eyeStyle: "dot",
       useGradient: true,
       gradientColor1: "#D4AF37",
       gradientColor2: "#B8860B",
@@ -188,10 +188,6 @@ const eyeStyleOptions: { value: QRSettings["eyeStyle"]; label: string }[] = [
   { value: "square", label: "Square" },
   { value: "extra-rounded", label: "Rounded" },
   { value: "dot", label: "Dot" },
-  { value: "leaf", label: "Leaf" },
-  { value: "diamond", label: "Diamond" },
-  { value: "heart", label: "Heart" },
-  { value: "shield", label: "Shield" },
 ];
 
 // Helper functions for presets
