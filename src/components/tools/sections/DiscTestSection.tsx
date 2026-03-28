@@ -139,7 +139,7 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
 
       const { error } = await supabase
         .from("cards")
-        .update({ disc_result: discData as any })
+        .update({ disc_result: discData as unknown as any })
         .eq("id", targetCardId);
 
       if (error) throw error;
