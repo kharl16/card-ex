@@ -36,6 +36,7 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   Presentation,
   Sparkles,
   UserSearch,
+  Brain,
 };
 
 const ROUTE_ITEMS = new Set(["prospects"]);
