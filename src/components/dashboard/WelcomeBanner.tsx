@@ -37,12 +37,7 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
     return { totalCards: cards.length, published };
   }, [cards]);
 
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Amazing morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
-  }, []);
+  const greeting = "Amazing morning";
 
   const name = profile?.full_name?.split(" ")[0] || "there";
 
