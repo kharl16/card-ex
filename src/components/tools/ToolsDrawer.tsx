@@ -200,6 +200,7 @@ export default function ToolsDrawer({
             {activeSection === "files" && <FilesSection searchQuery={searchQuery} />}
             {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} />}
             {activeSection === "presentations" && <PresentationsSection searchQuery={searchQuery} />}
+            {activeSection === "disc_test" && <DiscTestSection searchQuery={searchQuery} />}
           </div>
         </div>
       </div>
