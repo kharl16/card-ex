@@ -14,6 +14,7 @@ import LinksSection from "./sections/LinksSection";
 import FilesSection from "./sections/FilesSection";
 import DirectorySection from "./sections/DirectorySection";
 import PresentationsSection from "./sections/PresentationsSection";
+import DiscTestSection from "./sections/DiscTestSection";
 import BulkImportExportDialog from "./admin/BulkImportExportDialog";
 import { cn } from "@/lib/utils";
 import {
@@ -24,6 +25,7 @@ import {
   Presentation,
   Sparkles,
   UserSearch,
+  Brain,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
@@ -34,6 +36,7 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   Presentation,
   Sparkles,
   UserSearch,
+  Brain,
 };
 
 const ROUTE_ITEMS = new Set(["prospects"]);
@@ -197,6 +200,7 @@ export default function ToolsDrawer({
             {activeSection === "files" && <FilesSection searchQuery={searchQuery} />}
             {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} />}
             {activeSection === "presentations" && <PresentationsSection searchQuery={searchQuery} />}
+            {activeSection === "disc_test" && <DiscTestSection searchQuery={searchQuery} />}
           </div>
         </div>
       </div>

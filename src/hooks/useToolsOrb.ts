@@ -41,6 +41,7 @@ const DEFAULT_SETTINGS: ToolsOrbSettings = {
     { id: "directory", label: "Branches", route: "/tools/directory", icon_name: "Building2", order: 4, enabled: true },
     { id: "presentations", label: "Presentations", route: "/tools/presentations", icon_name: "Presentation", order: 5, enabled: true },
     { id: "prospects", label: "Prospect List", route: "/prospects", icon_name: "ClipboardList", order: 6, enabled: true },
+    { id: "disc_test", label: "DISC Test", route: "/tools/disc-test", icon_name: "Brain", order: 7, enabled: true },
   ],
   updated_at: new Date().toISOString(),
 };

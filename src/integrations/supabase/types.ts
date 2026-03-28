@@ -535,6 +535,7 @@ export type Database = {
           created_at: string
           custom_slug: string | null
           design_version: number
+          disc_result: Json | null
           email: string | null
           first_name: string | null
           full_name: string
@@ -590,6 +591,7 @@ export type Database = {
           created_at?: string
           custom_slug?: string | null
           design_version?: number
+          disc_result?: Json | null
           email?: string | null
           first_name?: string | null
           full_name: string
@@ -645,6 +647,7 @@ export type Database = {
           created_at?: string
           custom_slug?: string | null
           design_version?: number
+          disc_result?: Json | null
           email?: string | null
           first_name?: string | null
           full_name?: string

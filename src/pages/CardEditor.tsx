@@ -292,6 +292,7 @@ export default function CardEditor() {
         package_images: (card as any).package_images,
         testimony_images: (card as any).testimony_images,
         video_items: (card as any).video_items,
+        disc_result: (card as any).disc_result,
       })
       .eq("id", card.id);
 

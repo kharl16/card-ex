@@ -78,6 +78,7 @@ export function TemplatePreviewDialog({
     design_version: 1,
     last_design_patch_id: null,
     video_items: (layoutData.video_items as unknown) as Json || [],
+    disc_result: null,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
