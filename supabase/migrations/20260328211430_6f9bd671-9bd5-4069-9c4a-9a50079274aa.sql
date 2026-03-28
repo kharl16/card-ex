@@ -1,0 +1,1 @@
+ALTER TABLE public.cards ADD COLUMN disc_result jsonb DEFAULT NULL;
