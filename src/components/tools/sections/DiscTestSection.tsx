@@ -126,6 +126,16 @@ function ExploreAllTypes({ language }: { language: Language }) {
     </div>
   );
 }
+
+export default function DiscTestSection({ searchQuery, cardId }: DiscTestSectionProps) {
+  const { user } = useAuth();
+  const [screen, setScreen] = useState<Screen>("welcome");
+  const [language, setLanguage] = useState<Language>("english");
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<string[]>(Array(discQuestions.length).fill(""));
+  const [saving, setSaving] = useState(false);
+
+  const [shuffledOptions] = useState(() =>
     discQuestions.map(() => shuffleArray(["A", "B", "C", "D"]))
   );
 
