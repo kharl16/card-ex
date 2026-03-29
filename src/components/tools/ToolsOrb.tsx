@@ -270,6 +270,7 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
       "settings",
       "files",
       "directory",
+      "disc_test",
       "presentations",
       "lock",
       "prospects",
