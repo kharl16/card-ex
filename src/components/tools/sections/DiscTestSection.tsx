@@ -23,6 +23,18 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import eagleImg from "@/assets/disc/eagle.jpg";
+import roosterImg from "@/assets/disc/rooster.jpg";
+import carabaoImg from "@/assets/disc/carabao.jpg";
+import tarsierImg from "@/assets/disc/tarsier.jpg";
+
+const animalImages: Record<string, string> = {
+  D: eagleImg,
+  I: roosterImg,
+  S: carabaoImg,
+  C: tarsierImg,
+};
+
 type Screen = "welcome" | "quiz" | "results";
 type Language = "english" | "tagalog";
 
@@ -39,6 +51,80 @@ const shuffleArray = <T,>(array: T[]): T[] => {
 interface DiscTestSectionProps {
   searchQuery?: string;
   cardId?: string;
+}
+
+function ExploreAllTypes({ language }: { language: Language }) {
+  const [selectedType, setSelectedType] = useState<"D" | "I" | "S" | "C">("D");
+  const selected = discResults.find((r) => r.type === selectedType)!;
+  const title = language === "english" ? selected.englishTitle : selected.tagalogTitle;
+  const description = language === "english" ? selected.englishDescription : selected.tagalogDescription;
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-bold">
+        {language === "english" ? "Explore All Personality Types" : "Tuklasin ang Lahat ng Uri ng Personalidad"}
+      </h3>
+
+      {/* Type tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {discResults.map((r) => {
+          const isActive = r.type === selectedType;
+          const label = language === "english" ? r.englishTitle : r.tagalogTitle;
+          return (
+            <button
+              key={r.type}
+              onClick={() => setSelectedType(r.type)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                isActive
+                  ? "text-white shadow-md"
+                  : "bg-muted/60 text-foreground/70 hover:bg-muted"
+              }`}
+              style={isActive ? { backgroundColor: r.color } : undefined}
+            >
+              <span
+                className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                style={{ backgroundColor: r.color }}
+              >
+                {r.type}
+              </span>
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Selected type card */}
+      <Card className="overflow-hidden border-2" style={{ borderColor: selected.bgColor }}>
+        <div className="flex gap-4 p-4" style={{ backgroundColor: selected.bgColor }}>
+          <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-muted">
+            <img
+              src={animalImages[selectedType]}
+              alt={selected.animalName}
+              className="w-full h-full object-cover"
+              loading="lazy"
+              width={512}
+              height={512}
+            />
+          </div>
+          <div className="space-y-1.5 min-w-0">
+            <div className="flex items-center gap-2">
+              <span
+                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                style={{ backgroundColor: selected.color }}
+              >
+                {selected.type}
+              </span>
+              <h4 className="font-bold text-sm">{title}</h4>
+            </div>
+            <p className="text-sm font-semibold" style={{ color: selected.color }}>
+              {selected.animalName}
+            </p>
+            <p className="text-xs text-foreground/70 leading-relaxed">{description}</p>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
 }
 
 export default function DiscTestSection({ searchQuery, cardId }: DiscTestSectionProps) {
@@ -262,6 +348,9 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
             ? "Takes about 5-7 minutes to complete"
             : "Tumatagal ng mga 5-7 minuto"}
         </p>
+
+        {/* Explore All Personality Types */}
+        <ExploreAllTypes language={language} />
       </div>
     );
   }
@@ -448,6 +537,9 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
             : "Bawat uri ng personalidad ay may natatanging kalakasan. Walang tama o maling resulta — tanggapin kung sino ka at magpatuloy na lumago!"}
         </p>
       </Card>
+
+      {/* Explore All Personality Types */}
+      <ExploreAllTypes language={language} />
 
       {/* Action Buttons */}
       <div className="flex flex-col gap-2">
