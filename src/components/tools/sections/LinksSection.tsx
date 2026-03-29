@@ -25,7 +25,7 @@ interface LinksSectionProps {
   showDiscTest?: boolean;
 }
 
-export default function LinksSection({ searchQuery }: LinksSectionProps) {
+export default function LinksSection({ searchQuery, showDiscTest }: LinksSectionProps) {
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<IAMLink[]>([]);
   const [loading, setLoading] = useState(true);
