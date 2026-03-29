@@ -538,6 +538,9 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
         </p>
       </Card>
 
+      {/* Explore All Personality Types */}
+      <ExploreAllTypes language={language} />
+
       {/* Action Buttons */}
       <div className="flex flex-col gap-2">
         <Button onClick={handleSaveToCard} disabled={saving} className="w-full gap-2">
