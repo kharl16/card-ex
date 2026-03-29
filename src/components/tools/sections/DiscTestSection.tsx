@@ -581,7 +581,7 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
       </Card>
 
       {/* Explore All Personality Types */}
-      <ExploreAllTypes language={language} />
+      <ExploreAllTypes language={language} defaultType={personalityType} />
 
       {/* Action Buttons */}
       <div className="flex flex-col gap-2">
