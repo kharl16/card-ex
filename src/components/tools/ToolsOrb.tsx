@@ -270,6 +270,7 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
       "settings",
       "files",
       "directory",
+      "disc_test",
       "presentations",
       "lock",
       "prospects",
@@ -318,7 +319,7 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
     sweep = 340;
   }
 
-  const centeredSymmetricAngles = [-90, -45, 0, 45, 90, 135, 180, 225];
+  const centeredSymmetricAngles = [-90, -50, 0, 40, 80, 120, 160, 200, 240];
 
   // Calculate radial position for each item
   const getRadialPosition = (index: number) => {
