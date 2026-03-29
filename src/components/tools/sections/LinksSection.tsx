@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2 } from "lucide-react";
+import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2, Brain } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLinkDialog from "../admin/AdminLinkDialog";
+import DiscTestSection from "./DiscTestSection";
 
 interface IAMLink {
   id: string;
@@ -21,6 +22,7 @@ interface IAMLink {
 
 interface LinksSectionProps {
   searchQuery: string;
+  showDiscTest?: boolean;
 }
 
 export default function LinksSection({ searchQuery }: LinksSectionProps) {
