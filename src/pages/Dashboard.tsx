@@ -207,18 +207,20 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             {discType && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <img
-                    src={discAnimalImages[discType]}
-                    alt={discLabels[discType]}
-                    className="h-8 w-8 rounded-full object-cover border-2 border-primary/50 shadow-sm cursor-pointer hover:scale-110 transition-transform"
-                  />
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs">
-                  {discLabels[discType]}
-                </TooltipContent>
-              </Tooltip>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <img
+                      src={discAnimalImages[discType]}
+                      alt={discLabels[discType]}
+                      className="h-8 w-8 rounded-full object-cover border-2 border-primary/50 shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">
+                    {discLabels[discType]}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {isAdmin && (
               <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="sm" className="gap-1.5 text-xs">
