@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,17 @@ import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import LoadingAnimation from "@/components/LoadingAnimation";
+import eagleImg from "@/assets/disc/eagle.jpg";
+import roosterImg from "@/assets/disc/rooster.jpg";
+import carabaoImg from "@/assets/disc/carabao.jpg";
+import tarsierImg from "@/assets/disc/tarsier.jpg";
+
+const discAnimalImages: Record<string, string> = {
+  D: eagleImg, I: roosterImg, S: carabaoImg, C: tarsierImg,
+};
+const discLabels: Record<string, string> = {
+  D: "Dominant (Eagle)", I: "Influential (Rooster)", S: "Steady (Carabao)", C: "Conscientious (Tarsier)",
+};
 import ShareCardDialog from "@/components/ShareCardDialog";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
@@ -174,6 +186,14 @@ export default function Dashboard() {
   const hasCards = cards.length > 0;
   const visibleCards = filteredAndSortedCards;
 
+  const discType = useMemo(() => {
+    for (const card of cards) {
+      const dr = card.disc_result as any;
+      if (dr?.type && discAnimalImages[dr.type]) return dr.type as string;
+    }
+    return null;
+  }, [cards]);
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header */}
@@ -186,6 +206,20 @@ export default function Dashboard() {
             <span className="text-lg font-bold">Card-Ex</span>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
+            {discType && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <img
+                    src={discAnimalImages[discType]}
+                    alt={discLabels[discType]}
+                    className="h-8 w-8 rounded-full object-cover border-2 border-primary/50 shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  {discLabels[discType]}
+                </TooltipContent>
+              </Tooltip>
+            )}
             {isAdmin && (
               <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="sm" className="gap-1.5 text-xs">
                 <Palette className="h-3.5 w-3.5" />
