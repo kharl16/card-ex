@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2 } from "lucide-react";
+import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2, Brain } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLinkDialog from "../admin/AdminLinkDialog";
+import DiscTestSection from "./DiscTestSection";
 
 interface IAMLink {
   id: string;
@@ -21,9 +22,10 @@ interface IAMLink {
 
 interface LinksSectionProps {
   searchQuery: string;
+  showDiscTest?: boolean;
 }
 
-export default function LinksSection({ searchQuery }: LinksSectionProps) {
+export default function LinksSection({ searchQuery, showDiscTest }: LinksSectionProps) {
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<IAMLink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +34,7 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<IAMLink | null>(null);
+  const [showingDiscTest, setShowingDiscTest] = useState(false);
 
   useEffect(() => {
     fetchItems();
@@ -126,8 +129,42 @@ export default function LinksSection({ searchQuery }: LinksSectionProps) {
     );
   }
 
+  if (showDiscTest && showingDiscTest) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={() => setShowingDiscTest(false)} className="gap-2">
+          ← Back to Tools
+        </Button>
+        <DiscTestSection searchQuery={searchQuery} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
+      {/* DISC Test Card */}
+      {showDiscTest && (
+        <button
+          onClick={() => setShowingDiscTest(true)}
+          className={cn(
+            "flex items-center gap-3 p-3 rounded-xl w-full",
+            "bg-card border border-border/50 shadow-sm",
+            "hover:shadow-md hover:border-primary/30 transition-all"
+          )}
+        >
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center",
+            "bg-gradient-to-br from-primary/20 to-primary/5",
+            "border border-primary/20"
+          )}>
+            <Brain className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <span className="font-semibold text-primary text-base">DISC Personality Test</span>
+            <p className="text-xs text-muted-foreground mt-0.5">Discover your personality type</p>
+          </div>
+        </button>
+      )}
       {/* Admin Add Button */}
       {isAdmin && (
         <Button onClick={handleAdd} className="w-full gap-2">

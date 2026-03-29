@@ -14,7 +14,7 @@ import LinksSection from "./sections/LinksSection";
 import FilesSection from "./sections/FilesSection";
 import DirectorySection from "./sections/DirectorySection";
 import PresentationsSection from "./sections/PresentationsSection";
-import DiscTestSection from "./sections/DiscTestSection";
+
 import BulkImportExportDialog from "./admin/BulkImportExportDialog";
 import { cn } from "@/lib/utils";
 import {
@@ -196,11 +196,11 @@ export default function ToolsDrawer({
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="p-4">
             {activeSection === "trainings" && <TrainingsSection searchQuery={searchQuery} />}
-            {activeSection === "links" && <LinksSection searchQuery={searchQuery} />}
+            {activeSection === "links" && <LinksSection searchQuery={searchQuery} showDiscTest />}
             {activeSection === "files" && <FilesSection searchQuery={searchQuery} />}
             {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} />}
             {activeSection === "presentations" && <PresentationsSection searchQuery={searchQuery} />}
-            {activeSection === "disc_test" && <DiscTestSection searchQuery={searchQuery} />}
+            
           </div>
         </div>
       </div>
