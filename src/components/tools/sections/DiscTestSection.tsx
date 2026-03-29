@@ -499,20 +499,35 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
       </div>
 
       {/* Result Hero */}
-      <Card className="p-6 text-center space-y-3 border-0 shadow-lg" style={{ backgroundColor: result.bgColor }}>
-        <img
-          src={animalImages[result.type]}
-          alt={result.animalName}
-          className="w-24 h-24 object-cover rounded-full mx-auto shadow-md border-4 border-white/50"
+      <Card
+        className="relative p-6 text-center space-y-3 border-0 shadow-lg overflow-hidden"
+        style={{
+          background: `linear-gradient(160deg, ${result.bgColor} 0%, hsl(220 10% 15%) 40%, hsl(220 12% 10%) 100%)`,
+        }}
+      >
+        {/* Subtle radial glow behind animal */}
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            background: `radial-gradient(circle at 50% 30%, ${result.color}, transparent 60%)`,
+          }}
         />
-        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: result.color }}>
-          {language === "english" ? "Your Personality Type" : "Ang Iyong Uri ng Personalidad"}
-        </p>
-        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-        <p className="text-lg font-semibold" style={{ color: result.color }}>
-          {result.animalName}
-        </p>
-        <p className="text-sm text-gray-700">{description}</p>
+        <div className="relative z-10 space-y-3">
+          <img
+            src={animalImages[result.type]}
+            alt={result.animalName}
+            className="w-28 h-28 object-cover rounded-full mx-auto shadow-xl border-4"
+            style={{ borderColor: result.color }}
+          />
+          <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            {language === "english" ? "Your Personality Type" : "Ang Iyong Uri ng Personalidad"}
+          </p>
+          <h2 className="text-2xl font-bold text-foreground">{title}</h2>
+          <p className="text-lg font-semibold" style={{ color: result.color }}>
+            {result.animalName}
+          </p>
+          <p className="text-sm text-foreground/75 max-w-xs mx-auto">{description}</p>
+        </div>
       </Card>
 
       {/* Score Breakdown */}
