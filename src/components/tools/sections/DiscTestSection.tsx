@@ -348,6 +348,9 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
             ? "Takes about 5-7 minutes to complete"
             : "Tumatagal ng mga 5-7 minuto"}
         </p>
+
+        {/* Explore All Personality Types */}
+        <ExploreAllTypes language={language} />
       </div>
     );
   }
