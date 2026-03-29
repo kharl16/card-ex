@@ -185,6 +185,14 @@ export default function Dashboard() {
   const hasCards = cards.length > 0;
   const visibleCards = filteredAndSortedCards;
 
+  const discType = useMemo(() => {
+    for (const card of cards) {
+      const dr = card.disc_result as any;
+      if (dr?.type && discAnimalImages[dr.type]) return dr.type as string;
+    }
+    return null;
+  }, [cards]);
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* Header */}
