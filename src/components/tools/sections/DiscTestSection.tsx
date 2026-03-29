@@ -500,15 +500,19 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
 
       {/* Result Hero */}
       <Card className="p-6 text-center space-y-3 border-0 shadow-lg" style={{ backgroundColor: result.bgColor }}>
-        <div className="text-5xl">{result.emoji}</div>
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <img
+          src={animalImages[result.type]}
+          alt={result.animalName}
+          className="w-24 h-24 object-cover rounded-full mx-auto shadow-md border-4 border-white/50"
+        />
+        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: result.color }}>
           {language === "english" ? "Your Personality Type" : "Ang Iyong Uri ng Personalidad"}
         </p>
-        <h2 className="text-2xl font-bold">{title}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
         <p className="text-lg font-semibold" style={{ color: result.color }}>
           {result.animalName}
         </p>
-        <p className="text-sm text-foreground/80">{description}</p>
+        <p className="text-sm text-gray-700">{description}</p>
       </Card>
 
       {/* Score Breakdown */}
