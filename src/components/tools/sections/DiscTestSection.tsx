@@ -23,6 +23,18 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import eagleImg from "@/assets/disc/eagle.jpg";
+import roosterImg from "@/assets/disc/rooster.jpg";
+import carabaoImg from "@/assets/disc/carabao.jpg";
+import tarsierImg from "@/assets/disc/tarsier.jpg";
+
+const animalImages: Record<string, string> = {
+  D: eagleImg,
+  I: roosterImg,
+  S: carabaoImg,
+  C: tarsierImg,
+};
+
 type Screen = "welcome" | "quiz" | "results";
 type Language = "english" | "tagalog";
 
