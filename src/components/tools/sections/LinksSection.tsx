@@ -34,6 +34,7 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<IAMLink | null>(null);
+  const [showingDiscTest, setShowingDiscTest] = useState(false);
 
   useEffect(() => {
     fetchItems();
