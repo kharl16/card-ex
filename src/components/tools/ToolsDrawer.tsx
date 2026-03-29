@@ -196,7 +196,7 @@ export default function ToolsDrawer({
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="p-4">
             {activeSection === "trainings" && <TrainingsSection searchQuery={searchQuery} />}
-            {activeSection === "links" && <LinksSection searchQuery={searchQuery} />}
+            {activeSection === "links" && <LinksSection searchQuery={searchQuery} showDiscTest />}
             {activeSection === "files" && <FilesSection searchQuery={searchQuery} />}
             {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} />}
             {activeSection === "presentations" && <PresentationsSection searchQuery={searchQuery} />}
