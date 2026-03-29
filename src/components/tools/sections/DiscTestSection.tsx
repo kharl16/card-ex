@@ -8,6 +8,7 @@ import { discResults, DiscPersonalityResult } from "@/data/discResults";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ChevronLeft,
   ChevronRight,
@@ -53,76 +54,117 @@ interface DiscTestSectionProps {
   cardId?: string;
 }
 
-function ExploreAllTypes({ language }: { language: Language }) {
-  const [selectedType, setSelectedType] = useState<"D" | "I" | "S" | "C">("D");
-  const selected = discResults.find((r) => r.type === selectedType)!;
-  const title = language === "english" ? selected.englishTitle : selected.tagalogTitle;
-  const description = language === "english" ? selected.englishDescription : selected.tagalogDescription;
+function ExploreAllTypes({ language, defaultType }: { language: Language; defaultType?: "D" | "I" | "S" | "C" }) {
+  const content = {
+    english: {
+      exploreTypes: "Explore All Personality Types",
+      strengths: "Strengths",
+      growthTips: "Growth Tips",
+    },
+    tagalog: {
+      exploreTypes: "Tuklasin ang Lahat ng Uri ng Personalidad",
+      strengths: "Kalakasan",
+      growthTips: "Mga Payo sa Paglaki",
+    },
+  };
+  const text = content[language];
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-bold">
-        {language === "english" ? "Explore All Personality Types" : "Tuklasin ang Lahat ng Uri ng Personalidad"}
-      </h3>
-
-      {/* Type tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {discResults.map((r) => {
-          const isActive = r.type === selectedType;
-          const label = language === "english" ? r.englishTitle : r.tagalogTitle;
-          return (
-            <button
+      <h3 className="text-lg font-bold">{text.exploreTypes}</h3>
+      <Tabs defaultValue={defaultType || "D"} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-4 h-auto p-1 gap-1">
+          {discResults.map((r) => (
+            <TabsTrigger
               key={r.type}
-              onClick={() => setSelectedType(r.type)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                isActive
-                  ? "text-white shadow-md"
-                  : "bg-muted/60 text-foreground/70 hover:bg-muted"
-              }`}
-              style={isActive ? { backgroundColor: r.color } : undefined}
+              value={r.type}
+              className="flex flex-col items-center gap-1 data-[state=active]:bg-foreground data-[state=active]:text-background px-1 py-2 text-[10px] min-w-0"
             >
-              <span
-                className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+              <div
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
                 style={{ backgroundColor: r.color }}
               >
                 {r.type}
+              </div>
+              <span className="hidden sm:inline truncate text-[10px]">
+                {language === "english" ? r.englishTitle.split(" - ")[1] : r.tagalogTitle.split(" - ")[1]}
               </span>
-              {label}
-            </button>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        {discResults.map((r) => {
+          const typeTitle = language === "english" ? r.englishTitle : r.tagalogTitle;
+          const typeDesc = language === "english" ? r.englishDescription : r.tagalogDescription;
+          const strengthsList = language === "english" ? r.strengths.english : r.strengths.tagalog;
+          const growthTipsList = language === "english" ? r.growthTips.english : r.growthTips.tagalog;
+
+          return (
+            <TabsContent key={r.type} value={r.type} className="space-y-4">
+              {/* Type header with animal image */}
+              <div className="rounded-lg overflow-hidden" style={{ backgroundColor: r.bgColor }}>
+                <div className="flex flex-col sm:flex-row items-center gap-4 p-4">
+                  <img
+                    src={animalImages[r.type]}
+                    alt={r.animalName}
+                    className="w-full sm:w-36 h-24 object-cover rounded-lg shadow-md"
+                    loading="lazy"
+                  />
+                  <div className="flex-1 text-center sm:text-left space-y-1">
+                    <div className="flex items-center gap-2 justify-center sm:justify-start">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                        style={{ backgroundColor: r.color }}
+                      >
+                        {r.type}
+                      </div>
+                      <h4 className="text-base font-bold">{typeTitle}</h4>
+                    </div>
+                    <p className="text-sm font-semibold" style={{ color: r.color }}>
+                      {r.animalName}
+                    </p>
+                    <p className="text-xs text-foreground/80">{typeDesc}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Strengths */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-bold flex items-center gap-2">
+                  <div className="w-1 h-5 rounded" style={{ backgroundColor: r.color }} />
+                  {text.strengths}
+                </h4>
+                <ul className="space-y-1.5">
+                  {strengthsList.map((s, i) => (
+                    <li key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                      <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" style={{ color: r.color }} />
+                      <span className="text-sm">{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Growth Tips */}
+              <div className="space-y-2">
+                <h4 className="text-sm font-bold flex items-center gap-2">
+                  <div className="w-1 h-5 rounded" style={{ backgroundColor: r.color }} />
+                  {text.growthTips}
+                </h4>
+                <ul className="space-y-1.5">
+                  {growthTipsList.map((t, i) => (
+                    <li key={i} className="flex items-start gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors">
+                      <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-[10px] shrink-0 mt-0.5">
+                        {i + 1}
+                      </div>
+                      <span className="text-sm">{t}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </TabsContent>
           );
         })}
-      </div>
-
-      {/* Selected type card */}
-      <Card className="overflow-hidden border-2" style={{ borderColor: selected.bgColor }}>
-        <div className="flex gap-4 p-4" style={{ backgroundColor: selected.bgColor }}>
-          <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-muted">
-            <img
-              src={animalImages[selectedType]}
-              alt={selected.animalName}
-              className="w-full h-full object-cover"
-              loading="lazy"
-              width={512}
-              height={512}
-            />
-          </div>
-          <div className="space-y-1.5 min-w-0">
-            <div className="flex items-center gap-2">
-              <span
-                className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                style={{ backgroundColor: selected.color }}
-              >
-                {selected.type}
-              </span>
-              <h4 className="font-bold text-sm">{title}</h4>
-            </div>
-            <p className="text-sm font-semibold" style={{ color: selected.color }}>
-              {selected.animalName}
-            </p>
-            <p className="text-xs text-foreground/70 leading-relaxed">{description}</p>
-          </div>
-        </div>
-      </Card>
+      </Tabs>
     </div>
   );
 }
@@ -539,7 +581,7 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
       </Card>
 
       {/* Explore All Personality Types */}
-      <ExploreAllTypes language={language} />
+      <ExploreAllTypes language={language} defaultType={personalityType} />
 
       {/* Action Buttons */}
       <div className="flex flex-col gap-2">
