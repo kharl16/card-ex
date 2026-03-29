@@ -107,7 +107,7 @@ function ExploreAllTypes({ language, defaultType }: { language: Language; defaul
                   <img
                     src={animalImages[r.type]}
                     alt={r.animalName}
-                    className="w-full sm:w-36 h-24 object-cover rounded-lg shadow-md"
+                    className="w-24 h-24 sm:w-36 sm:h-24 object-cover rounded-lg shadow-md"
                     loading="lazy"
                   />
                   <div className="flex-1 text-center sm:text-left space-y-1">
@@ -118,12 +118,12 @@ function ExploreAllTypes({ language, defaultType }: { language: Language; defaul
                       >
                         {r.type}
                       </div>
-                      <h4 className="text-base font-bold">{typeTitle}</h4>
+                      <h4 className="text-base font-bold" style={{ color: '#1a1a2e' }}>{typeTitle}</h4>
                     </div>
                     <p className="text-sm font-semibold" style={{ color: r.color }}>
                       {r.animalName}
                     </p>
-                    <p className="text-xs text-foreground/80">{typeDesc}</p>
+                    <p className="text-xs" style={{ color: '#374151' }}>{typeDesc}</p>
                   </div>
                 </div>
               </div>
