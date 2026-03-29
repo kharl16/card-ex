@@ -36,12 +36,11 @@ const DEFAULT_SETTINGS: ToolsOrbSettings = {
   orb_label: "Tools",
   items: [
     { id: "trainings", label: "Videos", route: "/tools/trainings", icon_name: "GraduationCap", order: 1, enabled: true },
-    { id: "links", label: "IAM Links", route: "/tools/links", icon_name: "Link", order: 2, enabled: true },
+    { id: "links", label: "Tools", route: "/tools/links", icon_name: "Link", order: 2, enabled: true },
     { id: "files", label: "Files", route: "/tools/files", icon_name: "FolderOpen", order: 3, enabled: true },
     { id: "directory", label: "Branches", route: "/tools/directory", icon_name: "Building2", order: 4, enabled: true },
     { id: "presentations", label: "Presentations", route: "/tools/presentations", icon_name: "Presentation", order: 5, enabled: true },
     { id: "prospects", label: "Prospect List", route: "/prospects", icon_name: "ClipboardList", order: 6, enabled: true },
-    { id: "disc_test", label: "DISC Test", route: "/tools/disc-test", icon_name: "Brain", order: 7, enabled: true },
   ],
   updated_at: new Date().toISOString(),
 };
