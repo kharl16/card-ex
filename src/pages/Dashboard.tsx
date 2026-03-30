@@ -207,7 +207,7 @@ export default function Dashboard() {
             </div>
             <span className="text-lg font-bold">Card-Ex</span>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1 min-w-0 flex-shrink overflow-hidden">
             {discType && (() => {
               const result = discResults.find(r => r.type === discType);
               return result ? (
@@ -216,7 +216,7 @@ export default function Dashboard() {
                     <img
                       src={discAnimalImages[discType]}
                       alt={discLabels[discType]}
-                      className="h-8 w-8 rounded-full object-cover border-2 border-primary/50 shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                      className="h-7 w-7 flex-shrink-0 rounded-full object-cover border-2 border-primary/50 shadow-sm cursor-pointer hover:scale-110 transition-transform"
                     />
                   </PopoverTrigger>
                   <PopoverContent side="bottom" align="end" className="w-72 p-4">
@@ -249,9 +249,8 @@ export default function Dashboard() {
               ) : null;
             })()}
             {isAdmin && (
-              <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="sm" className="gap-1.5 text-xs">
+              <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
                 <Palette className="h-3.5 w-3.5" />
-                Templates
               </Button>
             )}
             <AdminButton />
