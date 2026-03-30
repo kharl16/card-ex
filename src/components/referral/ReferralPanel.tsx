@@ -172,8 +172,8 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
                 <Clock className="h-3.5 w-3.5 text-yellow-600" />
                 <span className="text-xs text-muted-foreground">Pending</span>
               </div>
-              <div className="text-lg font-bold text-yellow-600">{pendingReferrals.length}</div>
-              <div className="text-[10px] text-muted-foreground truncate">₱{pendingCommission.toLocaleString()}</div>
+              <div className="text-xl font-bold text-yellow-600">{pendingReferrals.length}</div>
+              <div className="text-xs text-muted-foreground">₱{pendingCommission.toLocaleString()}</div>
             </div>
             
             <div className="p-3 bg-muted/50 rounded-lg border">
