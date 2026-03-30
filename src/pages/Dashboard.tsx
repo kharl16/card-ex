@@ -260,7 +260,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 overflow-hidden">
         {/* Welcome Banner */}
         <WelcomeBanner profile={profile} cards={cards} />
 
