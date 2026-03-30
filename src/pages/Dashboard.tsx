@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ const discAnimalImages: Record<string, string> = {
 const discLabels: Record<string, string> = {
   D: "Dominant (Eagle)", I: "Influential (Rooster)", S: "Steady (Carabao)", C: "Conscientious (Tarsier)",
 };
+import { discResults } from "@/data/discResults";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
@@ -206,22 +208,46 @@ export default function Dashboard() {
             <span className="text-lg font-bold">Card-Ex</span>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
-            {discType && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
+            {discType && (() => {
+              const result = discResults.find(r => r.type === discType);
+              return result ? (
+                <Popover>
+                  <PopoverTrigger asChild>
                     <img
                       src={discAnimalImages[discType]}
                       alt={discLabels[discType]}
                       className="h-8 w-8 rounded-full object-cover border-2 border-primary/50 shadow-sm cursor-pointer hover:scale-110 transition-transform"
                     />
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-xs">
-                    {discLabels[discType]}
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
+                  </PopoverTrigger>
+                  <PopoverContent side="bottom" align="end" className="w-72 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <img src={discAnimalImages[discType]} alt={result.animalName} className="h-12 w-12 rounded-full object-cover border-2 border-primary/30" />
+                      <div>
+                        <p className="font-semibold text-sm">{result.englishTitle}</p>
+                        <p className="text-xs text-muted-foreground">{result.animalName} {result.emoji}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">{result.englishDescription}</p>
+                    <div className="mb-2">
+                      <p className="text-xs font-medium mb-1">Strengths</p>
+                      <ul className="text-xs text-muted-foreground space-y-0.5">
+                        {result.strengths.english.slice(0, 3).map((s, i) => (
+                          <li key={i} className="flex items-start gap-1"><span className="text-primary">•</span>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium mb-1">Growth Tips</p>
+                      <ul className="text-xs text-muted-foreground space-y-0.5">
+                        {result.growthTips.english.slice(0, 3).map((t, i) => (
+                          <li key={i} className="flex items-start gap-1"><span className="text-accent-foreground">•</span>{t}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : null;
+            })()}
             {isAdmin && (
               <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="sm" className="gap-1.5 text-xs">
                 <Palette className="h-3.5 w-3.5" />
