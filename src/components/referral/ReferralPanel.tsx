@@ -181,8 +181,8 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
                 <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
                 <span className="text-xs text-muted-foreground">Qualified</span>
               </div>
-              <div className="text-xl font-bold text-green-600">{qualifiedReferrals.length}</div>
-              <div className="text-xs text-muted-foreground">₱{qualifiedCommission.toLocaleString()}</div>
+              <div className="text-lg font-bold text-green-600">{qualifiedReferrals.length}</div>
+              <div className="text-[10px] text-muted-foreground truncate">₱{qualifiedCommission.toLocaleString()}</div>
             </div>
             
             <div className="p-3 bg-muted/50 rounded-lg border">
