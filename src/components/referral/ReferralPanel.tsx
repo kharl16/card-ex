@@ -199,8 +199,8 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
                 <TrendingUp className="h-3.5 w-3.5 text-primary" />
                 <span className="text-xs text-muted-foreground">Total Earned</span>
               </div>
-              <div className="text-lg font-bold text-primary">₱{totalEarnings.toLocaleString()}</div>
-              <div className="text-[10px] text-muted-foreground truncate">{qualifiedReferrals.length + paidOutReferrals.length} referrals</div>
+              <div className="text-xl font-bold text-primary">₱{totalEarnings.toLocaleString()}</div>
+              <div className="text-xs text-muted-foreground">{qualifiedReferrals.length + paidOutReferrals.length} referrals</div>
             </div>
           </div>
 
