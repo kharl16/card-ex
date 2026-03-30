@@ -276,7 +276,8 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
               <Users className="h-4 w-4" />
               Your Referrals ({referrals.length})
             </h4>
-            <div className="border rounded-lg overflow-hidden overflow-x-auto">
+            <div className="border rounded-lg overflow-hidden max-w-full">
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
