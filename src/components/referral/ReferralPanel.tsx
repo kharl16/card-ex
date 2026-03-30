@@ -243,15 +243,16 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
 
           <div>
             <label className="text-sm font-medium">Your Referral Link</label>
-            <div className="flex gap-2 mt-1">
+            <div className="flex gap-1 mt-1">
               <Input
                 value={referralLink}
                 readOnly
-                className="text-sm"
+                className="text-[10px] min-w-0"
               />
               <Button
                 variant="outline"
                 size="icon"
+                className="shrink-0"
                 onClick={() => copyToClipboard(referralLink, "Referral link")}
                 disabled={copying}
               >
@@ -259,6 +260,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
               </Button>
               <Button
                 size="icon"
+                className="shrink-0"
                 onClick={shareReferralLink}
               >
                 <Share2 className="h-4 w-4" />
