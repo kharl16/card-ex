@@ -147,7 +147,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
           Share your referral link and earn commissions when people sign up!
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 overflow-hidden">
         {/* Referred By Indicator */}
         {myReferrer && (
           <Alert className="border-primary/30 bg-primary/5">
