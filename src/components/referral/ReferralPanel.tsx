@@ -333,6 +333,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
                   ))}
                 </TableBody>
               </Table>
+              </div>
             </div>
           </div>
         ) : (
