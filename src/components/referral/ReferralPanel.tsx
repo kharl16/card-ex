@@ -190,8 +190,8 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
                 <Wallet className="h-3.5 w-3.5 text-blue-600" />
                 <span className="text-xs text-muted-foreground">Paid Out</span>
               </div>
-              <div className="text-xl font-bold text-blue-600">{paidOutReferrals.length}</div>
-              <div className="text-xs text-muted-foreground">₱{paidOutCommission.toLocaleString()}</div>
+              <div className="text-lg font-bold text-blue-600">{paidOutReferrals.length}</div>
+              <div className="text-[10px] text-muted-foreground truncate">₱{paidOutCommission.toLocaleString()}</div>
             </div>
             
             <div className="p-3 bg-primary/10 rounded-lg border border-primary/30">
