@@ -166,7 +166,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
           </h4>
           
           {/* Main Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-2">
             <div className="p-3 bg-muted/50 rounded-lg border">
               <div className="flex items-center gap-2 mb-1">
                 <Clock className="h-3.5 w-3.5 text-yellow-600" />
