@@ -197,7 +197,7 @@ export default function Dashboard() {
   }, [cards]);
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw]">
       {/* Header */}
       <header className="border-b border-border/30 bg-card/30 backdrop-blur-md">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
@@ -260,7 +260,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 overflow-hidden">
         {/* Welcome Banner */}
         <WelcomeBanner profile={profile} cards={cards} />
 

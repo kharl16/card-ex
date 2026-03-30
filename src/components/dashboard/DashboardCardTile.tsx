@@ -29,10 +29,10 @@ export function DashboardCardTile({ card, onShare, onDuplicate, onDelete, onRena
     >
       {/* Cover image / gradient header */}
       <div
-        className="relative h-24 w-full overflow-hidden"
+        className="relative h-28 w-full overflow-hidden"
         style={{
           background: card.cover_url
-            ? `url(${card.cover_url}) center/contain no-repeat, ${bgColor}`
+            ? `url(${card.cover_url}) center/cover`
             : `linear-gradient(135deg, ${bgColor}, ${primaryColor}22)`,
         }}
       >
