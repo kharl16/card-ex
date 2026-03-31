@@ -270,9 +270,9 @@ export default function Dashboard() {
         </div>
 
         {/* Main content grid: cards + sidebar */}
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_280px]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
           {/* Left: Cards section */}
-          <div>
+          <div className="min-w-0">
             {/* Search + filter bar */}
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-wrap items-center gap-2">
@@ -295,7 +295,7 @@ export default function Dashboard() {
                   </Button>
                 ))}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative w-full sm:w-56">
                   <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                   <Input
@@ -306,7 +306,7 @@ export default function Dashboard() {
                   />
                 </div>
                 <select
-                  className="h-8 rounded-md border border-border bg-card px-2 text-xs text-foreground"
+                  className="h-8 w-full rounded-md border border-border bg-card px-2 text-xs text-foreground sm:w-auto"
                   value={sortMode}
                   onChange={(e) => setSortMode(e.target.value as SortMode)}
                 >
@@ -358,7 +358,7 @@ export default function Dashboard() {
           </div>
 
           {/* Right sidebar */}
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             <ActivityFeed />
             {profile && <ReferralPanel userPlanCode={null} />}
           </div>
