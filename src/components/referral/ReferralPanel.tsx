@@ -137,8 +137,8 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="overflow-hidden">
+      <CardHeader className="px-3 sm:px-6">
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
           Referral Program
@@ -147,7 +147,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
           Share your referral link and earn commissions when people sign up!
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 overflow-hidden">
+      <CardContent className="space-y-6 px-3 sm:px-6 overflow-hidden">
         {/* Referred By Indicator */}
         {myReferrer && (
           <Alert className="border-primary/30 bg-primary/5">
