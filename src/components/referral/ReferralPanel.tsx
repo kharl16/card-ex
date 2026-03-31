@@ -137,7 +137,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="w-full max-w-full overflow-hidden">
       <CardHeader className="px-3 sm:px-6">
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
@@ -147,7 +147,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
           Share your referral link and earn commissions when people sign up!
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6 px-3 sm:px-6 overflow-hidden">
+      <CardContent className="space-y-6 overflow-hidden px-3 sm:px-6">
         {/* Referred By Indicator */}
         {myReferrer && (
           <Alert className="border-primary/30 bg-primary/5">
@@ -166,7 +166,7 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
           </h4>
           
           {/* Main Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+          <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 sm:gap-3 md:grid-cols-4">
             <div className="p-2 sm:p-3 bg-muted/50 rounded-lg border min-w-0">
               <div className="flex items-center gap-1.5 mb-1">
                 <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-yellow-600 shrink-0" />
@@ -223,48 +223,53 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
         <div className="space-y-3">
           <div>
             <label className="text-sm font-medium">Your Referral Code</label>
-            <div className="flex gap-2 mt-1">
+            <div className="mt-1 flex flex-col gap-2 sm:flex-row">
               <Input
                 value={referralProfile.referral_code || ""}
                 readOnly
-                className="font-mono min-w-0"
+                className="min-w-0 font-mono sm:flex-1"
               />
               <Button
                 variant="outline"
                 size="icon"
-                className="shrink-0"
+                className="h-10 w-full shrink-0 sm:w-10"
                 onClick={() => copyToClipboard(referralProfile.referral_code || "", "Referral code")}
                 disabled={copying}
               >
                 <Copy className="h-4 w-4" />
+                <span className="sm:hidden">Copy code</span>
               </Button>
             </div>
           </div>
 
           <div>
             <label className="text-sm font-medium">Your Referral Link</label>
-            <div className="flex gap-2 mt-1">
+            <div className="mt-1 flex flex-col gap-2 sm:flex-row">
               <Input
                 value={referralLink}
                 readOnly
-                className="text-sm min-w-0"
+                className="min-w-0 text-xs sm:flex-1 sm:text-sm"
               />
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-                onClick={() => copyToClipboard(referralLink, "Referral link")}
-                disabled={copying}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-              <Button
-                size="icon"
-                className="shrink-0"
-                onClick={shareReferralLink}
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-full sm:w-10"
+                  onClick={() => copyToClipboard(referralLink, "Referral link")}
+                  disabled={copying}
+                >
+                  <Copy className="h-4 w-4" />
+                  <span className="sm:hidden">Copy</span>
+                </Button>
+                <Button
+                  size="icon"
+                  className="h-10 w-full sm:w-10"
+                  onClick={shareReferralLink}
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="sm:hidden">Share</span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -276,63 +281,115 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
               <Users className="h-4 w-4" />
               Your Referrals ({referrals.length})
             </h4>
-            <div className="border rounded-lg overflow-hidden max-w-full">
-              <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Plan</TableHead>
-                    <TableHead className="text-right">Commission</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {referrals.map((ref) => (
-                    <TableRow key={ref.id}>
-                      <TableCell className="font-medium">
+            <div className="space-y-3 sm:hidden">
+              {referrals.map((ref) => (
+                <div key={ref.id} className="rounded-lg border border-border/60 bg-muted/20 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="break-words font-medium">
                         {ref.referred_profile?.full_name || "Unknown User"}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      </p>
+                      <p className="mt-1 break-words text-sm text-muted-foreground">
                         {ref.plan?.name || "-"}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        ₱{ref.plan?.profit?.toLocaleString() || 0}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(ref.status)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-center gap-1">
-                          {ref.referred_card ? (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => window.open(`/c/${ref.referred_card?.slug}`, '_blank')}
-                                title="View Card"
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={() => navigate(`/editor/${ref.referred_card?.id}`)}
-                                title="Edit Card"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">No card yet</span>
-                          )}
-                        </div>
-                      </TableCell>
+                      </p>
+                    </div>
+                    <div className="shrink-0">{getStatusBadge(ref.status)}</div>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground">Commission</p>
+                      <p className="text-base font-semibold">₱{ref.plan?.profit?.toLocaleString() || 0}</p>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-1">
+                      {ref.referred_card ? (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => window.open(`/c/${ref.referred_card?.slug}`, "_blank")}
+                            title="View Card"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => navigate(`/editor/${ref.referred_card?.id}`)}
+                            title="Edit Card"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </>
+                      ) : (
+                        <span className="text-right text-xs text-muted-foreground">No card yet</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="hidden max-w-full rounded-lg border overflow-hidden sm:block">
+              <div className="overflow-x-auto">
+                <Table className="min-w-[640px]">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead className="text-right">Commission</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {referrals.map((ref) => (
+                      <TableRow key={ref.id}>
+                        <TableCell className="font-medium">
+                          {ref.referred_profile?.full_name || "Unknown User"}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {ref.plan?.name || "-"}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          ₱{ref.plan?.profit?.toLocaleString() || 0}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(ref.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-1">
+                            {ref.referred_card ? (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => window.open(`/c/${ref.referred_card?.slug}`, "_blank")}
+                                  title="View Card"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() => navigate(`/editor/${ref.referred_card?.id}`)}
+                                  title="Edit Card"
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">No card yet</span>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </div>
             </div>
           </div>

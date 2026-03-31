@@ -47,7 +47,7 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
   const name = profile?.full_name?.split(" ")[0] || "there";
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-card via-card to-accent/30 p-6 md:p-8">
+    <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-card via-card to-accent/30 p-5 sm:p-6 md:p-8">
       <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-primary/5 blur-3xl" />
       <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-primary/5 blur-3xl" />
 
@@ -57,7 +57,7 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
             <Sparkles className="h-5 w-5 text-primary" />
             <span className="text-sm font-medium text-primary">Dashboard</span>
           </div>
-          <h1 className="text-2xl font-bold md:text-3xl">
+          <h1 className="text-xl font-bold sm:text-2xl md:text-3xl">
             {greeting}, <span className="text-primary">{name}</span>
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -65,13 +65,13 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
           </p>
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex flex-wrap gap-4 sm:gap-6">
           {[
             { label: "Total Cards", value: stats.totalCards },
             { label: "Published", value: stats.published },
             { label: "Total Views", value: totalViews },
           ].map((stat) => (
-            <div key={stat.label} className="text-center">
+            <div key={stat.label} className="min-w-[72px] text-center">
               <p className="text-2xl font-bold text-primary">{stat.value}</p>
               <p className="text-xs text-muted-foreground">{stat.label}</p>
             </div>
