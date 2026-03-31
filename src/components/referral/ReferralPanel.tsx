@@ -166,41 +166,41 @@ export function ReferralPanel({ userPlanCode }: ReferralPanelProps) {
           </h4>
           
           {/* Main Stats Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="p-3 bg-muted/50 rounded-lg border">
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="h-3.5 w-3.5 text-yellow-600" />
-                <span className="text-xs text-muted-foreground">Pending</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+            <div className="p-2 sm:p-3 bg-muted/50 rounded-lg border min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-yellow-600 shrink-0" />
+                <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Pending</span>
               </div>
-              <div className="text-xl font-bold text-yellow-600">{pendingReferrals.length}</div>
-              <div className="text-xs text-muted-foreground">₱{pendingCommission.toLocaleString()}</div>
+              <div className="text-lg sm:text-xl font-bold text-yellow-600">{pendingReferrals.length}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground truncate">₱{pendingCommission.toLocaleString()}</div>
             </div>
             
-            <div className="p-3 bg-muted/50 rounded-lg border">
-              <div className="flex items-center gap-2 mb-1">
-                <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
-                <span className="text-xs text-muted-foreground">Qualified</span>
+            <div className="p-2 sm:p-3 bg-muted/50 rounded-lg border min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <CheckCircle2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-green-600 shrink-0" />
+                <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Qualified</span>
               </div>
-              <div className="text-xl font-bold text-green-600">{qualifiedReferrals.length}</div>
-              <div className="text-xs text-muted-foreground">₱{qualifiedCommission.toLocaleString()}</div>
+              <div className="text-lg sm:text-xl font-bold text-green-600">{qualifiedReferrals.length}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground truncate">₱{qualifiedCommission.toLocaleString()}</div>
             </div>
             
-            <div className="p-3 bg-muted/50 rounded-lg border">
-              <div className="flex items-center gap-2 mb-1">
-                <Wallet className="h-3.5 w-3.5 text-blue-600" />
-                <span className="text-xs text-muted-foreground">Paid Out</span>
+            <div className="p-2 sm:p-3 bg-muted/50 rounded-lg border min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Wallet className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-blue-600 shrink-0" />
+                <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Paid Out</span>
               </div>
-              <div className="text-xl font-bold text-blue-600">{paidOutReferrals.length}</div>
-              <div className="text-xs text-muted-foreground">₱{paidOutCommission.toLocaleString()}</div>
+              <div className="text-lg sm:text-xl font-bold text-blue-600">{paidOutReferrals.length}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground truncate">₱{paidOutCommission.toLocaleString()}</div>
             </div>
             
-            <div className="p-3 bg-primary/10 rounded-lg border border-primary/30">
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs text-muted-foreground">Total Earned</span>
+            <div className="p-2 sm:p-3 bg-primary/10 rounded-lg border border-primary/30 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <TrendingUp className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary shrink-0" />
+                <span className="text-[10px] sm:text-xs text-muted-foreground truncate">Total Earned</span>
               </div>
-              <div className="text-xl font-bold text-primary">₱{totalEarnings.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground">{qualifiedReferrals.length + paidOutReferrals.length} referrals</div>
+              <div className="text-lg sm:text-xl font-bold text-primary truncate">₱{totalEarnings.toLocaleString()}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground truncate">{qualifiedReferrals.length + paidOutReferrals.length} referrals</div>
             </div>
           </div>
 
