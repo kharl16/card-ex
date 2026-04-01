@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
@@ -44,6 +43,7 @@ import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
+import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 
 type CardData = Tables<"cards">;
 type FilterMode = "all" | "published" | "unpublished";
@@ -197,7 +197,7 @@ export default function Dashboard() {
   }, [cards]);
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw]">
+    <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw] pb-16 sm:pb-0">
       {/* Header */}
       <header className="border-b border-border/30 bg-card/30 backdrop-blur-md">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
@@ -207,7 +207,7 @@ export default function Dashboard() {
             </div>
             <span className="text-lg font-bold">Card-Ex</span>
           </div>
-          <div className="flex items-center gap-1 min-w-0 flex-shrink overflow-hidden">
+          <div className="flex items-center gap-1 min-w-0 flex-shrink overflow-visible">
             {discType && (() => {
               const result = discResults.find(r => r.type === discType);
               return result ? (
@@ -264,49 +264,48 @@ export default function Dashboard() {
         {/* Welcome Banner */}
         <WelcomeBanner profile={profile} cards={cards} />
 
-        {/* Quick Actions */}
-        <div className="mt-4">
+        {/* Quick Actions - large tap targets */}
+        <div className="mt-5">
           <QuickActions onNewCard={() => setNewCardDialogOpen(true)} firstCardId={cards.length > 0 ? cards[0].id : null} />
         </div>
 
-        {/* Main content grid: cards + sidebar */}
+        {/* Main content - single column on mobile, sidebar on desktop */}
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-          {/* Left: Cards section */}
+          {/* Cards section */}
           <div className="min-w-0">
-            {/* Search + filter bar */}
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">Filter:</span>
-                {(
-                  [
-                    ["all", "All"],
-                    ["published", "Published"],
-                    ["unpublished", "Draft"],
-                  ] as [FilterMode, string][]
-                ).map(([mode, label]) => (
-                  <Button
-                    key={mode}
-                    size="sm"
-                    variant={filterMode === mode ? "default" : "ghost"}
-                    className={`h-7 text-xs ${filterMode !== mode ? "text-muted-foreground" : ""}`}
-                    onClick={() => setFilterMode(mode)}
-                  >
-                    {label}
-                  </Button>
-                ))}
+            {/* Search + filter */}
+            <div className="mb-5 space-y-3">
+              <div className="relative w-full">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-11 pl-10 text-sm"
+                  placeholder="Search cards..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="relative w-full sm:w-56">
-                  <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    className="h-8 pl-8 text-xs"
-                    placeholder="Search cards..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {(
+                    [
+                      ["all", "All"],
+                      ["published", "Published"],
+                      ["unpublished", "Draft"],
+                    ] as [FilterMode, string][]
+                  ).map(([mode, label]) => (
+                    <Button
+                      key={mode}
+                      size="sm"
+                      variant={filterMode === mode ? "default" : "outline"}
+                      className={`h-9 text-sm ${filterMode !== mode ? "text-muted-foreground" : ""}`}
+                      onClick={() => setFilterMode(mode)}
+                    >
+                      {label}
+                    </Button>
+                  ))}
                 </div>
                 <select
-                  className="h-8 w-full rounded-md border border-border bg-card px-2 text-xs text-foreground sm:w-auto"
+                  className="h-9 rounded-md border border-border bg-card px-3 text-sm text-foreground"
                   value={sortMode}
                   onChange={(e) => setSortMode(e.target.value as SortMode)}
                 >
@@ -320,7 +319,7 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Cards grid */}
+            {/* Cards grid - 1 col mobile, 2 col tablet, 3 col desktop */}
             {loading ? (
               <LoadingAnimation />
             ) : visibleCards.length === 0 ? (
@@ -334,8 +333,8 @@ export default function Dashboard() {
                     {hasCards ? "Try adjusting your search or filters." : "Create your first digital business card."}
                   </p>
                   {!hasCards && (
-                    <Button onClick={() => setNewCardDialogOpen(true)} className="gap-2">
-                      <Plus className="h-4 w-4" />
+                    <Button onClick={() => setNewCardDialogOpen(true)} className="gap-2 h-11 text-base px-6">
+                      <Plus className="h-5 w-5" />
                       Create Card
                     </Button>
                   )}
@@ -357,13 +356,22 @@ export default function Dashboard() {
             )}
           </div>
 
-          {/* Right sidebar */}
-          <div className="min-w-0 space-y-4">
+          {/* Right sidebar - hidden on mobile, visible on desktop */}
+          <div className="hidden min-w-0 space-y-4 lg:block">
             <ActivityFeed />
             {profile && <ReferralPanel userPlanCode={null} />}
           </div>
         </div>
+
+        {/* Activity + Referral below cards on mobile */}
+        <div className="mt-6 space-y-4 lg:hidden">
+          <ActivityFeed />
+          {profile && <ReferralPanel userPlanCode={null} />}
+        </div>
       </main>
+
+      {/* Mobile bottom navigation */}
+      <MobileBottomNav />
 
       {/* Dialogs */}
       {selectedCardId && (
@@ -386,11 +394,11 @@ export default function Dashboard() {
             <DialogDescription>Change the display name. This does not affect the card URL.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
-            <Input value={renameValue} onChange={(e) => setRenameValue(e.target.value)} placeholder="Enter new card name" autoFocus />
+            <Input value={renameValue} onChange={(e) => setRenameValue(e.target.value)} placeholder="Enter new card name" autoFocus className="h-11 text-base" />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => handleRenameDialogOpenChange(false)} disabled={renameSaving}>Cancel</Button>
-            <Button onClick={handleRenameSave} disabled={renameSaving}>{renameSaving ? "Saving..." : "Save"}</Button>
+            <Button variant="outline" onClick={() => handleRenameDialogOpenChange(false)} disabled={renameSaving} className="h-11">Cancel</Button>
+            <Button onClick={handleRenameSave} disabled={renameSaving} className="h-11">{renameSaving ? "Saving..." : "Save"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
