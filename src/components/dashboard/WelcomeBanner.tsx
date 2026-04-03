@@ -21,15 +21,16 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
   const totalViews = cards.reduce((sum, c) => sum + (c.views_count || 0), 0);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
+      <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">Dashboard</p>
       <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
         {greeting}, <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{name}</span>
       </h1>
-      <p className="text-sm text-muted-foreground sm:text-base">
-        {cards.length === 0
-          ? "Create your first digital business card to get started."
-          : `${publishedCount} published · ${totalViews.toLocaleString()} total views`}
-      </p>
+      {cards.length > 0 && (
+        <p className="text-sm text-muted-foreground">
+          {publishedCount} published · {totalViews.toLocaleString()} views
+        </p>
+      )}
     </div>
   );
 }
