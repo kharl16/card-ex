@@ -351,9 +351,12 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Recent Activity — clean, compact */}
+        {/* Quick Links + Activity */}
         {!loading && cards.length > 0 && (
-          <ActivityFeed />
+          <div className="space-y-6">
+            <DashboardQuickLinks />
+            <ActivityFeed />
+          </div>
         )}
       </main>
 
