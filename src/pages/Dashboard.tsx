@@ -348,6 +348,11 @@ export default function Dashboard() {
             )}
           </div>
         )}
+
+        {/* Recent Activity — clean, compact */}
+        {!loading && cards.length > 0 && (
+          <ActivityFeed />
+        )}
       </main>
 
       {/* Mobile bottom navigation */}
