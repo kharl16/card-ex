@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { TrendingUp, Share2, Copy, Trash2, Pencil, DollarSign, Eye } from "lucide-react";
+import { Share2, Pencil, Copy, Trash2, Eye } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
@@ -16,120 +15,97 @@ interface DashboardCardTileProps {
 
 export function DashboardCardTile({ card, onShare, onDuplicate, onDelete, onRename }: DashboardCardTileProps) {
   const navigate = useNavigate();
-
   const theme = card.theme as any;
   const primaryColor = theme?.primary || "#D4AF37";
   const bgColor = theme?.background || "#0B0B0C";
 
   return (
     <div
-      className="group relative w-full min-w-0 max-w-full cursor-pointer overflow-hidden rounded-xl border border-border/40 bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-gold"
+      className="group relative flex w-full cursor-pointer items-stretch overflow-hidden rounded-2xl border border-border/30 bg-card transition-all duration-200 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98]"
       onClick={() => navigate(`/cards/${card.id}/edit`)}
     >
-      {/* Cover image */}
+      {/* Left: Avatar strip */}
       <div
-        className="relative h-28 w-full overflow-hidden sm:h-32"
-        style={card.cover_url ? { backgroundColor: bgColor } : undefined}
+        className="relative flex w-20 shrink-0 items-center justify-center sm:w-24"
+        style={{ background: `linear-gradient(180deg, ${bgColor}, ${primaryColor}22)` }}
       >
-        {card.cover_url ? (
+        {card.avatar_url ? (
           <img
-            src={card.cover_url}
-            alt={`${card.full_name || "Card"} cover`}
-            className="h-full w-full object-contain sm:object-cover"
+            src={card.avatar_url}
+            alt={card.full_name}
+            className="h-14 w-14 rounded-full border-2 border-background/50 object-cover shadow-md sm:h-16 sm:w-16"
           />
         ) : (
           <div
-            className="absolute inset-0"
-            style={{ background: `linear-gradient(135deg, ${bgColor}, ${primaryColor}22)` }}
-          />
+            className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-background/50 text-xl font-bold shadow-md sm:h-16 sm:w-16"
+            style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}88)`, color: bgColor }}
+          >
+            {(card.full_name || "U")[0].toUpperCase()}
+          </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/50 sm:via-card/40 to-transparent" />
-
-        {/* Status badges */}
-        <div className="absolute right-3 top-3 flex items-center gap-1.5">
-          {!card.is_paid && (
-            <Badge variant="outline" className="border-destructive/40 bg-card/80 text-[10px] text-destructive backdrop-blur-sm">
-              <DollarSign className="mr-0.5 h-2.5 w-2.5" />
-              Unpaid
-            </Badge>
-          )}
-          <div
-            className={`h-2.5 w-2.5 rounded-full ring-2 ring-card ${card.is_published ? "bg-emerald-400" : "bg-muted-foreground/50"}`}
-            title={card.is_published ? "Published" : "Unpublished"}
-          />
-        </div>
-
-        {/* Avatar */}
-        <div className="absolute -bottom-5 left-4">
-          {card.avatar_url ? (
-            <img
-              src={card.avatar_url}
-              alt={card.full_name}
-              className="h-14 w-14 rounded-full border-2 border-card object-cover shadow-md"
-            />
-          ) : (
-            <div
-              className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-card text-lg font-bold shadow-md"
-              style={{ background: `linear-gradient(135deg, ${primaryColor}, ${primaryColor}88)`, color: bgColor }}
-            >
-              {(card.full_name || "U")[0].toUpperCase()}
-            </div>
-          )}
-        </div>
+        {/* Published dot */}
+        <div
+          className={`absolute right-2 top-2 h-2.5 w-2.5 rounded-full ring-2 ring-card ${card.is_published ? "bg-emerald-400" : "bg-muted-foreground/40"}`}
+          title={card.is_published ? "Published" : "Draft"}
+        />
       </div>
 
-      {/* Content */}
-      <div className="overflow-hidden px-4 pb-4 pt-8">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <h3 className="truncate text-sm font-semibold text-foreground sm:text-base">
-                {card.full_name || "Untitled Card"}
-              </h3>
-              <button
-                className="shrink-0 rounded p-0.5 text-muted-foreground opacity-100 transition-opacity hover:text-primary sm:opacity-0 sm:group-hover:opacity-100"
-                title="Rename"
-                onClick={(e) => onRename(card, e)}
-              >
-                <Pencil className="h-3 w-3" />
-              </button>
-            </div>
-            <p className="truncate text-xs text-muted-foreground sm:text-sm">
-              {card.title || "No title"} {card.company ? `· ${card.company}` : ""}
-            </p>
-          </div>
+      {/* Right: Info + actions */}
+      <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 px-4 py-4">
+        {/* Name & title */}
+        <div className="min-w-0">
+          <h3 className="truncate text-base font-bold leading-tight text-foreground">
+            {card.full_name || "Untitled Card"}
+          </h3>
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+            {card.title || "No title"}{card.company ? ` · ${card.company}` : ""}
+          </p>
         </div>
 
-        {/* Stats + Actions */}
-        <div className="mt-3 border-t border-border/30 pt-3">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2.5 text-xs text-muted-foreground sm:text-sm">
-              <span className="flex items-center gap-1">
-                <Eye className="h-3.5 w-3.5 text-primary/70" />
-                <span className="font-medium">{card.views_count || 0}</span>
-              </span>
-              <span className="min-w-0 truncate text-[10px] text-muted-foreground/60">/{card.slug}</span>
-            </div>
+        {/* Bottom row: views + actions */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Eye className="h-3.5 w-3.5 text-primary/60" />
+            <span className="font-medium">{card.views_count || 0} views</span>
+          </span>
 
-            <div className="flex shrink-0 items-center gap-1">
-              {[
-                { icon: TrendingUp, label: "Analytics", handler: (e: React.MouseEvent) => { e.stopPropagation(); navigate(`/cards/${card.id}/analytics`); } },
-                { icon: Copy, label: "Duplicate", handler: (e: React.MouseEvent) => onDuplicate(card, e) },
-                { icon: Share2, label: "Share", handler: (e: React.MouseEvent) => onShare(card.id, e) },
-                { icon: Trash2, label: "Delete", handler: (e: React.MouseEvent) => onDelete(card, e), destructive: true },
-              ].map(({ icon: Icon, label, handler, destructive }) => (
-                <Button
-                  key={label}
-                  variant="ghost"
-                  size="icon"
-                  className={`h-8 w-8 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 ${destructive ? "text-destructive hover:text-destructive" : "text-muted-foreground hover:text-foreground"}`}
-                  title={label}
-                  onClick={handler}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                </Button>
-              ))}
-            </div>
+          <div className="flex shrink-0 items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-primary hover:bg-primary/10 hover:text-primary"
+              title="Share"
+              onClick={(e) => onShare(card.id, e)}
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+              title="Rename"
+              onClick={(e) => onRename(card, e)}
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+              title="Duplicate"
+              onClick={(e) => onDuplicate(card, e)}
+            >
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive/70 hover:text-destructive opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+              title="Delete"
+              onClick={(e) => onDelete(card, e)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
       </div>
