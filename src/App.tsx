@@ -39,6 +39,7 @@ import RequireAuth from "./components/auth/RequireAuth";
 import Appointments from "./pages/Appointments";
 import Leads from "./pages/Leads";
 import ProspectList from "./pages/ProspectList";
+import Referrals from "./pages/Referrals";
 import TeamDirectory from "./pages/TeamDirectory";
 import DistributorLocator from "./pages/DistributorLocator";
 import NotFound from "./pages/NotFound";
@@ -310,6 +311,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <ProspectList />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/referrals"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <Referrals />
               </RequireAuth>
             </PageTransition>
           }
