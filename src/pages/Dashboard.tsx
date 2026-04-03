@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { Plus, CreditCard, Palette, Search } from "lucide-react";
+import { CreditCard, Palette, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -36,18 +36,16 @@ import ShareCardDialog from "@/components/ShareCardDialog";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
-import { ReferralPanel } from "@/components/referral/ReferralPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 
 type CardData = Tables<"cards">;
-type FilterMode = "all" | "published" | "unpublished";
-type SortMode = "newest" | "oldest" | "nameAsc" | "nameDesc" | "viewsDesc" | "viewsAsc";
+type FilterMode = "all" | "published" | "draft";
+type SortMode = "newest" | "oldest" | "nameAsc" | "nameDesc";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -156,37 +154,37 @@ export default function Dashboard() {
     if (!open) { setRenameTargetCard(null); setRenameValue(""); setRenameSaving(false); }
   };
 
+  const handleQuickShare = () => {
+    if (cards.length > 0) {
+      setSelectedCardId(cards[0].id);
+      setShareDialogOpen(true);
+    }
+  };
+
   const filteredAndSortedCards = useMemo(() => {
     let list = [...cards];
-    list = list.filter((card) => {
-      if (filterMode === "published") return !!card.is_published;
-      if (filterMode === "unpublished") return !card.is_published;
-      return true;
-    });
+    if (filterMode === "published") list = list.filter((c) => !!c.is_published);
+    if (filterMode === "draft") list = list.filter((c) => !c.is_published);
+
     const q = searchTerm.trim().toLowerCase();
     if (q) {
-      list = list.filter((card) => {
-        const name = (card.full_name || "").toLowerCase();
-        const title = (card.title || "").toLowerCase();
-        const company = (card.company || "").toLowerCase();
-        return name.includes(q) || title.includes(q) || company.includes(q);
-      });
+      list = list.filter((card) =>
+        (card.full_name || "").toLowerCase().includes(q) ||
+        (card.title || "").toLowerCase().includes(q) ||
+        (card.company || "").toLowerCase().includes(q)
+      );
     }
+
     list.sort((a, b) => {
       switch (sortMode) {
         case "oldest": return new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime();
         case "nameAsc": return (a.full_name || "").localeCompare(b.full_name || "");
         case "nameDesc": return (b.full_name || "").localeCompare(a.full_name || "");
-        case "viewsDesc": return (b.views_count || 0) - (a.views_count || 0);
-        case "viewsAsc": return (a.views_count || 0) - (b.views_count || 0);
         default: return new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime();
       }
     });
     return list;
   }, [cards, filterMode, searchTerm, sortMode]);
-
-  const hasCards = cards.length > 0;
-  const visibleCards = filteredAndSortedCards;
 
   const discType = useMemo(() => {
     for (const card of cards) {
@@ -197,17 +195,15 @@ export default function Dashboard() {
   }, [cards]);
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw] pb-16 sm:pb-0">
-      {/* Header */}
-      <header className="border-b border-border/30 bg-card/30 backdrop-blur-md">
+    <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw] pb-20 sm:pb-0">
+      {/* Header - minimal */}
+      <header className="sticky top-0 z-40 border-b border-border/20 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center overflow-hidden transition-transform duration-300 hover:rotate-12">
-              <img src={CardExLogo} alt="Card-Ex Logo" className="h-full w-full object-contain" />
-            </div>
-            <span className="text-lg font-bold">Card-Ex</span>
+          <div className="flex items-center gap-2.5">
+            <img src={CardExLogo} alt="Card-Ex" className="h-8 w-8 object-contain" />
+            <span className="text-lg font-bold tracking-tight">Card-Ex</span>
           </div>
-          <div className="flex items-center gap-1 min-w-0 flex-shrink overflow-visible">
+          <div className="flex items-center gap-1">
             {discType && (() => {
               const result = discResults.find(r => r.type === discType);
               return result ? (
@@ -216,7 +212,7 @@ export default function Dashboard() {
                     <img
                       src={discAnimalImages[discType]}
                       alt={discLabels[discType]}
-                      className="h-7 w-7 flex-shrink-0 rounded-full object-cover border-2 border-primary/50 shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                      className="h-7 w-7 rounded-full object-cover border-2 border-primary/50 cursor-pointer hover:scale-110 transition-transform"
                     />
                   </PopoverTrigger>
                   <PopoverContent side="bottom" align="end" className="w-72 p-4">
@@ -249,7 +245,7 @@ export default function Dashboard() {
               ) : null;
             })()}
             {isAdmin && (
-              <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+              <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="icon" className="h-8 w-8">
                 <Palette className="h-3.5 w-3.5" />
               </Button>
             )}
@@ -260,52 +256,68 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 overflow-hidden">
-        {/* Welcome Banner */}
-        <WelcomeBanner profile={profile} cards={cards} />
-
-        {/* Quick Actions - large tap targets */}
-        <div className="mt-5">
-          <QuickActions onNewCard={() => setNewCardDialogOpen(true)} firstCardId={cards.length > 0 ? cards[0].id : null} />
+      <main className="container mx-auto px-4 py-6 space-y-6 overflow-hidden">
+        {/* Welcome + Quick Actions */}
+        <div className="space-y-5">
+          <WelcomeBanner profile={profile} cards={cards} />
+          <QuickActions
+            onNewCard={() => setNewCardDialogOpen(true)}
+            onQuickShare={handleQuickShare}
+            hasCards={cards.length > 0}
+          />
         </div>
 
-        {/* Main content - single column on mobile, sidebar on desktop */}
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_280px]">
-          {/* Cards section */}
-          <div className="min-w-0">
-            {/* Search + filter */}
-            <div className="mb-5 space-y-3">
-              <div className="relative w-full">
+        {/* Cards section */}
+        {loading ? (
+          <LoadingAnimation />
+        ) : cards.length === 0 ? (
+          <Card className="border-dashed border-border/40 bg-card/50">
+            <CardContent className="flex flex-col items-center justify-center py-20">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                <CreditCard className="h-8 w-8 text-primary/60" />
+              </div>
+              <h3 className="mb-2 text-lg font-bold">No cards yet</h3>
+              <p className="mb-6 max-w-xs text-center text-sm text-muted-foreground">
+                Create your first digital business card and start networking smarter.
+              </p>
+              <Button onClick={() => setNewCardDialogOpen(true)} className="h-12 gap-2 rounded-xl px-8 text-base font-semibold">
+                Create Your First Card
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {/* Search + Filters — single row */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="relative flex-1 sm:max-w-sm">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="h-11 pl-10 text-sm"
+                  className="h-10 rounded-xl border-border/40 bg-card/50 pl-10 text-sm"
                   placeholder="Search cards..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {(
-                    [
-                      ["all", "All"],
-                      ["published", "Published"],
-                      ["unpublished", "Draft"],
-                    ] as [FilterMode, string][]
-                  ).map(([mode, label]) => (
-                    <Button
-                      key={mode}
-                      size="sm"
-                      variant={filterMode === mode ? "default" : "outline"}
-                      className={`h-9 text-sm ${filterMode !== mode ? "text-muted-foreground" : ""}`}
-                      onClick={() => setFilterMode(mode)}
-                    >
-                      {label}
-                    </Button>
-                  ))}
-                </div>
+              <div className="flex items-center gap-2">
+                {(
+                  [
+                    ["all", "All"],
+                    ["published", "Live"],
+                    ["draft", "Draft"],
+                  ] as [FilterMode, string][]
+                ).map(([mode, label]) => (
+                  <Button
+                    key={mode}
+                    size="sm"
+                    variant={filterMode === mode ? "default" : "ghost"}
+                    className={`h-9 rounded-lg text-sm font-medium ${filterMode !== mode ? "text-muted-foreground" : ""}`}
+                    onClick={() => setFilterMode(mode)}
+                  >
+                    {label}
+                  </Button>
+                ))}
                 <select
-                  className="h-9 rounded-md border border-border bg-card px-3 text-sm text-foreground"
+                  className="h-9 rounded-lg border-0 bg-card/50 px-2 text-sm text-muted-foreground"
                   value={sortMode}
                   onChange={(e) => setSortMode(e.target.value as SortMode)}
                 >
@@ -313,36 +325,16 @@ export default function Dashboard() {
                   <option value="oldest">Oldest</option>
                   <option value="nameAsc">A–Z</option>
                   <option value="nameDesc">Z–A</option>
-                  <option value="viewsDesc">Most views</option>
-                  <option value="viewsAsc">Least views</option>
                 </select>
               </div>
             </div>
 
-            {/* Cards grid - 1 col mobile, 2 col tablet, 3 col desktop */}
-            {loading ? (
-              <LoadingAnimation />
-            ) : visibleCards.length === 0 ? (
-              <Card className="border-dashed border-border/50">
-                <CardContent className="flex flex-col items-center justify-center py-16">
-                  <CreditCard className="mb-4 h-12 w-12 text-muted-foreground/40" />
-                  <h3 className="mb-2 text-lg font-semibold">
-                    {hasCards ? "No cards match your filters" : "No cards yet"}
-                  </h3>
-                  <p className="mb-4 text-sm text-muted-foreground">
-                    {hasCards ? "Try adjusting your search or filters." : "Create your first digital business card."}
-                  </p>
-                  {!hasCards && (
-                    <Button onClick={() => setNewCardDialogOpen(true)} className="gap-2 h-11 text-base px-6">
-                      <Plus className="h-5 w-5" />
-                      Create Card
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+            {/* Card list — stacked on mobile for readability, grid on desktop */}
+            {filteredAndSortedCards.length === 0 ? (
+              <p className="py-12 text-center text-sm text-muted-foreground">No cards match your search.</p>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {visibleCards.map((card) => (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {filteredAndSortedCards.map((card) => (
                   <DashboardCardTile
                     key={card.id}
                     card={card}
@@ -355,19 +347,7 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-
-          {/* Right sidebar - hidden on mobile, visible on desktop */}
-          <div className="hidden min-w-0 space-y-4 lg:block">
-            <ActivityFeed />
-            {profile && <ReferralPanel userPlanCode={null} />}
-          </div>
-        </div>
-
-        {/* Activity + Referral below cards on mobile */}
-        <div className="mt-6 space-y-4 lg:hidden">
-          <ActivityFeed />
-          {profile && <ReferralPanel userPlanCode={null} />}
-        </div>
+        )}
       </main>
 
       {/* Mobile bottom navigation */}

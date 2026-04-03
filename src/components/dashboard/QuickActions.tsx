@@ -1,44 +1,32 @@
-import { useNavigate } from "react-router-dom";
-import {
-  Plus,
-  Users,
-  CalendarDays,
-  MapPin,
-  BookOpen,
-} from "lucide-react";
+import { Plus, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface QuickActionsProps {
   onNewCard: () => void;
-  firstCardId?: string | null;
+  onQuickShare?: () => void;
+  hasCards: boolean;
 }
 
-export function QuickActions({ onNewCard, firstCardId }: QuickActionsProps) {
-  const navigate = useNavigate();
-
-  const actions = [
-    { icon: Plus, label: "New Card", onClick: onNewCard, primary: true },
-    { icon: Users, label: "Leads", onClick: () => navigate("/dashboard/leads") },
-    { icon: CalendarDays, label: "Appointments", onClick: () => navigate("/dashboard/appointments") },
-    { icon: MapPin, label: "Locator", onClick: () => navigate("/locator") },
-    { icon: BookOpen, label: "Resources", onClick: () => navigate("/resources") },
-  ];
-
+export function QuickActions({ onNewCard, onQuickShare, hasCards }: QuickActionsProps) {
   return (
-    <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-2">
-      {actions.map((action) => (
-        <button
-          key={action.label}
-          onClick={action.onClick}
-          className={`flex min-h-[52px] flex-col items-center justify-center gap-1.5 rounded-xl border px-2 py-3 text-center transition-all active:scale-95 sm:min-h-0 sm:flex-row sm:gap-1.5 sm:px-4 sm:py-2 ${
-            (action as any).primary
-              ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-              : "border-border/50 bg-card/50 text-foreground hover:bg-accent"
-          }`}
+    <div className="flex gap-3">
+      <Button
+        onClick={onNewCard}
+        className="h-12 flex-1 gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/30 sm:flex-none sm:px-8"
+      >
+        <Plus className="h-5 w-5" />
+        New Card
+      </Button>
+      {hasCards && onQuickShare && (
+        <Button
+          onClick={onQuickShare}
+          variant="outline"
+          className="h-12 flex-1 gap-2 rounded-xl border-primary/30 text-base font-semibold transition-all hover:border-primary/50 hover:bg-primary/5 sm:flex-none sm:px-8"
         >
-          <action.icon className="h-5 w-5 sm:h-4 sm:w-4" />
-          <span className="text-xs font-medium leading-tight">{action.label}</span>
-        </button>
-      ))}
+          <Share2 className="h-5 w-5" />
+          Quick Share
+        </Button>
+      )}
     </div>
   );
 }
