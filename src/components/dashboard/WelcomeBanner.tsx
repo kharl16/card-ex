@@ -11,9 +11,9 @@ interface WelcomeBannerProps {
 export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
+    if (hour < 12) return "Amazing morning";
+    if (hour < 18) return "Amazing afternoon";
+    return "Amazing evening";
   }, []);
 
   const name = profile?.full_name?.split(" ")[0] || "there";
