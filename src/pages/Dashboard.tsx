@@ -42,6 +42,7 @@ import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 
 type CardData = Tables<"cards">;
 type FilterMode = "all" | "published" | "draft";
@@ -347,6 +348,11 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+        )}
+
+        {/* Recent Activity — clean, compact */}
+        {!loading && cards.length > 0 && (
+          <ActivityFeed />
         )}
       </main>
 
