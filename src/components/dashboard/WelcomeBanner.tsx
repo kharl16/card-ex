@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
@@ -9,6 +10,8 @@ interface WelcomeBannerProps {
 }
 
 export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
+  const [totalViews, setTotalViews] = useState(0);
+
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Amazing morning";
@@ -18,7 +21,19 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
 
   const name = profile?.full_name?.split(" ")[0] || "there";
   const publishedCount = cards.filter((c) => c.is_published).length;
-  const totalViews = cards.reduce((sum, c) => sum + (c.views_count || 0), 0);
+
+  useEffect(() => {
+    if (cards.length === 0) return;
+    const cardIds = cards.map((c) => c.id);
+    supabase
+      .from("analytics_daily")
+      .select("views")
+      .in("card_id", cardIds)
+      .then(({ data }) => {
+        const sum = (data || []).reduce((acc, row) => acc + (row.views || 0), 0);
+        setTotalViews(sum);
+      });
+  }, [cards]);
 
   return (
     <div className="space-y-0.5">
