@@ -46,7 +46,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
     setLoading(true);
     const { data, error } = await supabase
       .from("cards")
-      .select("slug, full_name, share_url, public_url, theme")
+      .select("slug, full_name, share_url, public_url, custom_slug, theme")
       .eq("id", cardId)
       .single();
 
