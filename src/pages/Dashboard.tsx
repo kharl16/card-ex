@@ -367,7 +367,12 @@ export default function Dashboard() {
 
       {/* Dialogs */}
       {selectedCardId && (
-        <ShareCardDialog cardId={selectedCardId} open={shareDialogOpen} onOpenChange={setShareDialogOpen} />
+        <ShareCardDialog
+          cardId={selectedCardId}
+          allCardIds={selectedCardId === cards[0]?.id && cards.length > 1 ? cards.map(c => c.id) : undefined}
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+        />
       )}
       <NewCardDialog open={newCardDialogOpen} onOpenChange={setNewCardDialogOpen} profileName={profile?.full_name} />
       <AdminTemplateManager open={templateManagerOpen} onOpenChange={setTemplateManagerOpen} />
