@@ -26,6 +26,7 @@ interface CardData {
   full_name: string;
   share_url: string;
   public_url: string;
+  custom_slug: string | null;
   theme?: {
     qr?: QRDisplaySettings;
   } | null;
