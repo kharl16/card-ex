@@ -108,6 +108,34 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
                 </p>
               </div>
 
+              {card.custom_slug && (
+                <div className="space-y-2">
+                  <Label htmlFor="custom-url">Custom URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="custom-url"
+                      value={`https://tagex.app/${card.custom_slug}`}
+                      readOnly
+                      className="flex-1 font-mono text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://tagex.app/${card.custom_slug}`);
+                        toast.success(`✅ Custom link copied: tagex.app/${card.custom_slug}`);
+                      }}
+                      title="Copy custom link"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-[hsl(var(--primary))]">
+                    ✓ Your personalized branded URL
+                  </p>
+                </div>
+              )}
+
             <div className="space-y-2">
               <Label>QR Code</Label>
               <div className="flex flex-col items-center gap-2 rounded-lg border p-4 bg-card">
