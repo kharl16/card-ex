@@ -43,7 +43,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { DashboardQuickLinks } from "@/components/dashboard/DashboardQuickLinks";
+import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 
 type CardData = Tables<"cards">;
 type FilterMode = "all" | "published" | "draft";
