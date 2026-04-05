@@ -26,6 +26,7 @@ interface CardData {
   full_name: string;
   share_url: string;
   public_url: string;
+  custom_slug: string | null;
   theme?: {
     qr?: QRDisplaySettings;
   } | null;
@@ -45,7 +46,7 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
     setLoading(true);
     const { data, error } = await supabase
       .from("cards")
-      .select("slug, full_name, share_url, public_url, theme")
+      .select("slug, full_name, share_url, public_url, custom_slug, theme")
       .eq("id", cardId)
       .single();
 
@@ -107,6 +108,34 @@ export default function ShareCardDialog({ cardId, open, onOpenChange }: ShareCar
                     : 'This is your branded short URL'}
                 </p>
               </div>
+
+              {card.custom_slug && (
+                <div className="space-y-2">
+                  <Label htmlFor="custom-url">Custom URL</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="custom-url"
+                      value={`https://tagex.app/${card.custom_slug}`}
+                      readOnly
+                      className="flex-1 font-mono text-sm"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://tagex.app/${card.custom_slug}`);
+                        toast.success(`✅ Custom link copied: tagex.app/${card.custom_slug}`);
+                      }}
+                      title="Copy custom link"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-[hsl(var(--primary))]">
+                    ✓ Your personalized branded URL
+                  </p>
+                </div>
+              )}
 
             <div className="space-y-2">
               <Label>QR Code</Label>
