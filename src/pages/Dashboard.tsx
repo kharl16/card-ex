@@ -359,6 +359,9 @@ export default function Dashboard() {
         )}
       </main>
 
+      {/* Dashboard floating orb for quick links */}
+      <DashboardOrb />
+
       {/* Mobile bottom navigation */}
       <MobileBottomNav />
 
