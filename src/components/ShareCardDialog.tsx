@@ -68,23 +68,27 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
 
   const renderCardSection = (card: CardData, showLabel: boolean) => {
     const shareUrl = card.public_url || card.share_url;
+    const customUrl = card.custom_slug ? `https://tagex.app/${card.custom_slug}` : null;
+    const hideShareUrl = customUrl && shareUrl === customUrl;
     return (
       <div key={card.id} className="space-y-3">
         {showLabel && (
           <p className="text-sm font-semibold text-foreground">{card.full_name || "Untitled Card"}</p>
         )}
-        <div className="space-y-2">
-          <Label>Share URL</Label>
-          <div className="flex gap-2">
-            <Input value={shareUrl} readOnly className="flex-1 font-mono text-sm" />
-            <Button variant="outline" size="icon" onClick={() => handleCopy(shareUrl)} title="Copy link">
-              <Copy className="h-4 w-4" />
-            </Button>
+        {!hideShareUrl && (
+          <div className="space-y-2">
+            <Label>Share URL</Label>
+            <div className="flex gap-2">
+              <Input value={shareUrl} readOnly className="flex-1 font-mono text-sm" />
+              <Button variant="outline" size="icon" onClick={() => handleCopy(shareUrl)} title="Copy link">
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {card.public_url?.includes('/c/') ? 'Permanent shareable link' : 'Branded short URL'}
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {card.public_url?.includes('/c/') ? 'Permanent shareable link' : 'Branded short URL'}
-          </p>
-        </div>
+        )}
 
         {card.custom_slug && (
           <div className="space-y-2">
