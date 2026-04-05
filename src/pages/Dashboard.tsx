@@ -43,7 +43,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { DashboardQuickLinks } from "@/components/dashboard/DashboardQuickLinks";
+import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 
 type CardData = Tables<"cards">;
 type FilterMode = "all" | "published" | "draft";
@@ -351,14 +351,16 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Quick Links + Activity */}
+        {/* Activity */}
         {!loading && cards.length > 0 && (
           <div className="space-y-6">
-            <DashboardQuickLinks />
             <ActivityFeed />
           </div>
         )}
       </main>
+
+      {/* Dashboard floating orb for quick links */}
+      <DashboardOrb />
 
       {/* Mobile bottom navigation */}
       <MobileBottomNav />
