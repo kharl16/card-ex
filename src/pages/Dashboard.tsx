@@ -44,6 +44,10 @@ import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
+import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
+import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
+import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
+import { ProgressTracker } from "@/components/dashboard/ProgressTracker";
 
 type CardData = Tables<"cards">;
 
