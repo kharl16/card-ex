@@ -44,6 +44,10 @@ import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
+import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
+import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
+import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
+import { ProgressTracker } from "@/components/dashboard/ProgressTracker";
 
 type CardData = Tables<"cards">;
 
@@ -235,15 +239,21 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6 overflow-hidden">
-        {/* Welcome + Quick Actions */}
-        <div className="space-y-5">
+        {/* Welcome + Quote */}
+        <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
-          <QuickActions
-            onNewCard={() => setNewCardDialogOpen(true)}
-            onQuickShare={handleQuickShare}
-            hasCards={cards.length > 0}
-          />
+          <MotivationalQuote />
         </div>
+
+        {/* Stats */}
+        {!loading && <AnimatedStatsCards cards={cards} />}
+
+        {/* Quick Actions */}
+        <QuickActions
+          onNewCard={() => setNewCardDialogOpen(true)}
+          onQuickShare={handleQuickShare}
+          hasCards={cards.length > 0}
+        />
 
         {/* Cards section */}
         {loading ? (
@@ -285,9 +295,13 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Activity */}
+        {/* Card Preview Carousel */}
+        {!loading && cards.length > 0 && <CardPreviewCarousel cards={filteredAndSortedCards} />}
+
+        {/* Progress + Activity side by side */}
         {!loading && cards.length > 0 && (
-          <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ProgressTracker cards={cards} profile={profile} />
             <ActivityFeed />
           </div>
         )}
