@@ -295,9 +295,13 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Activity */}
+        {/* Card Preview Carousel */}
+        {!loading && cards.length > 0 && <CardPreviewCarousel cards={filteredAndSortedCards} />}
+
+        {/* Progress + Activity side by side */}
         {!loading && cards.length > 0 && (
-          <div className="space-y-6">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <ProgressTracker cards={cards} profile={profile} />
             <ActivityFeed />
           </div>
         )}
