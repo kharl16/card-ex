@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
@@ -164,29 +164,10 @@ export default function Dashboard() {
   };
 
   const filteredAndSortedCards = useMemo(() => {
-    let list = [...cards];
-    if (filterMode === "published") list = list.filter((c) => !!c.is_published);
-    if (filterMode === "draft") list = list.filter((c) => !c.is_published);
-
-    const q = searchTerm.trim().toLowerCase();
-    if (q) {
-      list = list.filter((card) =>
-        (card.full_name || "").toLowerCase().includes(q) ||
-        (card.title || "").toLowerCase().includes(q) ||
-        (card.company || "").toLowerCase().includes(q)
-      );
-    }
-
-    list.sort((a, b) => {
-      switch (sortMode) {
-        case "oldest": return new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime();
-        case "nameAsc": return (a.full_name || "").localeCompare(b.full_name || "");
-        case "nameDesc": return (b.full_name || "").localeCompare(a.full_name || "");
-        default: return new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime();
-      }
-    });
+    const list = [...cards];
+    list.sort((a, b) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime());
     return list;
-  }, [cards, filterMode, searchTerm, sortMode]);
+  }, [cards]);
 
   const discType = useMemo(() => {
     for (const card of cards) {
