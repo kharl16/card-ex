@@ -239,15 +239,21 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-4 py-6 space-y-6 overflow-hidden">
-        {/* Welcome + Quick Actions */}
-        <div className="space-y-5">
+        {/* Welcome + Quote */}
+        <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
-          <QuickActions
-            onNewCard={() => setNewCardDialogOpen(true)}
-            onQuickShare={handleQuickShare}
-            hasCards={cards.length > 0}
-          />
+          <MotivationalQuote />
         </div>
+
+        {/* Stats */}
+        {!loading && <AnimatedStatsCards cards={cards} />}
+
+        {/* Quick Actions */}
+        <QuickActions
+          onNewCard={() => setNewCardDialogOpen(true)}
+          onQuickShare={handleQuickShare}
+          hasCards={cards.length > 0}
+        />
 
         {/* Cards section */}
         {loading ? (
