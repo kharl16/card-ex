@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { CreditCard, Palette, Search } from "lucide-react";
+import { CreditCard, Palette } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -68,9 +68,9 @@ export default function Dashboard() {
   const [renameValue, setRenameValue] = useState("");
   const [renameSaving, setRenameSaving] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterMode, setFilterMode] = useState<FilterMode>("all");
-  const [sortMode, setSortMode] = useState<SortMode>("newest");
+  const searchTerm = "";
+  const filterMode: FilterMode = "all";
+  const sortMode: SortMode = "newest";
 
   useEffect(() => {
     loadProfile();
