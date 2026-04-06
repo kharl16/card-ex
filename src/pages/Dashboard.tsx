@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { CreditCard, Palette, Search } from "lucide-react";
+import { CreditCard, Palette } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -46,8 +46,6 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 
 type CardData = Tables<"cards">;
-type FilterMode = "all" | "published" | "draft";
-type SortMode = "newest" | "oldest" | "nameAsc" | "nameDesc";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -68,9 +66,6 @@ export default function Dashboard() {
   const [renameValue, setRenameValue] = useState("");
   const [renameSaving, setRenameSaving] = useState(false);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterMode, setFilterMode] = useState<FilterMode>("all");
-  const [sortMode, setSortMode] = useState<SortMode>("newest");
 
   useEffect(() => {
     loadProfile();
@@ -164,29 +159,10 @@ export default function Dashboard() {
   };
 
   const filteredAndSortedCards = useMemo(() => {
-    let list = [...cards];
-    if (filterMode === "published") list = list.filter((c) => !!c.is_published);
-    if (filterMode === "draft") list = list.filter((c) => !c.is_published);
-
-    const q = searchTerm.trim().toLowerCase();
-    if (q) {
-      list = list.filter((card) =>
-        (card.full_name || "").toLowerCase().includes(q) ||
-        (card.title || "").toLowerCase().includes(q) ||
-        (card.company || "").toLowerCase().includes(q)
-      );
-    }
-
-    list.sort((a, b) => {
-      switch (sortMode) {
-        case "oldest": return new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime();
-        case "nameAsc": return (a.full_name || "").localeCompare(b.full_name || "");
-        case "nameDesc": return (b.full_name || "").localeCompare(a.full_name || "");
-        default: return new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime();
-      }
-    });
+    const list = [...cards];
+    list.sort((a, b) => new Date(b.created_at || "").getTime() - new Date(a.created_at || "").getTime());
     return list;
-  }, [cards, filterMode, searchTerm, sortMode]);
+  }, [cards]);
 
   const discType = useMemo(() => {
     for (const card of cards) {
@@ -289,48 +265,6 @@ export default function Dashboard() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {/* Search + Filters — single row */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="relative flex-1 sm:max-w-sm">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="h-10 rounded-xl border-border/40 bg-card/50 pl-10 text-sm"
-                  placeholder="Search cards..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                {(
-                  [
-                    ["all", "All"],
-                    ["published", "Live"],
-                    ["draft", "Draft"],
-                  ] as [FilterMode, string][]
-                ).map(([mode, label]) => (
-                  <Button
-                    key={mode}
-                    size="sm"
-                    variant={filterMode === mode ? "default" : "ghost"}
-                    className={`h-9 rounded-lg text-sm font-medium ${filterMode !== mode ? "text-muted-foreground" : ""}`}
-                    onClick={() => setFilterMode(mode)}
-                  >
-                    {label}
-                  </Button>
-                ))}
-                <select
-                  className="h-9 rounded-lg border-0 bg-card/50 px-2 text-sm text-muted-foreground"
-                  value={sortMode}
-                  onChange={(e) => setSortMode(e.target.value as SortMode)}
-                >
-                  <option value="newest">Newest</option>
-                  <option value="oldest">Oldest</option>
-                  <option value="nameAsc">A–Z</option>
-                  <option value="nameDesc">Z–A</option>
-                </select>
-              </div>
-            </div>
-
             {/* Card list — stacked on mobile for readability, grid on desktop */}
             {filteredAndSortedCards.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted-foreground">No cards match your search.</p>
