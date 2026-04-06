@@ -46,8 +46,6 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 
 type CardData = Tables<"cards">;
-type FilterMode = "all" | "published" | "draft";
-type SortMode = "newest" | "oldest" | "nameAsc" | "nameDesc";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -68,9 +66,6 @@ export default function Dashboard() {
   const [renameValue, setRenameValue] = useState("");
   const [renameSaving, setRenameSaving] = useState(false);
 
-  const searchTerm = "";
-  const filterMode: FilterMode = "all";
-  const sortMode: SortMode = "newest";
 
   useEffect(() => {
     loadProfile();
