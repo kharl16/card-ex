@@ -289,48 +289,6 @@ export default function Dashboard() {
           </Card>
         ) : (
           <div className="space-y-4">
-            {/* Search + Filters — single row */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="relative flex-1 sm:max-w-sm">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="h-10 rounded-xl border-border/40 bg-card/50 pl-10 text-sm"
-                  placeholder="Search cards..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                {(
-                  [
-                    ["all", "All"],
-                    ["published", "Live"],
-                    ["draft", "Draft"],
-                  ] as [FilterMode, string][]
-                ).map(([mode, label]) => (
-                  <Button
-                    key={mode}
-                    size="sm"
-                    variant={filterMode === mode ? "default" : "ghost"}
-                    className={`h-9 rounded-lg text-sm font-medium ${filterMode !== mode ? "text-muted-foreground" : ""}`}
-                    onClick={() => setFilterMode(mode)}
-                  >
-                    {label}
-                  </Button>
-                ))}
-                <select
-                  className="h-9 rounded-lg border-0 bg-card/50 px-2 text-sm text-muted-foreground"
-                  value={sortMode}
-                  onChange={(e) => setSortMode(e.target.value as SortMode)}
-                >
-                  <option value="newest">Newest</option>
-                  <option value="oldest">Oldest</option>
-                  <option value="nameAsc">A–Z</option>
-                  <option value="nameDesc">Z–A</option>
-                </select>
-              </div>
-            </div>
-
             {/* Card list — stacked on mobile for readability, grid on desktop */}
             {filteredAndSortedCards.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted-foreground">No cards match your search.</p>
