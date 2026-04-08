@@ -295,8 +295,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Card Preview Carousel */}
-        {!loading && cards.length > 0 && <CardPreviewCarousel cards={filteredAndSortedCards} />}
 
         {/* Progress + Activity side by side */}
         {!loading && cards.length > 0 && (
