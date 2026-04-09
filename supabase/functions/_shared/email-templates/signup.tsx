@@ -1,141 +1,86 @@
 /// <reference types="npm:@types/react@18.3.1" />
-import * as React from 'npm:react@18.3.1';
-import { Html, Head, Body, Container, Section, Text, Button, Img, Hr } from 'npm:@react-email/components@0.0.22';
+
+import * as React from 'npm:react@18.3.1'
+
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Link,
+  Preview,
+  Text,
+} from 'npm:@react-email/components@0.0.22'
 
 interface SignupEmailProps {
-  siteName: string;
-  siteUrl: string;
-  confirmationUrl: string;
-  recipient: string;
+  siteName: string
+  siteUrl: string
+  recipient: string
+  confirmationUrl: string
 }
 
-export default function SignupEmail({ siteName = 'Card-Ex', siteUrl = 'https://tagex.app', confirmationUrl = '', recipient = '' }: SignupEmailProps) {
-  return (
-    <Html>
-      <Head />
-      <Body style={main}>
-        <Container style={container}>
-          <Section style={headerSection}>
-            <Img
-              src={`${siteUrl}/favicon.png`}
-              width="48"
-              height="48"
-              alt="Card-Ex"
-              style={logo}
-            />
-            <Text style={brandName}>Card-Ex</Text>
-          </Section>
-          <Hr style={divider} />
-          <Section style={contentSection}>
-            <Text style={heading}>Verify Your Email</Text>
-            <Text style={paragraph}>
-              Welcome to Card-Ex! You're one step away from creating your digital business portfolio.
-            </Text>
-            <Text style={paragraph}>
-              Tap the button below to confirm your email and get started.
-            </Text>
-            <Section style={buttonContainer}>
-              <Button style={button} href={confirmationUrl}>
-                Verify Email
-              </Button>
-            </Section>
-            <Text style={smallText}>
-              If you didn't create a Card-Ex account, you can safely ignore this email.
-            </Text>
-          </Section>
-          <Hr style={divider} />
-          <Section style={footer}>
-            <Text style={footerText}>
-              © {new Date().getFullYear()} Card-Ex · Tagex.app
-            </Text>
-          </Section>
-        </Container>
-      </Body>
-    </Html>
-  );
+export const SignupEmail = ({
+  siteName,
+  siteUrl,
+  recipient,
+  confirmationUrl,
+}: SignupEmailProps) => (
+  <Html lang="en" dir="ltr">
+    <Head />
+    <Preview>Confirm your email for {siteName}</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>Confirm your email</Heading>
+        <Text style={text}>
+          Thanks for signing up for{' '}
+          <Link href={siteUrl} style={link}>
+            <strong>{siteName}</strong>
+          </Link>
+          !
+        </Text>
+        <Text style={text}>
+          Please confirm your email address (
+          <Link href={`mailto:${recipient}`} style={link}>
+            {recipient}
+          </Link>
+          ) by clicking the button below:
+        </Text>
+        <Button style={button} href={confirmationUrl}>
+          Verify Email
+        </Button>
+        <Text style={footer}>
+          If you didn't create an account, you can safely ignore this email.
+        </Text>
+      </Container>
+    </Body>
+  </Html>
+)
+
+export default SignupEmail
+
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
+const h1 = {
+  fontSize: '22px',
+  fontWeight: 'bold' as const,
+  color: '#000000',
+  margin: '0 0 20px',
 }
-
-const main: React.CSSProperties = {
-  backgroundColor: '#ffffff',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-};
-
-const container: React.CSSProperties = {
-  margin: '0 auto',
-  padding: '40px 24px',
-  maxWidth: '480px',
-};
-
-const headerSection: React.CSSProperties = {
-  textAlign: 'center' as const,
-  paddingBottom: '24px',
-};
-
-const logo: React.CSSProperties = {
-  margin: '0 auto',
-  borderRadius: '12px',
-};
-
-const brandName: React.CSSProperties = {
-  fontSize: '20px',
-  fontWeight: '700',
-  color: '#0a0a0b',
-  margin: '8px 0 0',
-};
-
-const divider: React.CSSProperties = {
-  borderColor: '#e5e5e5',
-  margin: '0',
-};
-
-const contentSection: React.CSSProperties = {
-  padding: '32px 0',
-};
-
-const heading: React.CSSProperties = {
-  fontSize: '24px',
-  fontWeight: '700',
-  color: '#0a0a0b',
-  margin: '0 0 16px',
-};
-
-const paragraph: React.CSSProperties = {
-  fontSize: '16px',
-  lineHeight: '1.6',
+const text = {
+  fontSize: '14px',
   color: '#55575d',
-  margin: '0 0 16px',
-};
-
-const buttonContainer: React.CSSProperties = {
-  textAlign: 'center' as const,
-  margin: '24px 0',
-};
-
-const button: React.CSSProperties = {
-  backgroundColor: 'hsl(45, 72%, 53%)',
-  color: '#0a0a0b',
-  fontSize: '16px',
-  fontWeight: '600',
-  textDecoration: 'none',
-  borderRadius: '16px',
-  padding: '14px 32px',
-  display: 'inline-block',
-};
-
-const smallText: React.CSSProperties = {
-  fontSize: '13px',
   lineHeight: '1.5',
-  color: '#8b8d93',
-  margin: '24px 0 0',
-};
-
-const footer: React.CSSProperties = {
-  paddingTop: '24px',
-  textAlign: 'center' as const,
-};
-
-const footerText: React.CSSProperties = {
-  fontSize: '12px',
-  color: '#8b8d93',
-  margin: '0',
-};
+  margin: '0 0 25px',
+}
+const link = { color: 'inherit', textDecoration: 'underline' }
+const button = {
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  borderRadius: '8px',
+  padding: '12px 20px',
+  textDecoration: 'none',
+}
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }

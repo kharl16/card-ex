@@ -1,61 +1,87 @@
 /// <reference types="npm:@types/react@18.3.1" />
-import * as React from 'npm:react@18.3.1';
-import { Html, Head, Body, Container, Section, Text, Button, Img, Hr } from 'npm:@react-email/components@0.0.22';
 
-interface EmailChangeProps {
-  siteName: string;
-  siteUrl: string;
-  confirmationUrl: string;
-  recipient: string;
-  newEmail?: string;
+import * as React from 'npm:react@18.3.1'
+
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Html,
+  Link,
+  Preview,
+  Text,
+} from 'npm:@react-email/components@0.0.22'
+
+interface EmailChangeEmailProps {
+  siteName: string
+  email: string
+  newEmail: string
+  confirmationUrl: string
 }
 
-export default function EmailChangeEmail({ siteName = 'Card-Ex', siteUrl = 'https://tagex.app', confirmationUrl = '', recipient = '', newEmail = '' }: EmailChangeProps) {
-  return (
-    <Html>
-      <Head />
-      <Body style={main}>
-        <Container style={container}>
-          <Section style={headerSection}>
-            <Img src={`${siteUrl}/favicon.png`} width="48" height="48" alt="Card-Ex" style={logo} />
-            <Text style={brandName}>Card-Ex</Text>
-          </Section>
-          <Hr style={divider} />
-          <Section style={contentSection}>
-            <Text style={heading}>Confirm Email Change</Text>
-            <Text style={paragraph}>
-              We received a request to change your Card-Ex email{newEmail ? ` to ${newEmail}` : ''}. Tap below to confirm.
-            </Text>
-            <Section style={buttonContainer}>
-              <Button style={button} href={confirmationUrl}>
-                Confirm Email Change
-              </Button>
-            </Section>
-            <Text style={smallText}>
-              If you didn't request this change, please secure your account immediately.
-            </Text>
-          </Section>
-          <Hr style={divider} />
-          <Section style={footer}>
-            <Text style={footerText}>© {new Date().getFullYear()} Card-Ex · Tagex.app</Text>
-          </Section>
-        </Container>
-      </Body>
-    </Html>
-  );
-}
+export const EmailChangeEmail = ({
+  siteName,
+  email,
+  newEmail,
+  confirmationUrl,
+}: EmailChangeEmailProps) => (
+  <Html lang="en" dir="ltr">
+    <Head />
+    <Preview>Confirm your email change for {siteName}</Preview>
+    <Body style={main}>
+      <Container style={container}>
+        <Heading style={h1}>Confirm your email change</Heading>
+        <Text style={text}>
+          You requested to change your email address for {siteName} from{' '}
+          <Link href={`mailto:${email}`} style={link}>
+            {email}
+          </Link>{' '}
+          to{' '}
+          <Link href={`mailto:${newEmail}`} style={link}>
+            {newEmail}
+          </Link>
+          .
+        </Text>
+        <Text style={text}>
+          Click the button below to confirm this change:
+        </Text>
+        <Button style={button} href={confirmationUrl}>
+          Confirm Email Change
+        </Button>
+        <Text style={footer}>
+          If you didn't request this change, please secure your account
+          immediately.
+        </Text>
+      </Container>
+    </Body>
+  </Html>
+)
 
-const main: React.CSSProperties = { backgroundColor: '#ffffff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' };
-const container: React.CSSProperties = { margin: '0 auto', padding: '40px 24px', maxWidth: '480px' };
-const headerSection: React.CSSProperties = { textAlign: 'center' as const, paddingBottom: '24px' };
-const logo: React.CSSProperties = { margin: '0 auto', borderRadius: '12px' };
-const brandName: React.CSSProperties = { fontSize: '20px', fontWeight: '700', color: '#0a0a0b', margin: '8px 0 0' };
-const divider: React.CSSProperties = { borderColor: '#e5e5e5', margin: '0' };
-const contentSection: React.CSSProperties = { padding: '32px 0' };
-const heading: React.CSSProperties = { fontSize: '24px', fontWeight: '700', color: '#0a0a0b', margin: '0 0 16px' };
-const paragraph: React.CSSProperties = { fontSize: '16px', lineHeight: '1.6', color: '#55575d', margin: '0 0 16px' };
-const buttonContainer: React.CSSProperties = { textAlign: 'center' as const, margin: '24px 0' };
-const button: React.CSSProperties = { backgroundColor: 'hsl(45, 72%, 53%)', color: '#0a0a0b', fontSize: '16px', fontWeight: '600', textDecoration: 'none', borderRadius: '16px', padding: '14px 32px', display: 'inline-block' };
-const smallText: React.CSSProperties = { fontSize: '13px', lineHeight: '1.5', color: '#8b8d93', margin: '24px 0 0' };
-const footer: React.CSSProperties = { paddingTop: '24px', textAlign: 'center' as const };
-const footerText: React.CSSProperties = { fontSize: '12px', color: '#8b8d93', margin: '0' };
+export default EmailChangeEmail
+
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
+const h1 = {
+  fontSize: '22px',
+  fontWeight: 'bold' as const,
+  color: '#000000',
+  margin: '0 0 20px',
+}
+const text = {
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
+}
+const link = { color: 'inherit', textDecoration: 'underline' }
+const button = {
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  borderRadius: '8px',
+  padding: '12px 20px',
+  textDecoration: 'none',
+}
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
