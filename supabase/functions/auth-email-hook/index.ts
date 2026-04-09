@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "card-ex"
+const SITE_NAME = "Card-Ex"
 const SENDER_DOMAIN = "notify.tagex.app"
 const ROOT_DOMAIN = "tagex.app"
 const FROM_DOMAIN = "tagex.app" // Domain shown in From address (may be root or sender subdomain)
