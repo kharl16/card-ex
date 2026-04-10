@@ -36,18 +36,18 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
 
 export default ReauthenticationEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Segoe UI', Arial, sans-serif" }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Montserrat, Arial, sans-serif' }
 const container = { padding: '32px 28px', maxWidth: '480px', margin: '0 auto' }
 const h1 = {
   fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#1a1a1a',
-  margin: '0 0 20px',
+  color: '#0a0a0f',
+  margin: '0 0 24px',
 }
 const text = {
-  fontSize: '15px',
+  fontSize: '14px',
   color: '#4a4a4a',
-  lineHeight: '1.6',
+  lineHeight: '1.5',
   margin: '0 0 25px',
 }
 const codeStyle = {
@@ -58,4 +58,4 @@ const codeStyle = {
   margin: '0 0 30px',
   letterSpacing: '4px',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#888888', margin: '30px 0 0' }
