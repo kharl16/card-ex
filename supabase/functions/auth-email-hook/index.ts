@@ -17,12 +17,12 @@ const corsHeaders = {
 }
 
 const EMAIL_SUBJECTS: Record<string, string> = {
-  signup: 'Verify your Card-Ex account',
-  invite: "You're invited to Card-Ex",
-  magiclink: 'Your Card-Ex sign-in link',
-  recovery: 'Reset your Card-Ex password',
-  email_change: 'Confirm your email change',
-  reauthentication: 'Your Card-Ex verification code',
+  signup: 'Confirm your email',
+  invite: "You've been invited",
+  magiclink: 'Your login link',
+  recovery: 'Reset your password',
+  email_change: 'Confirm your new email',
+  reauthentication: 'Your verification code',
 }
 
 // Template mapping
@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "Card-Ex"
+const SITE_NAME = "card-ex"
 const SENDER_DOMAIN = "notify.tagex.app"
 const ROOT_DOMAIN = "tagex.app"
 const FROM_DOMAIN = "tagex.app" // Domain shown in From address (may be root or sender subdomain)
