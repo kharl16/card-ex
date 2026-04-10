@@ -53,27 +53,28 @@ export const InviteEmail = ({
 
 export default InviteEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Montserrat, Arial, sans-serif' }
+const container = { padding: '32px 28px', maxWidth: '480px', margin: '0 auto' }
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  color: '#0a0a0f',
+  margin: '0 0 24px',
 }
 const text = {
   fontSize: '14px',
-  color: '#55575d',
+  color: '#4a4a4a',
   lineHeight: '1.5',
   margin: '0 0 25px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
+const link = { color: '#c6a338', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
+  backgroundColor: '#c6a338',
+  color: '#0a0a0f',
   fontSize: '14px',
+  fontWeight: 'bold' as const,
   borderRadius: '8px',
-  padding: '12px 20px',
+  padding: '14px 28px',
   textDecoration: 'none',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#888888', margin: '30px 0 0' }
