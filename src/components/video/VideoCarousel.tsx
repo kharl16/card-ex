@@ -93,15 +93,15 @@ export default function VideoCarousel({
       <div className="relative w-full">
         <Carousel
           setApi={setApi}
-          opts={{ align: "center", loop: true }}
-          plugins={[
+          opts={{ align: "center", loop: videos.length > 1 }}
+          plugins={videos.length > 1 ? [
             AutoScroll({
               speed: 0.8,
               direction: direction === "rtl" ? "backward" : "forward",
               stopOnInteraction: false,
               stopOnMouseEnter: true,
             }),
-          ]}
+          ] : []}
           className="w-full"
         >
           <CarouselContent
@@ -117,95 +117,100 @@ export default function VideoCarousel({
                 <CarouselItem
                   key={`video-${index}`}
                   className={cn(
-                    "pl-1 basis-4/5 sm:basis-3/5 md:basis-1/2 transition-all duration-300",
+                    "pl-1 transition-all duration-300",
+                    videos.length === 1
+                      ? "basis-4/5 sm:basis-3/5 md:basis-1/2 mx-auto"
+                      : "basis-4/5 sm:basis-3/5 md:basis-1/2",
                     isActive ? "scale-100 opacity-100" : "scale-95 opacity-70"
                   )}
                 >
-                  <div
-                    className={cn(
-                      "relative w-full overflow-hidden rounded-xl bg-muted border border-border/50",
-                      heightClass
-                    )}
-                  >
-                    {/* Active slide plays video, others show thumbnail */}
-                    {isActive && embedUrl ? (
-                      <iframe
-                        src={embedUrl}
-                        className="absolute inset-0 w-full h-full"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        title={video.title || `Video ${index + 1}`}
-                      />
-                    ) : (
-                      <button
-                        type="button"
-                        className="w-full h-full flex items-center justify-center cursor-pointer group"
-                        onClick={() => openFullscreen(index)}
-                      >
-                        {thumbnail ? (
-                          <img
-                            src={thumbnail}
-                            alt={video.title || `Video ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            draggable={false}
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-muted">
-                            <Film className="h-12 w-12 text-muted-foreground/50" />
+                  <div className="flex flex-col">
+                    <div
+                      className={cn(
+                        "relative w-full overflow-hidden rounded-xl bg-muted border border-border/50",
+                        heightClass
+                      )}
+                    >
+                      {/* Active slide plays video, others show thumbnail */}
+                      {isActive && embedUrl ? (
+                        <iframe
+                          src={embedUrl}
+                          className="absolute inset-0 w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title={video.title || `Video ${index + 1}`}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          className="w-full h-full flex items-center justify-center cursor-pointer group"
+                          onClick={() => openFullscreen(index)}
+                        >
+                          {thumbnail ? (
+                            <img
+                              src={thumbnail}
+                              alt={video.title || `Video ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              draggable={false}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-muted">
+                              <Film className="h-12 w-12 text-muted-foreground/50" />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+                            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 shadow-lg group-hover:scale-110 transition-transform">
+                              <Play className="h-7 w-7 text-foreground ml-1" />
+                            </div>
                           </div>
-                        )}
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
-                          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 shadow-lg group-hover:scale-110 transition-transform">
-                            <Play className="h-7 w-7 text-foreground ml-1" />
-                          </div>
-                        </div>
-                      </button>
-                    )}
+                        </button>
+                      )}
 
-                    {/* Overlay controls for active slide */}
-                    {isActive && (
-                      <div className="absolute bottom-2 right-2 z-10 flex gap-1.5">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 bg-black/60 hover:bg-black/80 text-white rounded-full"
-                          onClick={(e) => { e.stopPropagation(); openFullscreen(index); }}
-                          aria-label="Fullscreen"
-                        >
-                          <Play className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 bg-black/60 hover:bg-black/80 text-white rounded-full"
-                          onClick={(e) => { e.stopPropagation(); handleShare(video); }}
-                          aria-label="Share"
-                        >
-                          <Share2 className="h-4 w-4" />
-                        </Button>
-                        {getDownloadUrl(video.url) && (
+                      {/* Overlay controls for active slide */}
+                      {isActive && (
+                        <div className="absolute bottom-2 right-2 z-10 flex gap-1.5">
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 bg-black/60 hover:bg-black/80 text-white rounded-full"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const dl = getDownloadUrl(video.url);
-                              if (dl) window.open(dl, "_blank");
-                            }}
-                            aria-label="Download"
+                            onClick={(e) => { e.stopPropagation(); openFullscreen(index); }}
+                            aria-label="Fullscreen"
                           >
-                            <Download className="h-4 w-4" />
+                            <Play className="h-4 w-4" />
                           </Button>
-                        )}
-                      </div>
-                    )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 bg-black/60 hover:bg-black/80 text-white rounded-full"
+                            onClick={(e) => { e.stopPropagation(); handleShare(video); }}
+                            aria-label="Share"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                          {getDownloadUrl(video.url) && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 bg-black/60 hover:bg-black/80 text-white rounded-full"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const dl = getDownloadUrl(video.url);
+                                if (dl) window.open(dl, "_blank");
+                              }}
+                              aria-label="Download"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
-                    {/* Title overlay */}
+                    {/* Caption below the video card so it's never cropped */}
                     {video.title && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
-                        <p className="text-white text-sm font-medium truncate">{video.title}</p>
-                      </div>
+                      <p className="text-foreground text-sm font-medium mt-1.5 px-1 line-clamp-2">
+                        {video.title}
+                      </p>
                     )}
                   </div>
                 </CarouselItem>
