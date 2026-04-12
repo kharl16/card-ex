@@ -7,13 +7,14 @@ type CardData = Tables<"cards">;
 
 interface DashboardCardTileProps {
   card: CardData;
+  analyticsViews?: number | null;
   onShare: (cardId: string, e: React.MouseEvent) => void;
   onDuplicate: (card: CardData, e: React.MouseEvent) => void;
   onDelete: (card: CardData, e: React.MouseEvent) => void;
   onRename: (card: CardData, e: React.MouseEvent) => void;
 }
 
-export function DashboardCardTile({ card, onShare, onDuplicate, onDelete, onRename }: DashboardCardTileProps) {
+export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, onDelete, onRename }: DashboardCardTileProps) {
   const navigate = useNavigate();
   const theme = card.theme as any;
   const primaryColor = theme?.primary || "#D4AF37";
@@ -66,7 +67,7 @@ export function DashboardCardTile({ card, onShare, onDuplicate, onDelete, onRena
         <div className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <Eye className="h-3.5 w-3.5 text-primary/60" />
-            <span className="font-medium">{card.views_count || 0} views</span>
+            <span className="font-medium">{analyticsViews != null ? analyticsViews : (card.views_count || 0)} views</span>
           </span>
 
           <div className="flex shrink-0 items-center gap-0.5">

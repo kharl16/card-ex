@@ -58,6 +58,7 @@ export default function Dashboard() {
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+  const [cardViewsMap, setCardViewsMap] = useState<Record<string, number>>({});
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -98,6 +99,21 @@ export default function Dashboard() {
         toast.error("Failed to load cards");
       } else {
         setCards(data || []);
+        // Fetch real views from analytics_daily per card
+        const cardIds = (data || []).map((c) => c.id);
+        if (cardIds.length > 0) {
+          supabase
+            .from("analytics_daily")
+            .select("card_id, views")
+            .in("card_id", cardIds)
+            .then(({ data: rows }) => {
+              const map: Record<string, number> = {};
+              (rows || []).forEach((r) => {
+                map[r.card_id] = (map[r.card_id] || 0) + (r.views || 0);
+              });
+              setCardViewsMap(map);
+            });
+        }
       }
     }
     setLoading(false);
@@ -284,6 +300,7 @@ export default function Dashboard() {
                   <DashboardCardTile
                     key={card.id}
                     card={card}
+                    analyticsViews={cardViewsMap[card.id] ?? null}
                     onShare={openShareDialog}
                     onDuplicate={openDuplicateDialog}
                     onDelete={handleDeleteCard}
