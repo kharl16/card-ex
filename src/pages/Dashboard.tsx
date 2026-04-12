@@ -316,7 +316,7 @@ export default function Dashboard() {
         {/* Progress + Activity side by side */}
         {!loading && cards.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2">
-            <ProgressTracker cards={cards} profile={profile} />
+            <ProgressTracker cards={cards} profile={profile} cardViewsMap={cardViewsMap} />
             <ActivityFeed />
           </div>
         )}
