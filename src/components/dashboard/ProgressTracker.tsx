@@ -7,6 +7,7 @@ type CardData = Tables<"cards">;
 interface ProgressTrackerProps {
   cards: CardData[];
   profile: any;
+  cardViewsMap?: Record<string, number>;
 }
 
 interface Milestone {
@@ -14,27 +15,27 @@ interface Milestone {
   reached: boolean;
 }
 
-export function ProgressTracker({ cards, profile }: ProgressTrackerProps) {
+export function ProgressTracker({ cards, profile, cardViewsMap = {} }: ProgressTrackerProps) {
   const milestones = useMemo<Milestone[]>(() => {
     const hasCard = cards.length > 0;
     const hasAvatar = cards.some((c) => c.avatar_url);
     const hasPublished = cards.some((c) => c.is_published);
-    const hasMultiple = cards.length >= 3;
-    const has10Views = cards.some((c) => (c.views_count || 0) >= 10);
+    const hasMultiple = cards.length >= 2;
+    const has10Views = cards.some((c) => (cardViewsMap[c.id] || 0) >= 10);
 
     return [
       { label: "Create first card", reached: hasCard },
       { label: "Add a photo", reached: hasAvatar },
       { label: "Publish a card", reached: hasPublished },
       { label: "Reach 10 views", reached: has10Views },
-      { label: "Create 3 cards", reached: hasMultiple },
+      { label: "Create 2 cards", reached: hasMultiple },
     ];
-  }, [cards]);
+  }, [cards, cardViewsMap]);
 
   const completedCount = milestones.filter((m) => m.reached).length;
   const progress = (completedCount / milestones.length) * 100;
 
-  if (completedCount === milestones.length) return null; // All done, hide
+  if (completedCount === milestones.length) return null;
 
   return (
     <div className="overflow-hidden rounded-xl border border-border/30 bg-card/50 p-4">
@@ -45,7 +46,6 @@ export function ProgressTracker({ cards, profile }: ProgressTrackerProps) {
         </span>
       </div>
 
-      {/* Progress bar */}
       <div className="mb-4 h-2 overflow-hidden rounded-full bg-muted/30">
         <div
           className="h-full rounded-full bg-gradient-to-r from-primary to-primary/60 transition-all duration-700 ease-out"
@@ -53,7 +53,6 @@ export function ProgressTracker({ cards, profile }: ProgressTrackerProps) {
         />
       </div>
 
-      {/* Milestones */}
       <div className="space-y-2.5">
         {milestones.map((m, i) => (
           <div key={i} className="flex items-center gap-3">
