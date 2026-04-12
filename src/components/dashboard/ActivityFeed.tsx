@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, UserPlus, CalendarDays, Clock } from "lucide-react";
+import { Eye, UserPlus, CalendarDays, Clock, Phone, Facebook } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 interface ActivityItem {
@@ -9,6 +9,10 @@ interface ActivityItem {
   title: string;
   subtitle: string;
   time: string;
+  phone?: string | null;
+  email?: string | null;
+  source?: string;
+  metadata?: Record<string, any> | null;
 }
 
 export function ActivityFeed() {
@@ -23,11 +27,10 @@ export function ActivityFeed() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
 
-    // Fetch recent leads + appointments in parallel
     const [leadsRes, appointmentsRes] = await Promise.all([
       supabase
         .from("leads")
-        .select("id, name, source, created_at")
+        .select("id, name, source, phone, email, metadata, created_at")
         .eq("owner_user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(5),
@@ -48,6 +51,10 @@ export function ActivityFeed() {
         title: `New lead: ${l.name}`,
         subtitle: `Source: ${l.source}`,
         time: l.created_at,
+        phone: l.phone,
+        email: l.email,
+        source: l.source,
+        metadata: l.metadata as Record<string, any> | null,
       })
     );
 
@@ -76,6 +83,13 @@ export function ActivityFeed() {
     view: "text-primary",
     lead: "text-emerald-400",
     appointment: "text-blue-400",
+  };
+
+  const getFacebookUrl = (item: ActivityItem): string | null => {
+    const meta = item.metadata;
+    if (meta?.facebook) return meta.facebook;
+    if (meta?.messenger_link) return meta.messenger_link;
+    return null;
   };
 
   if (loading) {
@@ -115,6 +129,9 @@ export function ActivityFeed() {
       <div className="space-y-3">
         {items.map((item) => {
           const Icon = iconMap[item.type];
+          const fbUrl = item.type === "lead" ? getFacebookUrl(item) : null;
+          const hasActions = item.type === "lead" && (item.phone || fbUrl);
+
           return (
             <div key={item.id} className="flex items-start gap-3">
               <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent ${colorMap[item.type]}`}>
@@ -125,6 +142,32 @@ export function ActivityFeed() {
                 <p className="text-[10px] text-muted-foreground">
                   {formatDistanceToNow(new Date(item.time), { addSuffix: true })}
                 </p>
+                {hasActions && (
+                  <div className="mt-1 flex items-center gap-2">
+                    {item.phone && (
+                      <a
+                        href={`tel:${item.phone.replace(/[^+\d]/g, "")}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 rounded-md bg-accent/80 px-2 py-0.5 text-[10px] font-medium text-primary transition-colors hover:bg-accent"
+                      >
+                        <Phone className="h-3 w-3" />
+                        {item.phone}
+                      </a>
+                    )}
+                    {fbUrl && (
+                      <a
+                        href={fbUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 rounded-md bg-accent/80 px-2 py-0.5 text-[10px] font-medium text-blue-400 transition-colors hover:bg-accent"
+                      >
+                        <Facebook className="h-3 w-3" />
+                        Facebook
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           );
