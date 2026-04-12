@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Pencil, Copy, Trash2, Eye } from "lucide-react";
+import { Share2, Pencil, Copy, Trash2, Eye, ExternalLink } from "lucide-react";
+import { getPublicCardUrl } from "@/lib/cardUrl";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
