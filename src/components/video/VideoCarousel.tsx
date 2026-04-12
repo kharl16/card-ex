@@ -94,14 +94,14 @@ export default function VideoCarousel({
         <Carousel
           setApi={setApi}
           opts={{ align: "center", loop: videos.length > 1 }}
-          plugins={[
+          plugins={videos.length > 1 ? [
             AutoScroll({
               speed: 0.8,
               direction: direction === "rtl" ? "backward" : "forward",
               stopOnInteraction: false,
               stopOnMouseEnter: true,
             }),
-          ]}
+          ] : []}
           className="w-full"
         >
           <CarouselContent
