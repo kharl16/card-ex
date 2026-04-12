@@ -75,6 +75,17 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500"
+              title="View Card"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(getPublicCardUrl(card.custom_slug || card.slug), "_blank");
+              }}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+              variant="ghost"
+              size="icon"
               className="h-8 w-8 text-primary hover:bg-primary/10 hover:text-primary"
               title="Share"
               onClick={(e) => onShare(card.id, e)}
