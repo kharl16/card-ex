@@ -208,7 +208,7 @@ export default function VideoCarousel({
 
                     {/* Caption below the video card so it's never cropped */}
                     {video.title && (
-                      <p className="text-foreground text-sm font-medium mt-1.5 px-1 line-clamp-2">
+                      <p className="text-foreground text-sm font-medium mt-1.5 px-1 line-clamp-2 text-center">
                         {video.title}
                       </p>
                     )}
