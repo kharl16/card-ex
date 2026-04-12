@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Pencil, Copy, Trash2, Eye } from "lucide-react";
+import { Share2, Pencil, Copy, Trash2, Eye, ExternalLink } from "lucide-react";
+import { getPublicCardUrl } from "@/lib/cardUrl";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
@@ -73,6 +74,17 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
           <div className="flex shrink-0 items-center gap-0.5">
             <Button
               variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500"
+              title="View Card"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(getPublicCardUrl(card.custom_slug || card.slug), "_blank");
+              }}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+            <Button
               size="icon"
               className="h-8 w-8 text-primary hover:bg-primary/10 hover:text-primary"
               title="Share"
