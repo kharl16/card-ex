@@ -93,7 +93,7 @@ export default function VideoCarousel({
       <div className="relative w-full">
         <Carousel
           setApi={setApi}
-          opts={{ align: "center", loop: true }}
+          opts={{ align: "center", loop: videos.length > 1 }}
           plugins={[
             AutoScroll({
               speed: 0.8,
