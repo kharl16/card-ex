@@ -149,14 +149,28 @@ function ResourcesHubContent() {
 
         {/* Folders */}
         <section>
-          <h2 className="text-xl font-bold mb-4">Browse by Folder</h2>
-          <FolderGrid folders={folders} />
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">Browse by Folder</h2>
+            {selectedFolder && (
+              <Button variant="ghost" size="sm" onClick={() => setSelectedFolder(null)}>
+                Clear filter
+              </Button>
+            )}
+          </div>
+          <FolderGrid
+            folders={folders}
+            selectedFolder={selectedFolder}
+            onSelectFolder={(name) => setSelectedFolder(prev => prev === name ? null : name)}
+          />
         </section>
 
-        {/* Featured Files */}
-        {featuredFiles.length > 0 && (
-          <HorizontalScroll title="Featured Resources" subtitle="Popular files and materials">
-            {featuredFiles.map((file) => (
+        {/* Files */}
+        {displayedFiles.length > 0 && (
+          <HorizontalScroll
+            title={selectedFolder ? `${selectedFolder}` : "Featured Resources"}
+            subtitle={selectedFolder ? `${displayedFiles.length} files in this folder` : "Popular files and materials"}
+          >
+            {displayedFiles.map((file) => (
               <div key={file.id} className="min-w-[250px] flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
                 <ResourceCard
                   resource={file}
