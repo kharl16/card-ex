@@ -1,22 +1,23 @@
 import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { FolderOpen } from "lucide-react";
 import type { ResourceFolder } from "@/types/resources";
 
 interface FolderGridProps {
   folders: ResourceFolder[];
   basePath?: string;
+  selectedFolder?: string | null;
+  onSelectFolder?: (folderName: string) => void;
 }
 
-export function FolderGrid({ folders, basePath = "/resources/files" }: FolderGridProps) {
+export function FolderGrid({ folders, basePath = "/resources/files", selectedFolder, onSelectFolder }: FolderGridProps) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      {folders.map((folder) => (
-        <Link
-          key={folder.id}
-          to={`${basePath}?folder=${encodeURIComponent(folder.folder_name)}`}
-        >
-          <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 cursor-pointer">
+      {folders.map((folder) => {
+        const isSelected = selectedFolder === folder.folder_name;
+
+        const card = (
+          <Card className={`group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 cursor-pointer ${isSelected ? "ring-2 ring-primary" : ""}`}>
             <div className="relative aspect-video overflow-hidden bg-black">
               {folder.images ? (
                 <img
@@ -38,8 +39,22 @@ export function FolderGrid({ folders, basePath = "/resources/files" }: FolderGri
               </div>
             </div>
           </Card>
-        </Link>
-      ))}
+        );
+
+        if (onSelectFolder) {
+          return (
+            <div key={folder.id} onClick={() => onSelectFolder(folder.folder_name)} role="button">
+              {card}
+            </div>
+          );
+        }
+
+        return (
+          <Link key={folder.id} to={`${basePath}?folder=${encodeURIComponent(folder.folder_name)}`}>
+            {card}
+          </Link>
+        );
+      })}
     </div>
   );
 }
