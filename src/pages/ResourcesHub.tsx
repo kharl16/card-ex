@@ -15,6 +15,7 @@ import { QuickLinksGrid } from "@/components/resources/QuickLinksGrid";
 
 function ResourcesHubContent() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const { isResourceAdmin } = useResources();
   const { files, ambassadors, links, folders, loading, error, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
@@ -26,8 +27,13 @@ function ResourcesHubContent() {
     folders: folders.length,
   }), [files, ambassadors, links, folders]);
 
-  // Featured items (most recent or first 8)
-  const featuredFiles = useMemo(() => files.slice(0, 8), [files]);
+  // Filter files by selected folder
+  const displayedFiles = useMemo(() => {
+    if (selectedFolder) {
+      return files.filter((f: any) => f.folder_name === selectedFolder);
+    }
+    return files.slice(0, 8);
+  }, [files, selectedFolder]);
   const featuredAmbassadors = useMemo(() => ambassadors.slice(0, 10), [ambassadors]);
 
   // Favorites set for links
