@@ -291,7 +291,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           isInteractive={true}
           showQRCode={true}
           showVCardButtons={true}
-          publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
+          publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
           bottomAction={
             bookingEnabled ? (
               <Button
