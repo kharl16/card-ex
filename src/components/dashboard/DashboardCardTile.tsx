@@ -79,7 +79,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
               title="View Card"
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(getPublicCardUrl(card.custom_slug || card.slug), "_blank");
+                window.open(getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug), "_blank");
               }}
             >
               <ExternalLink className="h-4 w-4" />
