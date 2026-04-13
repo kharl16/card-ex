@@ -1080,7 +1080,7 @@ export default function CardEditor() {
                   isInteractive={false}
                   showQRCode={true}
                   showVCardButtons={false}
-                  publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug)}
+                  publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
                   bottomAction={
                     bookingEnabled ? (
                       <div className="pointer-events-none">
