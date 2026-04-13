@@ -6,16 +6,16 @@ import type { ResourceFolder } from "@/types/resources";
 interface FolderGridProps {
   folders: ResourceFolder[];
   basePath?: string;
+  selectedFolder?: string | null;
+  onSelectFolder?: (folderName: string) => void;
 }
 
-export function FolderGrid({ folders, basePath = "/resources/files" }: FolderGridProps) {
+export function FolderGrid({ folders, basePath = "/resources/files", selectedFolder, onSelectFolder }: FolderGridProps) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      {folders.map((folder) => (
-        <Link
-          key={folder.id}
-          to={`${basePath}?folder=${encodeURIComponent(folder.folder_name)}`}
-        >
+      {folders.map((folder) => {
+        const isSelected = selectedFolder === folder.folder_name;
+        const content = (
           <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 cursor-pointer">
             <div className="relative aspect-video overflow-hidden bg-black">
               {folder.images ? (
