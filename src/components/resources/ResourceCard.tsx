@@ -7,6 +7,7 @@ import type { FileResource, EventType } from "@/types/resources";
 
 interface ResourceCardProps {
   resource: FileResource;
+  compact?: boolean;
   isFavorite: boolean;
   onToggleFavorite: () => void;
   onLogEvent: (eventType: EventType) => void;
@@ -14,6 +15,7 @@ interface ResourceCardProps {
 
 export function ResourceCard({
   resource,
+  compact = false,
   isFavorite,
   onToggleFavorite,
   onLogEvent,
@@ -38,6 +40,43 @@ export function ResourceCard({
       window.open(resource.view_video_url, "_blank");
     }
   };
+
+  const primaryAction = resource.drive_link_download
+    ? handleDownload
+    : resource.view_video_url
+    ? handleWatchVideo
+    : resource.drive_link_share
+    ? handleView
+    : undefined;
+
+  if (compact) {
+    return (
+      <Card
+        className="group overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 bg-card/80 backdrop-blur border-border/50 cursor-pointer"
+        onClick={primaryAction}
+      >
+        <div className="relative aspect-square overflow-hidden bg-black">
+          {resource.images ? (
+            <img
+              src={resource.images}
+              alt={resource.file_name}
+              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+              <Eye className="h-8 w-8 text-muted-foreground/30" />
+            </div>
+          )}
+        </div>
+        <CardContent className="p-2.5">
+          <h3 className="font-medium text-xs line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+            {resource.file_name}
+          </h3>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 bg-card/80 backdrop-blur border-border/50">
@@ -72,7 +111,6 @@ export function ResourceCard({
       </div>
 
       <CardContent className="p-5">
-        {/* Title - larger for senior readability */}
         <h3 className="font-semibold text-base md:text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors leading-snug">
           {resource.file_name}
         </h3>
@@ -83,7 +121,6 @@ export function ResourceCard({
           </p>
         )}
 
-        {/* Pricing - larger */}
         {(resource.price_dp || resource.price_srp) && (
           <div className="flex items-center gap-3 mb-4">
             {resource.price_dp && (
@@ -97,7 +134,6 @@ export function ResourceCard({
           </div>
         )}
 
-        {/* Action buttons - large tap targets (min 44px) */}
         <div className="flex flex-wrap gap-2">
           {resource.drive_link_download && (
             <Button
