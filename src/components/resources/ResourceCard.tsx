@@ -7,6 +7,7 @@ import type { FileResource, EventType } from "@/types/resources";
 
 interface ResourceCardProps {
   resource: FileResource;
+  compact?: boolean;
   isFavorite: boolean;
   onToggleFavorite: () => void;
   onLogEvent: (eventType: EventType) => void;

@@ -166,21 +166,37 @@ function ResourcesHubContent() {
 
         {/* Files */}
         {displayedFiles.length > 0 && (
-          <HorizontalScroll
-            title={selectedFolder ? `${selectedFolder}` : "Featured Resources"}
-            subtitle={selectedFolder ? `${displayedFiles.length} files in this folder` : "Popular files and materials"}
-          >
-            {displayedFiles.map((file) => (
-              <div key={file.id} className="min-w-[250px] flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
-                <ResourceCard
-                  resource={file}
-                  isFavorite={isFavorite("file", String(file.id))}
-                  onToggleFavorite={() => toggleFavorite("file", String(file.id))}
-                  onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
-                />
+          selectedFolder ? (
+            <section>
+              <h2 className="text-xl font-bold mb-1">{selectedFolder}</h2>
+              <p className="text-sm text-muted-foreground mb-4">{displayedFiles.length} files in this folder</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {displayedFiles.map((file) => (
+                  <ResourceCard
+                    key={file.id}
+                    resource={file}
+                    compact
+                    isFavorite={isFavorite("file", String(file.id))}
+                    onToggleFavorite={() => toggleFavorite("file", String(file.id))}
+                    onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
+                  />
+                ))}
               </div>
-            ))}
-          </HorizontalScroll>
+            </section>
+          ) : (
+            <HorizontalScroll title="Featured Resources" subtitle="Popular files and materials">
+              {displayedFiles.map((file) => (
+                <div key={file.id} className="min-w-[250px] flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+                  <ResourceCard
+                    resource={file}
+                    isFavorite={isFavorite("file", String(file.id))}
+                    onToggleFavorite={() => toggleFavorite("file", String(file.id))}
+                    onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
+                  />
+                </div>
+              ))}
+            </HorizontalScroll>
+          )
         )}
 
         {/* Ambassadors */}
