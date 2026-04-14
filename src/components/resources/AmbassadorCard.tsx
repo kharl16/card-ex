@@ -50,12 +50,12 @@ export function AmbassadorCard({
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
             <div className="flex gap-2">
               {ambassador.drive_link && (
-                <Button size="sm" variant="secondary" className="h-8" onClick={handleDownload}>
+                <Button size="sm" variant="secondary" className="h-8" onClick={() => openLink(ambassador.drive_link!, "download")}>
                   <Download className="h-3 w-3" />
                 </Button>
               )}
               {ambassador.video_file_url && (
-                <Button size="sm" variant="secondary" className="h-8" onClick={handleWatch}>
+                <Button size="sm" variant="secondary" className="h-8" onClick={() => openLink(ambassador.video_file_url!, "watch")}>
                   <Play className="h-3 w-3" />
                 </Button>
               )}
