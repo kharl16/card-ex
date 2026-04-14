@@ -18,18 +18,15 @@ export function AmbassadorCard({
   onToggleFavorite,
   onLogEvent,
 }: AmbassadorCardProps) {
-  const handleDownload = () => {
-    if (ambassador.drive_link) {
-      onLogEvent("download");
-      window.open(ambassador.drive_link, "_blank");
-    }
-  };
-
-  const handleWatch = () => {
-    if (ambassador.video_file_url) {
-      onLogEvent("watch");
-      window.open(ambassador.video_file_url, "_blank");
-    }
+  const openLink = (url: string, eventType: "download" | "watch") => {
+    onLogEvent(eventType);
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
@@ -53,12 +50,12 @@ export function AmbassadorCard({
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
             <div className="flex gap-2">
               {ambassador.drive_link && (
-                <Button size="sm" variant="secondary" className="h-8" onClick={handleDownload}>
+                <Button size="sm" variant="secondary" className="h-8" onClick={() => openLink(ambassador.drive_link!, "download")}>
                   <Download className="h-3 w-3" />
                 </Button>
               )}
               {ambassador.video_file_url && (
-                <Button size="sm" variant="secondary" className="h-8" onClick={handleWatch}>
+                <Button size="sm" variant="secondary" className="h-8" onClick={() => openLink(ambassador.video_file_url!, "watch")}>
                   <Play className="h-3 w-3" />
                 </Button>
               )}
