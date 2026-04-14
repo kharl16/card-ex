@@ -1,4 +1,4 @@
-import { Heart, Download, ExternalLink, Play, User } from "lucide-react";
+import { Heart, Download, Play, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,16 +18,8 @@ export function AmbassadorCard({
   onToggleFavorite,
   onLogEvent,
 }: AmbassadorCardProps) {
-  const openLink = (url: string, eventType: "download" | "watch") => {
-    onLogEvent(eventType);
-    const a = document.createElement("a");
-    a.href = url;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
+  const previewUrl = ambassador.drive_share_link || ambassador.video_file_url;
+  const previewEventType: EventType = ambassador.drive_share_link ? "view" : "watch";
 
   return (
     <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 bg-card/80 backdrop-blur border-border/50 min-w-[200px] flex-shrink-0">
@@ -45,25 +37,40 @@ export function AmbassadorCard({
           </div>
         )}
 
-        {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
             <div className="flex gap-2">
               {ambassador.drive_link && (
-                <Button size="sm" variant="secondary" className="h-8" onClick={() => openLink(ambassador.drive_link!, "download")}>
-                  <Download className="h-3 w-3" />
+                <Button size="sm" variant="secondary" className="h-8" asChild>
+                  <a
+                    href={ambassador.drive_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => onLogEvent("download")}
+                    aria-label={`Download ${ambassador.endorser || "ambassador"} file`}
+                  >
+                    <Download className="h-3 w-3" />
+                  </a>
                 </Button>
               )}
-              {ambassador.video_file_url && (
-                <Button size="sm" variant="secondary" className="h-8" onClick={() => openLink(ambassador.video_file_url!, "watch")}>
-                  <Play className="h-3 w-3" />
+              {previewUrl && (
+                <Button size="sm" variant="secondary" className="h-8" asChild>
+                  <a
+                    href={previewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => onLogEvent(previewEventType)}
+                    aria-label={`Open ${ambassador.endorser || "ambassador"} preview`}
+                  >
+                    <Play className="h-3 w-3" />
+                  </a>
                 </Button>
               )}
             </div>
             <Button
               size="icon"
               variant="ghost"
-              className={cn("h-8 w-8 rounded-full", isFavorite && "text-red-500")}
+              className={cn("h-8 w-8 rounded-full", isFavorite && "text-destructive")}
               onClick={onToggleFavorite}
             >
               <Heart className={cn("h-4 w-4", isFavorite && "fill-current")} />
@@ -73,7 +80,7 @@ export function AmbassadorCard({
 
         {isFavorite && (
           <div className="absolute right-2 top-2">
-            <Heart className="h-5 w-5 fill-red-500 text-red-500 drop-shadow-lg" />
+            <Heart className="h-5 w-5 text-destructive fill-current drop-shadow-lg" />
           </div>
         )}
       </div>
