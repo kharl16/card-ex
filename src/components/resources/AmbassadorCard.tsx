@@ -18,18 +18,15 @@ export function AmbassadorCard({
   onToggleFavorite,
   onLogEvent,
 }: AmbassadorCardProps) {
-  const handleDownload = () => {
-    if (ambassador.drive_link) {
-      onLogEvent("download");
-      window.open(ambassador.drive_link, "_blank");
-    }
-  };
-
-  const handleWatch = () => {
-    if (ambassador.video_file_url) {
-      onLogEvent("watch");
-      window.open(ambassador.video_file_url, "_blank");
-    }
+  const openLink = (url: string, eventType: "download" | "watch") => {
+    onLogEvent(eventType);
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
