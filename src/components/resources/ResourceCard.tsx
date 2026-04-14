@@ -41,12 +41,12 @@ export function ResourceCard({
     }
   };
 
-  const primaryAction = resource.drive_link_download
-    ? handleDownload
+  const primaryAction = resource.drive_link_share
+    ? handleView
     : resource.view_video_url
     ? handleWatchVideo
-    : resource.drive_link_share
-    ? handleView
+    : resource.drive_link_download
+    ? handleDownload
     : undefined;
 
   if (compact) {
