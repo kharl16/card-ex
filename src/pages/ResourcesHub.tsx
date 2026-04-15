@@ -173,7 +173,7 @@ function ResourcesHubContent() {
             <section>
               <h2 className="text-xl font-bold mb-1">{selectedFolder}</h2>
               <p className="text-sm text-muted-foreground mb-4">{displayedFiles.length} files in this folder</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
                 {displayedFiles.map((file) => (
                   <ResourceCard
                     key={file.id}
@@ -182,6 +182,7 @@ function ResourcesHubContent() {
                     isFavorite={isFavorite("file", String(file.id))}
                     onToggleFavorite={() => toggleFavorite("file", String(file.id))}
                     onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
+                    onClick={() => { logEvent("file", String(file.id), "view"); setPreviewFile(file); }}
                   />
                 ))}
               </div>
@@ -189,12 +190,14 @@ function ResourcesHubContent() {
           ) : (
             <HorizontalScroll title="Featured Resources" subtitle="Popular files and materials">
               {displayedFiles.map((file) => (
-                <div key={file.id} className="min-w-[250px] flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+                <div key={file.id} className="min-w-[140px] w-[140px] flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
                   <ResourceCard
                     resource={file}
+                    compact
                     isFavorite={isFavorite("file", String(file.id))}
                     onToggleFavorite={() => toggleFavorite("file", String(file.id))}
                     onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
+                    onClick={() => { logEvent("file", String(file.id), "view"); setPreviewFile(file); }}
                   />
                 </div>
               ))}
