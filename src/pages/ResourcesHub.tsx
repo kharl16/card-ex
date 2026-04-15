@@ -12,6 +12,8 @@ import { HorizontalScroll } from "@/components/resources/HorizontalScroll";
 import { ResourceCard } from "@/components/resources/ResourceCard";
 import { AmbassadorCard } from "@/components/resources/AmbassadorCard";
 import { QuickLinksGrid } from "@/components/resources/QuickLinksGrid";
+import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
+import type { FileResource } from "@/types/resources";
 
 function ResourcesHubContent() {
   const [searchTerm, setSearchTerm] = useState("");
