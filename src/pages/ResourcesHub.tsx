@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { FileText, Users, Link2, BookOpen, MapPin, Star, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,10 +12,13 @@ import { HorizontalScroll } from "@/components/resources/HorizontalScroll";
 import { ResourceCard } from "@/components/resources/ResourceCard";
 import { AmbassadorCard } from "@/components/resources/AmbassadorCard";
 import { QuickLinksGrid } from "@/components/resources/QuickLinksGrid";
+import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
+import type { FileResource } from "@/types/resources";
 
 function ResourcesHubContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
   const { isResourceAdmin } = useResources();
   const { files, ambassadors, links, folders, loading, error, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
@@ -170,7 +173,7 @@ function ResourcesHubContent() {
             <section>
               <h2 className="text-xl font-bold mb-1">{selectedFolder}</h2>
               <p className="text-sm text-muted-foreground mb-4">{displayedFiles.length} files in this folder</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
                 {displayedFiles.map((file) => (
                   <ResourceCard
                     key={file.id}
@@ -179,6 +182,7 @@ function ResourcesHubContent() {
                     isFavorite={isFavorite("file", String(file.id))}
                     onToggleFavorite={() => toggleFavorite("file", String(file.id))}
                     onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
+                    onClick={() => { logEvent("file", String(file.id), "view"); setPreviewFile(file); }}
                   />
                 ))}
               </div>
@@ -186,12 +190,14 @@ function ResourcesHubContent() {
           ) : (
             <HorizontalScroll title="Featured Resources" subtitle="Popular files and materials">
               {displayedFiles.map((file) => (
-                <div key={file.id} className="min-w-[250px] flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+                <div key={file.id} className="min-w-[140px] w-[140px] flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
                   <ResourceCard
                     resource={file}
+                    compact
                     isFavorite={isFavorite("file", String(file.id))}
                     onToggleFavorite={() => toggleFavorite("file", String(file.id))}
                     onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
+                    onClick={() => { logEvent("file", String(file.id), "view"); setPreviewFile(file); }}
                   />
                 </div>
               ))}
@@ -227,6 +233,22 @@ function ResourcesHubContent() {
           </section>
         )}
       </main>
+
+      {/* File lightbox */}
+      <FilePreviewDialog
+        file={previewFile}
+        files={displayedFiles}
+        open={!!previewFile}
+        onOpenChange={(open) => { if (!open) setPreviewFile(null); }}
+        isFavorite={previewFile ? isFavorite("file", String(previewFile.id)) : false}
+        onToggleFavorite={() => {
+          if (previewFile) toggleFavorite("file", String(previewFile.id));
+        }}
+        onLogEvent={(eventType) => {
+          if (previewFile) logEvent("file", String(previewFile.id), eventType);
+        }}
+        onNavigate={setPreviewFile}
+      />
     </div>
   );
 }

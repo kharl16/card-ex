@@ -1,6 +1,4 @@
 import { Heart, Download, ExternalLink, Play, Eye } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
@@ -11,6 +9,7 @@ interface ResourceCardProps {
   isFavorite: boolean;
   onToggleFavorite: () => void;
   onLogEvent: (eventType: EventType) => void;
+  onClick?: () => void;
 }
 
 export function ResourceCard({
@@ -19,69 +18,21 @@ export function ResourceCard({
   isFavorite,
   onToggleFavorite,
   onLogEvent,
+  onClick,
 }: ResourceCardProps) {
-  const handleDownload = () => {
-    if (resource.drive_link_download) {
-      onLogEvent("download");
-      window.open(resource.drive_link_download, "_blank");
-    }
+  const handleFavClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleFavorite();
   };
 
-  const handleView = () => {
-    if (resource.drive_link_share) {
-      onLogEvent("view");
-      window.open(resource.drive_link_share, "_blank");
-    }
-  };
-
-  const handleWatchVideo = () => {
-    if (resource.view_video_url) {
-      onLogEvent("watch");
-      window.open(resource.view_video_url, "_blank");
-    }
-  };
-
-  const primaryAction = resource.drive_link_share
-    ? handleView
-    : resource.view_video_url
-    ? handleWatchVideo
-    : resource.drive_link_download
-    ? handleDownload
-    : undefined;
-
-  if (compact) {
-    return (
-      <Card
-        className="group overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 bg-card/80 backdrop-blur border-border/50 cursor-pointer"
-        onClick={primaryAction}
-      >
-        <div className="relative aspect-square overflow-hidden bg-black">
-          {resource.images ? (
-            <img
-              src={resource.images}
-              alt={resource.file_name}
-              className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-              <Eye className="h-8 w-8 text-muted-foreground/30" />
-            </div>
-          )}
-        </div>
-        <CardContent className="p-2.5">
-          <h3 className="font-medium text-xs line-clamp-2 leading-snug group-hover:text-primary transition-colors">
-            {resource.file_name}
-          </h3>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  // Compact overlay card — used in grids
   return (
-    <Card className="group overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 bg-card/80 backdrop-blur border-border/50">
+    <div
+      className="group relative overflow-hidden rounded-xl bg-black cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5"
+      onClick={onClick}
+    >
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden bg-black">
+      <div className={cn("relative overflow-hidden", compact ? "aspect-square" : "aspect-[3/4]")}>
         {resource.images ? (
           <img
             src={resource.images}
@@ -91,96 +42,56 @@ export function ResourceCard({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-            <Eye className="h-16 w-16 text-muted-foreground/30" />
+            <Eye className="h-8 w-8 text-muted-foreground/30" />
           </div>
         )}
 
-        {/* Folder badge */}
-        {resource.folder_name && (
-          <Badge className="absolute left-3 top-3 bg-black/70 text-white backdrop-blur text-sm px-3 py-1">
-            {resource.folder_name}
+        {/* Gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+
+        {/* Favorite button - top right */}
+        <button
+          className={cn(
+            "absolute top-2 right-2 z-10 p-1.5 rounded-full bg-black/40 backdrop-blur-sm transition-all",
+            "opacity-0 group-hover:opacity-100",
+            isFavorite && "opacity-100"
+          )}
+          onClick={handleFavClick}
+        >
+          <Heart
+            className={cn(
+              "h-4 w-4 transition-colors",
+              isFavorite ? "fill-red-500 text-red-500" : "text-white"
+            )}
+          />
+        </button>
+
+        {/* Price badge - top left */}
+        {resource.price_dp && (
+          <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground backdrop-blur-sm text-[10px] px-2 py-0.5 font-mono">
+            DP: {resource.price_dp}
           </Badge>
         )}
 
-        {/* Favorite indicator (always visible) */}
-        {isFavorite && (
-          <div className="absolute right-3 top-3">
-            <Heart className="h-7 w-7 fill-red-500 text-red-500 drop-shadow-lg" />
-          </div>
-        )}
-      </div>
-
-      <CardContent className="p-5">
-        <h3 className="font-semibold text-base md:text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors leading-snug">
-          {resource.file_name}
-        </h3>
-        
-        {resource.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
-            {resource.description}
-          </p>
-        )}
-
-        {(resource.price_dp || resource.price_srp) && (
-          <div className="flex items-center gap-3 mb-4">
-            {resource.price_dp && (
-              <Badge variant="secondary" className="font-mono text-sm px-3 py-1">
-                DP: {resource.price_dp}
-              </Badge>
-            )}
-            {resource.price_srp && (
-              <span className="text-sm text-muted-foreground">SRP: {resource.price_srp}</span>
-            )}
+        {/* Video indicator */}
+        {resource.view_video_url && (
+          <div className="absolute top-2 left-2 mt-6 bg-black/50 backdrop-blur-sm rounded-full p-1">
+            <Play className="h-3 w-3 text-white fill-white" />
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2">
-          {resource.drive_link_download && (
-            <Button
-              size="lg"
-              variant="default"
-              className="h-12 gap-2 flex-1 min-w-[120px] text-base"
-              onClick={handleDownload}
-            >
-              <Download className="h-5 w-5" />
-              Download
-            </Button>
+        {/* Bottom text overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+          <h3 className="font-medium text-white text-xs leading-snug line-clamp-2 drop-shadow-lg">
+            {resource.file_name}
+          </h3>
+          {!compact && resource.folder_name && (
+            <p className="text-[10px] text-white/60 mt-1 truncate">
+              {resource.folder_name}
+            </p>
           )}
-          {resource.view_video_url && (
-            <Button
-              size="lg"
-              variant="secondary"
-              className="h-12 gap-2 flex-1 min-w-[100px] text-base"
-              onClick={handleWatchVideo}
-            >
-              <Play className="h-5 w-5" />
-              Watch
-            </Button>
-          )}
-          {resource.drive_link_share && !resource.drive_link_download && !resource.view_video_url && (
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 gap-2 flex-1 text-base"
-              onClick={handleView}
-            >
-              <ExternalLink className="h-5 w-5" />
-              Open
-            </Button>
-          )}
-          <Button
-            size="lg"
-            variant="ghost"
-            className={cn(
-              "h-12 w-12 flex-shrink-0",
-              isFavorite && "text-red-500"
-            )}
-            onClick={onToggleFavorite}
-          >
-            <Heart className={cn("h-6 w-6", isFavorite && "fill-current")} />
-          </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
