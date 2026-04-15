@@ -233,6 +233,22 @@ function ResourcesHubContent() {
           </section>
         )}
       </main>
+
+      {/* File lightbox */}
+      <FilePreviewDialog
+        file={previewFile}
+        files={displayedFiles}
+        open={!!previewFile}
+        onOpenChange={(open) => { if (!open) setPreviewFile(null); }}
+        isFavorite={previewFile ? isFavorite("file", String(previewFile.id)) : false}
+        onToggleFavorite={() => {
+          if (previewFile) toggleFavorite("file", String(previewFile.id));
+        }}
+        onLogEvent={(eventType) => {
+          if (previewFile) logEvent("file", String(previewFile.id), eventType);
+        }}
+        onNavigate={setPreviewFile}
+      />
     </div>
   );
 }
