@@ -1,41 +1,34 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, Filter, Grid, List, X, FileText } from "lucide-react";
+import { ArrowLeft, Search, X, FileText, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { ResourcesProvider } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
 import { ResourceCard } from "@/components/resources/ResourceCard";
+import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
+import type { FileResource } from "@/types/resources";
 
 function FilesPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"name" | "newest">("name");
-  const [hasVideo, setHasVideo] = useState(false);
-  const [hasDownload, setHasDownload] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [showFilters, setShowFilters] = useState(false);
+  const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
 
-  const { files, folders, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
+  const { files, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
-  // Get unique folder names from files
   const folderNames = useMemo(() => {
     const names = new Set<string>();
-    files.forEach((f) => {
-      if (f.folder_name) names.add(f.folder_name);
-    });
+    files.forEach((f) => { if (f.folder_name) names.add(f.folder_name); });
     return Array.from(names).sort();
   }, [files]);
 
-  // Filtered and sorted files
   const filteredFiles = useMemo(() => {
     let result = [...files];
-
-    // Search filter
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(
@@ -45,49 +38,42 @@ function FilesPageContent() {
           f.folder_name?.toLowerCase().includes(term)
       );
     }
-
-    // Folder filter
     if (selectedFolder !== "all") {
       result = result.filter((f) => f.folder_name === selectedFolder);
     }
-
-    // Has video filter
-    if (hasVideo) {
-      result = result.filter((f) => f.view_video_url);
-    }
-
-    // Has download filter
-    if (hasDownload) {
-      result = result.filter((f) => f.drive_link_download);
-    }
-
-    // Sort
     if (sortBy === "name") {
       result.sort((a, b) => a.file_name.localeCompare(b.file_name));
     } else {
       result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     }
-
     return result;
-  }, [files, searchTerm, selectedFolder, sortBy, hasVideo, hasDownload]);
+  }, [files, searchTerm, selectedFolder, sortBy]);
 
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedFolder("all");
-    setHasVideo(false);
-    setHasDownload(false);
   };
 
-  const hasActiveFilters = searchTerm || selectedFolder !== "all" || hasVideo || hasDownload;
+  const hasActiveFilters = searchTerm || selectedFolder !== "all";
+
+  const handleFileClick = useCallback((file: FileResource) => {
+    logEvent("file", String(file.id), "view");
+    setPreviewFile(file);
+  }, [logEvent]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <Skeleton className="h-10 w-48 mb-8" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(8)].map((_, i) => (
-              <Skeleton key={i} className="aspect-square" />
+        <div className="container mx-auto px-4 py-6">
+          <Skeleton className="h-8 w-48 mb-6" />
+          <div className="flex gap-2 mb-4 overflow-x-auto">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-8 w-20 rounded-full flex-shrink-0" />
+            ))}
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+            {[...Array(12)].map((_, i) => (
+              <Skeleton key={i} className="aspect-square rounded-xl" />
             ))}
           </div>
         </div>
@@ -97,107 +83,84 @@ function FilesPageContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Compact header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="container mx-auto px-4 py-3">
+          {/* Top row */}
+          <div className="flex items-center gap-3 mb-3">
             <Link to="/resources">
-              <Button variant="ghost" size="lg" className="h-12 w-12">
-                <ArrowLeft className="h-6 w-6" />
+              <Button variant="ghost" size="icon" className="h-9 w-9 flex-shrink-0">
+                <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-primary/10">
-                <FileText className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Files Repository</h1>
-                <p className="text-sm text-muted-foreground">Download materials and resources</p>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                <h1 className="text-lg font-bold truncate">Files</h1>
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  {filteredFiles.length}
+                </Badge>
               </div>
             </div>
-            <Badge variant="secondary" className="ml-auto text-base px-3 py-1">
-              {filteredFiles.length} files
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant={showFilters ? "default" : "ghost"}
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                placeholder="Search files..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-lg"
-              />
-            </div>
-
-            <Select value={selectedFolder} onValueChange={setSelectedFolder}>
-              <SelectTrigger className="w-[180px] h-12 text-base">
-                <SelectValue placeholder="All Folders" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Folders</SelectItem>
-                {folderNames.map((name) => (
-                  <SelectItem key={name} value={name}>
-                    {name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as "name" | "newest")}>
-              <SelectTrigger className="w-[140px] h-12 text-base">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">A-Z</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <div className="flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-2">
-              <Switch id="hasVideo" checked={hasVideo} onCheckedChange={setHasVideo} />
-              <Label htmlFor="hasVideo" className="text-base cursor-pointer">Video</Label>
-            </div>
-
-            <div className="flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-2">
-              <Switch id="hasDownload" checked={hasDownload} onCheckedChange={setHasDownload} />
-              <Label htmlFor="hasDownload" className="text-base cursor-pointer">Download</Label>
-            </div>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" size="lg" className="h-12" onClick={clearFilters}>
-                <X className="h-5 w-5 mr-2" />
-                Clear
+          {/* Search */}
+          <div className="relative mb-3">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search files..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 h-9 text-sm"
+            />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                onClick={() => setSearchTerm("")}
+              >
+                <X className="h-3 w-3" />
               </Button>
             )}
-
-            <div className="flex gap-1 ml-auto">
-              <Button
-                variant={viewMode === "grid" ? "default" : "outline"}
-                size="lg"
-                className="h-12 w-12"
-                onClick={() => setViewMode("grid")}
-              >
-                <Grid className="h-5 w-5" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "outline"}
-                size="lg"
-                className="h-12 w-12"
-                onClick={() => setViewMode("list")}
-              >
-                <List className="h-5 w-5" />
-              </Button>
-            </div>
           </div>
 
-          {/* Folder chips - large tap targets */}
-          <div className="flex flex-wrap gap-2 mt-4">
+          {/* Expanded filters */}
+          {showFilters && (
+            <div className="flex items-center gap-2 mb-3">
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as "name" | "newest")}>
+                <SelectTrigger className="w-[100px] h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">A-Z</SelectItem>
+                  <SelectItem value="newest">Newest</SelectItem>
+                </SelectContent>
+              </Select>
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={clearFilters}>
+                  <X className="h-3 w-3 mr-1" />
+                  Clear
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Folder pills - horizontally scrollable */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
             <Badge
               variant={selectedFolder === "all" ? "default" : "outline"}
-              className="cursor-pointer px-4 py-2 text-base"
+              className="cursor-pointer px-3 py-1 text-xs whitespace-nowrap flex-shrink-0"
               onClick={() => setSelectedFolder("all")}
             >
               All
@@ -206,7 +169,7 @@ function FilesPageContent() {
               <Badge
                 key={name}
                 variant={selectedFolder === name ? "default" : "outline"}
-                className="cursor-pointer px-4 py-2 text-base"
+                className="cursor-pointer px-3 py-1 text-xs whitespace-nowrap flex-shrink-0"
                 onClick={() => setSelectedFolder(name)}
               >
                 {name}
@@ -216,36 +179,48 @@ function FilesPageContent() {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="container mx-auto px-4 py-8">
+      {/* Content grid */}
+      <main className="container mx-auto px-4 py-4">
         {filteredFiles.length === 0 ? (
           <div className="text-center py-16">
-            <FileText className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
-            <p className="text-xl text-muted-foreground mb-4">No files found</p>
+            <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
+            <p className="text-base text-muted-foreground mb-3">No files found</p>
             {hasActiveFilters && (
-              <Button size="lg" onClick={clearFilters}>Clear Filters</Button>
+              <Button size="sm" onClick={clearFilters}>Clear Filters</Button>
             )}
           </div>
         ) : (
-          <div
-            className={
-              viewMode === "grid"
-                ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"
-                : "flex flex-col gap-4"
-            }
-          >
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
             {filteredFiles.map((file) => (
               <ResourceCard
                 key={file.id}
                 resource={file}
+                compact
                 isFavorite={isFavorite("file", String(file.id))}
                 onToggleFavorite={() => toggleFavorite("file", String(file.id))}
                 onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
+                onClick={() => handleFileClick(file)}
               />
             ))}
           </div>
         )}
       </main>
+
+      {/* Lightbox preview */}
+      <FilePreviewDialog
+        file={previewFile}
+        files={filteredFiles}
+        open={!!previewFile}
+        onOpenChange={(open) => { if (!open) setPreviewFile(null); }}
+        isFavorite={previewFile ? isFavorite("file", String(previewFile.id)) : false}
+        onToggleFavorite={() => {
+          if (previewFile) toggleFavorite("file", String(previewFile.id));
+        }}
+        onLogEvent={(eventType) => {
+          if (previewFile) logEvent("file", String(previewFile.id), eventType);
+        }}
+        onNavigate={setPreviewFile}
+      />
     </div>
   );
 }
