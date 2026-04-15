@@ -18,6 +18,7 @@ import type { FileResource } from "@/types/resources";
 function ResourcesHubContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
   const { isResourceAdmin } = useResources();
   const { files, ambassadors, links, folders, loading, error, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
