@@ -824,6 +824,10 @@ export default function AdminCards() {
             <Wand2 className="h-4 w-4" />
             Design Patcher
           </Button>
+          <Button onClick={() => navigate("/admin/global-products")} variant="outline" className="gap-2">
+            <Globe className="h-4 w-4" />
+            Global Product Photos
+          </Button>
           <Button onClick={() => setShowCreateUserDialog(true)} variant="outline" className="gap-2">
             <UserPlus className="h-4 w-4" />
             Create New User
