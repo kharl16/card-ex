@@ -331,7 +331,15 @@ export default function CardView({
               .filter((img) => !!img.url);
           };
 
-          const productImagesData = normalizeCarouselImages((card as any).product_images);
+          const ownProductImages = normalizeCarouselImages((card as any).product_images);
+          const globalAsCarousel = visibleGlobals.map((g, idx) => ({
+            url: g.url,
+            alt: g.caption ?? undefined,
+            order: ownProductImages.length + idx,
+            description: g.caption ?? undefined,
+            shareText: g.caption ?? undefined,
+          }));
+          const productImagesData = [...ownProductImages, ...globalAsCarousel];
           const packageImagesData = normalizeCarouselImages((card as any).package_images);
           const testimonyImagesData = normalizeCarouselImages((card as any).testimony_images);
           const videoItems = Array.isArray((card as any).video_items) ? (card as any).video_items : [];
