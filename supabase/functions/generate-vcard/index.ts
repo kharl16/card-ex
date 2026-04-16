@@ -33,15 +33,16 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch card data
+    // Fetch card data — only published cards may be exported
     const { data: card, error: cardError } = await supabase
       .from("cards")
       .select("*")
       .eq("id", cardId)
-      .single();
+      .eq("is_published", true)
+      .maybeSingle();
 
     if (cardError || !card) {
-      console.error("Error fetching card:", cardError);
+      console.error("Error fetching card or card not published:", cardError);
       return new Response(
         JSON.stringify({ error: "Card not found" }),
         {
