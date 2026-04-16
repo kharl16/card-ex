@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRenderer";
+import { useGlobalProductImages } from "@/hooks/useGlobalProductImages";
 import VideoSectionRenderer from "@/components/video/VideoSectionRenderer";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
@@ -168,6 +169,9 @@ export default function CardView({
   publicCardUrl,
   bottomAction,
 }: CardViewProps) {
+  // Global product photos shared across all cards (with this card's hide overrides applied)
+  const { visibleGlobals } = useGlobalProductImages(card?.id);
+
   // Normalize social links whether passed as a prop or loaded from Supabase JSON
   const resolvedSocialLinks: SocialLink[] = React.useMemo(() => {
     // If socialLinks prop exists and has items, use it
@@ -327,7 +331,15 @@ export default function CardView({
               .filter((img) => !!img.url);
           };
 
-          const productImagesData = normalizeCarouselImages((card as any).product_images);
+          const ownProductImages = normalizeCarouselImages((card as any).product_images);
+          const globalAsCarousel = visibleGlobals.map((g, idx) => ({
+            url: g.url,
+            alt: g.caption ?? undefined,
+            order: ownProductImages.length + idx,
+            description: g.caption ?? undefined,
+            shareText: g.caption ?? undefined,
+          }));
+          const productImagesData = [...ownProductImages, ...globalAsCarousel];
           const packageImagesData = normalizeCarouselImages((card as any).package_images);
           const testimonyImagesData = normalizeCarouselImages((card as any).testimony_images);
           const videoItems = Array.isArray((card as any).video_items) ? (card as any).video_items : [];

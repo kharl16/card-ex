@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import ProductRingCarousel from './ProductRingCarousel';
+import GlobalProductsManager from './GlobalProductsManager';
 
 type ImgRow = { id: string; url: string; sort_index: number };
 
@@ -256,6 +257,10 @@ export default function GalleryManager({ cardId }: { cardId: string }) {
             </div>
           ))
         )}
+      </div>
+
+      <div className="rounded-lg border border-border bg-card/50 p-4">
+        <GlobalProductsManager cardId={cardId} />
       </div>
 
       <div className="space-y-4">
