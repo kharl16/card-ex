@@ -40,11 +40,7 @@ export function QuickLinksGrid({
             <CardContent className="relative p-4 flex items-center gap-3">
               {/* Icon avatar */}
               <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center group-hover:border-primary/20 transition-colors">
-                {link.icon_url ? (
-                  <img src={link.icon_url} alt="" className="h-5 w-5 rounded" />
-                ) : (
-                  <ExternalLink className="h-4 w-4 text-primary/60" />
-                )}
+                <ExternalLink className="h-4 w-4 text-primary/60" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm truncate">{link.name}</h3>
