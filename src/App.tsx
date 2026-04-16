@@ -268,6 +268,26 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/resources/favorites"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <FavoritesPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/resources/recent"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <RecentPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
           path="/admin/resources"
           element={
             <PageTransition>
