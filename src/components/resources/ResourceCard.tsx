@@ -39,18 +39,6 @@ export function ResourceCard({
             className="h-full w-full object-contain bg-black/90 transition-transform duration-700 ease-out group-hover:scale-110"
             loading="lazy"
             referrerPolicy="no-referrer"
-            crossOrigin="anonymous"
-            onError={(e) => {
-              const img = e.currentTarget;
-              if (!img.dataset.fallback) {
-                img.dataset.fallback = "1";
-                img.removeAttribute("crossorigin");
-                // retry without crossOrigin
-                img.src = resource.images!;
-              } else {
-                img.style.display = "none";
-              }
-            }}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/15 to-primary/5">

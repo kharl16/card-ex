@@ -32,6 +32,7 @@ export function FolderGrid({ folders, basePath = "/resources/files", selectedFol
                   alt={folder.folder_name}
                   className="h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-110"
                   loading="lazy"
+                  referrerPolicy="no-referrer"
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
