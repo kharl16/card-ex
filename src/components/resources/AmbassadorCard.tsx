@@ -30,6 +30,7 @@ export function AmbassadorCard({
             alt={`${ambassador.endorser} - ${ambassador.product_endorsed}`}
             className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">

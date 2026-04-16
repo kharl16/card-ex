@@ -38,6 +38,7 @@ export function ResourceCard({
             alt={resource.file_name}
             className="h-full w-full object-contain bg-black/90 transition-transform duration-700 ease-out group-hover:scale-110"
             loading="lazy"
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/15 to-primary/5">
