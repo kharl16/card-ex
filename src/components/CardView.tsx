@@ -169,6 +169,9 @@ export default function CardView({
   publicCardUrl,
   bottomAction,
 }: CardViewProps) {
+  // Global product photos shared across all cards (with this card's hide overrides applied)
+  const { visibleGlobals } = useGlobalProductImages(card?.id);
+
   // Normalize social links whether passed as a prop or loaded from Supabase JSON
   const resolvedSocialLinks: SocialLink[] = React.useMemo(() => {
     // If socialLinks prop exists and has items, use it
