@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRenderer";
+import { useGlobalProductImages } from "@/hooks/useGlobalProductImages";
 import VideoSectionRenderer from "@/components/video/VideoSectionRenderer";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
