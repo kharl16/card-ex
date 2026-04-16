@@ -55,12 +55,7 @@ const Index = () => {
         </div>
 
         <div className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
-          <button
-            type="button"
-            onClick={() => navigate("/auth?redirect=/dashboard")}
-            className="rounded-2xl border border-border/50 bg-card/50 p-4 text-center backdrop-blur transition-all hover:border-primary/50 hover:bg-card/70 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Sign in to track analytics for your card"
-          >
+          <div className="rounded-2xl border border-border/50 bg-card/50 p-4 text-center backdrop-blur">
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
               <TrendingUp className="h-5 w-5 text-primary" />
             </div>
@@ -68,14 +63,9 @@ const Index = () => {
             <p className="text-xs text-muted-foreground">
               See who views your card, scans your QR code, and downloads your contact.
             </p>
-          </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => navigate("/locator")}
-            className="rounded-2xl border border-border/50 bg-card/50 p-4 text-center backdrop-blur transition-all hover:border-primary/50 hover:bg-card/70 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Browse the distributor and team directory"
-          >
+          <div className="rounded-2xl border border-border/50 bg-card/50 p-4 text-center backdrop-blur">
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
               <Users className="h-5 w-5 text-primary" />
             </div>
@@ -83,14 +73,9 @@ const Index = () => {
             <p className="text-xs text-muted-foreground">
               Create organizations, manage team members, and maintain brand consistency.
             </p>
-          </button>
+          </div>
 
-          <button
-            type="button"
-            onClick={() => navigate("/auth")}
-            className="rounded-2xl border border-border/50 bg-card/50 p-4 text-center backdrop-blur transition-all hover:border-primary/50 hover:bg-card/70 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary"
-            aria-label="Sign in to manage your secure private profile"
-          >
+          <div className="rounded-2xl border border-border/50 bg-card/50 p-4 text-center backdrop-blur">
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
               <Shield className="h-5 w-5 text-primary" />
             </div>
@@ -98,7 +83,7 @@ const Index = () => {
             <p className="text-xs text-muted-foreground">
               Your data is encrypted and secure. Control who sees your information.
             </p>
-          </button>
+          </div>
         </div>
       </main>
 
