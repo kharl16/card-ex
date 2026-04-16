@@ -46,6 +46,7 @@ export function FilePreviewDialog({
               alt={file.file_name}
               className="w-full h-full object-contain max-h-[55vh] select-none"
               draggable={false}
+              referrerPolicy="no-referrer"
             />
           ) : (
             <div className="flex items-center justify-center h-48 text-muted-foreground/20">
