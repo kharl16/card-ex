@@ -91,10 +91,10 @@ function ResourcesHubContent() {
           <div className="relative z-10">
             <div className="flex items-center gap-2 mb-2">
               <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-xs font-medium uppercase tracking-widest text-primary">Resources Hub</span>
+              <span className="text-xs font-medium uppercase tracking-widest text-primary">Your Team Toolkit</span>
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold mb-1.5">
-              Your Team Toolkit
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
+              Resources Hub
             </h1>
             <p className="text-sm text-muted-foreground max-w-lg">
               Access files, training materials, ambassador clips, and more — all in one place.
