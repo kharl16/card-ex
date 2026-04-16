@@ -30,6 +30,8 @@ import AmbassadorsPage from "./pages/resources/AmbassadorsPage";
 import LinksPage from "./pages/resources/LinksPage";
 import DirectoryPage from "./pages/resources/DirectoryPage";
 import WaysPage from "./pages/resources/WaysPage";
+import FavoritesPage from "./pages/resources/FavoritesPage";
+import RecentPage from "./pages/resources/RecentPage";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminAITraining from "./pages/admin/AdminAITraining";
 import SuperAdminConsole from "./pages/superadmin/SuperAdminConsole";
