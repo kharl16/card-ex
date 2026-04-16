@@ -74,7 +74,10 @@ function FavoritesPageContent() {
       <FilePreviewDialog
         file={previewFile}
         files={favoriteFiles}
-        onClose={() => setPreviewFile(null)}
+        open={!!previewFile}
+        onOpenChange={(o) => !o && setPreviewFile(null)}
+        isFavorite={previewFile ? isFavorite("file", String(previewFile.id)) : false}
+        onToggleFavorite={() => previewFile && toggleFavorite("file", String(previewFile.id))}
         onNavigate={setPreviewFile}
         onLogEvent={(eventType) => previewFile && logEvent("file", String(previewFile.id), eventType)}
       />
