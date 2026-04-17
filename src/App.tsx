@@ -46,6 +46,7 @@ import Referrals from "./pages/Referrals";
 import TeamDirectory from "./pages/TeamDirectory";
 import DistributorLocator from "./pages/DistributorLocator";
 import NotFound from "./pages/NotFound";
+import TableOfContents from "./pages/TableOfContents";
 import PageTransition from "./components/PageTransition";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -354,6 +355,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <Referrals />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/toc"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <TableOfContents />
               </RequireAuth>
             </PageTransition>
           }
