@@ -359,6 +359,16 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
+        <Route
+          path="/toc"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <TableOfContents />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
         {/* Custom slug route - must be after all other routes except catch-all */}
         <Route path="/:customSlug" element={<PageTransition><PublicCard customSlug={true} /></PageTransition>} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
