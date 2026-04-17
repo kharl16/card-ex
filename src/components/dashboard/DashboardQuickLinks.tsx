@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Users, CalendarDays, MapPin, Gift, BarChart3, BookOpen, Wrench, UserPlus } from "lucide-react";
+import { Users, CalendarDays, MapPin, Gift, BarChart3, BookOpen, Wrench, UserPlus, ListTree } from "lucide-react";
 
 const links = [
   { icon: Users, label: "Leads", path: "/dashboard/leads", color: "text-emerald-500" },
@@ -10,6 +10,7 @@ const links = [
   { icon: BarChart3, label: "Analytics", path: "/analytics", color: "text-cyan-500" },
   { icon: BookOpen, label: "Resources", path: "/resources", color: "text-indigo-500" },
   { icon: Wrench, label: "Tools", path: "/tools", color: "text-orange-500" },
+  { icon: ListTree, label: "Contents", path: "/toc", color: "text-slate-500" },
 ];
 
 export function DashboardQuickLinks() {
