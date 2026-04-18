@@ -85,6 +85,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
               <ExternalLink className="h-4 w-4" />
             </Button>
             <Button
+              variant="ghost"
               size="icon"
               className="h-8 w-8 text-primary hover:bg-primary/10 hover:text-primary"
               title="Share"
