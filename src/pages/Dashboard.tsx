@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { CreditCard, Palette } from "lucide-react";
+import { CreditCard, Palette, ListTree } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -248,6 +248,16 @@ export default function Dashboard() {
                 <Palette className="h-3.5 w-3.5" />
               </Button>
             )}
+            <Button
+              onClick={() => navigate("/toc")}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="Table of Contents"
+              aria-label="Table of Contents"
+            >
+              <ListTree className="h-3.5 w-3.5" />
+            </Button>
             <AdminButton />
             <NotificationBell />
             <SignOutButton />
