@@ -58,9 +58,8 @@ const SECTIONS: TocSection[] = [
     tagline: "Your business identity",
     icon: CreditCard,
     gradient: "from-violet-500/25 via-fuchsia-500/10 to-transparent",
-    size: "lg",
+    size: "md",
     entries: [
-      { label: "My Cards", description: "View and manage your cards", path: "/dashboard" },
       { label: "Card Gallery", description: "Browse templates and previews", path: "/gallery" },
     ],
   },
@@ -112,7 +111,7 @@ const SECTIONS: TocSection[] = [
     gradient: "from-cyan-500/20 via-sky-500/5 to-transparent",
     size: "sm",
     entries: [
-      { label: "Card Analytics", description: "Views, scans, downloads", path: "/dashboard" },
+      { label: "Card Analytics", description: "Open from a card on your Dashboard", path: "/dashboard" },
     ],
   },
   {
