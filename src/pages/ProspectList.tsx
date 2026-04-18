@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Search, Plus, List, Columns3, CalendarClock, Sparkles,
-  BarChart3, Loader2
+  BarChart3, Loader2, Upload
 } from "lucide-react";
 import { useProspects, PIPELINE_STATUSES } from "@/hooks/useProspects";
 import ProspectDashboard from "@/components/prospects/ProspectDashboard";
@@ -16,6 +16,7 @@ import ProspectPipeline from "@/components/prospects/ProspectPipeline";
 import FollowUpCenter from "@/components/prospects/FollowUpCenter";
 import ProspectAnalytics from "@/components/prospects/ProspectAnalytics";
 import AddProspectDialog from "@/components/prospects/AddProspectDialog";
+import ImportContactsDialog from "@/components/prospects/ImportContactsDialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import type { Prospect } from "@/hooks/useProspects";
@@ -29,6 +30,7 @@ export default function ProspectListPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [addOpen, setAddOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null);
   const [view, setView] = useState<"list" | "pipeline" | "followups" | "analytics">("list");
 
@@ -131,6 +133,9 @@ export default function ProspectListPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <Button onClick={() => setImportOpen(true)} variant="outline" className="h-12 gap-2 shrink-0" title="Import contacts">
+            <Upload className="h-5 w-5" />
+          </Button>
           <Button onClick={() => setAddOpen(true)} className="h-12 gap-2 shrink-0">
             <Plus className="h-5 w-5" />
             <span>Add</span>
@@ -261,6 +266,12 @@ export default function ProspectListPage() {
       <AddProspectDialog
         open={addOpen}
         onOpenChange={setAddOpen}
+        onAdd={addProspect}
+      />
+
+      <ImportContactsDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
         onAdd={addProspect}
       />
     </div>
