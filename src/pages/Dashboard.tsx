@@ -265,6 +265,8 @@ export default function Dashboard() {
         {/* Stats */}
         {!loading && <AnimatedStatsCards cards={cards} />}
 
+        <DashboardQuickLinks />
+
         {/* Quick Actions */}
         <QuickActions
           onNewCard={() => setNewCardDialogOpen(true)}
