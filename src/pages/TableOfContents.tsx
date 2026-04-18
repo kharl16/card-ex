@@ -218,8 +218,8 @@ export default function TableOfContents() {
       {/* Ambient background flourish */}
       <div className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-[480px] overflow-hidden">
         <div className="absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute top-20 right-10 h-72 w-72 rounded-full bg-violet-500/10 blur-3xl" />
-        <div className="absolute top-32 left-10 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="absolute top-20 right-10 h-72 w-72 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute top-32 left-10 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
       </div>
 
       <header className="sticky top-0 z-40 border-b border-border/20 bg-background/70 backdrop-blur-xl">
