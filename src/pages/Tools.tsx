@@ -130,6 +130,95 @@ export default function Tools() {
           </Card>
         </Collapsible>
 
+        {/* Featured: Learning & Growth (parent collapsible with nested tools) */}
+        <Collapsible className="mb-6">
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
+            <CollapsibleTrigger className="w-full group">
+              <div className="flex items-center gap-3 p-3 sm:p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <h2 className="text-sm sm:text-base font-bold truncate">Learning & Growth</h2>
+                  <p className="text-xs text-muted-foreground truncate">Affirmations, book picks, and mindset assessment</p>
+                </div>
+                <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-3 pb-3 sm:px-4 sm:pb-4 border-t border-border/50 pt-3 space-y-2">
+
+                <Collapsible>
+                  <Card className="border-border/60">
+                    <CollapsibleTrigger className="w-full group">
+                      <div className="flex items-center gap-3 p-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                          <h3 className="text-sm font-semibold truncate">Daily Affirmation Generator</h3>
+                          <p className="text-xs text-muted-foreground truncate">Bilingual EN/Tagalog by category</p>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-3 pb-3 border-t border-border/50 pt-4">
+                        <AffirmationsSection />
+                      </div>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
+
+                <Collapsible>
+                  <Card className="border-border/60">
+                    <CollapsibleTrigger className="w-full group">
+                      <div className="flex items-center gap-3 p-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <BookOpen className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                          <h3 className="text-sm font-semibold truncate">Book Recommendations</h3>
+                          <p className="text-xs text-muted-foreground truncate">Picks based on your personality results</p>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-3 pb-3 border-t border-border/50 pt-4">
+                        <BookRecommendationsSection />
+                      </div>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
+
+                <Collapsible>
+                  <Card className="border-border/60">
+                    <CollapsibleTrigger className="w-full group">
+                      <div className="flex items-center gap-3 p-3">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <Brain className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                          <h3 className="text-sm font-semibold truncate">Mindset Score</h3>
+                          <p className="text-xs text-muted-foreground truncate">Fixed vs Growth (Carol Dweck) — saves to card</p>
+                        </div>
+                        <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+                      </div>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div className="px-3 pb-3 border-t border-border/50 pt-4">
+                        <MindsetQuizSection />
+                      </div>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
+
+              </div>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+
         {/* Filters */}
         {!loading && !error && tools.length > 0 && (
           <div className="mb-6">
