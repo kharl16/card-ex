@@ -96,6 +96,22 @@ export default function Tools() {
           </CardContent>
         </Card>
 
+        {/* Featured: 5 Love Languages Test */}
+        <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
+          <CardContent className="p-4 sm:p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                <Heart className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">5 Love Languages Test</h2>
+                <p className="text-xs text-muted-foreground">Discover how you give and receive love best</p>
+              </div>
+            </div>
+            <LoveLanguagesSection />
+          </CardContent>
+        </Card>
+
         {/* Filters */}
         {!loading && !error && tools.length > 0 && (
           <div className="mb-6">
