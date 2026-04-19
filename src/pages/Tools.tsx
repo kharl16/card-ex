@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { RefreshCw, Wrench, Plus } from "lucide-react";
+import { RefreshCw, Wrench, Plus, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
