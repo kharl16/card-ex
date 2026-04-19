@@ -13,7 +13,10 @@ import { useTools, Tool, ToolInput } from "@/hooks/useTools";
 import { useAuth } from "@/contexts/AuthContext";
 import DiscTestSection from "@/components/tools/sections/DiscTestSection";
 import LoveLanguagesSection from "@/components/tools/sections/LoveLanguagesSection";
-import { Brain, Heart } from "lucide-react";
+import MindsetQuizSection from "@/components/tools/sections/MindsetQuizSection";
+import AffirmationsSection from "@/components/tools/sections/AffirmationsSection";
+import BookRecommendationsSection from "@/components/tools/sections/BookRecommendationsSection";
+import { Brain, Heart, GraduationCap, Sparkles, BookOpen } from "lucide-react";
 
 export default function Tools() {
   const { tools, loading, error, categories, refetch, createTool, updateTool, deleteTool } = useTools();
