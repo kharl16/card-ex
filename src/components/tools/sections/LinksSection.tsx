@@ -178,6 +178,29 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
           </div>
         </button>
       )}
+      {/* Love Languages Card */}
+      {showDiscTest && (
+        <button
+          onClick={() => setShowingLoveLanguages(true)}
+          className={cn(
+            "flex items-center gap-3 p-3 rounded-xl w-full",
+            "bg-card border border-border/50 shadow-sm",
+            "hover:shadow-md hover:border-primary/30 transition-all"
+          )}
+        >
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center",
+            "bg-gradient-to-br from-primary/20 to-primary/5",
+            "border border-primary/20"
+          )}>
+            <Heart className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <span className="font-semibold text-primary text-base">5 Love Languages Test</span>
+            <p className="text-xs text-muted-foreground mt-0.5">Discover how you give and receive love</p>
+          </div>
+        </button>
+      )}
       {/* Admin Add Button */}
       {isAdmin && (
         <Button onClick={handleAdd} className="w-full gap-2">
