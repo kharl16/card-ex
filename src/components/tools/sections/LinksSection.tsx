@@ -10,6 +10,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLinkDialog from "../admin/AdminLinkDialog";
 import DiscTestSection from "./DiscTestSection";
+import LoveLanguagesSection from "./LoveLanguagesSection";
 
 interface IAMLink {
   id: string;
