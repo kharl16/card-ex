@@ -578,6 +578,7 @@ export type Database = {
           logo_url: string | null
           love_language_result: Json | null
           middle_name: string | null
+          mindset_result: Json | null
           organization_id: string | null
           owner_name: string | null
           owner_referral_code: string | null
@@ -635,6 +636,7 @@ export type Database = {
           logo_url?: string | null
           love_language_result?: Json | null
           middle_name?: string | null
+          mindset_result?: Json | null
           organization_id?: string | null
           owner_name?: string | null
           owner_referral_code?: string | null
@@ -692,6 +694,7 @@ export type Database = {
           logo_url?: string | null
           love_language_result?: Json | null
           middle_name?: string | null
+          mindset_result?: Json | null
           organization_id?: string | null
           owner_name?: string | null
           owner_referral_code?: string | null
