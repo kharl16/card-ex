@@ -82,36 +82,50 @@ export default function Tools() {
         </div>
 
         {/* Featured: D.I.S.C. Personality Test */}
-        <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
-          <CardContent className="p-4 sm:p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                <Brain className="h-5 w-5 text-primary" />
+        <Collapsible className="mb-3">
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
+            <CollapsibleTrigger className="w-full group">
+              <div className="flex items-center gap-3 p-3 sm:p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <Brain className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <h2 className="text-sm sm:text-base font-bold truncate">D.I.S.C. Personality Test</h2>
+                  <p className="text-xs text-muted-foreground truncate">Discover your personality type and growth areas</p>
+                </div>
+                <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
               </div>
-              <div>
-                <h2 className="text-lg font-bold">D.I.S.C. Personality Test</h2>
-                <p className="text-xs text-muted-foreground">Discover your personality type and growth areas</p>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-3 pb-3 sm:px-4 sm:pb-4 border-t border-border/50 pt-4">
+                <DiscTestSection />
               </div>
-            </div>
-            <DiscTestSection />
-          </CardContent>
-        </Card>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Featured: 5 Love Languages Test */}
-        <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
-          <CardContent className="p-4 sm:p-6">
-            <div className="mb-4 flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                <Heart className="h-5 w-5 text-primary" />
+        <Collapsible className="mb-6">
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
+            <CollapsibleTrigger className="w-full group">
+              <div className="flex items-center gap-3 p-3 sm:p-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <Heart className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <h2 className="text-sm sm:text-base font-bold truncate">5 Love Languages Test</h2>
+                  <p className="text-xs text-muted-foreground truncate">Discover how you give and receive love best</p>
+                </div>
+                <ChevronDown className="h-5 w-5 text-muted-foreground shrink-0 transition-transform group-data-[state=open]:rotate-180" />
               </div>
-              <div>
-                <h2 className="text-lg font-bold">5 Love Languages Test</h2>
-                <p className="text-xs text-muted-foreground">Discover how you give and receive love best</p>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-3 pb-3 sm:px-4 sm:pb-4 border-t border-border/50 pt-4">
+                <LoveLanguagesSection />
               </div>
-            </div>
-            <LoveLanguagesSection />
-          </CardContent>
-        </Card>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
 
         {/* Filters */}
         {!loading && !error && tools.length > 0 && (
