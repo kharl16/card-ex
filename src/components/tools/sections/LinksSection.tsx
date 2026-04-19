@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2, Brain } from "lucide-react";
+import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2, Brain, Heart } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminLinkDialog from "../admin/AdminLinkDialog";
 import DiscTestSection from "./DiscTestSection";
+import LoveLanguagesSection from "./LoveLanguagesSection";
 
 interface IAMLink {
   id: string;
@@ -35,6 +36,7 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<IAMLink | null>(null);
   const [showingDiscTest, setShowingDiscTest] = useState(false);
+  const [showingLoveLanguages, setShowingLoveLanguages] = useState(false);
 
   useEffect(() => {
     fetchItems();
@@ -140,6 +142,17 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
     );
   }
 
+  if (showDiscTest && showingLoveLanguages) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={() => setShowingLoveLanguages(false)} className="gap-2">
+          ← Back to Tools
+        </Button>
+        <LoveLanguagesSection searchQuery={searchQuery} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* DISC Test Card */}
@@ -162,6 +175,29 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
           <div className="flex-1 min-w-0 text-left">
             <span className="font-semibold text-primary text-base">DISC Personality Test</span>
             <p className="text-xs text-muted-foreground mt-0.5">Discover your personality type</p>
+          </div>
+        </button>
+      )}
+      {/* Love Languages Card */}
+      {showDiscTest && (
+        <button
+          onClick={() => setShowingLoveLanguages(true)}
+          className={cn(
+            "flex items-center gap-3 p-3 rounded-xl w-full",
+            "bg-card border border-border/50 shadow-sm",
+            "hover:shadow-md hover:border-primary/30 transition-all"
+          )}
+        >
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center",
+            "bg-gradient-to-br from-primary/20 to-primary/5",
+            "border border-primary/20"
+          )}>
+            <Heart className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <span className="font-semibold text-primary text-base">5 Love Languages Test</span>
+            <p className="text-xs text-muted-foreground mt-0.5">Discover how you give and receive love</p>
           </div>
         </button>
       )}
