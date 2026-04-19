@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2, Brain } from "lucide-react";
+import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2, Brain, Heart } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
