@@ -576,6 +576,7 @@ export type Database = {
           last_name: string | null
           location: string | null
           logo_url: string | null
+          love_language_result: Json | null
           middle_name: string | null
           organization_id: string | null
           owner_name: string | null
@@ -632,6 +633,7 @@ export type Database = {
           last_name?: string | null
           location?: string | null
           logo_url?: string | null
+          love_language_result?: Json | null
           middle_name?: string | null
           organization_id?: string | null
           owner_name?: string | null
@@ -688,6 +690,7 @@ export type Database = {
           last_name?: string | null
           location?: string | null
           logo_url?: string | null
+          love_language_result?: Json | null
           middle_name?: string | null
           organization_id?: string | null
           owner_name?: string | null
