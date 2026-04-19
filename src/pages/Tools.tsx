@@ -10,6 +10,8 @@ import { ToolFormDialog } from "@/components/tools/ToolFormDialog";
 import { DeleteToolDialog } from "@/components/tools/DeleteToolDialog";
 import { useTools, Tool, ToolInput } from "@/hooks/useTools";
 import { useAuth } from "@/contexts/AuthContext";
+import DiscTestSection from "@/components/tools/sections/DiscTestSection";
+import { Brain } from "lucide-react";
 
 export default function Tools() {
   const { tools, loading, error, categories, refetch, createTool, updateTool, deleteTool } = useTools();
@@ -77,6 +79,22 @@ export default function Tools() {
           )}
         </div>
 
+        {/* Featured: D.I.S.C. Personality Test */}
+        <Card className="mb-6 border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
+          <CardContent className="p-4 sm:p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                <Brain className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">D.I.S.C. Personality Test</h2>
+                <p className="text-xs text-muted-foreground">Discover your personality type and growth areas</p>
+              </div>
+            </div>
+            <DiscTestSection />
+          </CardContent>
+        </Card>
+
         {/* Filters */}
         {!loading && !error && tools.length > 0 && (
           <div className="mb-6">
@@ -95,9 +113,7 @@ export default function Tools() {
           <LoadingState />
         ) : error ? (
           <ErrorState error={error} onRetry={refetch} />
-        ) : tools.length === 0 ? (
-          <EmptyState isAdmin={isAdmin} onAddTool={handleAddTool} />
-        ) : (
+        ) : tools.length === 0 ? null : (
           <ToolsList
             tools={tools}
             searchTerm={searchTerm}
