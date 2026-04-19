@@ -11,7 +11,8 @@ import { DeleteToolDialog } from "@/components/tools/DeleteToolDialog";
 import { useTools, Tool, ToolInput } from "@/hooks/useTools";
 import { useAuth } from "@/contexts/AuthContext";
 import DiscTestSection from "@/components/tools/sections/DiscTestSection";
-import { Brain } from "lucide-react";
+import LoveLanguagesSection from "@/components/tools/sections/LoveLanguagesSection";
+import { Brain, Heart } from "lucide-react";
 
 export default function Tools() {
   const { tools, loading, error, categories, refetch, createTool, updateTool, deleteTool } = useTools();
