@@ -36,6 +36,7 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<IAMLink | null>(null);
   const [showingDiscTest, setShowingDiscTest] = useState(false);
+  const [showingLoveLanguages, setShowingLoveLanguages] = useState(false);
 
   useEffect(() => {
     fetchItems();
@@ -137,6 +138,17 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
           ← Back to Tools
         </Button>
         <DiscTestSection searchQuery={searchQuery} />
+      </div>
+    );
+  }
+
+  if (showDiscTest && showingLoveLanguages) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={() => setShowingLoveLanguages(false)} className="gap-2">
+          ← Back to Tools
+        </Button>
+        <LoveLanguagesSection searchQuery={searchQuery} />
       </div>
     );
   }
