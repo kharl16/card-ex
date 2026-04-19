@@ -49,6 +49,7 @@ export function TemplatePreviewDialog({
     theme: (layoutData.theme || null) as Json,
     is_published: false,
     is_paid: false,
+    mindset_result: null,
     paid_at: null,
     paid_overridden_by_admin: false,
     plan_id: null,
