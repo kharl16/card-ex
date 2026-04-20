@@ -26,8 +26,11 @@ export default function BookRecommendationsSection() {
   const [ttsState, setTtsState] = useState<"idle" | "playing" | "paused">("idle");
   const [spokenText, setSpokenText] = useState<string>("");
   const [activeWordIdx, setActiveWordIdx] = useState<number>(-1);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const activeWordRef = useRef<HTMLSpanElement | null>(null);
+  const chunksRef = useRef<{ text: string; wordStart: number; wordCount: number }[]>([]);
+  const chunkIdxRef = useRef<number>(0);
+  const keepAliveRef = useRef<number | null>(null);
+  const stoppedRef = useRef<boolean>(false);
 
   // Build word index map: [{ word, start }]
   const wordTokens = useMemo(() => {
@@ -41,13 +44,80 @@ export default function BookRecommendationsSection() {
     return tokens;
   }, [spokenText]);
 
+  const clearKeepAlive = () => {
+    if (keepAliveRef.current !== null) {
+      window.clearInterval(keepAliveRef.current);
+      keepAliveRef.current = null;
+    }
+  };
+
   const stopSpeech = () => {
+    stoppedRef.current = true;
+    clearKeepAlive();
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
-    utteranceRef.current = null;
+    chunksRef.current = [];
+    chunkIdxRef.current = 0;
     setTtsState("idle");
     setActiveWordIdx(-1);
+  };
+
+  const pickVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    return (
+      voices.find((v) => v.localService && /^en/i.test(v.lang)) ||
+      voices.find((v) => /^en/i.test(v.lang)) ||
+      voices[0]
+    );
+  };
+
+  const speakChunk = (idx: number) => {
+    if (stoppedRef.current) return;
+    const chunks = chunksRef.current;
+    if (idx >= chunks.length) {
+      clearKeepAlive();
+      setTtsState("idle");
+      setActiveWordIdx(-1);
+      return;
+    }
+    chunkIdxRef.current = idx;
+    const chunk = chunks[idx];
+    const u = new SpeechSynthesisUtterance(chunk.text);
+    u.rate = 1;
+    u.pitch = 1;
+    u.lang = "en-US";
+    const v = pickVoice();
+    if (v) u.voice = v;
+
+    u.onstart = () => setActiveWordIdx(chunk.wordStart);
+    u.onboundary = (e: SpeechSynthesisEvent) => {
+      if (e.name && e.name !== "word") return;
+      const before = chunk.text.slice(0, e.charIndex);
+      const wordsBefore = (before.match(/\S+/g) || []).length;
+      setActiveWordIdx(chunk.wordStart + wordsBefore);
+    };
+    u.onend = () => {
+      if (stoppedRef.current) return;
+      speakChunk(idx + 1);
+    };
+    u.onerror = (e: any) => {
+      if (e?.error === "interrupted" || e?.error === "canceled") return;
+      console.warn("TTS error:", e?.error);
+      if (!stoppedRef.current) speakChunk(idx + 1);
+    };
+
+    window.speechSynthesis.speak(u);
+  };
+
+  const startKeepAlive = () => {
+    clearKeepAlive();
+    // Chrome bug: speech stops after ~15s. Pause/resume keeps it alive.
+    keepAliveRef.current = window.setInterval(() => {
+      if (!window.speechSynthesis.speaking) return;
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }, 10000);
   };
 
   const playSpeech = () => {
@@ -60,10 +130,13 @@ export default function BookRecommendationsSection() {
     if (ttsState === "paused") {
       window.speechSynthesis.resume();
       setTtsState("playing");
+      startKeepAlive();
       return;
     }
 
     window.speechSynthesis.cancel();
+    stoppedRef.current = false;
+
     const clean = summary
       .replace(/```[\s\S]*?```/g, "")
       .replace(/[#*_`>]/g, "")
@@ -75,38 +148,35 @@ export default function BookRecommendationsSection() {
     setSpokenText(clean);
     setActiveWordIdx(-1);
 
-    const u = new SpeechSynthesisUtterance(clean);
-    u.rate = 1;
-    u.pitch = 1;
-    const voices = window.speechSynthesis.getVoices();
-    const preferred = voices.find((v) => /en[-_]/i.test(v.lang) && /female|samantha|google|natural/i.test(v.name))
-      || voices.find((v) => /en[-_]/i.test(v.lang));
-    if (preferred) u.voice = preferred;
-    u.onboundary = (e: SpeechSynthesisEvent) => {
-      if (e.name && e.name !== "word") return;
-      const charIdx = e.charIndex;
-      // Find token whose start <= charIdx, take the last such
-      const re = /\S+/g;
-      let m;
-      let idx = -1;
-      let i = 0;
-      while ((m = re.exec(clean)) !== null) {
-        if (m.index <= charIdx) idx = i;
-        else break;
-        i++;
-      }
-      if (idx >= 0) setActiveWordIdx(idx);
+    // Split into ~200 char sentence chunks for reliability
+    const sentences = clean.match(/[^.!?\n]+[.!?]?[\n]?/g) || [clean];
+    const chunks: { text: string; wordStart: number; wordCount: number }[] = [];
+    let buf = "";
+    let wordCursor = 0;
+    const flush = () => {
+      const t = buf.trim();
+      if (!t) return;
+      const wc = (t.match(/\S+/g) || []).length;
+      chunks.push({ text: t, wordStart: wordCursor, wordCount: wc });
+      wordCursor += wc;
+      buf = "";
     };
-    u.onend = () => { setTtsState("idle"); setActiveWordIdx(-1); };
-    u.onerror = () => { setTtsState("idle"); setActiveWordIdx(-1); };
-    utteranceRef.current = u;
-    window.speechSynthesis.speak(u);
+    for (const s of sentences) {
+      if ((buf + s).length > 200) flush();
+      buf += s;
+    }
+    flush();
+    chunksRef.current = chunks;
+
     setTtsState("playing");
+    startKeepAlive();
+    speakChunk(0);
   };
 
   const pauseSpeech = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.pause();
+      clearKeepAlive();
       setTtsState("paused");
     }
   };
