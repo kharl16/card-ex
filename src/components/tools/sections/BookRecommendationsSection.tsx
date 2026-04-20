@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { universalBooks, discBooks, loveLanguageBooks, mindsetBooks, Book } from "@/data/bookRecommendations";
-import { BookOpen, Sparkles, FileText, Loader2 } from "lucide-react";
+import { BookOpen, Sparkles, FileText, Headphones, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -59,8 +59,8 @@ export default function BookRecommendationsSection() {
     return out;
   }, [discType, llType, mindset]);
 
-  const fetchSummary = async (book: Book) => {
-    const key = `${book.title}|${book.author}`;
+  const fetchSummary = async (book: Book, mode: "summary" | "deep" = "summary") => {
+    const key = `${book.title}|${book.author}|${mode}`;
     setOpenBook(book);
     if (cache[key]) {
       setSummary(cache[key]);
@@ -70,7 +70,7 @@ export default function BookRecommendationsSection() {
     setSummaryLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("book-summary", {
-        body: { title: book.title, author: book.author },
+        body: { title: book.title, author: book.author, mode },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -78,8 +78,8 @@ export default function BookRecommendationsSection() {
       setSummary(text);
       setCache((c) => ({ ...c, [key]: text }));
     } catch (e: any) {
-      toast.error(e?.message || "Failed to load summary");
-      setSummary("Sorry, we couldn't generate a summary right now. Please try again later.");
+      toast.error(e?.message || "Failed to load content");
+      setSummary("Sorry, we couldn't generate this right now. Please try again later.");
     } finally {
       setSummaryLoading(false);
     }
@@ -93,15 +93,28 @@ export default function BookRecommendationsSection() {
         <p className="text-xs text-muted-foreground mb-1">by {b.author}</p>
         <p className="text-xs leading-relaxed">{b.why}</p>
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="shrink-0 h-8 w-8"
-        onClick={() => fetchSummary(b)}
-        aria-label={`Read summary of ${b.title}`}
-      >
-        <FileText className="h-3.5 w-3.5" />
-      </Button>
+      <div className="flex flex-col gap-1 shrink-0">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => fetchSummary(b, "summary")}
+          aria-label={`Quick summary of ${b.title}`}
+          title="Quick summary"
+        >
+          <FileText className="h-3.5 w-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-primary"
+          onClick={() => fetchSummary(b, "deep")}
+          aria-label={`Deep dive of ${b.title}`}
+          title="Audiobook-style deep dive"
+        >
+          <Headphones className="h-3.5 w-3.5" />
+        </Button>
+      </div>
     </Card>
   );
 
