@@ -139,26 +139,36 @@ export default function BookRecommendationsSection() {
       </div>
 
       <Dialog open={!!openBook} onOpenChange={(o) => !o && setOpenBook(null)}>
-        <DialogContent className="max-w-lg max-h-[85vh] flex flex-col">
-          <DialogHeader>
+        <DialogContent className="max-w-lg h-[85vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="p-6 pb-3 border-b border-border/50 shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <span className="text-2xl">{openBook?.emoji}</span>
               <span className="leading-tight">{openBook?.title}</span>
             </DialogTitle>
             <DialogDescription>by {openBook?.author}</DialogDescription>
           </DialogHeader>
-          <ScrollArea className="flex-1 pr-3 -mr-3">
+          <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
             {summaryLoading ? (
               <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin mb-2" />
                 <p className="text-sm">Generating summary…</p>
               </div>
             ) : (
-              <div className="prose prose-sm dark:prose-invert max-w-none prose-headings:mt-4 prose-headings:mb-2">
+              <div className="text-sm leading-relaxed space-y-3
+                [&_h1]:text-lg [&_h1]:font-bold [&_h1]:mt-4 [&_h1]:mb-2
+                [&_h2]:text-base [&_h2]:font-bold [&_h2]:mt-4 [&_h2]:mb-2 [&_h2]:text-primary
+                [&_h3]:text-sm [&_h3]:font-semibold [&_h3]:mt-3 [&_h3]:mb-1
+                [&_p]:mb-2
+                [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:space-y-1 [&_ul]:mb-2
+                [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:space-y-1 [&_ol]:mb-2
+                [&_li]:leading-relaxed
+                [&_strong]:font-semibold [&_strong]:text-foreground
+                [&_blockquote]:border-l-2 [&_blockquote]:border-primary [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-muted-foreground
+                [&_code]:bg-muted [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{summary}</ReactMarkdown>
               </div>
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
