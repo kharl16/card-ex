@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.prospect-ai]
 verify_jwt = false
+
+[functions.book-summary]
+verify_jwt = false
