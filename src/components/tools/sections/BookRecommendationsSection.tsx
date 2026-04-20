@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { universalBooks, discBooks, loveLanguageBooks, mindsetBooks, Book } from "@/data/bookRecommendations";
-import { BookOpen, Sparkles, FileText, Headphones, Loader2 } from "lucide-react";
+import { BookOpen, Sparkles, FileText, Headphones, Loader2, Play, Pause, Square } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -23,6 +23,67 @@ export default function BookRecommendationsSection() {
   const [summary, setSummary] = useState<string>("");
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [cache, setCache] = useState<Record<string, string>>({});
+  const [ttsState, setTtsState] = useState<"idle" | "playing" | "paused">("idle");
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  const stopSpeech = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    utteranceRef.current = null;
+    setTtsState("idle");
+  };
+
+  const playSpeech = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      toast.error("Your browser doesn't support text-to-speech.");
+      return;
+    }
+    if (!summary) return;
+
+    if (ttsState === "paused") {
+      window.speechSynthesis.resume();
+      setTtsState("playing");
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    // Strip markdown for cleaner narration
+    const clean = summary
+      .replace(/[#*_`>]/g, "")
+      .replace(/\[(.*?)\]\(.*?\)/g, "$1")
+      .replace(/\(Sound of[^)]*\)/gi, "")
+      .trim();
+
+    const u = new SpeechSynthesisUtterance(clean);
+    u.rate = 1;
+    u.pitch = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find((v) => /en[-_]/i.test(v.lang) && /female|samantha|google|natural/i.test(v.name))
+      || voices.find((v) => /en[-_]/i.test(v.lang));
+    if (preferred) u.voice = preferred;
+    u.onend = () => setTtsState("idle");
+    u.onerror = () => setTtsState("idle");
+    utteranceRef.current = u;
+    window.speechSynthesis.speak(u);
+    setTtsState("playing");
+  };
+
+  const pauseSpeech = () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.pause();
+      setTtsState("paused");
+    }
+  };
+
+  // Stop speech when dialog closes or summary changes
+  useEffect(() => {
+    return () => stopSpeech();
+  }, []);
+
+  useEffect(() => {
+    stopSpeech();
+  }, [summary]);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -151,12 +212,30 @@ export default function BookRecommendationsSection() {
         <div className="space-y-2">{universalBooks.map(renderBook)}</div>
       </div>
 
-      <Dialog open={!!openBook} onOpenChange={(o) => !o && setOpenBook(null)}>
+      <Dialog open={!!openBook} onOpenChange={(o) => { if (!o) { stopSpeech(); setOpenBook(null); } }}>
         <DialogContent className="max-w-lg h-[85vh] flex flex-col p-0 gap-0">
           <DialogHeader className="p-6 pb-3 border-b border-border/50 shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <span className="text-2xl">{openBook?.emoji}</span>
-              <span className="leading-tight">{openBook?.title}</span>
+              <span className="leading-tight flex-1">{openBook?.title}</span>
+              {!summaryLoading && summary && (
+                <div className="flex gap-1">
+                  {ttsState === "playing" ? (
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={pauseSpeech} title="Pause">
+                      <Pause className="h-4 w-4" />
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-primary" onClick={playSpeech} title={ttsState === "paused" ? "Resume" : "Listen"}>
+                      <Play className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {ttsState !== "idle" && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={stopSpeech} title="Stop">
+                      <Square className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              )}
             </DialogTitle>
             <DialogDescription>by {openBook?.author}</DialogDescription>
           </DialogHeader>
