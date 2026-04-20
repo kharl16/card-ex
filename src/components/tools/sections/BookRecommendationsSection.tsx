@@ -24,7 +24,22 @@ export default function BookRecommendationsSection() {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [cache, setCache] = useState<Record<string, string>>({});
   const [ttsState, setTtsState] = useState<"idle" | "playing" | "paused">("idle");
+  const [spokenText, setSpokenText] = useState<string>("");
+  const [activeWordIdx, setActiveWordIdx] = useState<number>(-1);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const activeWordRef = useRef<HTMLSpanElement | null>(null);
+
+  // Build word index map: [{ word, start }]
+  const wordTokens = useMemo(() => {
+    if (!spokenText) return [] as { word: string; start: number }[];
+    const tokens: { word: string; start: number }[] = [];
+    const re = /\S+/g;
+    let m;
+    while ((m = re.exec(spokenText)) !== null) {
+      tokens.push({ word: m[0], start: m.index });
+    }
+    return tokens;
+  }, [spokenText]);
 
   const stopSpeech = () => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
@@ -32,6 +47,7 @@ export default function BookRecommendationsSection() {
     }
     utteranceRef.current = null;
     setTtsState("idle");
+    setActiveWordIdx(-1);
   };
 
   const playSpeech = () => {
@@ -48,12 +64,16 @@ export default function BookRecommendationsSection() {
     }
 
     window.speechSynthesis.cancel();
-    // Strip markdown for cleaner narration
     const clean = summary
+      .replace(/```[\s\S]*?```/g, "")
       .replace(/[#*_`>]/g, "")
       .replace(/\[(.*?)\]\(.*?\)/g, "$1")
       .replace(/\(Sound of[^)]*\)/gi, "")
+      .replace(/\n{2,}/g, "\n\n")
       .trim();
+
+    setSpokenText(clean);
+    setActiveWordIdx(-1);
 
     const u = new SpeechSynthesisUtterance(clean);
     u.rate = 1;
@@ -62,8 +82,23 @@ export default function BookRecommendationsSection() {
     const preferred = voices.find((v) => /en[-_]/i.test(v.lang) && /female|samantha|google|natural/i.test(v.name))
       || voices.find((v) => /en[-_]/i.test(v.lang));
     if (preferred) u.voice = preferred;
-    u.onend = () => setTtsState("idle");
-    u.onerror = () => setTtsState("idle");
+    u.onboundary = (e: SpeechSynthesisEvent) => {
+      if (e.name && e.name !== "word") return;
+      const charIdx = e.charIndex;
+      // Find token whose start <= charIdx, take the last such
+      const re = /\S+/g;
+      let m;
+      let idx = -1;
+      let i = 0;
+      while ((m = re.exec(clean)) !== null) {
+        if (m.index <= charIdx) idx = i;
+        else break;
+        i++;
+      }
+      if (idx >= 0) setActiveWordIdx(idx);
+    };
+    u.onend = () => { setTtsState("idle"); setActiveWordIdx(-1); };
+    u.onerror = () => { setTtsState("idle"); setActiveWordIdx(-1); };
     utteranceRef.current = u;
     window.speechSynthesis.speak(u);
     setTtsState("playing");
@@ -76,13 +111,20 @@ export default function BookRecommendationsSection() {
     }
   };
 
-  // Stop speech when dialog closes or summary changes
+  // Auto-scroll active word into view
+  useEffect(() => {
+    if (activeWordIdx >= 0 && activeWordRef.current) {
+      activeWordRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [activeWordIdx]);
+
   useEffect(() => {
     return () => stopSpeech();
   }, []);
 
   useEffect(() => {
     stopSpeech();
+    setSpokenText("");
   }, [summary]);
 
   useEffect(() => {
@@ -244,6 +286,25 @@ export default function BookRecommendationsSection() {
               <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                 <Loader2 className="h-6 w-6 animate-spin mb-2" />
                 <p className="text-sm">Generating summary…</p>
+              </div>
+            ) : ttsState !== "idle" && spokenText ? (
+              <div className="text-sm leading-loose whitespace-pre-wrap">
+                {wordTokens.map((t, i) => {
+                  const prev = i === 0 ? 0 : wordTokens[i - 1].start + wordTokens[i - 1].word.length;
+                  const gap = spokenText.slice(prev, t.start);
+                  const isActive = i === activeWordIdx;
+                  return (
+                    <span key={i}>
+                      {gap}
+                      <span
+                        ref={isActive ? activeWordRef : undefined}
+                        className={isActive ? "bg-primary text-primary-foreground rounded px-0.5 transition-colors" : "transition-colors"}
+                      >
+                        {t.word}
+                      </span>
+                    </span>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-sm leading-relaxed space-y-3
