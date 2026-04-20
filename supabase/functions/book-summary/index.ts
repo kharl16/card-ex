@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { title, author } = await req.json();
+    const { title, author, mode } = await req.json();
     if (!title || !author) {
       return new Response(JSON.stringify({ error: "title and author required" }), {
         status: 400,
@@ -23,7 +23,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    const prompt = `Provide a comprehensive book summary of "${title}" by ${author}.
+    const isDeepDive = mode === "deep";
+
+    const summaryPrompt = `Provide a comprehensive book summary of "${title}" by ${author}.
 
 Format your response in markdown with these sections:
 ## Overview
@@ -43,6 +45,45 @@ One memorable quote from the book.
 
 Keep it engaging, practical, and around 400-500 words total.`;
 
+    const deepPrompt = `Write an audiobook-style deep-dive narration of "${title}" by ${author}.
+
+This should feel like a long, conversational audiobook walkthrough — engaging, warm, and detailed. Aim for 2500-3500 words.
+
+Format in markdown with these sections:
+
+## Introduction
+Hook the listener. Why this book matters and what they'll gain.
+
+## The Author's Story
+Brief context on ${author} and what inspired this book.
+
+## Core Premise
+The big idea in depth — explain it like you're talking to a friend.
+
+## Chapter-by-Chapter Walkthrough
+Go through each major chapter or section. For each one:
+- Name the chapter/section as a ### heading
+- Explain the main lesson in 2-3 paragraphs
+- Include specific examples, stories, or frameworks from the book
+- End with a one-line "takeaway"
+
+## Key Frameworks & Models
+Detail any signature frameworks, acronyms, or step-by-step systems the book teaches.
+
+## Memorable Stories & Examples
+Recount 3-5 of the most powerful anecdotes from the book.
+
+## Powerful Quotes
+List 5-7 of the most impactful quotes with brief context.
+
+## How to Apply This Book
+A practical 7-day or 30-day plan the reader can start tomorrow.
+
+## Final Thoughts
+Wrap up with the lasting impact of the book and who should read it.
+
+Write in a warm, narrative voice — as if you're personally guiding the listener through the entire book.`;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -52,8 +93,13 @@ Keep it engaging, practical, and around 400-500 words total.`;
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: "You are an expert book summarizer who creates clear, actionable summaries of personal development and business books." },
-          { role: "user", content: prompt },
+          {
+            role: "system",
+            content: isDeepDive
+              ? "You are a master audiobook narrator and book educator. You create deeply engaging, long-form walkthroughs of books that feel like personal coaching sessions."
+              : "You are an expert book summarizer who creates clear, actionable summaries of personal development and business books.",
+          },
+          { role: "user", content: isDeepDive ? deepPrompt : summaryPrompt },
         ],
       }),
     });
