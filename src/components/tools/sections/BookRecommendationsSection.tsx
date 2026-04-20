@@ -50,7 +50,7 @@ export default function BookRecommendationsSection() {
   }, [discType, llType, mindset]);
 
   const renderBook = (b: Book) => {
-    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(`${b.title} ${b.author} book`)}`;
+    const searchUrl = `https://www.amazon.com/s?k=${encodeURIComponent(`${b.title} ${b.author}`)}&i=stripbooks`;
     return (
       <Card key={`${b.title}-${b.author}`} className="p-3 flex gap-3 items-start hover:border-primary/40 transition-colors">
         <div className="text-2xl shrink-0">{b.emoji}</div>
