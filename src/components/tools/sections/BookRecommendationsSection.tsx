@@ -398,12 +398,12 @@ export default function BookRecommendationsSection() {
 
       <Dialog open={!!openBook} onOpenChange={(o) => { if (!o) { stopSpeech(); setOpenBook(null); } }}>
         <DialogContent className="max-w-lg h-[85vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="p-6 pb-3 border-b border-border/50 shrink-0">
-            <DialogTitle className="flex items-center gap-2">
-              <span className="text-2xl">{openBook?.emoji}</span>
-              <span className="leading-tight flex-1">{openBook?.title}</span>
+          <DialogHeader className="p-6 pb-3 border-b border-border/50 shrink-0 text-center">
+            <DialogTitle className="grid grid-cols-[2rem_1fr_4.5rem] items-start gap-2 text-center">
+              <span className="text-2xl justify-self-center">{openBook?.emoji}</span>
+              <span className="leading-tight min-w-0 whitespace-normal break-words text-center">{openBook?.title}</span>
               {!summaryLoading && summary && (
-                <div className="flex gap-1">
+                <div className="flex gap-1 justify-self-end">
                   {ttsState === "playing" ? (
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={pauseSpeech} title="Pause">
                       <Pause className="h-4 w-4" />
@@ -421,7 +421,7 @@ export default function BookRecommendationsSection() {
                 </div>
               )}
             </DialogTitle>
-            <DialogDescription>by {openBook?.author}</DialogDescription>
+            <DialogDescription className="text-center whitespace-normal break-words">by {openBook?.author}</DialogDescription>
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
             {summaryLoading ? (
