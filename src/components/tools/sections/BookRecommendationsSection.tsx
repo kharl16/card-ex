@@ -248,7 +248,9 @@ export default function BookRecommendationsSection() {
           clearKeepAlive();
           utterancesRef.current = [];
           setTtsState("idle");
-          setActiveWordIdx(-1);
+          updateActiveWord(-1);
+        } else {
+          scheduleMobileRecovery(`queued_chunk_end_${idx}`);
         }
         return;
       }
@@ -265,8 +267,11 @@ export default function BookRecommendationsSection() {
     u.onerror = (e: any) => {
       clearWordTimer();
       if (e?.error === "interrupted" || e?.error === "canceled") return;
-      console.warn("TTS error:", e?.error);
-      if (queued) return;
+      logSpeechStop("utterance_error", e?.error);
+      if (queued) {
+        scheduleMobileRecovery(`queued_error_${e?.error || "unknown"}`);
+        return;
+      }
       if (!stoppedRef.current) {
         window.setTimeout(() => {
           if (!stoppedRef.current) speakChunk(idx + 1);
