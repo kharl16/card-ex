@@ -275,12 +275,25 @@ export default function BookRecommendationsSection() {
     u.onend = () => {
       clearWordTimer();
       if (stoppedRef.current) return;
+      const totalWords = tokenizeText(spokenTextRef.current).length;
+      const expectedEndWord = chunk.wordStart + chunk.wordCount - 1;
+      const completedFar = lastSpokenWordRef.current >= expectedEndWord - 1;
+      const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
+      // Aggressive early-end detection: if utterance ended but we didn't reach
+      // the expected last word of this chunk AND there's more text, requeue now.
+      if (isMobile && hasMoreWords && !completedFar) {
+        logSpeechStop("mobile_early_onend", {
+          expectedEndWord,
+          actualLastWord: lastSpokenWordRef.current,
+        });
+        requeueFromWord(lastSpokenWordRef.current + 1, "mobile_early_onend");
+        return;
+      }
       if (queued) {
         if (idx < chunks.length - 1) {
           speakChunk(idx + 1, true);
         } else {
-          const totalWords = tokenizeText(spokenTextRef.current).length;
-          if (lastSpokenWordRef.current < totalWords - 2) {
+          if (isMobile && hasMoreWords) {
             scheduleMobileRecovery("mobile_ended_before_complete");
             return;
           }
@@ -292,8 +305,6 @@ export default function BookRecommendationsSection() {
         }
         return;
       }
-      // On mobile, chaining via onend often gets blocked by autoplay policy.
-      // Defer the next speak() to break out of the callback context.
       if (isMobile) {
         window.setTimeout(() => {
           if (!stoppedRef.current) speakChunk(idx + 1);
