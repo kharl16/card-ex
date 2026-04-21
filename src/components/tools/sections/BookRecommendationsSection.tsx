@@ -12,6 +12,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 
+type SpeechChunk = { text: string; wordStart: number; wordCount: number };
+
 export default function BookRecommendationsSection() {
   const { user } = useAuth();
   const [discType, setDiscType] = useState<string | null>(null);
@@ -27,7 +29,7 @@ export default function BookRecommendationsSection() {
   const [spokenText, setSpokenText] = useState<string>("");
   const [activeWordIdx, setActiveWordIdx] = useState<number>(-1);
   const activeWordRef = useRef<HTMLSpanElement | null>(null);
-  const chunksRef = useRef<{ text: string; wordStart: number; wordCount: number }[]>([]);
+  const chunksRef = useRef<SpeechChunk[]>([]);
   const chunkIdxRef = useRef<number>(0);
   const keepAliveRef = useRef<number | null>(null);
   const stoppedRef = useRef<boolean>(false);
@@ -37,10 +39,9 @@ export default function BookRecommendationsSection() {
   const activeWordIdxRef = useRef<number>(-1);
   const lastSpokenWordRef = useRef<number>(0);
   const speechRateRef = useRef<number>(1);
+  const spokenTextRef = useRef<string>("");
 
   const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-
-  type SpeechChunk = { text: string; wordStart: number; wordCount: number };
 
   const tokenizeText = (text: string) => {
     const tokens: { word: string; start: number }[] = [];
