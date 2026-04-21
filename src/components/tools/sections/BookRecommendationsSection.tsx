@@ -31,6 +31,9 @@ export default function BookRecommendationsSection() {
   const chunkIdxRef = useRef<number>(0);
   const keepAliveRef = useRef<number | null>(null);
   const stoppedRef = useRef<boolean>(false);
+  const wordTimerRef = useRef<number | null>(null);
+
+  const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
   // Build word index map: [{ word, start }]
   const wordTokens = useMemo(() => {
@@ -51,9 +54,17 @@ export default function BookRecommendationsSection() {
     }
   };
 
+  const clearWordTimer = () => {
+    if (wordTimerRef.current !== null) {
+      window.clearInterval(wordTimerRef.current);
+      wordTimerRef.current = null;
+    }
+  };
+
   const stopSpeech = () => {
     stoppedRef.current = true;
     clearKeepAlive();
+    clearWordTimer();
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -72,11 +83,29 @@ export default function BookRecommendationsSection() {
     );
   };
 
+  const startWordTimer = (chunk: { text: string; wordStart: number; wordCount: number }, rate: number) => {
+    clearWordTimer();
+    if (chunk.wordCount <= 0) return;
+    // Average English speech ~ 175 wpm at rate 1 => ~343ms per word. Tune slightly slower for mobile.
+    const msPerWord = (60000 / 175) / rate;
+    let i = 0;
+    setActiveWordIdx(chunk.wordStart);
+    wordTimerRef.current = window.setInterval(() => {
+      i += 1;
+      if (i >= chunk.wordCount) {
+        clearWordTimer();
+        return;
+      }
+      setActiveWordIdx(chunk.wordStart + i);
+    }, msPerWord);
+  };
+
   const speakChunk = (idx: number) => {
     if (stoppedRef.current) return;
     const chunks = chunksRef.current;
     if (idx >= chunks.length) {
       clearKeepAlive();
+      clearWordTimer();
       setTtsState("idle");
       setActiveWordIdx(-1);
       return;
@@ -84,27 +113,53 @@ export default function BookRecommendationsSection() {
     chunkIdxRef.current = idx;
     const chunk = chunks[idx];
     const u = new SpeechSynthesisUtterance(chunk.text);
-    u.rate = 1;
+    const rate = 1;
+    u.rate = rate;
     u.pitch = 1;
     u.lang = "en-US";
     const v = pickVoice();
     if (v) u.voice = v;
 
-    u.onstart = () => setActiveWordIdx(chunk.wordStart);
+    let boundaryFired = false;
+    u.onstart = () => {
+      setActiveWordIdx(chunk.wordStart);
+      // On mobile, onboundary rarely fires — start a time-based fallback after a short grace period.
+      if (isMobile) {
+        window.setTimeout(() => {
+          if (!boundaryFired && !stoppedRef.current) startWordTimer(chunk, rate);
+        }, 400);
+      }
+    };
     u.onboundary = (e: SpeechSynthesisEvent) => {
       if (e.name && e.name !== "word") return;
+      boundaryFired = true;
+      clearWordTimer();
       const before = chunk.text.slice(0, e.charIndex);
       const wordsBefore = (before.match(/\S+/g) || []).length;
       setActiveWordIdx(chunk.wordStart + wordsBefore);
     };
     u.onend = () => {
+      clearWordTimer();
       if (stoppedRef.current) return;
-      speakChunk(idx + 1);
+      // On mobile, chaining via onend often gets blocked by autoplay policy.
+      // Defer the next speak() to break out of the callback context.
+      if (isMobile) {
+        window.setTimeout(() => {
+          if (!stoppedRef.current) speakChunk(idx + 1);
+        }, 50);
+      } else {
+        speakChunk(idx + 1);
+      }
     };
     u.onerror = (e: any) => {
+      clearWordTimer();
       if (e?.error === "interrupted" || e?.error === "canceled") return;
       console.warn("TTS error:", e?.error);
-      if (!stoppedRef.current) speakChunk(idx + 1);
+      if (!stoppedRef.current) {
+        window.setTimeout(() => {
+          if (!stoppedRef.current) speakChunk(idx + 1);
+        }, 50);
+      }
     };
 
     window.speechSynthesis.speak(u);
@@ -148,7 +203,8 @@ export default function BookRecommendationsSection() {
     setSpokenText(clean);
     setActiveWordIdx(-1);
 
-    // Split into ~200 char sentence chunks for reliability
+    // Split into smaller chunks on mobile (~120 char) for reliability; ~200 on desktop
+    const maxLen = isMobile ? 120 : 200;
     const sentences = clean.match(/[^.!?\n]+[.!?]?[\n]?/g) || [clean];
     const chunks: { text: string; wordStart: number; wordCount: number }[] = [];
     let buf = "";
@@ -162,7 +218,7 @@ export default function BookRecommendationsSection() {
       buf = "";
     };
     for (const s of sentences) {
-      if ((buf + s).length > 200) flush();
+      if ((buf + s).length > maxLen) flush();
       buf += s;
     }
     flush();
