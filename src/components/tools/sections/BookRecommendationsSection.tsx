@@ -138,7 +138,7 @@ export default function BookRecommendationsSection() {
     const tokens = tokenizeText(text);
     const startChar = tokens[startWord]?.start ?? 0;
     const remaining = text.slice(startChar).trim();
-    const maxLen = isMobile ? 2800 : 200;
+    const maxLen = isMobile ? 180 : 200;
     const sentences = remaining.match(/[^.!?\n]+[.!?]?[\n]?/g) || [remaining];
     const chunks: SpeechChunk[] = [];
     let buf = "";
