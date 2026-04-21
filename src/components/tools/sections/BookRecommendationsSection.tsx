@@ -117,7 +117,7 @@ export default function BookRecommendationsSection() {
     return Math.max(145, ((165 + syllables * 72 + punctuationPause) * voiceFactor) / rate);
   };
 
-  const startWordTimer = (chunk: { text: string; wordStart: number; wordCount: number }, rate: number, voice?: SpeechSynthesisVoice | null) => {
+  const startWordTimer = (chunk: SpeechChunk, rate: number, voice?: SpeechSynthesisVoice | null) => {
     clearWordTimer();
     if (chunk.wordCount <= 0) return;
     const words = chunk.text.match(/\S+/g) || [];
@@ -135,6 +135,12 @@ export default function BookRecommendationsSection() {
     wordTimerRef.current = window.setTimeout(tick, estimateWordDuration(words[0] || "", rate, voice));
   };
 
+  const findChunkIndexByWord = (wordIdx: number) => {
+    const chunks = chunksRef.current;
+    const idx = chunks.findIndex((chunk) => wordIdx >= chunk.wordStart && wordIdx < chunk.wordStart + chunk.wordCount);
+    return idx >= 0 ? idx : 0;
+  };
+
   const speakChunk = (idx: number, queued = false) => {
     if (stoppedRef.current) return;
     const chunks = chunksRef.current;
@@ -143,13 +149,14 @@ export default function BookRecommendationsSection() {
       clearWordTimer();
       utterancesRef.current = [];
       setTtsState("idle");
-      setActiveWordIdx(-1);
+      updateActiveWord(-1);
       return;
     }
     chunkIdxRef.current = idx;
     const chunk = chunks[idx];
     const u = new SpeechSynthesisUtterance(chunk.text);
     const rate = 1;
+    speechRateRef.current = rate;
     u.rate = rate;
     u.pitch = 1;
     u.lang = "en-US";
@@ -158,9 +165,10 @@ export default function BookRecommendationsSection() {
 
     let boundaryFired = false;
     u.onstart = () => {
-      setActiveWordIdx(chunk.wordStart);
+      chunkIdxRef.current = idx;
+      updateActiveWord(chunk.wordStart);
       // On mobile, onboundary is unreliable, so start fallback highlighting immediately.
-      if (isMobile) startWordTimer(chunk, rate);
+      if (isMobile) startWordTimer(chunk, rate, v);
     };
     u.onboundary = (e: SpeechSynthesisEvent) => {
       if (isMobile) return;
@@ -169,7 +177,7 @@ export default function BookRecommendationsSection() {
       clearWordTimer();
       const before = chunk.text.slice(0, e.charIndex);
       const wordsBefore = (before.match(/\S+/g) || []).length;
-      setActiveWordIdx(chunk.wordStart + wordsBefore);
+      updateActiveWord(chunk.wordStart + wordsBefore);
     };
     u.onend = () => {
       clearWordTimer();
