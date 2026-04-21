@@ -43,6 +43,10 @@ export default function BookRecommendationsSection() {
   const lastProgressAtRef = useRef<number>(Date.now());
   const speechRateRef = useRef<number>(1);
   const spokenTextRef = useRef<string>("");
+  const selectedVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const durationFactorRef = useRef<number>(1);
+  const calibrationSamplesRef = useRef<number>(0);
+  const calibrationKeyRef = useRef<string>("");
 
   const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
@@ -159,11 +163,66 @@ export default function BookRecommendationsSection() {
     return chunks;
   };
 
-  const estimateWordDuration = (word: string, rate: number, voice?: SpeechSynthesisVoice | null) => {
+  const getCalibrationKey = (voice: SpeechSynthesisVoice | null | undefined, rate: number) =>
+    `cardex-tts-calibration:${voice?.voiceURI || voice?.name || "default"}:${voice?.lang || "unknown"}:${rate.toFixed(2)}`;
+
+  const clampDurationFactor = (value: number) => Math.min(1.65, Math.max(0.62, value));
+
+  const loadDurationCalibration = (voice: SpeechSynthesisVoice | null | undefined, rate: number) => {
+    const key = getCalibrationKey(voice, rate);
+    calibrationKeyRef.current = key;
+    calibrationSamplesRef.current = 0;
+    durationFactorRef.current = 1;
+    try {
+      const stored = window.localStorage.getItem(key);
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as { factor?: number; samples?: number };
+      if (typeof parsed.factor === "number") durationFactorRef.current = clampDurationFactor(parsed.factor);
+      if (typeof parsed.samples === "number") calibrationSamplesRef.current = Math.max(0, parsed.samples);
+    } catch {
+      durationFactorRef.current = 1;
+      calibrationSamplesRef.current = 0;
+    }
+  };
+
+  const saveDurationCalibration = () => {
+    if (!calibrationKeyRef.current) return;
+    try {
+      window.localStorage.setItem(
+        calibrationKeyRef.current,
+        JSON.stringify({ factor: durationFactorRef.current, samples: calibrationSamplesRef.current })
+      );
+    } catch {
+      // Ignore storage failures; live calibration still applies during this session.
+    }
+  };
+
+  const estimateWordDuration = (word: string, rate: number, voice?: SpeechSynthesisVoice | null, factor = durationFactorRef.current) => {
     const syllables = Math.max(1, (word.toLowerCase().match(/[aeiouy]+/g) || []).length);
     const punctuationPause = /[.!?]$/.test(word) ? 260 : /[,;:]$/.test(word) ? 130 : 0;
     const voiceFactor = voice?.localService ? 0.94 : 1.08;
-    return Math.max(145, ((165 + syllables * 72 + punctuationPause) * voiceFactor) / rate);
+    return Math.max(120, (((165 + syllables * 72 + punctuationPause) * voiceFactor) / rate) * factor);
+  };
+
+  const estimateChunkDuration = (chunk: SpeechChunk, rate: number, voice?: SpeechSynthesisVoice | null, factor = durationFactorRef.current) =>
+    (chunk.text.match(/\S+/g) || []).reduce((total, word) => total + estimateWordDuration(word, rate, voice, factor), 0);
+
+  const tuneDurationModel = (chunk: SpeechChunk, elapsedMs: number, rate: number, voice?: SpeechSynthesisVoice | null) => {
+    if (!isMobile || chunk.wordCount < 3 || elapsedMs < 350) return;
+    const baseEstimate = estimateChunkDuration(chunk, rate, voice, 1);
+    if (!Number.isFinite(baseEstimate) || baseEstimate <= 0) return;
+    const observedFactor = clampDurationFactor(elapsedMs / baseEstimate);
+    const sampleWeight = calibrationSamplesRef.current < 4 ? 0.45 : 0.2;
+    durationFactorRef.current = clampDurationFactor(durationFactorRef.current * (1 - sampleWeight) + observedFactor * sampleWeight);
+    calibrationSamplesRef.current += 1;
+    saveDurationCalibration();
+    logSpeechStop("mobile_duration_model_tuned", {
+      elapsedMs: Math.round(elapsedMs),
+      estimatedMs: Math.round(baseEstimate),
+      observedFactor: Number(observedFactor.toFixed(3)),
+      activeFactor: Number(durationFactorRef.current.toFixed(3)),
+      samples: calibrationSamplesRef.current,
+    });
   };
 
   const startWordTimer = (chunk: SpeechChunk, rate: number, voice?: SpeechSynthesisVoice | null) => {
@@ -189,52 +248,138 @@ export default function BookRecommendationsSection() {
     const totalWords = tokenizeText(spokenTextRef.current).length;
     const safeWord = Math.min(Math.max(wordIdx, 0), Math.max(totalWords - 1, 0));
     if (safeWord >= totalWords - 1) return;
-    logSpeechStop(reason, { requeueFromWord: safeWord });
+    logSpeechStop(reason, { requeueFromWord: safeWord, durationFactor: durationFactorRef.current });
     window.speechSynthesis.cancel();
     clearWordTimer();
     utterancesRef.current = [];
     chunksRef.current = createChunks(spokenTextRef.current, safeWord);
-    speakChunk(0, true);
+    queueMobileChunks(0, reason);
   };
 
   const scheduleMobileRecovery = (reason: string) => {
     if (!isMobile || stoppedRef.current) return;
     clearRequeueTimer();
-    // Aggressive: try recovery almost immediately after suspected early end.
     requeueTimerRef.current = window.setTimeout(() => {
       if (stoppedRef.current) return;
       const totalWords = tokenizeText(spokenTextRef.current).length;
       const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
       const synthIdle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
       if (hasMoreWords && synthIdle) requeueFromWord(lastSpokenWordRef.current + 1, reason);
-    }, 150);
+    }, 120);
   };
 
   const startMobileWatchdog = () => {
     if (!isMobile) return;
     clearMobileWatchdog();
-    // More aggressive: poll every 500ms, treat 1.5s of no progress as stalled.
     mobileWatchdogRef.current = window.setInterval(() => {
       if (stoppedRef.current || ttsState === "paused" || !spokenTextRef.current) return;
       const totalWords = tokenizeText(spokenTextRef.current).length;
       const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
       if (!hasMoreWords) return;
       const idle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
-      const stalled = Date.now() - lastProgressAtRef.current > 1500;
+      const stalledMs = Date.now() - lastProgressAtRef.current;
+      const stalled = stalledMs > Math.max(1300, estimateWordDuration(wordTokens[lastSpokenWordRef.current]?.word || "", speechRateRef.current, selectedVoiceRef.current) * 2.8);
       if (idle || stalled) {
-        logSpeechStop(idle ? "mobile_synth_idle" : "mobile_progress_stalled", { stalledMs: Date.now() - lastProgressAtRef.current });
+        logSpeechStop(idle ? "mobile_synth_idle" : "mobile_progress_stalled", {
+          stalledMs,
+          durationFactor: durationFactorRef.current,
+        });
         requeueFromWord(lastSpokenWordRef.current + 1, idle ? "watchdog_idle" : "watchdog_stalled");
       }
-    }, 500);
+    }, 450);
   };
 
-  const findChunkIndexByWord = (wordIdx: number) => {
+  const createUtterance = (idx: number, queued = false, voice = selectedVoiceRef.current) => {
     const chunks = chunksRef.current;
-    const idx = chunks.findIndex((chunk) => wordIdx >= chunk.wordStart && wordIdx < chunk.wordStart + chunk.wordCount);
-    return idx >= 0 ? idx : 0;
+    const chunk = chunks[idx];
+    const u = new SpeechSynthesisUtterance(chunk.text);
+    const rate = speechRateRef.current;
+    u.rate = rate;
+    u.pitch = 1;
+    u.lang = "en-US";
+    if (voice) u.voice = voice;
+
+    let startedAt = 0;
+    u.onstart = () => {
+      startedAt = performance.now();
+      chunkIdxRef.current = idx;
+      updateActiveWord(chunk.wordStart);
+      if (isMobile) startWordTimer(chunk, rate, voice);
+    };
+    u.onboundary = (e: SpeechSynthesisEvent) => {
+      if (isMobile) return;
+      if (e.name && e.name !== "word") return;
+      clearWordTimer();
+      const before = chunk.text.slice(0, e.charIndex);
+      const wordsBefore = (before.match(/\S+/g) || []).length;
+      updateActiveWord(chunk.wordStart + wordsBefore);
+    };
+    u.onend = () => {
+      clearWordTimer();
+      if (stoppedRef.current) return;
+      const totalWords = tokenizeText(spokenTextRef.current).length;
+      const expectedEndWord = chunk.wordStart + chunk.wordCount - 1;
+      const hasMoreWords = expectedEndWord < totalWords - 1;
+      const elapsedMs = startedAt ? performance.now() - startedAt : 0;
+      const expectedMs = estimateChunkDuration(chunk, rate, voice);
+
+      if (isMobile && hasMoreWords && elapsedMs > 0 && elapsedMs < expectedMs * 0.38) {
+        logSpeechStop("mobile_early_onend", {
+          expectedEndWord,
+          actualLastWord: lastSpokenWordRef.current,
+          elapsedMs: Math.round(elapsedMs),
+          expectedMs: Math.round(expectedMs),
+        });
+        requeueFromWord(lastSpokenWordRef.current + 1, "mobile_early_onend");
+        return;
+      }
+
+      if (isMobile && elapsedMs > 0) tuneDurationModel(chunk, elapsedMs, rate, voice);
+      updateActiveWord(expectedEndWord);
+
+      if (queued) {
+        if (idx === chunks.length - 1) {
+          clearKeepAlive();
+          clearMobileWatchdog();
+          utterancesRef.current = [];
+          setTtsState("idle");
+          updateActiveWord(-1);
+        } else if (isMobile) {
+          scheduleMobileRecovery("mobile_queue_gap_after_chunk");
+        }
+        return;
+      }
+
+      speakChunk(idx + 1);
+    };
+    u.onerror = (e: any) => {
+      clearWordTimer();
+      if (e?.error === "interrupted" || e?.error === "canceled") return;
+      logSpeechStop("utterance_error", e?.error);
+      if (queued) {
+        scheduleMobileRecovery(`queued_error_${e?.error || "unknown"}`);
+        return;
+      }
+      if (!stoppedRef.current) speakChunk(idx + 1);
+    };
+
+    return u;
   };
 
-  const speakChunk = (idx: number, queued = false) => {
+  const queueMobileChunks = (startIdx = 0, reason = "mobile_initial_queue") => {
+    if (stoppedRef.current) return;
+    const chunks = chunksRef.current;
+    if (startIdx >= chunks.length) return;
+    chunkIdxRef.current = startIdx;
+    logSpeechStop(reason, { queuedChunks: chunks.length - startIdx, durationFactor: durationFactorRef.current });
+    for (let i = startIdx; i < chunks.length; i += 1) {
+      const utterance = createUtterance(i, true);
+      utterancesRef.current.push(utterance);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const speakChunk = (idx: number) => {
     if (stoppedRef.current) return;
     const chunks = chunksRef.current;
     if (idx >= chunks.length) {
@@ -246,90 +391,9 @@ export default function BookRecommendationsSection() {
       return;
     }
     chunkIdxRef.current = idx;
-    const chunk = chunks[idx];
-    const u = new SpeechSynthesisUtterance(chunk.text);
-    const rate = 1;
-    speechRateRef.current = rate;
-    u.rate = rate;
-    u.pitch = 1;
-    u.lang = "en-US";
-    const v = pickVoice();
-    if (v) u.voice = v;
-
-    let boundaryFired = false;
-    u.onstart = () => {
-      chunkIdxRef.current = idx;
-      updateActiveWord(chunk.wordStart);
-      // On mobile, onboundary is unreliable, so start fallback highlighting immediately.
-      if (isMobile) startWordTimer(chunk, rate, v);
-    };
-    u.onboundary = (e: SpeechSynthesisEvent) => {
-      if (isMobile) return;
-      if (e.name && e.name !== "word") return;
-      boundaryFired = true;
-      clearWordTimer();
-      const before = chunk.text.slice(0, e.charIndex);
-      const wordsBefore = (before.match(/\S+/g) || []).length;
-      updateActiveWord(chunk.wordStart + wordsBefore);
-    };
-    u.onend = () => {
-      clearWordTimer();
-      if (stoppedRef.current) return;
-      const totalWords = tokenizeText(spokenTextRef.current).length;
-      const expectedEndWord = chunk.wordStart + chunk.wordCount - 1;
-      const completedFar = lastSpokenWordRef.current >= expectedEndWord - 1;
-      const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
-      // Aggressive early-end detection: if utterance ended but we didn't reach
-      // the expected last word of this chunk AND there's more text, requeue now.
-      if (isMobile && hasMoreWords && !completedFar) {
-        logSpeechStop("mobile_early_onend", {
-          expectedEndWord,
-          actualLastWord: lastSpokenWordRef.current,
-        });
-        requeueFromWord(lastSpokenWordRef.current + 1, "mobile_early_onend");
-        return;
-      }
-      if (queued) {
-        if (idx < chunks.length - 1) {
-          speakChunk(idx + 1, true);
-        } else {
-          if (isMobile && hasMoreWords) {
-            scheduleMobileRecovery("mobile_ended_before_complete");
-            return;
-          }
-          clearKeepAlive();
-          clearMobileWatchdog();
-          utterancesRef.current = [];
-          setTtsState("idle");
-          updateActiveWord(-1);
-        }
-        return;
-      }
-      if (isMobile) {
-        window.setTimeout(() => {
-          if (!stoppedRef.current) speakChunk(idx + 1);
-        }, 50);
-      } else {
-        speakChunk(idx + 1);
-      }
-    };
-    u.onerror = (e: any) => {
-      clearWordTimer();
-      if (e?.error === "interrupted" || e?.error === "canceled") return;
-      logSpeechStop("utterance_error", e?.error);
-      if (queued) {
-        scheduleMobileRecovery(`queued_error_${e?.error || "unknown"}`);
-        return;
-      }
-      if (!stoppedRef.current) {
-        window.setTimeout(() => {
-          if (!stoppedRef.current) speakChunk(idx + 1);
-        }, 50);
-      }
-    };
-
-    utterancesRef.current.push(u);
-    window.speechSynthesis.speak(u);
+    const utterance = createUtterance(idx, false);
+    utterancesRef.current.push(utterance);
+    window.speechSynthesis.speak(utterance);
   };
 
   const startKeepAlive = () => {
@@ -359,6 +423,10 @@ export default function BookRecommendationsSection() {
 
     window.speechSynthesis.cancel();
     stoppedRef.current = false;
+    speechRateRef.current = 1;
+    const selectedVoice = pickVoice();
+    selectedVoiceRef.current = selectedVoice || null;
+    loadDurationCalibration(selectedVoice, speechRateRef.current);
 
     const clean = summary
       .replace(/```[\s\S]*?```/g, "")
@@ -379,8 +447,8 @@ export default function BookRecommendationsSection() {
     startKeepAlive();
     if (isMobile) {
       startMobileWatchdog();
-      // Mobile speech engines are more reliable with one retained long utterance and watchdog recovery.
-      speakChunk(0, true);
+      // Queue every utterance inside the tap handler so mobile browsers preserve the media gesture context.
+      queueMobileChunks(0, "mobile_initial_queue");
     } else {
       speakChunk(0);
     }
@@ -406,11 +474,13 @@ export default function BookRecommendationsSection() {
     stoppedRef.current = false;
     utterancesRef.current = [];
     chunksRef.current = createChunks(spokenTextRef.current, startWord);
+    selectedVoiceRef.current = selectedVoiceRef.current || pickVoice() || null;
+    loadDurationCalibration(selectedVoiceRef.current, speechRateRef.current);
     setTtsState("playing");
     startKeepAlive();
     if (isMobile) {
       startMobileWatchdog();
-      speakChunk(0, true);
+      queueMobileChunks(0, "manual_restart_queue");
     }
     else speakChunk(0);
   };
