@@ -175,8 +175,9 @@ export default function BookRecommendationsSection() {
 
   const requeueFromWord = (wordIdx: number, reason: string) => {
     if (!isMobile || stoppedRef.current || !spokenTextRef.current) return;
-    const safeWord = Math.min(Math.max(wordIdx, 0), Math.max(wordTokens.length - 1, 0));
-    if (safeWord >= wordTokens.length - 1) return;
+    const totalWords = tokenizeText(spokenTextRef.current).length;
+    const safeWord = Math.min(Math.max(wordIdx, 0), Math.max(totalWords - 1, 0));
+    if (safeWord >= totalWords - 1) return;
     logSpeechStop(reason, { requeueFromWord: safeWord });
     window.speechSynthesis.cancel();
     clearWordTimer();
@@ -190,7 +191,8 @@ export default function BookRecommendationsSection() {
     clearRequeueTimer();
     requeueTimerRef.current = window.setTimeout(() => {
       if (stoppedRef.current) return;
-      const hasMoreWords = lastSpokenWordRef.current < wordTokens.length - 2;
+      const totalWords = tokenizeText(spokenTextRef.current).length;
+      const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
       const synthIdle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
       if (hasMoreWords && synthIdle) requeueFromWord(lastSpokenWordRef.current + 1, reason);
     }, 450);
@@ -345,7 +347,8 @@ export default function BookRecommendationsSection() {
 
   const restartFromLastWord = () => {
     if (!spokenTextRef.current || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    const startWord = Math.min(Math.max(lastSpokenWordRef.current, 0), Math.max(wordTokens.length - 1, 0));
+    const totalWords = tokenizeText(spokenTextRef.current).length;
+    const startWord = Math.min(Math.max(lastSpokenWordRef.current, 0), Math.max(totalWords - 1, 0));
     logSpeechStop("manual_restart_from_last_word", { startWord });
     window.speechSynthesis.cancel();
     clearWordTimer();
