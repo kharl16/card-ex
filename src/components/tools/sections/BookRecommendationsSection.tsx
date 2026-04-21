@@ -66,10 +66,24 @@ export default function BookRecommendationsSection() {
     }
   };
 
+  const clearRequeueTimer = () => {
+    if (requeueTimerRef.current !== null) {
+      window.clearTimeout(requeueTimerRef.current);
+      requeueTimerRef.current = null;
+    }
+  };
+
+  const updateActiveWord = (idx: number) => {
+    activeWordIdxRef.current = idx;
+    if (idx >= 0) lastSpokenWordRef.current = idx;
+    setActiveWordIdx(idx);
+  };
+
   const stopSpeech = () => {
     stoppedRef.current = true;
     clearKeepAlive();
     clearWordTimer();
+    clearRequeueTimer();
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -77,7 +91,7 @@ export default function BookRecommendationsSection() {
     utterancesRef.current = [];
     chunkIdxRef.current = 0;
     setTtsState("idle");
-    setActiveWordIdx(-1);
+    updateActiveWord(-1);
   };
 
   const pickVoice = () => {
