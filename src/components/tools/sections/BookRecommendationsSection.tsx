@@ -103,21 +103,29 @@ export default function BookRecommendationsSection() {
     );
   };
 
-  const startWordTimer = (chunk: { text: string; wordStart: number; wordCount: number }, rate: number) => {
+  const estimateWordDuration = (word: string, rate: number, voice?: SpeechSynthesisVoice | null) => {
+    const syllables = Math.max(1, (word.toLowerCase().match(/[aeiouy]+/g) || []).length);
+    const punctuationPause = /[.!?]$/.test(word) ? 260 : /[,;:]$/.test(word) ? 130 : 0;
+    const voiceFactor = voice?.localService ? 0.94 : 1.08;
+    return Math.max(145, ((165 + syllables * 72 + punctuationPause) * voiceFactor) / rate);
+  };
+
+  const startWordTimer = (chunk: { text: string; wordStart: number; wordCount: number }, rate: number, voice?: SpeechSynthesisVoice | null) => {
     clearWordTimer();
     if (chunk.wordCount <= 0) return;
-    // Mobile browsers rarely provide word boundaries, so advance immediately with a close speech-rate estimate.
-    const msPerWord = (60000 / 190) / rate;
+    const words = chunk.text.match(/\S+/g) || [];
     let i = 0;
-    setActiveWordIdx(chunk.wordStart);
-    wordTimerRef.current = window.setInterval(() => {
+    updateActiveWord(chunk.wordStart);
+    const tick = () => {
       i += 1;
       if (i >= chunk.wordCount) {
         clearWordTimer();
         return;
       }
-      setActiveWordIdx(chunk.wordStart + i);
-    }, msPerWord);
+      updateActiveWord(chunk.wordStart + i);
+      wordTimerRef.current = window.setTimeout(tick, estimateWordDuration(words[i] || "", rate, voice));
+    };
+    wordTimerRef.current = window.setTimeout(tick, estimateWordDuration(words[0] || "", rate, voice));
   };
 
   const speakChunk = (idx: number, queued = false) => {
