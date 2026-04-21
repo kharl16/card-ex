@@ -80,6 +80,18 @@ export default function BookRecommendationsSection() {
     }
   };
 
+  const logSpeechStop = (reason: string, detail?: unknown) => {
+    console.info("TTS mobile stop/recovery:", {
+      reason,
+      detail,
+      chunkIndex: chunkIdxRef.current,
+      lastSpokenWord: lastSpokenWordRef.current,
+      queuedChunks: chunksRef.current.length,
+      speaking: typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis.speaking : false,
+      pending: typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis.pending : false,
+    });
+  };
+
   const updateActiveWord = (idx: number) => {
     activeWordIdxRef.current = idx;
     if (idx >= 0) lastSpokenWordRef.current = idx;
