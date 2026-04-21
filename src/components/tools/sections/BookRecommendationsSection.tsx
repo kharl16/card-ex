@@ -37,8 +37,10 @@ export default function BookRecommendationsSection() {
   const wordTimerRef = useRef<number | null>(null);
   const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
   const requeueTimerRef = useRef<number | null>(null);
+  const mobileWatchdogRef = useRef<number | null>(null);
   const activeWordIdxRef = useRef<number>(-1);
   const lastSpokenWordRef = useRef<number>(0);
+  const lastProgressAtRef = useRef<number>(Date.now());
   const speechRateRef = useRef<number>(1);
   const spokenTextRef = useRef<string>("");
 
@@ -81,6 +83,13 @@ export default function BookRecommendationsSection() {
     }
   };
 
+  const clearMobileWatchdog = () => {
+    if (mobileWatchdogRef.current !== null) {
+      window.clearInterval(mobileWatchdogRef.current);
+      mobileWatchdogRef.current = null;
+    }
+  };
+
   const logSpeechStop = (reason: string, detail?: unknown) => {
     console.info("TTS mobile stop/recovery:", {
       reason,
@@ -95,6 +104,7 @@ export default function BookRecommendationsSection() {
 
   const updateActiveWord = (idx: number) => {
     activeWordIdxRef.current = idx;
+    lastProgressAtRef.current = Date.now();
     if (idx >= 0) lastSpokenWordRef.current = idx;
     setActiveWordIdx(idx);
   };
@@ -104,6 +114,7 @@ export default function BookRecommendationsSection() {
     clearKeepAlive();
     clearWordTimer();
     clearRequeueTimer();
+    clearMobileWatchdog();
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -127,7 +138,7 @@ export default function BookRecommendationsSection() {
     const tokens = tokenizeText(text);
     const startChar = tokens[startWord]?.start ?? 0;
     const remaining = text.slice(startChar).trim();
-    const maxLen = isMobile ? 90 : 200;
+    const maxLen = isMobile ? 2800 : 200;
     const sentences = remaining.match(/[^.!?\n]+[.!?]?[\n]?/g) || [remaining];
     const chunks: SpeechChunk[] = [];
     let buf = "";
