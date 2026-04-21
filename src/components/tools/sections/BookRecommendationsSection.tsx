@@ -230,7 +230,7 @@ export default function BookRecommendationsSection() {
   };
 
   const estimateChunkDuration = (chunk: SpeechChunk, rate: number, voice?: SpeechSynthesisVoice | null, factor = durationFactorRef.current) =>
-    (chunk.text.match(/\S+/g) || []).reduce((total, word) => total + estimateWordDuration(word, rate, voice, factor), 0);
+    (chunk.text.match(/\S+/g) || []).reduce<number>((total, word) => total + estimateWordDuration(word, rate, voice, factor), 0);
 
   const tuneDurationModel = (chunk: SpeechChunk, elapsedMs: number, rate: number, voice?: SpeechSynthesisVoice | null) => {
     if (!isMobile || chunk.wordCount < 3 || elapsedMs < 350) return;
