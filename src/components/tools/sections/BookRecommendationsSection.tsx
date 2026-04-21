@@ -232,7 +232,12 @@ export default function BookRecommendationsSection() {
 
     setTtsState("playing");
     startKeepAlive();
-    speakChunk(0);
+    if (isMobile) {
+      // Queue every utterance inside the Play tap; mobile browsers often block later speak() calls from onend.
+      chunks.forEach((_, idx) => speakChunk(idx, true));
+    } else {
+      speakChunk(0);
+    }
   };
 
   const pauseSpeech = () => {
