@@ -203,7 +203,8 @@ export default function BookRecommendationsSection() {
     setSpokenText(clean);
     setActiveWordIdx(-1);
 
-    // Split into ~200 char sentence chunks for reliability
+    // Split into smaller chunks on mobile (~120 char) for reliability; ~200 on desktop
+    const maxLen = isMobile ? 120 : 200;
     const sentences = clean.match(/[^.!?\n]+[.!?]?[\n]?/g) || [clean];
     const chunks: { text: string; wordStart: number; wordCount: number }[] = [];
     let buf = "";
@@ -217,7 +218,7 @@ export default function BookRecommendationsSection() {
       buf = "";
     };
     for (const s of sentences) {
-      if ((buf + s).length > 200) flush();
+      if ((buf + s).length > maxLen) flush();
       buf += s;
     }
     flush();
