@@ -86,8 +86,8 @@ export default function BookRecommendationsSection() {
   const startWordTimer = (chunk: { text: string; wordStart: number; wordCount: number }, rate: number) => {
     clearWordTimer();
     if (chunk.wordCount <= 0) return;
-    // Average English speech ~ 175 wpm at rate 1 => ~343ms per word. Tune slightly slower for mobile.
-    const msPerWord = (60000 / 175) / rate;
+    // Mobile browsers rarely provide word boundaries, so advance immediately with a close speech-rate estimate.
+    const msPerWord = (60000 / 190) / rate;
     let i = 0;
     setActiveWordIdx(chunk.wordStart);
     wordTimerRef.current = window.setInterval(() => {
@@ -100,7 +100,7 @@ export default function BookRecommendationsSection() {
     }, msPerWord);
   };
 
-  const speakChunk = (idx: number) => {
+  const speakChunk = (idx: number, queued = false) => {
     if (stoppedRef.current) return;
     const chunks = chunksRef.current;
     if (idx >= chunks.length) {
@@ -123,14 +123,11 @@ export default function BookRecommendationsSection() {
     let boundaryFired = false;
     u.onstart = () => {
       setActiveWordIdx(chunk.wordStart);
-      // On mobile, onboundary rarely fires — start a time-based fallback after a short grace period.
-      if (isMobile) {
-        window.setTimeout(() => {
-          if (!boundaryFired && !stoppedRef.current) startWordTimer(chunk, rate);
-        }, 400);
-      }
+      // On mobile, onboundary is unreliable, so start fallback highlighting immediately.
+      if (isMobile) startWordTimer(chunk, rate);
     };
     u.onboundary = (e: SpeechSynthesisEvent) => {
+      if (isMobile) return;
       if (e.name && e.name !== "word") return;
       boundaryFired = true;
       clearWordTimer();
@@ -141,6 +138,14 @@ export default function BookRecommendationsSection() {
     u.onend = () => {
       clearWordTimer();
       if (stoppedRef.current) return;
+      if (queued) {
+        if (idx === chunks.length - 1) {
+          clearKeepAlive();
+          setTtsState("idle");
+          setActiveWordIdx(-1);
+        }
+        return;
+      }
       // On mobile, chaining via onend often gets blocked by autoplay policy.
       // Defer the next speak() to break out of the callback context.
       if (isMobile) {
@@ -155,6 +160,7 @@ export default function BookRecommendationsSection() {
       clearWordTimer();
       if (e?.error === "interrupted" || e?.error === "canceled") return;
       console.warn("TTS error:", e?.error);
+      if (queued) return;
       if (!stoppedRef.current) {
         window.setTimeout(() => {
           if (!stoppedRef.current) speakChunk(idx + 1);
@@ -226,7 +232,12 @@ export default function BookRecommendationsSection() {
 
     setTtsState("playing");
     startKeepAlive();
-    speakChunk(0);
+    if (isMobile) {
+      // Queue every utterance inside the Play tap; mobile browsers often block later speak() calls from onend.
+      chunks.forEach((_, idx) => speakChunk(idx, true));
+    } else {
+      speakChunk(0);
+    }
   };
 
   const pauseSpeech = () => {
