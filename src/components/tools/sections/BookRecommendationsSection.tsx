@@ -277,6 +277,11 @@ export default function BookRecommendationsSection() {
         if (idx < chunks.length - 1) {
           speakChunk(idx + 1, true);
         } else {
+          const totalWords = tokenizeText(spokenTextRef.current).length;
+          if (lastSpokenWordRef.current < totalWords - 2) {
+            scheduleMobileRecovery("mobile_ended_before_complete");
+            return;
+          }
           clearKeepAlive();
           clearMobileWatchdog();
           utterancesRef.current = [];
@@ -335,6 +340,7 @@ export default function BookRecommendationsSection() {
       window.speechSynthesis.resume();
       setTtsState("playing");
       startKeepAlive();
+      if (isMobile) startMobileWatchdog();
       return;
     }
 
