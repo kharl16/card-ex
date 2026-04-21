@@ -332,6 +332,28 @@ export default function BookRecommendationsSection() {
     }
   };
 
+  const restartFromLastWord = () => {
+    if (!spokenTextRef.current || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const startWord = Math.min(Math.max(lastSpokenWordRef.current, 0), Math.max(wordTokens.length - 1, 0));
+    logSpeechStop("manual_restart_from_last_word", { startWord });
+    window.speechSynthesis.cancel();
+    clearWordTimer();
+    clearRequeueTimer();
+    stoppedRef.current = false;
+    utterancesRef.current = [];
+    chunksRef.current = createChunks(spokenTextRef.current, startWord);
+    setTtsState("playing");
+    startKeepAlive();
+    if (isMobile) chunksRef.current.forEach((_, idx) => speakChunk(idx, true));
+    else speakChunk(0);
+  };
+
+  const scrubToWord = (value: number[]) => {
+    const nextWord = value[0] ?? 0;
+    lastSpokenWordRef.current = nextWord;
+    updateActiveWord(nextWord);
+  };
+
   // Auto-scroll active word into view
   useEffect(() => {
     if (activeWordIdx >= 0 && activeWordRef.current) {
