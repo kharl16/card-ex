@@ -568,17 +568,23 @@ export default function BookRecommendationsSection() {
 
       <Dialog open={!!openBook} onOpenChange={(o) => { if (!o) { stopSpeech(); setOpenBook(null); } }}>
         <DialogContent className="max-w-lg h-[85vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="p-6 pb-4 border-b border-border/50 shrink-0 text-center space-y-3">
-            <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl" aria-hidden="true">
-              {openBook?.emoji}
-            </div>
-            <div className="min-w-0 space-y-1 px-6">
-              <DialogTitle className="text-lg leading-snug font-bold text-center whitespace-normal break-words">
-                {openBook?.title}
-              </DialogTitle>
-              <DialogDescription className="text-center text-xs uppercase tracking-wide whitespace-normal break-words">
-                {openBook?.author}
-              </DialogDescription>
+          <DialogHeader className="px-6 pt-7 pb-5 border-b border-border/50 shrink-0 space-y-4">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/20 flex items-center justify-center text-2xl shadow-sm" aria-hidden="true">
+                {openBook?.emoji}
+              </div>
+              <div className="w-full space-y-2">
+                <DialogTitle className="text-xl sm:text-2xl font-serif font-semibold leading-tight tracking-tight text-foreground text-balance whitespace-normal break-words">
+                  {openBook?.title}
+                </DialogTitle>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="h-px w-6 bg-border" aria-hidden="true" />
+                  <DialogDescription className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground whitespace-normal break-words m-0">
+                    {openBook?.author}
+                  </DialogDescription>
+                  <span className="h-px w-6 bg-border" aria-hidden="true" />
+                </div>
+              </div>
             </div>
             <div className="flex items-center justify-center gap-1">
               {!summaryLoading && summary && (
