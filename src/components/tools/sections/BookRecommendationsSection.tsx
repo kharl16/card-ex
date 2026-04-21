@@ -40,16 +40,22 @@ export default function BookRecommendationsSection() {
 
   const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
-  // Build word index map: [{ word, start }]
-  const wordTokens = useMemo(() => {
-    if (!spokenText) return [] as { word: string; start: number }[];
+  type SpeechChunk = { text: string; wordStart: number; wordCount: number };
+
+  const tokenizeText = (text: string) => {
     const tokens: { word: string; start: number }[] = [];
     const re = /\S+/g;
     let m;
-    while ((m = re.exec(spokenText)) !== null) {
+    while ((m = re.exec(text)) !== null) {
       tokens.push({ word: m[0], start: m.index });
     }
     return tokens;
+  };
+
+  // Build word index map: [{ word, start }]
+  const wordTokens = useMemo(() => {
+    if (!spokenText) return [] as { word: string; start: number }[];
+    return tokenizeText(spokenText);
   }, [spokenText]);
 
   const clearKeepAlive = () => {
