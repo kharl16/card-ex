@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { universalBooks, discBooks, loveLanguageBooks, mindsetBooks, Book } from "@/data/bookRecommendations";
-import { BookOpen, Sparkles, FileText, Headphones, Loader2, Play, Pause, Square } from "lucide-react";
+import { BookOpen, Sparkles, FileText, Headphones, Loader2, Play, Pause, Square, RotateCcw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -33,6 +33,10 @@ export default function BookRecommendationsSection() {
   const stoppedRef = useRef<boolean>(false);
   const wordTimerRef = useRef<number | null>(null);
   const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
+  const requeueTimerRef = useRef<number | null>(null);
+  const activeWordIdxRef = useRef<number>(-1);
+  const lastSpokenWordRef = useRef<number>(0);
+  const speechRateRef = useRef<number>(1);
 
   const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
