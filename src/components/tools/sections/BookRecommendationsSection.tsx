@@ -110,6 +110,31 @@ export default function BookRecommendationsSection() {
     );
   };
 
+  const createChunks = (text: string, startWord = 0): SpeechChunk[] => {
+    const tokens = tokenizeText(text);
+    const startChar = tokens[startWord]?.start ?? 0;
+    const remaining = text.slice(startChar).trim();
+    const maxLen = isMobile ? 90 : 200;
+    const sentences = remaining.match(/[^.!?\n]+[.!?]?[\n]?/g) || [remaining];
+    const chunks: SpeechChunk[] = [];
+    let buf = "";
+    let wordCursor = startWord;
+    const flush = () => {
+      const t = buf.trim();
+      if (!t) return;
+      const wc = (t.match(/\S+/g) || []).length;
+      chunks.push({ text: t, wordStart: wordCursor, wordCount: wc });
+      wordCursor += wc;
+      buf = "";
+    };
+    for (const sentence of sentences) {
+      if ((buf + sentence).length > maxLen) flush();
+      buf += sentence;
+    }
+    flush();
+    return chunks;
+  };
+
   const estimateWordDuration = (word: string, rate: number, voice?: SpeechSynthesisVoice | null) => {
     const syllables = Math.max(1, (word.toLowerCase().match(/[aeiouy]+/g) || []).length);
     const punctuationPause = /[.!?]$/.test(word) ? 260 : /[,;:]$/.test(word) ? 130 : 0;
