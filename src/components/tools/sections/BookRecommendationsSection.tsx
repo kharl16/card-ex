@@ -229,8 +229,12 @@ export default function BookRecommendationsSection() {
     return Math.max(120, (((165 + syllables * 72 + punctuationPause) * voiceFactor) / rate) * factor);
   };
 
-  const estimateChunkDuration = (chunk: SpeechChunk, rate: number, voice?: SpeechSynthesisVoice | null, factor = durationFactorRef.current) =>
-    (chunk.text.match(/\S+/g) || []).reduce<number>((total, word) => total + estimateWordDuration(word, rate, voice, factor), 0);
+  const estimateChunkDuration = (chunk: SpeechChunk, rate: number, voice?: SpeechSynthesisVoice | null, factor = durationFactorRef.current): number => {
+    const words: string[] = chunk.text.match(/\S+/g) || [];
+    let total = 0;
+    for (const word of words) total += estimateWordDuration(word, rate, voice, factor);
+    return total;
+  };
 
   const tuneDurationModel = (chunk: SpeechChunk, elapsedMs: number, rate: number, voice?: SpeechSynthesisVoice | null) => {
     if (!isMobile || chunk.wordCount < 3 || elapsedMs < 350) return;
