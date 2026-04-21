@@ -159,6 +159,39 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
     );
   }
 
+  if (showDiscTest && showingAffirmations) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={() => setShowingAffirmations(false)} className="gap-2">
+          ← Back to Tools
+        </Button>
+        <AffirmationsSection />
+      </div>
+    );
+  }
+
+  if (showDiscTest && showingBooks) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={() => setShowingBooks(false)} className="gap-2">
+          ← Back to Tools
+        </Button>
+        <BookRecommendationsSection />
+      </div>
+    );
+  }
+
+  if (showDiscTest && showingMindset) {
+    return (
+      <div className="space-y-4">
+        <Button variant="ghost" onClick={() => setShowingMindset(false)} className="gap-2">
+          ← Back to Tools
+        </Button>
+        <MindsetQuizSection />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* DISC Test Card */}
@@ -204,6 +237,75 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
           <div className="flex-1 min-w-0 text-left">
             <span className="font-semibold text-primary text-base">5 Love Languages Test</span>
             <p className="text-xs text-muted-foreground mt-0.5">Discover how you give and receive love</p>
+          </div>
+        </button>
+      )}
+      {/* Learning & Growth: Daily Affirmations */}
+      {showDiscTest && (
+        <button
+          onClick={() => setShowingAffirmations(true)}
+          className={cn(
+            "flex items-center gap-3 p-3 rounded-xl w-full",
+            "bg-card border border-border/50 shadow-sm",
+            "hover:shadow-md hover:border-primary/30 transition-all"
+          )}
+        >
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center",
+            "bg-gradient-to-br from-primary/20 to-primary/5",
+            "border border-primary/20"
+          )}>
+            <Sparkles className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <span className="font-semibold text-primary text-base">Daily Affirmations</span>
+            <p className="text-xs text-muted-foreground mt-0.5">Bilingual EN/Tagalog by category</p>
+          </div>
+        </button>
+      )}
+      {/* Learning & Growth: Book Recommendations */}
+      {showDiscTest && (
+        <button
+          onClick={() => setShowingBooks(true)}
+          className={cn(
+            "flex items-center gap-3 p-3 rounded-xl w-full",
+            "bg-card border border-border/50 shadow-sm",
+            "hover:shadow-md hover:border-primary/30 transition-all"
+          )}
+        >
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center",
+            "bg-gradient-to-br from-primary/20 to-primary/5",
+            "border border-primary/20"
+          )}>
+            <BookOpen className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <span className="font-semibold text-primary text-base">Book Recommendations</span>
+            <p className="text-xs text-muted-foreground mt-0.5">Picks based on your personality results</p>
+          </div>
+        </button>
+      )}
+      {/* Learning & Growth: Mindset Score */}
+      {showDiscTest && (
+        <button
+          onClick={() => setShowingMindset(true)}
+          className={cn(
+            "flex items-center gap-3 p-3 rounded-xl w-full",
+            "bg-card border border-border/50 shadow-sm",
+            "hover:shadow-md hover:border-primary/30 transition-all"
+          )}
+        >
+          <div className={cn(
+            "w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center",
+            "bg-gradient-to-br from-primary/20 to-primary/5",
+            "border border-primary/20"
+          )}>
+            <GraduationCap className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0 text-left">
+            <span className="font-semibold text-primary text-base">Mindset Score</span>
+            <p className="text-xs text-muted-foreground mt-0.5">Fixed vs Growth — saves to card</p>
           </div>
         </button>
       )}
