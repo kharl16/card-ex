@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2, Brain, Heart } from "lucide-react";
+import { ExternalLink, Copy, Check, Link as LinkIcon, Plus, Pencil, Share2, Brain, Heart, Sparkles, BookOpen, GraduationCap } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -11,6 +11,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import AdminLinkDialog from "../admin/AdminLinkDialog";
 import DiscTestSection from "./DiscTestSection";
 import LoveLanguagesSection from "./LoveLanguagesSection";
+import AffirmationsSection from "./AffirmationsSection";
+import BookRecommendationsSection from "./BookRecommendationsSection";
+import MindsetQuizSection from "./MindsetQuizSection";
 
 interface IAMLink {
   id: string;
@@ -37,6 +40,9 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
   const [editingItem, setEditingItem] = useState<IAMLink | null>(null);
   const [showingDiscTest, setShowingDiscTest] = useState(false);
   const [showingLoveLanguages, setShowingLoveLanguages] = useState(false);
+  const [showingAffirmations, setShowingAffirmations] = useState(false);
+  const [showingBooks, setShowingBooks] = useState(false);
+  const [showingMindset, setShowingMindset] = useState(false);
 
   useEffect(() => {
     fetchItems();
