@@ -61,7 +61,7 @@ export default function BookRecommendationsSection() {
 
   const clearWordTimer = () => {
     if (wordTimerRef.current !== null) {
-      window.clearInterval(wordTimerRef.current);
+      window.clearTimeout(wordTimerRef.current);
       wordTimerRef.current = null;
     }
   };
