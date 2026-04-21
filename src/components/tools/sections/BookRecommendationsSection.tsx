@@ -4,13 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Slider } from "@/components/ui/slider";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { universalBooks, discBooks, loveLanguageBooks, mindsetBooks, Book } from "@/data/bookRecommendations";
-import { BookOpen, Sparkles, FileText, Headphones, Loader2, Play, Pause, Square } from "lucide-react";
+import { BookOpen, Sparkles, FileText, Headphones, Loader2, Play, Pause, Square, RotateCcw } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
+
+type SpeechChunk = { text: string; wordStart: number; wordCount: number };
 
 export default function BookRecommendationsSection() {
   const { user } = useAuth();
@@ -27,25 +30,34 @@ export default function BookRecommendationsSection() {
   const [spokenText, setSpokenText] = useState<string>("");
   const [activeWordIdx, setActiveWordIdx] = useState<number>(-1);
   const activeWordRef = useRef<HTMLSpanElement | null>(null);
-  const chunksRef = useRef<{ text: string; wordStart: number; wordCount: number }[]>([]);
+  const chunksRef = useRef<SpeechChunk[]>([]);
   const chunkIdxRef = useRef<number>(0);
   const keepAliveRef = useRef<number | null>(null);
   const stoppedRef = useRef<boolean>(false);
   const wordTimerRef = useRef<number | null>(null);
   const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
+  const requeueTimerRef = useRef<number | null>(null);
+  const activeWordIdxRef = useRef<number>(-1);
+  const lastSpokenWordRef = useRef<number>(0);
+  const speechRateRef = useRef<number>(1);
+  const spokenTextRef = useRef<string>("");
 
   const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+  const tokenizeText = (text: string) => {
+    const tokens: { word: string; start: number }[] = [];
+    const re = /\S+/g;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      tokens.push({ word: m[0], start: m.index });
+    }
+    return tokens;
+  };
 
   // Build word index map: [{ word, start }]
   const wordTokens = useMemo(() => {
     if (!spokenText) return [] as { word: string; start: number }[];
-    const tokens: { word: string; start: number }[] = [];
-    const re = /\S+/g;
-    let m;
-    while ((m = re.exec(spokenText)) !== null) {
-      tokens.push({ word: m[0], start: m.index });
-    }
-    return tokens;
+    return tokenizeText(spokenText);
   }, [spokenText]);
 
   const clearKeepAlive = () => {
@@ -57,15 +69,41 @@ export default function BookRecommendationsSection() {
 
   const clearWordTimer = () => {
     if (wordTimerRef.current !== null) {
-      window.clearInterval(wordTimerRef.current);
+      window.clearTimeout(wordTimerRef.current);
       wordTimerRef.current = null;
     }
+  };
+
+  const clearRequeueTimer = () => {
+    if (requeueTimerRef.current !== null) {
+      window.clearTimeout(requeueTimerRef.current);
+      requeueTimerRef.current = null;
+    }
+  };
+
+  const logSpeechStop = (reason: string, detail?: unknown) => {
+    console.info("TTS mobile stop/recovery:", {
+      reason,
+      detail,
+      chunkIndex: chunkIdxRef.current,
+      lastSpokenWord: lastSpokenWordRef.current,
+      queuedChunks: chunksRef.current.length,
+      speaking: typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis.speaking : false,
+      pending: typeof window !== "undefined" && "speechSynthesis" in window ? window.speechSynthesis.pending : false,
+    });
+  };
+
+  const updateActiveWord = (idx: number) => {
+    activeWordIdxRef.current = idx;
+    if (idx >= 0) lastSpokenWordRef.current = idx;
+    setActiveWordIdx(idx);
   };
 
   const stopSpeech = () => {
     stoppedRef.current = true;
     clearKeepAlive();
     clearWordTimer();
+    clearRequeueTimer();
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
@@ -73,7 +111,7 @@ export default function BookRecommendationsSection() {
     utterancesRef.current = [];
     chunkIdxRef.current = 0;
     setTtsState("idle");
-    setActiveWordIdx(-1);
+    updateActiveWord(-1);
   };
 
   const pickVoice = () => {
@@ -85,21 +123,85 @@ export default function BookRecommendationsSection() {
     );
   };
 
-  const startWordTimer = (chunk: { text: string; wordStart: number; wordCount: number }, rate: number) => {
+  const createChunks = (text: string, startWord = 0): SpeechChunk[] => {
+    const tokens = tokenizeText(text);
+    const startChar = tokens[startWord]?.start ?? 0;
+    const remaining = text.slice(startChar).trim();
+    const maxLen = isMobile ? 90 : 200;
+    const sentences = remaining.match(/[^.!?\n]+[.!?]?[\n]?/g) || [remaining];
+    const chunks: SpeechChunk[] = [];
+    let buf = "";
+    let wordCursor = startWord;
+    const flush = () => {
+      const t = buf.trim();
+      if (!t) return;
+      const wc = (t.match(/\S+/g) || []).length;
+      chunks.push({ text: t, wordStart: wordCursor, wordCount: wc });
+      wordCursor += wc;
+      buf = "";
+    };
+    for (const sentence of sentences) {
+      if ((buf + sentence).length > maxLen) flush();
+      buf += sentence;
+    }
+    flush();
+    return chunks;
+  };
+
+  const estimateWordDuration = (word: string, rate: number, voice?: SpeechSynthesisVoice | null) => {
+    const syllables = Math.max(1, (word.toLowerCase().match(/[aeiouy]+/g) || []).length);
+    const punctuationPause = /[.!?]$/.test(word) ? 260 : /[,;:]$/.test(word) ? 130 : 0;
+    const voiceFactor = voice?.localService ? 0.94 : 1.08;
+    return Math.max(145, ((165 + syllables * 72 + punctuationPause) * voiceFactor) / rate);
+  };
+
+  const startWordTimer = (chunk: SpeechChunk, rate: number, voice?: SpeechSynthesisVoice | null) => {
     clearWordTimer();
     if (chunk.wordCount <= 0) return;
-    // Mobile browsers rarely provide word boundaries, so advance immediately with a close speech-rate estimate.
-    const msPerWord = (60000 / 190) / rate;
+    const words = chunk.text.match(/\S+/g) || [];
     let i = 0;
-    setActiveWordIdx(chunk.wordStart);
-    wordTimerRef.current = window.setInterval(() => {
+    updateActiveWord(chunk.wordStart);
+    const tick = () => {
       i += 1;
       if (i >= chunk.wordCount) {
         clearWordTimer();
         return;
       }
-      setActiveWordIdx(chunk.wordStart + i);
-    }, msPerWord);
+      updateActiveWord(chunk.wordStart + i);
+      wordTimerRef.current = window.setTimeout(tick, estimateWordDuration(words[i] || "", rate, voice));
+    };
+    wordTimerRef.current = window.setTimeout(tick, estimateWordDuration(words[0] || "", rate, voice));
+  };
+
+  const requeueFromWord = (wordIdx: number, reason: string) => {
+    if (!isMobile || stoppedRef.current || !spokenTextRef.current) return;
+    const totalWords = tokenizeText(spokenTextRef.current).length;
+    const safeWord = Math.min(Math.max(wordIdx, 0), Math.max(totalWords - 1, 0));
+    if (safeWord >= totalWords - 1) return;
+    logSpeechStop(reason, { requeueFromWord: safeWord });
+    window.speechSynthesis.cancel();
+    clearWordTimer();
+    utterancesRef.current = [];
+    chunksRef.current = createChunks(spokenTextRef.current, safeWord);
+    chunksRef.current.forEach((_, idx) => speakChunk(idx, true));
+  };
+
+  const scheduleMobileRecovery = (reason: string) => {
+    if (!isMobile || stoppedRef.current) return;
+    clearRequeueTimer();
+    requeueTimerRef.current = window.setTimeout(() => {
+      if (stoppedRef.current) return;
+      const totalWords = tokenizeText(spokenTextRef.current).length;
+      const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
+      const synthIdle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
+      if (hasMoreWords && synthIdle) requeueFromWord(lastSpokenWordRef.current + 1, reason);
+    }, 450);
+  };
+
+  const findChunkIndexByWord = (wordIdx: number) => {
+    const chunks = chunksRef.current;
+    const idx = chunks.findIndex((chunk) => wordIdx >= chunk.wordStart && wordIdx < chunk.wordStart + chunk.wordCount);
+    return idx >= 0 ? idx : 0;
   };
 
   const speakChunk = (idx: number, queued = false) => {
@@ -110,13 +212,14 @@ export default function BookRecommendationsSection() {
       clearWordTimer();
       utterancesRef.current = [];
       setTtsState("idle");
-      setActiveWordIdx(-1);
+      updateActiveWord(-1);
       return;
     }
     chunkIdxRef.current = idx;
     const chunk = chunks[idx];
     const u = new SpeechSynthesisUtterance(chunk.text);
     const rate = 1;
+    speechRateRef.current = rate;
     u.rate = rate;
     u.pitch = 1;
     u.lang = "en-US";
@@ -125,9 +228,10 @@ export default function BookRecommendationsSection() {
 
     let boundaryFired = false;
     u.onstart = () => {
-      setActiveWordIdx(chunk.wordStart);
+      chunkIdxRef.current = idx;
+      updateActiveWord(chunk.wordStart);
       // On mobile, onboundary is unreliable, so start fallback highlighting immediately.
-      if (isMobile) startWordTimer(chunk, rate);
+      if (isMobile) startWordTimer(chunk, rate, v);
     };
     u.onboundary = (e: SpeechSynthesisEvent) => {
       if (isMobile) return;
@@ -136,7 +240,7 @@ export default function BookRecommendationsSection() {
       clearWordTimer();
       const before = chunk.text.slice(0, e.charIndex);
       const wordsBefore = (before.match(/\S+/g) || []).length;
-      setActiveWordIdx(chunk.wordStart + wordsBefore);
+      updateActiveWord(chunk.wordStart + wordsBefore);
     };
     u.onend = () => {
       clearWordTimer();
@@ -146,7 +250,9 @@ export default function BookRecommendationsSection() {
           clearKeepAlive();
           utterancesRef.current = [];
           setTtsState("idle");
-          setActiveWordIdx(-1);
+          updateActiveWord(-1);
+        } else {
+          scheduleMobileRecovery(`queued_chunk_end_${idx}`);
         }
         return;
       }
@@ -163,8 +269,11 @@ export default function BookRecommendationsSection() {
     u.onerror = (e: any) => {
       clearWordTimer();
       if (e?.error === "interrupted" || e?.error === "canceled") return;
-      console.warn("TTS error:", e?.error);
-      if (queued) return;
+      logSpeechStop("utterance_error", e?.error);
+      if (queued) {
+        scheduleMobileRecovery(`queued_error_${e?.error || "unknown"}`);
+        return;
+      }
       if (!stoppedRef.current) {
         window.setTimeout(() => {
           if (!stoppedRef.current) speakChunk(idx + 1);
@@ -212,27 +321,10 @@ export default function BookRecommendationsSection() {
       .trim();
 
     setSpokenText(clean);
+    spokenTextRef.current = clean;
     setActiveWordIdx(-1);
 
-    // Split into smaller chunks on mobile (~120 char) for reliability; ~200 on desktop
-    const maxLen = isMobile ? 120 : 200;
-    const sentences = clean.match(/[^.!?\n]+[.!?]?[\n]?/g) || [clean];
-    const chunks: { text: string; wordStart: number; wordCount: number }[] = [];
-    let buf = "";
-    let wordCursor = 0;
-    const flush = () => {
-      const t = buf.trim();
-      if (!t) return;
-      const wc = (t.match(/\S+/g) || []).length;
-      chunks.push({ text: t, wordStart: wordCursor, wordCount: wc });
-      wordCursor += wc;
-      buf = "";
-    };
-    for (const s of sentences) {
-      if ((buf + s).length > maxLen) flush();
-      buf += s;
-    }
-    flush();
+    const chunks = createChunks(clean, 0);
     chunksRef.current = chunks;
 
     setTtsState("playing");
@@ -251,6 +343,29 @@ export default function BookRecommendationsSection() {
       clearKeepAlive();
       setTtsState("paused");
     }
+  };
+
+  const restartFromLastWord = () => {
+    if (!spokenTextRef.current || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    const totalWords = tokenizeText(spokenTextRef.current).length;
+    const startWord = Math.min(Math.max(lastSpokenWordRef.current, 0), Math.max(totalWords - 1, 0));
+    logSpeechStop("manual_restart_from_last_word", { startWord });
+    window.speechSynthesis.cancel();
+    clearWordTimer();
+    clearRequeueTimer();
+    stoppedRef.current = false;
+    utterancesRef.current = [];
+    chunksRef.current = createChunks(spokenTextRef.current, startWord);
+    setTtsState("playing");
+    startKeepAlive();
+    if (isMobile) chunksRef.current.forEach((_, idx) => speakChunk(idx, true));
+    else speakChunk(0);
+  };
+
+  const scrubToWord = (value: number[]) => {
+    const nextWord = value[0] ?? 0;
+    lastSpokenWordRef.current = nextWord;
+    updateActiveWord(nextWord);
   };
 
   // Auto-scroll active word into view
