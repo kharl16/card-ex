@@ -200,30 +200,32 @@ export default function BookRecommendationsSection() {
   const scheduleMobileRecovery = (reason: string) => {
     if (!isMobile || stoppedRef.current) return;
     clearRequeueTimer();
+    // Aggressive: try recovery almost immediately after suspected early end.
     requeueTimerRef.current = window.setTimeout(() => {
       if (stoppedRef.current) return;
       const totalWords = tokenizeText(spokenTextRef.current).length;
       const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
       const synthIdle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
       if (hasMoreWords && synthIdle) requeueFromWord(lastSpokenWordRef.current + 1, reason);
-    }, 450);
+    }, 150);
   };
 
   const startMobileWatchdog = () => {
     if (!isMobile) return;
     clearMobileWatchdog();
+    // More aggressive: poll every 500ms, treat 1.5s of no progress as stalled.
     mobileWatchdogRef.current = window.setInterval(() => {
       if (stoppedRef.current || ttsState === "paused" || !spokenTextRef.current) return;
       const totalWords = tokenizeText(spokenTextRef.current).length;
       const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
       if (!hasMoreWords) return;
       const idle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
-      const stalled = Date.now() - lastProgressAtRef.current > 2800;
+      const stalled = Date.now() - lastProgressAtRef.current > 1500;
       if (idle || stalled) {
         logSpeechStop(idle ? "mobile_synth_idle" : "mobile_progress_stalled", { stalledMs: Date.now() - lastProgressAtRef.current });
         requeueFromWord(lastSpokenWordRef.current + 1, idle ? "watchdog_idle" : "watchdog_stalled");
       }
-    }, 1200);
+    }, 500);
   };
 
   const findChunkIndexByWord = (wordIdx: number) => {
