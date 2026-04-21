@@ -194,7 +194,7 @@ export default function BookRecommendationsSection() {
     clearWordTimer();
     utterancesRef.current = [];
     chunksRef.current = createChunks(spokenTextRef.current, safeWord);
-    chunksRef.current.forEach((_, idx) => speakChunk(idx, true));
+    speakChunk(0, true);
   };
 
   const scheduleMobileRecovery = (reason: string) => {
@@ -207,6 +207,23 @@ export default function BookRecommendationsSection() {
       const synthIdle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
       if (hasMoreWords && synthIdle) requeueFromWord(lastSpokenWordRef.current + 1, reason);
     }, 450);
+  };
+
+  const startMobileWatchdog = () => {
+    if (!isMobile) return;
+    clearMobileWatchdog();
+    mobileWatchdogRef.current = window.setInterval(() => {
+      if (stoppedRef.current || ttsState === "paused" || !spokenTextRef.current) return;
+      const totalWords = tokenizeText(spokenTextRef.current).length;
+      const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
+      if (!hasMoreWords) return;
+      const idle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
+      const stalled = Date.now() - lastProgressAtRef.current > 2800;
+      if (idle || stalled) {
+        logSpeechStop(idle ? "mobile_synth_idle" : "mobile_progress_stalled", { stalledMs: Date.now() - lastProgressAtRef.current });
+        requeueFromWord(lastSpokenWordRef.current + 1, idle ? "watchdog_idle" : "watchdog_stalled");
+      }
+    }, 1200);
   };
 
   const findChunkIndexByWord = (wordIdx: number) => {
@@ -257,13 +274,14 @@ export default function BookRecommendationsSection() {
       clearWordTimer();
       if (stoppedRef.current) return;
       if (queued) {
-        if (idx === chunks.length - 1) {
+        if (idx < chunks.length - 1) {
+          speakChunk(idx + 1, true);
+        } else {
           clearKeepAlive();
+          clearMobileWatchdog();
           utterancesRef.current = [];
           setTtsState("idle");
           updateActiveWord(-1);
-        } else {
-          scheduleMobileRecovery(`queued_chunk_end_${idx}`);
         }
         return;
       }
