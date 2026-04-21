@@ -486,12 +486,14 @@ export default function BookRecommendationsSection() {
   };
 
   const renderBook = (b: Book) => (
-    <Card key={`${b.title}-${b.author}`} className="p-3 flex gap-3 items-start hover:border-primary/40 transition-colors">
-      <div className="text-2xl shrink-0">{b.emoji}</div>
-      <div className="flex-1 min-w-0">
-        <h4 className="font-semibold text-sm leading-tight">{b.title}</h4>
-        <p className="text-xs text-muted-foreground mb-1">by {b.author}</p>
-        <p className="text-xs leading-relaxed">{b.why}</p>
+    <Card key={`${b.title}-${b.author}`} className="p-4 flex gap-3 items-start hover:border-primary/40 transition-colors">
+      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-xl shrink-0" aria-hidden="true">
+        {b.emoji}
+      </div>
+      <div className="flex-1 min-w-0 space-y-1">
+        <h4 className="font-semibold text-sm leading-snug text-foreground whitespace-normal break-words">{b.title}</h4>
+        <p className="text-[11px] uppercase tracking-wide text-muted-foreground whitespace-normal break-words">{b.author}</p>
+        <p className="text-xs leading-relaxed text-muted-foreground">{b.why}</p>
       </div>
       <div className="flex flex-col gap-1 shrink-0">
         <Button
@@ -553,12 +555,21 @@ export default function BookRecommendationsSection() {
 
       <Dialog open={!!openBook} onOpenChange={(o) => { if (!o) { stopSpeech(); setOpenBook(null); } }}>
         <DialogContent className="max-w-lg h-[85vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="p-6 pb-3 border-b border-border/50 shrink-0 text-center">
-            <DialogTitle className="grid grid-cols-[2rem_1fr_4.5rem] items-start gap-2 text-center">
-              <span className="text-2xl justify-self-center">{openBook?.emoji}</span>
-              <span className="leading-tight min-w-0 whitespace-normal break-words text-center">{openBook?.title}</span>
+          <DialogHeader className="p-6 pb-4 border-b border-border/50 shrink-0 text-center space-y-3">
+            <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl" aria-hidden="true">
+              {openBook?.emoji}
+            </div>
+            <div className="min-w-0 space-y-1 px-6">
+              <DialogTitle className="text-lg leading-snug font-bold text-center whitespace-normal break-words">
+                {openBook?.title}
+              </DialogTitle>
+              <DialogDescription className="text-center text-xs uppercase tracking-wide whitespace-normal break-words">
+                {openBook?.author}
+              </DialogDescription>
+            </div>
+            <div className="flex items-center justify-center gap-1">
               {!summaryLoading && summary && (
-                <div className="flex gap-1 justify-self-end">
+                <>
                   {ttsState === "playing" ? (
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={pauseSpeech} title="Pause">
                       <Pause className="h-4 w-4" />
@@ -573,10 +584,22 @@ export default function BookRecommendationsSection() {
                       <Square className="h-4 w-4" />
                     </Button>
                   )}
-                </div>
+                  {spokenText && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={restartFromLastWord} title="Restart from current word">
+                      <RotateCcw className="h-4 w-4" />
+                    </Button>
+                  )}
+                </>
               )}
-            </DialogTitle>
-            <DialogDescription className="text-center whitespace-normal break-words">by {openBook?.author}</DialogDescription>
+            </div>
+            {ttsState !== "idle" && spokenText && wordTokens.length > 0 && (
+              <div className="space-y-2 px-1">
+                <Slider value={[Math.max(activeWordIdx, 0)]} min={0} max={Math.max(wordTokens.length - 1, 0)} step={1} onValueChange={scrubToWord} />
+                <p className="text-[11px] text-muted-foreground text-center">
+                  Word {Math.min(Math.max(activeWordIdx + 1, 1), wordTokens.length)} of {wordTokens.length}
+                </p>
+              </div>
+            )}
           </DialogHeader>
           <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
             {summaryLoading ? (
