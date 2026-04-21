@@ -359,8 +359,9 @@ export default function BookRecommendationsSection() {
     setTtsState("playing");
     startKeepAlive();
     if (isMobile) {
-      // Queue every utterance inside the Play tap; mobile browsers often block later speak() calls from onend.
-      chunks.forEach((_, idx) => speakChunk(idx, true));
+      startMobileWatchdog();
+      // Mobile speech engines are more reliable with one retained long utterance and watchdog recovery.
+      speakChunk(0, true);
     } else {
       speakChunk(0);
     }
@@ -370,6 +371,7 @@ export default function BookRecommendationsSection() {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.pause();
       clearKeepAlive();
+      clearMobileWatchdog();
       setTtsState("paused");
     }
   };
@@ -387,7 +389,10 @@ export default function BookRecommendationsSection() {
     chunksRef.current = createChunks(spokenTextRef.current, startWord);
     setTtsState("playing");
     startKeepAlive();
-    if (isMobile) chunksRef.current.forEach((_, idx) => speakChunk(idx, true));
+    if (isMobile) {
+      startMobileWatchdog();
+      speakChunk(0, true);
+    }
     else speakChunk(0);
   };
 
