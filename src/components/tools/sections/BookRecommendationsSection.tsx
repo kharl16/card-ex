@@ -319,27 +319,10 @@ export default function BookRecommendationsSection() {
       .trim();
 
     setSpokenText(clean);
+    spokenTextRef.current = clean;
     setActiveWordIdx(-1);
 
-    // Split into smaller chunks on mobile (~120 char) for reliability; ~200 on desktop
-    const maxLen = isMobile ? 120 : 200;
-    const sentences = clean.match(/[^.!?\n]+[.!?]?[\n]?/g) || [clean];
-    const chunks: { text: string; wordStart: number; wordCount: number }[] = [];
-    let buf = "";
-    let wordCursor = 0;
-    const flush = () => {
-      const t = buf.trim();
-      if (!t) return;
-      const wc = (t.match(/\S+/g) || []).length;
-      chunks.push({ text: t, wordStart: wordCursor, wordCount: wc });
-      wordCursor += wc;
-      buf = "";
-    };
-    for (const s of sentences) {
-      if ((buf + s).length > maxLen) flush();
-      buf += s;
-    }
-    flush();
+    const chunks = createChunks(clean, 0);
     chunksRef.current = chunks;
 
     setTtsState("playing");
