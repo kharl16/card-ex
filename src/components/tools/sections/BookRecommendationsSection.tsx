@@ -15,6 +15,10 @@ import { toast } from "sonner";
 
 type SpeechChunk = { text: string; wordStart: number; wordCount: number };
 
+function isMobileEnv() {
+  return typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
 export default function BookRecommendationsSection() {
   const { user } = useAuth();
   const [discType, setDiscType] = useState<string | null>(null);
@@ -47,8 +51,12 @@ export default function BookRecommendationsSection() {
   const durationFactorRef = useRef<number>(1);
   const calibrationSamplesRef = useRef<number>(0);
   const calibrationKeyRef = useRef<string>("");
+  const boundaryReliableRef = useRef<boolean>(!isMobileEnv());
+  const boundaryEventCountRef = useRef<number>(0);
+  const boundaryProbeStartedAtRef = useRef<number>(0);
+  const smoothingWindowRef = useRef<number[]>([]);
 
-  const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  const isMobile = isMobileEnv();
 
   const tokenizeText = (text: string) => {
     const tokens: { word: string; start: number }[] = [];
@@ -111,6 +119,23 @@ export default function BookRecommendationsSection() {
     lastProgressAtRef.current = Date.now();
     if (idx >= 0) lastSpokenWordRef.current = idx;
     setActiveWordIdx(idx);
+  };
+
+  // Smoothing window: track a short rolling history of recent word durations so a single
+  // outlier (a long word, a stutter from the engine) does not desync the highlighter.
+  const pushSmoothingSample = (durationMs: number) => {
+    const win = smoothingWindowRef.current;
+    win.push(durationMs);
+    if (win.length > 6) win.shift();
+  };
+  const smoothedDuration = (rawMs: number) => {
+    const win = smoothingWindowRef.current;
+    if (win.length < 3) return rawMs;
+    const avg = win.reduce((a, b) => a + b, 0) / win.length;
+    return Math.max(110, rawMs * 0.55 + avg * 0.45);
+  };
+  const resetSmoothingWindow = () => {
+    smoothingWindowRef.current = [];
   };
 
   const stopSpeech = () => {
@@ -231,6 +256,12 @@ export default function BookRecommendationsSection() {
     const words = chunk.text.match(/\S+/g) || [];
     let i = 0;
     updateActiveWord(chunk.wordStart);
+    const scheduleNext = () => {
+      const raw = estimateWordDuration(words[i] || "", rate, voice);
+      const ms = smoothedDuration(raw);
+      pushSmoothingSample(raw);
+      wordTimerRef.current = window.setTimeout(tick, ms);
+    };
     const tick = () => {
       i += 1;
       if (i >= chunk.wordCount) {
@@ -238,9 +269,9 @@ export default function BookRecommendationsSection() {
         return;
       }
       updateActiveWord(chunk.wordStart + i);
-      wordTimerRef.current = window.setTimeout(tick, estimateWordDuration(words[i] || "", rate, voice));
+      scheduleNext();
     };
-    wordTimerRef.current = window.setTimeout(tick, estimateWordDuration(words[0] || "", rate, voice));
+    scheduleNext();
   };
 
   const requeueFromWord = (wordIdx: number, reason: string) => {
@@ -300,16 +331,41 @@ export default function BookRecommendationsSection() {
     if (voice) u.voice = voice;
 
     let startedAt = 0;
+    let chunkBoundaryCount = 0;
+    let timerStarted = false;
+    const ensureTimerHighlighting = () => {
+      if (timerStarted) return;
+      timerStarted = true;
+      resetSmoothingWindow();
+      startWordTimer(chunk, rate, voice);
+    };
     u.onstart = () => {
       startedAt = performance.now();
+      boundaryProbeStartedAtRef.current = startedAt;
       chunkIdxRef.current = idx;
       updateActiveWord(chunk.wordStart);
-      if (isMobile) startWordTimer(chunk, rate, voice);
+      // If boundary events have already been observed as unreliable on this device,
+      // start the smoothed timer immediately as the fallback highlighter.
+      if (!boundaryReliableRef.current) ensureTimerHighlighting();
+      // Probe: if 700ms pass with zero boundary events on a multi-word chunk, mark unreliable.
+      window.setTimeout(() => {
+        if (stoppedRef.current) return;
+        if (chunk.wordCount > 1 && chunkBoundaryCount === 0 && boundaryReliableRef.current) {
+          boundaryReliableRef.current = false;
+          logSpeechStop("boundary_unreliable_detected", { chunkIdx: idx, wordCount: chunk.wordCount });
+          ensureTimerHighlighting();
+        }
+      }, 700);
     };
     u.onboundary = (e: SpeechSynthesisEvent) => {
-      if (isMobile) return;
       if (e.name && e.name !== "word") return;
-      clearWordTimer();
+      chunkBoundaryCount += 1;
+      boundaryEventCountRef.current += 1;
+      // First reliable boundary in this chunk: stop the timer fallback if it was running.
+      if (timerStarted) {
+        timerStarted = false;
+        clearWordTimer();
+      }
       const before = chunk.text.slice(0, e.charIndex);
       const wordsBefore = (before.match(/\S+/g) || []).length;
       updateActiveWord(chunk.wordStart + wordsBefore);
@@ -427,6 +483,10 @@ export default function BookRecommendationsSection() {
     const selectedVoice = pickVoice();
     selectedVoiceRef.current = selectedVoice || null;
     loadDurationCalibration(selectedVoice, speechRateRef.current);
+    // Re-probe boundary reliability for each new narration; mobile defaults to unreliable.
+    boundaryReliableRef.current = !isMobile;
+    boundaryEventCountRef.current = 0;
+    resetSmoothingWindow();
 
     const clean = summary
       .replace(/```[\s\S]*?```/g, "")
