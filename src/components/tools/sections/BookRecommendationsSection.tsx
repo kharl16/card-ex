@@ -138,7 +138,7 @@ export default function BookRecommendationsSection() {
     const tokens = tokenizeText(text);
     const startChar = tokens[startWord]?.start ?? 0;
     const remaining = text.slice(startChar).trim();
-    const maxLen = isMobile ? 2800 : 200;
+    const maxLen = isMobile ? 180 : 200;
     const sentences = remaining.match(/[^.!?\n]+[.!?]?[\n]?/g) || [remaining];
     const chunks: SpeechChunk[] = [];
     let buf = "";
@@ -200,30 +200,32 @@ export default function BookRecommendationsSection() {
   const scheduleMobileRecovery = (reason: string) => {
     if (!isMobile || stoppedRef.current) return;
     clearRequeueTimer();
+    // Aggressive: try recovery almost immediately after suspected early end.
     requeueTimerRef.current = window.setTimeout(() => {
       if (stoppedRef.current) return;
       const totalWords = tokenizeText(spokenTextRef.current).length;
       const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
       const synthIdle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
       if (hasMoreWords && synthIdle) requeueFromWord(lastSpokenWordRef.current + 1, reason);
-    }, 450);
+    }, 150);
   };
 
   const startMobileWatchdog = () => {
     if (!isMobile) return;
     clearMobileWatchdog();
+    // More aggressive: poll every 500ms, treat 1.5s of no progress as stalled.
     mobileWatchdogRef.current = window.setInterval(() => {
       if (stoppedRef.current || ttsState === "paused" || !spokenTextRef.current) return;
       const totalWords = tokenizeText(spokenTextRef.current).length;
       const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
       if (!hasMoreWords) return;
       const idle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
-      const stalled = Date.now() - lastProgressAtRef.current > 2800;
+      const stalled = Date.now() - lastProgressAtRef.current > 1500;
       if (idle || stalled) {
         logSpeechStop(idle ? "mobile_synth_idle" : "mobile_progress_stalled", { stalledMs: Date.now() - lastProgressAtRef.current });
         requeueFromWord(lastSpokenWordRef.current + 1, idle ? "watchdog_idle" : "watchdog_stalled");
       }
-    }, 1200);
+    }, 500);
   };
 
   const findChunkIndexByWord = (wordIdx: number) => {
@@ -273,12 +275,25 @@ export default function BookRecommendationsSection() {
     u.onend = () => {
       clearWordTimer();
       if (stoppedRef.current) return;
+      const totalWords = tokenizeText(spokenTextRef.current).length;
+      const expectedEndWord = chunk.wordStart + chunk.wordCount - 1;
+      const completedFar = lastSpokenWordRef.current >= expectedEndWord - 1;
+      const hasMoreWords = lastSpokenWordRef.current < totalWords - 2;
+      // Aggressive early-end detection: if utterance ended but we didn't reach
+      // the expected last word of this chunk AND there's more text, requeue now.
+      if (isMobile && hasMoreWords && !completedFar) {
+        logSpeechStop("mobile_early_onend", {
+          expectedEndWord,
+          actualLastWord: lastSpokenWordRef.current,
+        });
+        requeueFromWord(lastSpokenWordRef.current + 1, "mobile_early_onend");
+        return;
+      }
       if (queued) {
         if (idx < chunks.length - 1) {
           speakChunk(idx + 1, true);
         } else {
-          const totalWords = tokenizeText(spokenTextRef.current).length;
-          if (lastSpokenWordRef.current < totalWords - 2) {
+          if (isMobile && hasMoreWords) {
             scheduleMobileRecovery("mobile_ended_before_complete");
             return;
           }
@@ -290,8 +305,6 @@ export default function BookRecommendationsSection() {
         }
         return;
       }
-      // On mobile, chaining via onend often gets blocked by autoplay policy.
-      // Defer the next speak() to break out of the callback context.
       if (isMobile) {
         window.setTimeout(() => {
           if (!stoppedRef.current) speakChunk(idx + 1);
@@ -555,17 +568,23 @@ export default function BookRecommendationsSection() {
 
       <Dialog open={!!openBook} onOpenChange={(o) => { if (!o) { stopSpeech(); setOpenBook(null); } }}>
         <DialogContent className="max-w-lg h-[85vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="p-6 pb-4 border-b border-border/50 shrink-0 text-center space-y-3">
-            <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-2xl" aria-hidden="true">
-              {openBook?.emoji}
-            </div>
-            <div className="min-w-0 space-y-1 px-6">
-              <DialogTitle className="text-lg leading-snug font-bold text-center whitespace-normal break-words">
-                {openBook?.title}
-              </DialogTitle>
-              <DialogDescription className="text-center text-xs uppercase tracking-wide whitespace-normal break-words">
-                {openBook?.author}
-              </DialogDescription>
+          <DialogHeader className="px-6 pt-7 pb-5 border-b border-border/50 shrink-0 space-y-4">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="h-14 w-14 rounded-full bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/20 flex items-center justify-center text-2xl shadow-sm" aria-hidden="true">
+                {openBook?.emoji}
+              </div>
+              <div className="w-full space-y-2">
+                <DialogTitle className="text-xl sm:text-2xl font-serif font-semibold leading-tight tracking-tight text-foreground text-balance whitespace-normal break-words">
+                  {openBook?.title}
+                </DialogTitle>
+                <div className="flex items-center justify-center gap-2">
+                  <span className="h-px w-6 bg-border" aria-hidden="true" />
+                  <DialogDescription className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground whitespace-normal break-words m-0">
+                    {openBook?.author}
+                  </DialogDescription>
+                  <span className="h-px w-6 bg-border" aria-hidden="true" />
+                </div>
+              </div>
             </div>
             <div className="flex items-center justify-center gap-1">
               {!summaryLoading && summary && (
