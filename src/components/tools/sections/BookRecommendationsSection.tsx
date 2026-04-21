@@ -173,6 +173,29 @@ export default function BookRecommendationsSection() {
     wordTimerRef.current = window.setTimeout(tick, estimateWordDuration(words[0] || "", rate, voice));
   };
 
+  const requeueFromWord = (wordIdx: number, reason: string) => {
+    if (!isMobile || stoppedRef.current || !spokenTextRef.current) return;
+    const safeWord = Math.min(Math.max(wordIdx, 0), Math.max(wordTokens.length - 1, 0));
+    if (safeWord >= wordTokens.length - 1) return;
+    logSpeechStop(reason, { requeueFromWord: safeWord });
+    window.speechSynthesis.cancel();
+    clearWordTimer();
+    utterancesRef.current = [];
+    chunksRef.current = createChunks(spokenTextRef.current, safeWord);
+    chunksRef.current.forEach((_, idx) => speakChunk(idx, true));
+  };
+
+  const scheduleMobileRecovery = (reason: string) => {
+    if (!isMobile || stoppedRef.current) return;
+    clearRequeueTimer();
+    requeueTimerRef.current = window.setTimeout(() => {
+      if (stoppedRef.current) return;
+      const hasMoreWords = lastSpokenWordRef.current < wordTokens.length - 2;
+      const synthIdle = !window.speechSynthesis.speaking && !window.speechSynthesis.pending;
+      if (hasMoreWords && synthIdle) requeueFromWord(lastSpokenWordRef.current + 1, reason);
+    }, 450);
+  };
+
   const findChunkIndexByWord = (wordIdx: number) => {
     const chunks = chunksRef.current;
     const idx = chunks.findIndex((chunk) => wordIdx >= chunk.wordStart && wordIdx < chunk.wordStart + chunk.wordCount);
