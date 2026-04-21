@@ -32,6 +32,7 @@ export default function BookRecommendationsSection() {
   const keepAliveRef = useRef<number | null>(null);
   const stoppedRef = useRef<boolean>(false);
   const wordTimerRef = useRef<number | null>(null);
+  const utterancesRef = useRef<SpeechSynthesisUtterance[]>([]);
 
   const isMobile = typeof navigator !== "undefined" && /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
@@ -69,6 +70,7 @@ export default function BookRecommendationsSection() {
       window.speechSynthesis.cancel();
     }
     chunksRef.current = [];
+    utterancesRef.current = [];
     chunkIdxRef.current = 0;
     setTtsState("idle");
     setActiveWordIdx(-1);
@@ -106,6 +108,7 @@ export default function BookRecommendationsSection() {
     if (idx >= chunks.length) {
       clearKeepAlive();
       clearWordTimer();
+      utterancesRef.current = [];
       setTtsState("idle");
       setActiveWordIdx(-1);
       return;
@@ -141,6 +144,7 @@ export default function BookRecommendationsSection() {
       if (queued) {
         if (idx === chunks.length - 1) {
           clearKeepAlive();
+          utterancesRef.current = [];
           setTtsState("idle");
           setActiveWordIdx(-1);
         }
@@ -168,6 +172,7 @@ export default function BookRecommendationsSection() {
       }
     };
 
+    utterancesRef.current.push(u);
     window.speechSynthesis.speak(u);
   };
 
