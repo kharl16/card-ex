@@ -155,7 +155,7 @@ export default function MindsetQuizSection({ cardId }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [user, cardId, score, pct, label, language]);
+  }, [user, cardId, score, pct, label, language, updateMindset]);
 
   if (screen === "welcome") {
     return (
