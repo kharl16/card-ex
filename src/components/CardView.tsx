@@ -22,7 +22,15 @@ import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/Them
 import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { mergeCarouselSettings, type CarouselSettingsData } from "@/lib/carouselTypes";
 import type { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Fire-and-forget analytics event tracking
+const trackCardEvent = (cardId: string, kind: "view" | "qr_scan" | "vcard_download" | "cta_click") => {
+  supabase.functions
+    .invoke("track-card-event", { body: { card_id: cardId, kind } })
+    .catch((err) => console.error(`Failed to track ${kind}:`, err));
+};
 
 // Custom social icons
 import tiktokIcon from "@/assets/icons/tiktok.png";
@@ -245,6 +253,9 @@ export default function CardView({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
+      // Track vCard download for analytics
+      trackCardEvent(card.id, "vcard_download");
+
       toast.success(includePhoto ? "Contact saved with photo!" : "Contact saved without photo");
     } catch (error) {
       console.error("Error downloading vCard:", error);
@@ -445,6 +456,7 @@ export default function CardView({
                     className={iconContainerClasses}
                     style={{ animationDelay: bounceDelay }}
                     title={link.label}
+                    onClick={() => trackCardEvent(card.id, "cta_click")}
                   >
                     {renderIcon()}
                   </a>
@@ -622,6 +634,7 @@ export default function CardView({
                     const handleClick =
                       isInteractive && item.href
                         ? () => {
+                            trackCardEvent(card.id, "cta_click");
                             if (item.kind === "url") {
                               window.open(item.href, "_blank");
                             } else {
