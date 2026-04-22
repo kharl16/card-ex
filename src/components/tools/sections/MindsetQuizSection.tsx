@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ChevronLeft, RotateCcw, Save, Brain, Sparkles } from "lucide-react";
+import { useToolPreferences } from "@/hooks/useToolPreferences";
 
 type Screen = "welcome" | "quiz" | "results";
 type Language = "english" | "tagalog";
