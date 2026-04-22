@@ -611,6 +611,8 @@ export default function BookRecommendationsSection() {
   const fetchSummary = async (book: Book, mode: "summary" | "deep" = "summary") => {
     const key = `${book.title}|${book.author}|${mode}`;
     setOpenBook(book);
+    // Persist last viewed book id (title|author) so it can reopen on refresh
+    updateBooks({ lastViewedBookId: `${book.title}|${book.author}` });
     if (cache[key]) {
       setSummary(cache[key]);
       return;
