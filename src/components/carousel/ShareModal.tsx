@@ -5,13 +5,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Mail } from "lucide-react";
 import {
-  MessageCircle,
-  Facebook,
-  Send,
-  Mail,
-  ExternalLink,
-} from "lucide-react";
+  SiFacebook,
+  SiMessenger,
+  SiWhatsapp,
+  SiTelegram,
+  SiX,
+  SiViber,
+} from "react-icons/si";
 
 // Social share URL generators
 function getMessengerShareUrl(url: string): string {
