@@ -73,7 +73,7 @@ const socialPlatforms = [
 
 export const platformIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Facebook: SiFacebook,
-  Linkedin: SiLinkedin,
+  Linkedin: FaLinkedin,
   Instagram: SiInstagram,
   X: SiX,
   Youtube: SiYoutube,
