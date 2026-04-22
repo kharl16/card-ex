@@ -29,9 +29,11 @@ interface LinksSectionProps {
   showDiscTest?: boolean;
   /** Auto-open one of the inline tools (deep-link). */
   initialTool?: "affirmations" | "books" | "mindset" | "disc" | "love-languages" | null;
+  /** True when this view was opened via a ?tool=... deep link — used to render an indicator pill. */
+  deepLinkActive?: boolean;
 }
 
-export default function LinksSection({ searchQuery, showDiscTest, initialTool }: LinksSectionProps) {
+export default function LinksSection({ searchQuery, showDiscTest, initialTool, deepLinkActive }: LinksSectionProps) {
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<IAMLink[]>([]);
   const [loading, setLoading] = useState(true);
