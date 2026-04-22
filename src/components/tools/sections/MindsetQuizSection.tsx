@@ -146,6 +146,8 @@ export default function MindsetQuizSection({ cardId }: Props) {
         .update({ mindset_result: data as any })
         .eq("id", targetCardId);
       if (error) throw error;
+      // Mirror to user prefs so it survives across cards/devices
+      updateMindset({ lastResult: data });
       toast.success(language === "english" ? "Mindset score saved to your card!" : "Nai-save ang Mindset Score sa iyong card!");
     } catch (e: any) {
       console.error(e);
