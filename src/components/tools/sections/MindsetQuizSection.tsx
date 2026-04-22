@@ -45,7 +45,15 @@ export default function MindsetQuizSection({ cardId }: Props) {
       s += q.type === "growth" ? rating : 6 - rating;
     });
     const maxScore = mindsetQuestions.length * 5;
-    const pct = Math.round((s / maxScore) * 100);
+    let pct = Math.round((s / maxScore) * 100);
+
+    // Fallback to last saved result if no answers entered yet (deep-link / refresh case)
+    const hasAnswers = answers.some((a) => a > 0);
+    const saved = prefs.mindset?.lastResult;
+    if (!hasAnswers && saved) {
+      s = saved.score;
+      pct = saved.pct;
+    }
 
     let label: string, blurb: string, color: string;
     if (pct >= 80) {
@@ -74,7 +82,7 @@ export default function MindsetQuizSection({ cardId }: Props) {
       color = "#ef4444";
     }
     return { score: s, pct, label, blurb, color };
-  }, [answers, language]);
+  }, [answers, language, prefs.mindset?.lastResult]);
 
   const handleStart = () => {
     setAnswers(Array(mindsetQuestions.length).fill(0));
