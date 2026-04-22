@@ -404,10 +404,15 @@ export default function CardEditor() {
       const isBackgroundMode = qrSettings.logoPosition === 'background' && qrSettings.logoUrl;
       const size = qrSettings.size || 512;
 
+      // Append ?src=qr so we can attribute scans to the QR code in analytics
+      const qrTargetUrl = shareUrl.includes("?")
+        ? `${shareUrl}&src=qr`
+        : `${shareUrl}?src=qr`;
+
       const qrCode = new QRCodeStyling({
         width: size,
         height: size,
-        data: shareUrl,
+        data: qrTargetUrl,
         margin: 10,
         dotsOptions: {
           color: qrSettings.darkColor || "#000000",
