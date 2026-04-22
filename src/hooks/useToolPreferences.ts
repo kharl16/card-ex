@@ -129,5 +129,32 @@ export function useToolPreferences() {
     [persist]
   );
 
-  return { prefs, loaded, updateAffirmations, updateBooks, updateMindset };
+  const resetAffirmations = useCallback(() => {
+    const next: ToolPreferences = { ...latestRef.current, affirmations: {} };
+    setPrefs(next);
+    persist(next);
+  }, [persist]);
+
+  const resetBooks = useCallback(() => {
+    const next: ToolPreferences = { ...latestRef.current, books: {} };
+    setPrefs(next);
+    persist(next);
+  }, [persist]);
+
+  const resetMindset = useCallback(() => {
+    const next: ToolPreferences = { ...latestRef.current, mindset: {} };
+    setPrefs(next);
+    persist(next);
+  }, [persist]);
+
+  return {
+    prefs,
+    loaded,
+    updateAffirmations,
+    updateBooks,
+    updateMindset,
+    resetAffirmations,
+    resetBooks,
+    resetMindset,
+  };
 }
