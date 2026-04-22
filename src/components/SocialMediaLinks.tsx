@@ -6,10 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trash2, GripVertical, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, GripVertical, Pencil, Check, X, Globe } from "lucide-react";
 import {
   SiFacebook,
-  SiLinkedin as SiLinkedinFallback,
   SiInstagram,
   SiX,
   SiYoutube,
@@ -22,7 +21,7 @@ import {
   SiPinterest,
   SiDiscord,
 } from "react-icons/si";
-import { Globe } from "lucide-react";
+import { FaLinkedin } from "react-icons/fa";
 import { z } from "zod";
 import {
   DndContext,
