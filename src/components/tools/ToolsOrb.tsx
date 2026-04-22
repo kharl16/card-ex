@@ -68,6 +68,7 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
   const [deepLinkTool, setDeepLinkTool] = useState<
     "affirmations" | "books" | "mindset" | "disc" | "love-languages" | null
   >(null);
+  const deepLinkConsumedRef = useRef(false);
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
@@ -75,19 +76,27 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
   const routeItems = useMemo(() => new Set(["prospects"]), []);
 
   // Deep-link: open drawer to a specific tool when URL has ?tool=...
-  // Works on both editor preview (?tool=...) and public card (/c/:slug?tool=...).
-  // The orb only renders for the card owner, so this opens for the owner's session only.
+  // Consumed exactly once per mount — back/forward nav won't re-trigger because
+  // we strip the param AND latch deepLinkConsumedRef.
   useEffect(() => {
     if (loading || !settings.enabled) return;
+    if (deepLinkConsumedRef.current) return;
     if (mode === "preview" && !user) return;
     if (mode === "public" && cardOwnerId && (!user || user.id !== cardOwnerId)) return;
 
     const params = new URLSearchParams(window.location.search);
     const tool = params.get("tool");
-    if (!tool) return;
+    if (!tool) {
+      deepLinkConsumedRef.current = true;
+      return;
+    }
     const allowed = ["affirmations", "books", "mindset", "disc", "love-languages"] as const;
-    if (!(allowed as readonly string[]).includes(tool)) return;
+    if (!(allowed as readonly string[]).includes(tool)) {
+      deepLinkConsumedRef.current = true;
+      return;
+    }
 
+    deepLinkConsumedRef.current = true;
     setDeepLinkTool(tool as typeof allowed[number]);
     setActiveSection("links");
     setDrawerOpen(true);
@@ -98,6 +107,11 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
     const newUrl = window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash;
     window.history.replaceState({}, "", newUrl);
   }, [loading, settings.enabled, mode, user, cardOwnerId]);
+
+  // Clear the deep-link tool once the drawer is closed so the pill goes away on next open.
+  useEffect(() => {
+    if (!drawerOpen && deepLinkTool) setDeepLinkTool(null);
+  }, [drawerOpen, deepLinkTool]);
 
   // Motion values for smooth dragging - the orb position
   const motionX = useMotionValue(0);
