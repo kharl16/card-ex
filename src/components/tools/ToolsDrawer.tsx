@@ -47,6 +47,8 @@ interface ToolsDrawerProps {
   activeSection: string | null;
   onSectionChange: (section: string | null) => void;
   items: ToolsOrbItem[];
+  /** Auto-open a sub-tool inside the Links section (deep-link). */
+  initialTool?: "affirmations" | "books" | "mindset" | "disc" | "love-languages" | null;
 }
 
 export default function ToolsDrawer({
@@ -55,6 +57,7 @@ export default function ToolsDrawer({
   activeSection,
   onSectionChange,
   items,
+  initialTool,
 }: ToolsDrawerProps) {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
@@ -196,7 +199,7 @@ export default function ToolsDrawer({
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="p-4">
             {activeSection === "trainings" && <TrainingsSection searchQuery={searchQuery} />}
-            {activeSection === "links" && <LinksSection searchQuery={searchQuery} showDiscTest />}
+            {activeSection === "links" && <LinksSection searchQuery={searchQuery} showDiscTest initialTool={initialTool ?? null} />}
             {activeSection === "files" && <FilesSection searchQuery={searchQuery} />}
             {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} />}
             {activeSection === "presentations" && <PresentationsSection searchQuery={searchQuery} />}

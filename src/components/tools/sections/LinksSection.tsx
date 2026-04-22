@@ -27,9 +27,11 @@ interface IAMLink {
 interface LinksSectionProps {
   searchQuery: string;
   showDiscTest?: boolean;
+  /** Auto-open one of the inline tools (deep-link). */
+  initialTool?: "affirmations" | "books" | "mindset" | "disc" | "love-languages" | null;
 }
 
-export default function LinksSection({ searchQuery, showDiscTest }: LinksSectionProps) {
+export default function LinksSection({ searchQuery, showDiscTest, initialTool }: LinksSectionProps) {
   const { isAdmin } = useAuth();
   const [items, setItems] = useState<IAMLink[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,15 +40,25 @@ export default function LinksSection({ searchQuery, showDiscTest }: LinksSection
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [adminDialogOpen, setAdminDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<IAMLink | null>(null);
-  const [showingDiscTest, setShowingDiscTest] = useState(false);
-  const [showingLoveLanguages, setShowingLoveLanguages] = useState(false);
-  const [showingAffirmations, setShowingAffirmations] = useState(false);
-  const [showingBooks, setShowingBooks] = useState(false);
-  const [showingMindset, setShowingMindset] = useState(false);
+  const [showingDiscTest, setShowingDiscTest] = useState(initialTool === "disc");
+  const [showingLoveLanguages, setShowingLoveLanguages] = useState(initialTool === "love-languages");
+  const [showingAffirmations, setShowingAffirmations] = useState(initialTool === "affirmations");
+  const [showingBooks, setShowingBooks] = useState(initialTool === "books");
+  const [showingMindset, setShowingMindset] = useState(initialTool === "mindset");
 
   useEffect(() => {
     fetchItems();
   }, []);
+
+  // React to deep-link tool changes after mount
+  useEffect(() => {
+    if (!initialTool) return;
+    setShowingDiscTest(initialTool === "disc");
+    setShowingLoveLanguages(initialTool === "love-languages");
+    setShowingAffirmations(initialTool === "affirmations");
+    setShowingBooks(initialTool === "books");
+    setShowingMindset(initialTool === "mindset");
+  }, [initialTool]);
 
   const fetchItems = async () => {
     try {

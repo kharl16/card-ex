@@ -1375,6 +1375,7 @@ export type Database = {
           referred_by_code: string | null
           referred_by_name: string | null
           referred_by_user_id: string | null
+          tool_preferences: Json
           updated_at: string
         }
         Insert: {
@@ -1389,6 +1390,7 @@ export type Database = {
           referred_by_code?: string | null
           referred_by_name?: string | null
           referred_by_user_id?: string | null
+          tool_preferences?: Json
           updated_at?: string
         }
         Update: {
@@ -1403,6 +1405,7 @@ export type Database = {
           referred_by_code?: string | null
           referred_by_name?: string | null
           referred_by_user_id?: string | null
+          tool_preferences?: Json
           updated_at?: string
         }
         Relationships: [

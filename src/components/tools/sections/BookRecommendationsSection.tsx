@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { useToolPreferences } from "@/hooks/useToolPreferences";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ function isMobileEnv() {
 
 export default function BookRecommendationsSection() {
   const { user } = useAuth();
+  const { prefs, loaded: prefsLoaded, updateBooks } = useToolPreferences();
   const [discType, setDiscType] = useState<string | null>(null);
   const [llType, setLlType] = useState<string | null>(null);
   const [mindset, setMindset] = useState<string | null>(null);
@@ -609,6 +611,8 @@ export default function BookRecommendationsSection() {
   const fetchSummary = async (book: Book, mode: "summary" | "deep" = "summary") => {
     const key = `${book.title}|${book.author}|${mode}`;
     setOpenBook(book);
+    // Persist last viewed book id (title|author) so it can reopen on refresh
+    updateBooks({ lastViewedBookId: `${book.title}|${book.author}` });
     if (cache[key]) {
       setSummary(cache[key]);
       return;

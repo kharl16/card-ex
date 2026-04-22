@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ChevronLeft, RotateCcw, Save, Brain, Sparkles } from "lucide-react";
+import { useToolPreferences } from "@/hooks/useToolPreferences";
 
 type Screen = "welcome" | "quiz" | "results";
 type Language = "english" | "tagalog";
@@ -17,11 +18,22 @@ interface Props { cardId?: string }
 
 export default function MindsetQuizSection({ cardId }: Props) {
   const { user } = useAuth();
+  const { prefs, loaded: prefsLoaded, updateMindset } = useToolPreferences();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [language, setLanguage] = useState<Language>("english");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(mindsetQuestions.length).fill(0));
   const [saving, setSaving] = useState(false);
+
+  // If user has a saved result and hasn't started a new quiz, jump to results
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    const last = prefs.mindset?.lastResult;
+    if (last && screen === "welcome" && !answers.some((a) => a > 0)) {
+      setScreen("results");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefsLoaded]);
 
   // Score: each "growth" answer adds (rating), each "fixed" adds (6 - rating)
   // Max score = 5 * questions = pure growth mindset
@@ -33,7 +45,15 @@ export default function MindsetQuizSection({ cardId }: Props) {
       s += q.type === "growth" ? rating : 6 - rating;
     });
     const maxScore = mindsetQuestions.length * 5;
-    const pct = Math.round((s / maxScore) * 100);
+    let pct = Math.round((s / maxScore) * 100);
+
+    // Fallback to last saved result if no answers entered yet (deep-link / refresh case)
+    const hasAnswers = answers.some((a) => a > 0);
+    const saved = prefs.mindset?.lastResult;
+    if (!hasAnswers && saved) {
+      s = saved.score;
+      pct = saved.pct;
+    }
 
     let label: string, blurb: string, color: string;
     if (pct >= 80) {
@@ -62,7 +82,7 @@ export default function MindsetQuizSection({ cardId }: Props) {
       color = "#ef4444";
     }
     return { score: s, pct, label, blurb, color };
-  }, [answers, language]);
+  }, [answers, language, prefs.mindset?.lastResult]);
 
   const handleStart = () => {
     setAnswers(Array(mindsetQuestions.length).fill(0));
@@ -75,8 +95,26 @@ export default function MindsetQuizSection({ cardId }: Props) {
     next[currentQuestion] = rating;
     setAnswers(next);
     setTimeout(() => {
-      if (currentQuestion === mindsetQuestions.length - 1) setScreen("results");
-      else setCurrentQuestion((p) => p + 1);
+      if (currentQuestion === mindsetQuestions.length - 1) {
+        setScreen("results");
+        // Auto-persist completed quiz to user prefs (so it survives refresh)
+        let s = 0;
+        next.forEach((r, i) => {
+          if (!r) return;
+          const q = mindsetQuestions[i];
+          s += q.type === "growth" ? r : 6 - r;
+        });
+        const maxScore = mindsetQuestions.length * 5;
+        const p = Math.round((s / maxScore) * 100);
+        const lbl =
+          p >= 80 ? "Strong Growth Mindset"
+            : p >= 60 ? "Growth Leaning"
+            : p >= 40 ? "Mixed Mindset"
+            : "Fixed Leaning";
+        updateMindset({ lastResult: { score: s, pct: p, label: lbl, taken_at: new Date().toISOString() } });
+      } else {
+        setCurrentQuestion((cq) => cq + 1);
+      }
     }, 200);
   };
 
@@ -108,6 +146,8 @@ export default function MindsetQuizSection({ cardId }: Props) {
         .update({ mindset_result: data as any })
         .eq("id", targetCardId);
       if (error) throw error;
+      // Mirror to user prefs so it survives across cards/devices
+      updateMindset({ lastResult: data });
       toast.success(language === "english" ? "Mindset score saved to your card!" : "Nai-save ang Mindset Score sa iyong card!");
     } catch (e: any) {
       console.error(e);
@@ -115,7 +155,7 @@ export default function MindsetQuizSection({ cardId }: Props) {
     } finally {
       setSaving(false);
     }
-  }, [user, cardId, score, pct, label, language]);
+  }, [user, cardId, score, pct, label, language, updateMindset]);
 
   if (screen === "welcome") {
     return (

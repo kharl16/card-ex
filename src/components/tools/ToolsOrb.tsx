@@ -65,11 +65,39 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
   const [isOpen, setIsOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [deepLinkTool, setDeepLinkTool] = useState<
+    "affirmations" | "books" | "mindset" | "disc" | "love-languages" | null
+  >(null);
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const routeItems = useMemo(() => new Set(["prospects"]), []);
+
+  // Deep-link: open drawer to a specific tool when URL has ?tool=...
+  // Works on both editor preview (?tool=...) and public card (/c/:slug?tool=...).
+  // The orb only renders for the card owner, so this opens for the owner's session only.
+  useEffect(() => {
+    if (loading || !settings.enabled) return;
+    if (mode === "preview" && !user) return;
+    if (mode === "public" && cardOwnerId && (!user || user.id !== cardOwnerId)) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const tool = params.get("tool");
+    if (!tool) return;
+    const allowed = ["affirmations", "books", "mindset", "disc", "love-languages"] as const;
+    if (!(allowed as readonly string[]).includes(tool)) return;
+
+    setDeepLinkTool(tool as typeof allowed[number]);
+    setActiveSection("links");
+    setDrawerOpen(true);
+
+    // Strip ?tool from the URL so future refreshes/back nav don't re-trigger
+    params.delete("tool");
+    const qs = params.toString();
+    const newUrl = window.location.pathname + (qs ? `?${qs}` : "") + window.location.hash;
+    window.history.replaceState({}, "", newUrl);
+  }, [loading, settings.enabled, mode, user, cardOwnerId]);
 
   // Motion values for smooth dragging - the orb position
   const motionX = useMotionValue(0);
@@ -674,10 +702,18 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
 
       <ToolsDrawer
         open={drawerOpen}
-        onOpenChange={setDrawerOpen}
+        onOpenChange={(o) => {
+          setDrawerOpen(o);
+          if (!o) setDeepLinkTool(null);
+        }}
         activeSection={activeSection}
-        onSectionChange={setActiveSection}
+        onSectionChange={(s) => {
+          setActiveSection(s);
+          // Clear deep-link tool when navigating away from links section
+          if (s !== "links") setDeepLinkTool(null);
+        }}
         items={enabledItems}
+        initialTool={deepLinkTool}
       />
 
       <ToolsOrbCustomizer

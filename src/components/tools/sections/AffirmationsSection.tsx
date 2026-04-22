@@ -1,19 +1,47 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { affirmationCategories, AffirmationCategory } from "@/data/affirmations";
 import { Sparkles, Copy, Share2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import { useToolPreferences } from "@/hooks/useToolPreferences";
 
 type Language = "english" | "tagalog";
 
 const CATEGORIES = Object.keys(affirmationCategories) as AffirmationCategory[];
 
-export default function AffirmationsSection() {
-  const [language, setLanguage] = useState<Language>("english");
-  const [category, setCategory] = useState<AffirmationCategory>("success");
+interface AffirmationsSectionProps {
+  initialCategory?: AffirmationCategory;
+  initialLanguage?: Language;
+}
+
+export default function AffirmationsSection({ initialCategory, initialLanguage }: AffirmationsSectionProps = {}) {
+  const { prefs, loaded, updateAffirmations } = useToolPreferences();
+  const [language, setLanguage] = useState<Language>(initialLanguage ?? "english");
+  const [category, setCategory] = useState<AffirmationCategory>(initialCategory ?? "success");
   const [seed, setSeed] = useState(0);
+  const hydratedRef = useRef(false);
+
+  // Hydrate from saved user prefs once (deep-link props win over saved prefs)
+  useEffect(() => {
+    if (!loaded || hydratedRef.current) return;
+    hydratedRef.current = true;
+    const saved = prefs.affirmations;
+    if (!saved) return;
+    if (!initialLanguage && saved.language === "tagalog" || saved.language === "english") {
+      if (!initialLanguage && saved.language) setLanguage(saved.language);
+    }
+    if (!initialCategory && saved.category && CATEGORIES.includes(saved.category as AffirmationCategory)) {
+      setCategory(saved.category as AffirmationCategory);
+    }
+  }, [loaded, prefs.affirmations, initialCategory, initialLanguage]);
+
+  // Persist on user changes (skip until hydration completes)
+  useEffect(() => {
+    if (!loaded || !hydratedRef.current) return;
+    updateAffirmations({ language, category });
+  }, [loaded, language, category, updateAffirmations]);
 
   const current = useMemo(() => {
     const list = affirmationCategories[category].affirmations;
