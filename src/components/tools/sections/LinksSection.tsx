@@ -151,12 +151,23 @@ export default function LinksSection({ searchQuery, showDiscTest, initialTool, d
     );
   }
 
+  const DeepLinkPill = () =>
+    deepLinkActive ? (
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/30 text-primary text-xs font-medium w-fit animate-fade-in">
+        <Sparkles className="h-3 w-3" />
+        Opened from deep link
+      </div>
+    ) : null;
+
   if (showDiscTest && showingDiscTest) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" onClick={() => setShowingDiscTest(false)} className="gap-2">
-          ← Back to Tools
-        </Button>
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" onClick={() => setShowingDiscTest(false)} className="gap-2">
+            ← Back to Tools
+          </Button>
+          <DeepLinkPill />
+        </div>
         <DiscTestSection searchQuery={searchQuery} />
       </div>
     );
@@ -165,9 +176,12 @@ export default function LinksSection({ searchQuery, showDiscTest, initialTool, d
   if (showDiscTest && showingLoveLanguages) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" onClick={() => setShowingLoveLanguages(false)} className="gap-2">
-          ← Back to Tools
-        </Button>
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" onClick={() => setShowingLoveLanguages(false)} className="gap-2">
+            ← Back to Tools
+          </Button>
+          <DeepLinkPill />
+        </div>
         <LoveLanguagesSection searchQuery={searchQuery} />
       </div>
     );
@@ -176,9 +190,12 @@ export default function LinksSection({ searchQuery, showDiscTest, initialTool, d
   if (showDiscTest && showingAffirmations) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" onClick={() => setShowingAffirmations(false)} className="gap-2">
-          ← Back to Tools
-        </Button>
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" onClick={() => setShowingAffirmations(false)} className="gap-2">
+            ← Back to Tools
+          </Button>
+          <DeepLinkPill />
+        </div>
         <AffirmationsSection />
       </div>
     );
@@ -187,9 +204,12 @@ export default function LinksSection({ searchQuery, showDiscTest, initialTool, d
   if (showDiscTest && showingBooks) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" onClick={() => setShowingBooks(false)} className="gap-2">
-          ← Back to Tools
-        </Button>
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" onClick={() => setShowingBooks(false)} className="gap-2">
+            ← Back to Tools
+          </Button>
+          <DeepLinkPill />
+        </div>
         <BookRecommendationsSection />
       </div>
     );
@@ -198,9 +218,12 @@ export default function LinksSection({ searchQuery, showDiscTest, initialTool, d
   if (showDiscTest && showingMindset) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" onClick={() => setShowingMindset(false)} className="gap-2">
-          ← Back to Tools
-        </Button>
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" onClick={() => setShowingMindset(false)} className="gap-2">
+            ← Back to Tools
+          </Button>
+          <DeepLinkPill />
+        </div>
         <MindsetQuizSection />
       </div>
     );
