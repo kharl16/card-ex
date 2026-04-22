@@ -18,11 +18,22 @@ interface Props { cardId?: string }
 
 export default function MindsetQuizSection({ cardId }: Props) {
   const { user } = useAuth();
+  const { prefs, loaded: prefsLoaded, updateMindset } = useToolPreferences();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [language, setLanguage] = useState<Language>("english");
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>(Array(mindsetQuestions.length).fill(0));
   const [saving, setSaving] = useState(false);
+
+  // If user has a saved result and hasn't started a new quiz, jump to results
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    const last = prefs.mindset?.lastResult;
+    if (last && screen === "welcome" && !answers.some((a) => a > 0)) {
+      setScreen("results");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefsLoaded]);
 
   // Score: each "growth" answer adds (rating), each "fixed" adds (6 - rating)
   // Max score = 5 * questions = pure growth mindset
