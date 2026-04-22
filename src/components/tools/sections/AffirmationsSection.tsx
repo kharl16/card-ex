@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { affirmationCategories, AffirmationCategory } from "@/data/affirmations";
-import { Sparkles, Copy, Share2, RefreshCw } from "lucide-react";
+import { Sparkles, Copy, Share2, RefreshCw, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { useToolPreferences } from "@/hooks/useToolPreferences";
 
@@ -17,7 +17,7 @@ interface AffirmationsSectionProps {
 }
 
 export default function AffirmationsSection({ initialCategory, initialLanguage }: AffirmationsSectionProps = {}) {
-  const { prefs, loaded, updateAffirmations } = useToolPreferences();
+  const { prefs, loaded, updateAffirmations, resetAffirmations } = useToolPreferences();
   const [language, setLanguage] = useState<Language>(initialLanguage ?? "english");
   const [category, setCategory] = useState<AffirmationCategory>(initialCategory ?? "success");
   const [seed, setSeed] = useState(0);
@@ -114,11 +114,28 @@ export default function AffirmationsSection({ initialCategory, initialLanguage }
         </Button>
       </div>
 
-      <p className="text-center text-xs text-muted-foreground">
-        {language === "english"
-          ? "💡 Read aloud 3x each morning for best results."
-          : "💡 Basahin nang malakas 3 beses tuwing umaga."}
-      </p>
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <p className="text-xs text-muted-foreground flex-1">
+          {language === "english"
+            ? "💡 Read aloud 3x each morning for best results."
+            : "💡 Basahin nang malakas 3 beses tuwing umaga."}
+        </p>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-xs gap-1 text-muted-foreground hover:text-foreground"
+          onClick={() => {
+            resetAffirmations();
+            setLanguage("english");
+            setCategory("success");
+            setSeed(0);
+            toast.success(language === "english" ? "Preferences reset" : "Na-reset ang preferences");
+          }}
+        >
+          <RotateCcw className="h-3 w-3" />
+          {language === "english" ? "Reset" : "I-reset"}
+        </Button>
+      </div>
     </div>
   );
 }
