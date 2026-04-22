@@ -5,13 +5,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Mail } from "lucide-react";
 import {
-  MessageCircle,
-  Facebook,
-  Send,
-  Mail,
-  ExternalLink,
-} from "lucide-react";
+  SiFacebook,
+  SiMessenger,
+  SiWhatsapp,
+  SiTelegram,
+  SiX,
+  SiViber,
+} from "react-icons/si";
 
 // Social share URL generators
 function getMessengerShareUrl(url: string): string {
@@ -83,37 +85,37 @@ export default function ShareModal({
   const socialButtons = [
     {
       name: "Messenger",
-      icon: MessageCircle,
+      icon: SiMessenger,
       color: "bg-gradient-to-r from-[#00C6FF] to-[#0078FF]",
       onClick: () => openShareUrl(getMessengerShareUrl(shareUrl)),
     },
     {
       name: "Facebook",
-      icon: Facebook,
+      icon: SiFacebook,
       color: "bg-[#1877F2]",
       onClick: () => openShareUrl(getFacebookShareUrl(shareUrl)),
     },
     {
       name: "WhatsApp",
-      icon: MessageCircle,
+      icon: SiWhatsapp,
       color: "bg-[#25D366]",
       onClick: () => openShareUrl(getWhatsAppShareUrl(shareText, shareUrl)),
     },
     {
       name: "Telegram",
-      icon: Send,
+      icon: SiTelegram,
       color: "bg-[#26A5E4]",
       onClick: () => openShareUrl(getTelegramShareUrl(shareText, shareUrl)),
     },
     {
       name: "X",
-      icon: ExternalLink,
+      icon: SiX,
       color: "bg-black",
       onClick: () => openShareUrl(getXShareUrl(shareText, shareUrl)),
     },
     {
       name: "Viber",
-      icon: MessageCircle,
+      icon: SiViber,
       color: "bg-[#7360F2]",
       onClick: () => openShareUrl(getViberShareUrl(shareText, shareUrl)),
     },

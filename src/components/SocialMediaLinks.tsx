@@ -6,7 +6,22 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trash2, GripVertical, Globe, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, GripVertical, Pencil, Check, X, Globe } from "lucide-react";
+import {
+  SiFacebook,
+  SiInstagram,
+  SiX,
+  SiYoutube,
+  SiTelegram,
+  SiTiktok,
+  SiWhatsapp,
+  SiViber,
+  SiSnapchat,
+  SiThreads,
+  SiPinterest,
+  SiDiscord,
+} from "react-icons/si";
+import { FaLinkedin } from "react-icons/fa";
 import { z } from "zod";
 import {
   DndContext,
@@ -43,12 +58,35 @@ const socialPlatforms = [
   { value: "facebook", label: "Facebook", icon: "Facebook" },
   { value: "linkedin", label: "LinkedIn", icon: "Linkedin" },
   { value: "instagram", label: "Instagram", icon: "Instagram" },
-  { value: "x", label: "Twitter/X", icon: "Twitter" },
+  { value: "x", label: "Twitter/X", icon: "X" },
   { value: "youtube", label: "YouTube", icon: "Youtube" },
-  { value: "telegram", label: "Telegram", icon: "MessageCircle" },
-  { value: "tiktok", label: "TikTok", icon: "Music" },
+  { value: "telegram", label: "Telegram", icon: "Telegram" },
+  { value: "tiktok", label: "TikTok", icon: "TikTok" },
+  { value: "whatsapp", label: "WhatsApp", icon: "WhatsApp" },
+  { value: "viber", label: "Viber", icon: "Viber" },
+  { value: "snapchat", label: "Snapchat", icon: "Snapchat" },
+  { value: "threads", label: "Threads", icon: "Threads" },
+  { value: "pinterest", label: "Pinterest", icon: "Pinterest" },
+  { value: "discord", label: "Discord", icon: "Discord" },
   { value: "url", label: "Website", icon: "Globe" },
 ];
+
+export const platformIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+  Facebook: SiFacebook,
+  Linkedin: FaLinkedin,
+  Instagram: SiInstagram,
+  X: SiX,
+  Youtube: SiYoutube,
+  Telegram: SiTelegram,
+  TikTok: SiTiktok,
+  WhatsApp: SiWhatsapp,
+  Viber: SiViber,
+  Snapchat: SiSnapchat,
+  Threads: SiThreads,
+  Pinterest: SiPinterest,
+  Discord: SiDiscord,
+  Globe: Globe,
+};
 
 const linkSchema = z.object({
   label: z.string().trim().min(1, "Label is required").max(100, "Label must be 100 characters or less"),
