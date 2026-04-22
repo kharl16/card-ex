@@ -22,6 +22,7 @@ function isMobileEnv() {
 
 export default function BookRecommendationsSection() {
   const { user } = useAuth();
+  const { prefs, loaded: prefsLoaded, updateBooks } = useToolPreferences();
   const [discType, setDiscType] = useState<string | null>(null);
   const [llType, setLlType] = useState<string | null>(null);
   const [mindset, setMindset] = useState<string | null>(null);
