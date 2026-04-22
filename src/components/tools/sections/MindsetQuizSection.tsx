@@ -95,8 +95,26 @@ export default function MindsetQuizSection({ cardId }: Props) {
     next[currentQuestion] = rating;
     setAnswers(next);
     setTimeout(() => {
-      if (currentQuestion === mindsetQuestions.length - 1) setScreen("results");
-      else setCurrentQuestion((p) => p + 1);
+      if (currentQuestion === mindsetQuestions.length - 1) {
+        setScreen("results");
+        // Auto-persist completed quiz to user prefs (so it survives refresh)
+        let s = 0;
+        next.forEach((r, i) => {
+          if (!r) return;
+          const q = mindsetQuestions[i];
+          s += q.type === "growth" ? r : 6 - r;
+        });
+        const maxScore = mindsetQuestions.length * 5;
+        const p = Math.round((s / maxScore) * 100);
+        const lbl =
+          p >= 80 ? "Strong Growth Mindset"
+            : p >= 60 ? "Growth Leaning"
+            : p >= 40 ? "Mixed Mindset"
+            : "Fixed Leaning";
+        updateMindset({ lastResult: { score: s, pct: p, label: lbl, taken_at: new Date().toISOString() } });
+      } else {
+        setCurrentQuestion((cq) => cq + 1);
+      }
     }, 200);
   };
 
