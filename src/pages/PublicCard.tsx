@@ -132,11 +132,23 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       }
       
       // Track view through Edge Function (with rate limiting)
+      // If arriving via QR code (?src=qr), also track a qr_scan event
+      const params = new URLSearchParams(window.location.search);
+      const isQRScan = params.get("src") === "qr" || params.get("utm_source") === "qr";
+
       supabase.functions
         .invoke("track-card-event", {
           body: { card_id: data.id, kind: "view" },
         })
         .catch((err) => console.error("Failed to track view:", err));
+
+      if (isQRScan) {
+        supabase.functions
+          .invoke("track-card-event", {
+            body: { card_id: data.id, kind: "qr_scan" },
+          })
+          .catch((err) => console.error("Failed to track qr_scan:", err));
+      }
 
       // Load social links from JSON field or fallback to card_links table
       if (data.social_links && Array.isArray(data.social_links)) {
