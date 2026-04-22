@@ -18,7 +18,7 @@ interface Props { cardId?: string }
 
 export default function MindsetQuizSection({ cardId }: Props) {
   const { user } = useAuth();
-  const { prefs, loaded: prefsLoaded, updateMindset } = useToolPreferences();
+  const { prefs, loaded: prefsLoaded, updateMindset, resetMindset } = useToolPreferences();
   const [screen, setScreen] = useState<Screen>("welcome");
   const [language, setLanguage] = useState<Language>("english");
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -272,6 +272,22 @@ export default function MindsetQuizSection({ cardId }: Props) {
           {language === "english" ? "Retake" : "Ulitin"}
         </Button>
       </div>
+
+      <Button
+        variant="ghost"
+        size="sm"
+        className="w-full text-xs gap-1 text-muted-foreground hover:text-foreground"
+        onClick={() => {
+          resetMindset();
+          setAnswers(Array(mindsetQuestions.length).fill(0));
+          setCurrentQuestion(0);
+          setScreen("welcome");
+          toast.success(language === "english" ? "Saved result cleared" : "Na-clear ang saved na resulta");
+        }}
+      >
+        <RotateCcw className="h-3 w-3" />
+        {language === "english" ? "Reset saved result" : "I-reset ang saved na resulta"}
+      </Button>
     </div>
   );
 }

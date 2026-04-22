@@ -22,7 +22,7 @@ function isMobileEnv() {
 
 export default function BookRecommendationsSection() {
   const { user } = useAuth();
-  const { prefs, loaded: prefsLoaded, updateBooks } = useToolPreferences();
+  const { prefs, loaded: prefsLoaded, updateBooks, resetBooks } = useToolPreferences();
   const [discType, setDiscType] = useState<string | null>(null);
   const [llType, setLlType] = useState<string | null>(null);
   const [mindset, setMindset] = useState<string | null>(null);
@@ -681,6 +681,18 @@ export default function BookRecommendationsSection() {
         <p className="text-xs text-muted-foreground">
           Tap the page icon to read a quick AI-powered summary of any book.
         </p>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mx-auto text-xs gap-1 text-muted-foreground hover:text-foreground"
+          onClick={() => {
+            resetBooks();
+            toast.success("Book preferences reset");
+          }}
+        >
+          <RotateCcw className="h-3 w-3" />
+          Reset preferences
+        </Button>
       </div>
 
       {loading ? (
