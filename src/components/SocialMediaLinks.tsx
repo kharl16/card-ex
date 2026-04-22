@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, GripVertical, Pencil, Check, X } from "lucide-react";
 import {
   SiFacebook,
-  SiLinkedin,
+  SiLinkedin as SiLinkedinFallback,
   SiInstagram,
   SiX,
   SiYoutube,
