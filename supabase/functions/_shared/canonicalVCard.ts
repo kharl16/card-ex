@@ -153,15 +153,8 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
       }
     });
 
-  // Email — use bare TYPE so contacts apps show "Email" instead of "Internet"
+  // Primary Email — bare EMAIL so contacts apps display "Email"
   if (p.email) lines.push(`EMAIL:${esc(p.email.toLowerCase())}`);
-
-  // Additional Emails
-  (p.emails || []).forEach((em) => {
-    if (em?.value) {
-      lines.push(`EMAIL:${esc(em.value.toLowerCase())}`);
-    }
-  });
 
   // Website (single, plain URL — labeled "Website" by contacts apps)
   if (p.website) lines.push(`URL:${esc(p.website)}`);
@@ -234,7 +227,17 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
     }
   }
 
-  if (p.notes) lines.push(`NOTE:${esc(p.notes)}`);
+  // Additional Emails — use itemN grouping with explicit "Email" label so
+  // contacts apps display "Email" instead of falling back to "Other".
+  (p.emails || []).forEach((em) => {
+    if (em?.value) {
+      itemI++;
+      lines.push(`item${itemI}.EMAIL:${esc(em.value.toLowerCase())}`);
+      lines.push(`item${itemI}.X-ABLabel:Email`);
+    }
+  });
+
+  // NOTE intentionally omitted — bio is shown on the card, not the contact entry.
 
   lines.push('END:VCARD');
 
