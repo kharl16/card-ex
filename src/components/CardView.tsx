@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import {
   SiFacebook,
+  SiMessenger,
   SiInstagram,
   SiX,
   SiYoutube,
@@ -110,6 +111,7 @@ interface CardViewProps {
 
 const iconMap: Record<string, any> = {
   Facebook: SiFacebook,
+  Messenger: SiMessenger,
   Linkedin: FaLinkedin,
   Instagram: SiInstagram,
   X: SiX,
@@ -133,6 +135,10 @@ const socialBrandConfig: Record<string, { bg: string; glow: string }> = {
   facebook: { 
     bg: "bg-[#1877F2]", 
     glow: "hover:shadow-[0_0_20px_rgba(24,119,242,0.6)]" 
+  },
+  messenger: {
+    bg: "bg-gradient-to-br from-[#00C6FF] to-[#0078FF]",
+    glow: "hover:shadow-[0_0_20px_rgba(0,120,255,0.6)]"
   },
   linkedin: { 
     bg: "bg-[#0A66C2]", 
