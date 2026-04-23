@@ -163,6 +163,30 @@ const socialBrandConfig: Record<string, { bg: string; glow: string }> = {
     bg: "bg-black", 
     glow: "hover:shadow-[0_0_20px_rgba(0,255,255,0.4),0_0_20px_rgba(255,0,80,0.4)]" 
   },
+  whatsapp: {
+    bg: "bg-[#25D366]",
+    glow: "hover:shadow-[0_0_20px_rgba(37,211,102,0.6)]"
+  },
+  viber: {
+    bg: "bg-[#7360F2]",
+    glow: "hover:shadow-[0_0_20px_rgba(115,96,242,0.6)]"
+  },
+  snapchat: {
+    bg: "bg-[#FFFC00]",
+    glow: "hover:shadow-[0_0_20px_rgba(255,252,0,0.6)]"
+  },
+  threads: {
+    bg: "bg-black",
+    glow: "hover:shadow-[0_0_16px_rgba(255,255,255,0.25)]"
+  },
+  pinterest: {
+    bg: "bg-[#E60023]",
+    glow: "hover:shadow-[0_0_20px_rgba(230,0,35,0.6)]"
+  },
+  discord: {
+    bg: "bg-[#5865F2]",
+    glow: "hover:shadow-[0_0_20px_rgba(88,101,242,0.6)]"
+  },
   url: { 
     bg: "bg-[#4285F4]", 
     glow: "hover:shadow-[0_0_16px_rgba(66,133,244,0.5)]" 
