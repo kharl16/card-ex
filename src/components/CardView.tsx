@@ -5,11 +5,22 @@ import {
   MapPin,
   Globe,
   Download,
-  Facebook,
-  Linkedin,
-  Youtube,
-  Github,
 } from "lucide-react";
+import {
+  SiFacebook,
+  SiInstagram,
+  SiX,
+  SiYoutube,
+  SiTelegram,
+  SiTiktok,
+  SiWhatsapp,
+  SiViber,
+  SiSnapchat,
+  SiThreads,
+  SiPinterest,
+  SiDiscord,
+} from "react-icons/si";
+import { FaLinkedin } from "react-icons/fa";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import CardExCarousel from "@/components/CardExCarousel";
