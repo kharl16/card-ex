@@ -5,11 +5,22 @@ import {
   MapPin,
   Globe,
   Download,
-  Facebook,
-  Linkedin,
-  Youtube,
-  Github,
 } from "lucide-react";
+import {
+  SiFacebook,
+  SiInstagram,
+  SiX,
+  SiYoutube,
+  SiTelegram,
+  SiTiktok,
+  SiWhatsapp,
+  SiViber,
+  SiSnapchat,
+  SiThreads,
+  SiPinterest,
+  SiDiscord,
+} from "react-icons/si";
+import { FaLinkedin } from "react-icons/fa";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import CardExCarousel from "@/components/CardExCarousel";
@@ -32,11 +43,6 @@ const trackCardEvent = (cardId: string, kind: "view" | "qr_scan" | "vcard_downlo
     .catch((err) => console.error(`Failed to track ${kind}:`, err));
 };
 
-// Custom social icons
-import tiktokIcon from "@/assets/icons/tiktok.png";
-import instagramIcon from "@/assets/icons/instagram.png";
-import twitterXIcon from "@/assets/icons/twitter-x.png";
-import telegramIcon from "@/assets/icons/telegram.png";
 
 type CardData = Tables<"cards">;
 
@@ -103,20 +109,24 @@ interface CardViewProps {
 }
 
 const iconMap: Record<string, any> = {
-  Facebook,
-  Linkedin,
-  Youtube,
-  Github,
+  Facebook: SiFacebook,
+  Linkedin: FaLinkedin,
+  Instagram: SiInstagram,
+  X: SiX,
+  Youtube: SiYoutube,
+  Telegram: SiTelegram,
+  TikTok: SiTiktok,
+  WhatsApp: SiWhatsapp,
+  Viber: SiViber,
+  Snapchat: SiSnapchat,
+  Threads: SiThreads,
+  Pinterest: SiPinterest,
+  Discord: SiDiscord,
   Globe,
 };
 
-// Custom PNG icons for platforms without white backgrounds
-const customIconMap: Record<string, string> = {
-  Instagram: instagramIcon,
-  Twitter: twitterXIcon,
-  MessageCircle: telegramIcon,
-  Music: tiktokIcon,
-};
+// Custom PNG icons (legacy override) - none needed; brand icons cover all platforms
+const customIconMap: Record<string, string> = {};
 
 // Brand colors and glow effects for social platforms
 const socialBrandConfig: Record<string, { bg: string; glow: string }> = {
@@ -147,6 +157,30 @@ const socialBrandConfig: Record<string, { bg: string; glow: string }> = {
   tiktok: { 
     bg: "bg-black", 
     glow: "hover:shadow-[0_0_20px_rgba(0,255,255,0.4),0_0_20px_rgba(255,0,80,0.4)]" 
+  },
+  whatsapp: {
+    bg: "bg-[#25D366]",
+    glow: "hover:shadow-[0_0_20px_rgba(37,211,102,0.6)]"
+  },
+  viber: {
+    bg: "bg-[#7360F2]",
+    glow: "hover:shadow-[0_0_20px_rgba(115,96,242,0.6)]"
+  },
+  snapchat: {
+    bg: "bg-[#FFFC00]",
+    glow: "hover:shadow-[0_0_20px_rgba(255,252,0,0.6)]"
+  },
+  threads: {
+    bg: "bg-black",
+    glow: "hover:shadow-[0_0_16px_rgba(255,255,255,0.25)]"
+  },
+  pinterest: {
+    bg: "bg-[#E60023]",
+    glow: "hover:shadow-[0_0_20px_rgba(230,0,35,0.6)]"
+  },
+  discord: {
+    bg: "bg-[#5865F2]",
+    glow: "hover:shadow-[0_0_20px_rgba(88,101,242,0.6)]"
   },
   url: { 
     bg: "bg-[#4285F4]", 
