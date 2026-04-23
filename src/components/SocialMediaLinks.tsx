@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Plus, Trash2, GripVertical, Pencil, Check, X, Globe } from "lucide-react";
 import {
   SiFacebook,
+  SiMessenger,
   SiInstagram,
   SiX,
   SiYoutube,
@@ -56,6 +57,7 @@ interface SocialMediaLinksProps {
 
 const socialPlatforms = [
   { value: "facebook", label: "Facebook", icon: "Facebook" },
+  { value: "messenger", label: "Messenger", icon: "Messenger" },
   { value: "linkedin", label: "LinkedIn", icon: "Linkedin" },
   { value: "instagram", label: "Instagram", icon: "Instagram" },
   { value: "x", label: "Twitter/X", icon: "X" },
@@ -73,6 +75,7 @@ const socialPlatforms = [
 
 export const platformIconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Facebook: SiFacebook,
+  Messenger: SiMessenger,
   Linkedin: FaLinkedin,
   Instagram: SiInstagram,
   X: SiX,
