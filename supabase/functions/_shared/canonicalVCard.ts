@@ -227,7 +227,17 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
     }
   }
 
-  if (p.notes) lines.push(`NOTE:${esc(p.notes)}`);
+  // Additional Emails — use itemN grouping with explicit "Email" label so
+  // contacts apps display "Email" instead of falling back to "Other".
+  (p.emails || []).forEach((em) => {
+    if (em?.value) {
+      itemI++;
+      lines.push(`item${itemI}.EMAIL:${esc(em.value.toLowerCase())}`);
+      lines.push(`item${itemI}.X-ABLabel:Email`);
+    }
+  });
+
+  // NOTE intentionally omitted — bio is shown on the card, not the contact entry.
 
   lines.push('END:VCARD');
 
