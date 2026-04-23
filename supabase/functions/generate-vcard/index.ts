@@ -83,48 +83,65 @@ serve(async (req) => {
       return null;
     };
 
-    if (cardLinks) {
-      for (const link of cardLinks) {
-        const kind = link.kind?.toLowerCase();
-        const label = link.label?.toLowerCase() || '';
+    // Prefer cards.social_links (authoritative source updated by the editor)
+    // over the legacy card_links rows. Fall back to card_links if social_links is empty.
+    type LinkRow = { kind: string | null; label: string | null; value: string };
+    const socialLinksFromCard: LinkRow[] = Array.isArray(card.social_links)
+      ? (card.social_links as any[]).map((l) => ({
+          kind: l?.kind ?? null,
+          label: l?.label ?? null,
+          value: l?.value ?? '',
+        }))
+      : [];
 
-        if (kind === 'facebook') { socials.facebook = link.value; continue; }
-        if (kind === 'instagram') { socials.instagram = link.value; continue; }
-        if (kind === 'tiktok') { socials.tiktok = link.value; continue; }
-        if (kind === 'youtube') { socials.youtube = link.value; continue; }
-        if (kind === 'linkedin') { socials.linkedin = link.value; continue; }
-        if (kind === 'x' || kind === 'twitter') { socials.twitter = link.value; continue; }
-        if (kind === 'whatsapp') { socials.whatsapp = link.value; continue; }
+    const linksToProcess: LinkRow[] = socialLinksFromCard.length > 0
+      ? socialLinksFromCard
+      : (cardLinks as LinkRow[] | null) ?? [];
 
-        // Route URL links to socials when host matches a known platform,
-        // or when label is the platform name.
-        if (kind === 'url') {
-          const detected = detectSocialFromUrl(link.value) ||
-            (['facebook','instagram','tiktok','youtube','linkedin','twitter','x','whatsapp']
-              .includes(label) ? (label === 'x' ? 'twitter' : label) as keyof NonNullable<Profile['socials']> : null);
-          if (detected) {
-            socials[detected] = link.value;
-            continue;
-          }
+    console.log("Using links source:", socialLinksFromCard.length > 0 ? 'cards.social_links' : 'card_links table');
+
+    for (const link of linksToProcess) {
+      if (!link.value) continue;
+      const kind = link.kind?.toLowerCase();
+      const label = link.label?.toLowerCase() || '';
+
+      if (kind === 'facebook') { socials.facebook = link.value; continue; }
+      if (kind === 'instagram') { socials.instagram = link.value; continue; }
+      if (kind === 'tiktok') { socials.tiktok = link.value; continue; }
+      if (kind === 'youtube') { socials.youtube = link.value; continue; }
+      if (kind === 'linkedin') { socials.linkedin = link.value; continue; }
+      if (kind === 'x' || kind === 'twitter') { socials.twitter = link.value; continue; }
+      if (kind === 'whatsapp') { socials.whatsapp = link.value; continue; }
+      if (kind === 'messenger') { socials.facebook = socials.facebook || link.value; continue; }
+
+      // Route URL links to socials when host matches a known platform,
+      // or when label is the platform name.
+      if (kind === 'url') {
+        const detected = detectSocialFromUrl(link.value) ||
+          (['facebook','instagram','tiktok','youtube','linkedin','twitter','x','whatsapp']
+            .includes(label) ? (label === 'x' ? 'twitter' : label) as keyof NonNullable<Profile['socials']> : null);
+        if (detected) {
+          socials[detected] = link.value;
+          continue;
         }
+      }
 
-        // Otherwise treat as additional contact
-        const isAdditional = label.includes('additional') ||
-                            label.includes('alternate') ||
-                            label.includes('other') ||
-                            label.includes('secondary') ||
-                            label.includes('work') ||
-                            label.includes('home') ||
-                            label.includes('mobile') ||
-                            label.includes('office');
+      // Otherwise treat as additional contact
+      const isAdditional = label.includes('additional') ||
+                          label.includes('alternate') ||
+                          label.includes('other') ||
+                          label.includes('secondary') ||
+                          label.includes('work') ||
+                          label.includes('home') ||
+                          label.includes('mobile') ||
+                          label.includes('office');
 
-        if (kind === 'email' && isAdditional) {
-          additionalEmails.push({ type: 'OTHER', value: link.value, label: link.label });
-        } else if (kind === 'phone' && isAdditional) {
-          additionalPhones.push({ type: 'OTHER', value: link.value });
-        } else if (kind === 'url' && isAdditional) {
-          additionalWebsites.push({ type: 'OTHER', value: link.value, label: link.label });
-        }
+      if (kind === 'email' && isAdditional) {
+        additionalEmails.push({ type: 'OTHER', value: link.value, label: link.label || undefined });
+      } else if (kind === 'phone' && isAdditional) {
+        additionalPhones.push({ type: 'OTHER', value: link.value });
+      } else if (kind === 'url' && isAdditional) {
+        additionalWebsites.push({ type: 'OTHER', value: link.value, label: link.label || undefined });
       }
     }
 
