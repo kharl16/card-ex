@@ -153,15 +153,8 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
       }
     });
 
-  // Email — use bare TYPE so contacts apps show "Email" instead of "Internet"
+  // Primary Email — bare EMAIL so contacts apps display "Email"
   if (p.email) lines.push(`EMAIL:${esc(p.email.toLowerCase())}`);
-
-  // Additional Emails
-  (p.emails || []).forEach((em) => {
-    if (em?.value) {
-      lines.push(`EMAIL:${esc(em.value.toLowerCase())}`);
-    }
-  });
 
   // Website (single, plain URL — labeled "Website" by contacts apps)
   if (p.website) lines.push(`URL:${esc(p.website)}`);
