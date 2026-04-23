@@ -66,7 +66,6 @@ serve(async (req) => {
     const additionalEmails: Profile['emails'] = [];
     const additionalPhones: Profile['phones'] = [];
     const additionalWebsites: Profile['websites'] = [];
-    const additionalAddresses: Profile['addresses'] = [];
 
     if (cardLinks) {
       for (const link of cardLinks) {
@@ -89,9 +88,10 @@ serve(async (req) => {
           additionalPhones.push({ type: 'OTHER', value: link.value });
         } else if (kind === 'url' && isAdditional) {
           additionalWebsites.push({ type: 'OTHER', value: link.value, label: link.label });
-        } else if (kind === 'custom' && label.includes('location')) {
-          additionalAddresses.push({ street: link.value, type: 'OTHER', label: link.label });
-        } else if (kind === 'facebook') socials.facebook = link.value;
+        }
+        // Note: ADR/address entries are intentionally NOT emitted. Work info
+        // is conveyed exclusively via TITLE + ORG (card.title + card.company).
+        else if (kind === 'facebook') socials.facebook = link.value;
         else if (kind === 'instagram') socials.instagram = link.value;
         else if (kind === 'tiktok') socials.tiktok = link.value;
         else if (kind === 'youtube') socials.youtube = link.value;
