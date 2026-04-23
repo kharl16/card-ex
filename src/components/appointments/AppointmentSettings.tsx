@@ -29,7 +29,7 @@ export default function AppointmentSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [bookingEnabled, setBookingEnabled] = useState(false);
+  const [bookingEnabled, setBookingEnabled] = useState(true);
   const [workingDays, setWorkingDays] = useState<string[]>(["monday", "tuesday", "wednesday", "thursday", "friday"]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
