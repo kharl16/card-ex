@@ -18,6 +18,22 @@ function mapCardToProfile(card: CardData, additionalContacts?: AdditionalContact
   const additionalPhones: Profile["phones"] = [];
   const additionalWebsites: Profile["websites"] = [];
 
+  const socials: Profile["socials"] = {};
+
+  const detectSocialFromUrl = (url: string): keyof NonNullable<Profile["socials"]> | null => {
+    try {
+      const host = new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+      if (host.includes("facebook.com") || host === "fb.com" || host === "m.me") return "facebook";
+      if (host.includes("instagram.com")) return "instagram";
+      if (host.includes("tiktok.com")) return "tiktok";
+      if (host.includes("youtube.com") || host === "youtu.be") return "youtube";
+      if (host.includes("linkedin.com")) return "linkedin";
+      if (host.includes("twitter.com") || host.includes("x.com")) return "twitter";
+      if (host.includes("wa.me") || host.includes("whatsapp.com")) return "whatsapp";
+    } catch { /* not a URL */ }
+    return null;
+  };
+
   if (additionalContacts) {
     for (const contact of additionalContacts) {
       if (!contact.value) continue;
@@ -31,11 +47,19 @@ function mapCardToProfile(card: CardData, additionalContacts?: AdditionalContact
       } else if (contact.kind === "phone") {
         additionalPhones.push({ type: "OTHER", value: contact.value });
       } else if (contact.kind === "url") {
-        additionalWebsites.push({
-          type: "OTHER",
-          value: contact.value,
-          label: contact.label,
-        });
+        // If URL points to a known social network, route to socials so
+        // contacts apps display the platform name (Facebook, Instagram, etc.)
+        // instead of a generic "Website" label.
+        const detected = detectSocialFromUrl(contact.value);
+        if (detected) {
+          socials[detected] = contact.value;
+        } else {
+          additionalWebsites.push({
+            type: "OTHER",
+            value: contact.value,
+            label: contact.label,
+          });
+        }
       }
       // Note: 'custom' links are intentionally NOT mapped to ADR. Work info
       // is conveyed exclusively via TITLE + ORG (card.title + card.company).
@@ -61,7 +85,8 @@ function mapCardToProfile(card: CardData, additionalContacts?: AdditionalContact
     websites: additionalWebsites.length > 0 ? additionalWebsites : undefined,
     // No address/addresses emitted — card.location is free-text region
     // and would mislabel as "Work" in contacts apps.
-    notes: card.bio || undefined,
+    // Notes intentionally omitted — bio is shown on the card, not the contact entry.
+    socials: Object.keys(socials).length > 0 ? socials : undefined,
     photo_url: card.avatar_url || undefined,
     uid: `cardex-${card.id}`,
   };

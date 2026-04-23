@@ -67,21 +67,57 @@ serve(async (req) => {
     const additionalPhones: Profile['phones'] = [];
     const additionalWebsites: Profile['websites'] = [];
 
+    // Detect socials by URL host so Facebook/Instagram/etc. links saved as
+    // generic "url" kind still get routed to the proper social label.
+    const detectSocialFromUrl = (url: string): keyof NonNullable<Profile['socials']> | null => {
+      try {
+        const host = new URL(url).hostname.toLowerCase().replace(/^www\./, '');
+        if (host.includes('facebook.com') || host === 'fb.com' || host === 'm.me') return 'facebook';
+        if (host.includes('instagram.com')) return 'instagram';
+        if (host.includes('tiktok.com')) return 'tiktok';
+        if (host.includes('youtube.com') || host === 'youtu.be') return 'youtube';
+        if (host.includes('linkedin.com')) return 'linkedin';
+        if (host.includes('twitter.com') || host.includes('x.com')) return 'twitter';
+        if (host.includes('wa.me') || host.includes('whatsapp.com')) return 'whatsapp';
+      } catch { /* not a URL */ }
+      return null;
+    };
+
     if (cardLinks) {
       for (const link of cardLinks) {
         const kind = link.kind?.toLowerCase();
         const label = link.label?.toLowerCase() || '';
-        
-        // Check if it's an additional contact (not primary)
-        const isAdditional = label.includes('additional') || 
-                            label.includes('alternate') || 
-                            label.includes('other') || 
+
+        if (kind === 'facebook') { socials.facebook = link.value; continue; }
+        if (kind === 'instagram') { socials.instagram = link.value; continue; }
+        if (kind === 'tiktok') { socials.tiktok = link.value; continue; }
+        if (kind === 'youtube') { socials.youtube = link.value; continue; }
+        if (kind === 'linkedin') { socials.linkedin = link.value; continue; }
+        if (kind === 'x' || kind === 'twitter') { socials.twitter = link.value; continue; }
+        if (kind === 'whatsapp') { socials.whatsapp = link.value; continue; }
+
+        // Route URL links to socials when host matches a known platform,
+        // or when label is the platform name.
+        if (kind === 'url') {
+          const detected = detectSocialFromUrl(link.value) ||
+            (['facebook','instagram','tiktok','youtube','linkedin','twitter','x','whatsapp']
+              .includes(label) ? (label === 'x' ? 'twitter' : label) as keyof NonNullable<Profile['socials']> : null);
+          if (detected) {
+            socials[detected] = link.value;
+            continue;
+          }
+        }
+
+        // Otherwise treat as additional contact
+        const isAdditional = label.includes('additional') ||
+                            label.includes('alternate') ||
+                            label.includes('other') ||
                             label.includes('secondary') ||
                             label.includes('work') ||
                             label.includes('home') ||
                             label.includes('mobile') ||
                             label.includes('office');
-        
+
         if (kind === 'email' && isAdditional) {
           additionalEmails.push({ type: 'OTHER', value: link.value, label: link.label });
         } else if (kind === 'phone' && isAdditional) {
@@ -89,15 +125,6 @@ serve(async (req) => {
         } else if (kind === 'url' && isAdditional) {
           additionalWebsites.push({ type: 'OTHER', value: link.value, label: link.label });
         }
-        // Note: ADR/address entries are intentionally NOT emitted. Work info
-        // is conveyed exclusively via TITLE + ORG (card.title + card.company).
-        else if (kind === 'facebook') socials.facebook = link.value;
-        else if (kind === 'instagram') socials.instagram = link.value;
-        else if (kind === 'tiktok') socials.tiktok = link.value;
-        else if (kind === 'youtube') socials.youtube = link.value;
-        else if (kind === 'linkedin') socials.linkedin = link.value;
-        else if (kind === 'x' || kind === 'twitter') socials.twitter = link.value;
-        else if (kind === 'whatsapp') socials.whatsapp = link.value;
       }
     }
 
@@ -122,7 +149,7 @@ serve(async (req) => {
       // Skip address: card.location is a free-text region (e.g. "Philippines"),
       // not a structured postal address — emitting ADR causes contacts apps
       // to render misleading "Work = Philippines" entries.
-      notes: card.bio || undefined,
+      // Notes intentionally omitted — bio is shown on the card, not the contact entry.
       photo_url: includePhoto ? (card.avatar_url || undefined) : undefined,
       socials: Object.keys(socials).length > 0 ? socials : undefined,
       uid: `cardex-${card.id}`,
