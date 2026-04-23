@@ -43,11 +43,6 @@ const trackCardEvent = (cardId: string, kind: "view" | "qr_scan" | "vcard_downlo
     .catch((err) => console.error(`Failed to track ${kind}:`, err));
 };
 
-// Custom social icons
-import tiktokIcon from "@/assets/icons/tiktok.png";
-import instagramIcon from "@/assets/icons/instagram.png";
-import twitterXIcon from "@/assets/icons/twitter-x.png";
-import telegramIcon from "@/assets/icons/telegram.png";
 
 type CardData = Tables<"cards">;
 
