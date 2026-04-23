@@ -153,21 +153,23 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
       }
     });
 
-  if (p.email) lines.push(`EMAIL;TYPE=INTERNET,PREF:${esc(p.email.toLowerCase())}`);
-  
+  // Email — use bare TYPE so contacts apps show "Email" instead of "Internet"
+  if (p.email) lines.push(`EMAIL:${esc(p.email.toLowerCase())}`);
+
   // Additional Emails
   (p.emails || []).forEach((em) => {
     if (em?.value) {
-      lines.push(`EMAIL;TYPE=INTERNET,${em.type || 'OTHER'}:${esc(em.value.toLowerCase())}`);
+      lines.push(`EMAIL:${esc(em.value.toLowerCase())}`);
     }
   });
 
-  if (p.website) lines.push(`URL;TYPE=Homepage:${esc(p.website)}`);
-  
+  // Website (single, plain URL — labeled "Website" by contacts apps)
+  if (p.website) lines.push(`URL:${esc(p.website)}`);
+
   // Additional Websites
   (p.websites || []).forEach((ws) => {
     if (ws?.value) {
-      lines.push(`URL;TYPE=${ws.label || ws.type || 'OTHER'}:${esc(ws.value)}`);
+      lines.push(`URL:${esc(ws.value)}`);
     }
   });
 
@@ -220,19 +222,15 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
     ['twitter', 'Twitter'],
     ['whatsapp', 'WhatsApp'],
   ];
+  // Socials — use itemN.URL + X-ABLabel only (clean, single entry per platform with proper label)
   let itemI = 0;
   if (p.socials) {
     for (const [key, label] of socialMap) {
       const url = p.socials[key];
       if (!url) continue;
       itemI++;
-      // Android-friendly URL with type
-      lines.push(`URL;TYPE=${label}:${esc(url)}`);
-      // iOS-friendly item format
-      lines.push(`item${itemI}.URL;type=pref:${esc(url)}`);
+      lines.push(`item${itemI}.URL:${esc(url)}`);
       lines.push(`item${itemI}.X-ABLabel:${label}`);
-      // X-SOCIALPROFILE for additional compatibility
-      lines.push(`X-SOCIALPROFILE;type=${key}:${esc(url)}`);
     }
   }
 
