@@ -119,7 +119,8 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         .eq("user_id", data.user_id)
         .maybeSingle();
       
-      setBookingEnabled(availSettings?.booking_enabled === true);
+      // Default to enabled — only hide if owner explicitly disabled it
+      setBookingEnabled(availSettings?.booking_enabled !== false);
 
       // Check if card owner belongs to an organization (for team directory link)
       if (data.organization_id) {

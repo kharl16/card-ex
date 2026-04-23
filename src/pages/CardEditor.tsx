@@ -182,7 +182,8 @@ export default function CardEditor() {
       .select("booking_enabled")
       .eq("user_id", session.user.id)
       .maybeSingle();
-    setBookingEnabled(data?.booking_enabled === true);
+    // Default to enabled — only hide if owner explicitly disabled it
+    setBookingEnabled(data?.booking_enabled !== false);
   };
 
   const loadCard = async () => {

@@ -127,7 +127,8 @@ export default function SharedCard() {
         .eq("user_id", data.user_id)
         .maybeSingle();
       
-      setBookingEnabled(availSettings?.booking_enabled === true);
+      // Default to enabled — only hide if owner explicitly disabled it
+      setBookingEnabled(availSettings?.booking_enabled !== false);
       
       // Track view with share code
       supabase.functions.invoke('track-card-event', {
