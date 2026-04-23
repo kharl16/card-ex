@@ -114,20 +114,24 @@ interface CardViewProps {
 }
 
 const iconMap: Record<string, any> = {
-  Facebook,
-  Linkedin,
-  Youtube,
-  Github,
+  Facebook: SiFacebook,
+  Linkedin: FaLinkedin,
+  Instagram: SiInstagram,
+  X: SiX,
+  Youtube: SiYoutube,
+  Telegram: SiTelegram,
+  TikTok: SiTiktok,
+  WhatsApp: SiWhatsapp,
+  Viber: SiViber,
+  Snapchat: SiSnapchat,
+  Threads: SiThreads,
+  Pinterest: SiPinterest,
+  Discord: SiDiscord,
   Globe,
 };
 
-// Custom PNG icons for platforms without white backgrounds
-const customIconMap: Record<string, string> = {
-  Instagram: instagramIcon,
-  Twitter: twitterXIcon,
-  MessageCircle: telegramIcon,
-  Music: tiktokIcon,
-};
+// Custom PNG icons (legacy override) - none needed; brand icons cover all platforms
+const customIconMap: Record<string, string> = {};
 
 // Brand colors and glow effects for social platforms
 const socialBrandConfig: Record<string, { bg: string; glow: string }> = {
