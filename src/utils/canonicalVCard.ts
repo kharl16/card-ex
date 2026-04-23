@@ -249,7 +249,6 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
     ['whatsapp', 'WhatsApp'],
   ];
   // Socials — use itemN.URL + X-ABLabel only (clean, single entry per platform with proper label)
-  let itemI = 0;
   if (p.socials) {
     for (const [key, label] of socialMap) {
       const url = p.socials[key];
