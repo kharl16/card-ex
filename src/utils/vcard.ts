@@ -17,7 +17,6 @@ function mapCardToProfile(card: CardData, additionalContacts?: AdditionalContact
   const additionalEmails: Profile["emails"] = [];
   const additionalPhones: Profile["phones"] = [];
   const additionalWebsites: Profile["websites"] = [];
-  const additionalAddresses: Profile["addresses"] = [];
 
   if (additionalContacts) {
     for (const contact of additionalContacts) {
@@ -37,13 +36,9 @@ function mapCardToProfile(card: CardData, additionalContacts?: AdditionalContact
           value: contact.value,
           label: contact.label,
         });
-      } else if (contact.kind === "custom") {
-        additionalAddresses.push({
-          street: contact.value,
-          type: "OTHER",
-          label: contact.label,
-        });
       }
+      // Note: 'custom' links are intentionally NOT mapped to ADR. Work info
+      // is conveyed exclusively via TITLE + ORG (card.title + card.company).
     }
   }
 
@@ -64,13 +59,14 @@ function mapCardToProfile(card: CardData, additionalContacts?: AdditionalContact
         : undefined,
     website: card.website || undefined,
     websites: additionalWebsites.length > 0 ? additionalWebsites : undefined,
-    address: card.location ? { street: card.location, type: "WORK" } : undefined,
-    addresses: additionalAddresses.length > 0 ? additionalAddresses : undefined,
+    // No address/addresses emitted — card.location is free-text region
+    // and would mislabel as "Work" in contacts apps.
     notes: card.bio || undefined,
     photo_url: card.avatar_url || undefined,
     uid: `cardex-${card.id}`,
   };
 }
+
 
 // Simple front-end rate limiter for downloads
 let lastVCardDownloadAt: number | null = null;
