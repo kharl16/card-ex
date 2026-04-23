@@ -101,6 +101,11 @@ serve(async (req) => {
       }
     }
 
+    // Build custom URL from slug if available, else fall back to website field
+    const customUrl = card.custom_slug
+      ? `https://tagex.app/${card.custom_slug}`
+      : (card.website || undefined);
+
     // Build canonical profile
     const profile: Profile = {
       prefix: card.prefix || undefined,
@@ -113,10 +118,10 @@ serve(async (req) => {
       email: card.email || undefined,
       emails: additionalEmails.length > 0 ? additionalEmails : undefined,
       phones: card.phone ? [{ type: 'CELL', value: card.phone }, ...additionalPhones] : (additionalPhones.length > 0 ? additionalPhones : undefined),
-      website: card.website || undefined,
-      websites: additionalWebsites.length > 0 ? additionalWebsites : undefined,
-      address: card.location ? { street: card.location, type: 'WORK' } : undefined,
-      addresses: additionalAddresses.length > 0 ? additionalAddresses : undefined,
+      website: customUrl,
+      // Skip address: card.location is a free-text region (e.g. "Philippines"),
+      // not a structured postal address — emitting ADR causes contacts apps
+      // to render misleading "Work = Philippines" entries.
       notes: card.bio || undefined,
       photo_url: includePhoto ? (card.avatar_url || undefined) : undefined,
       socials: Object.keys(socials).length > 0 ? socials : undefined,
