@@ -153,16 +153,28 @@ export async function profileToVCardV3(profile: Profile): Promise<string> {
       }
     });
 
-  // Primary Email — bare EMAIL so contacts apps display "Email"
-  if (p.email) lines.push(`EMAIL:${esc(p.email.toLowerCase())}`);
+  // Primary Email — use itemN grouping with explicit "Email" label so
+  // contacts apps display "Email" instead of defaulting to "Other".
+  let itemI = 0;
+  if (p.email) {
+    itemI++;
+    lines.push(`item${itemI}.EMAIL:${esc(p.email.toLowerCase())}`);
+    lines.push(`item${itemI}.X-ABLabel:Email`);
+  }
 
-  // Website (single, plain URL — labeled "Website" by contacts apps)
-  if (p.website) lines.push(`URL:${esc(p.website)}`);
+  // Primary Website — itemN grouping with explicit "Website" label
+  if (p.website) {
+    itemI++;
+    lines.push(`item${itemI}.URL:${esc(p.website)}`);
+    lines.push(`item${itemI}.X-ABLabel:Website`);
+  }
 
   // Additional Websites
   (p.websites || []).forEach((ws) => {
     if (ws?.value) {
-      lines.push(`URL:${esc(ws.value)}`);
+      itemI++;
+      lines.push(`item${itemI}.URL:${esc(ws.value)}`);
+      lines.push(`item${itemI}.X-ABLabel:Website`);
     }
   });
 
