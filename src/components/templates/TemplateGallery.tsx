@@ -34,8 +34,13 @@ export function TemplateGallery({
   loading: externalLoading,
 }: TemplateGalleryProps) {
   const { templates, userTemplate, loading } = useTemplates();
+  const { user, isAdmin } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<CardTemplate | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<CardTemplate | null>(null);
+
+  const canEditTemplate = (template: CardTemplate) =>
+    isAdmin || template.owner_id === user?.id;
 
   const handleSelect = (template: CardTemplate) => {
     setSelectedId(template.id);
@@ -45,6 +50,11 @@ export function TemplateGallery({
   const handlePreview = (e: React.MouseEvent, template: CardTemplate) => {
     e.stopPropagation();
     setPreviewTemplate(template);
+  };
+
+  const handleEdit = (e: React.MouseEvent, template: CardTemplate) => {
+    e.stopPropagation();
+    setEditingTemplate(template);
   };
 
   if (loading) {
