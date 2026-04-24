@@ -2,7 +2,18 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Palette, Sparkles, User, Globe, Users, Lock, Eye, Image, Pencil } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Palette, Sparkles, User, Globe, Users, Lock, Eye, Image, Pencil, Copy, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { useTemplates, CardTemplate, TemplateVisibility } from "@/hooks/useTemplates";
 import { TemplatePreviewDialog } from "./TemplatePreviewDialog";
 import { EditTemplateDialog } from "./EditTemplateDialog";
@@ -33,13 +44,19 @@ export function TemplateGallery({
   onBuildFromScratch,
   loading: externalLoading,
 }: TemplateGalleryProps) {
-  const { templates, userTemplate, loading } = useTemplates();
+  const { templates, userTemplate, loading, deleteTemplate, cloneTemplate } = useTemplates();
   const { user, isAdmin } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<CardTemplate | null>(null);
   const [editingTemplate, setEditingTemplate] = useState<CardTemplate | null>(null);
+  const [deletingTemplate, setDeletingTemplate] = useState<CardTemplate | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [cloningId, setCloningId] = useState<string | null>(null);
 
   const canEditTemplate = (template: CardTemplate) =>
+    isAdmin || template.owner_id === user?.id;
+
+  const canDeleteTemplate = (template: CardTemplate) =>
     isAdmin || template.owner_id === user?.id;
 
   const handleSelect = (template: CardTemplate) => {
@@ -57,6 +74,35 @@ export function TemplateGallery({
     setEditingTemplate(template);
   };
 
+  const handleDelete = (e: React.MouseEvent, template: CardTemplate) => {
+    e.stopPropagation();
+    setDeletingTemplate(template);
+  };
+
+  const handleClone = async (e: React.MouseEvent, template: CardTemplate) => {
+    e.stopPropagation();
+    setCloningId(template.id);
+    const cloned = await cloneTemplate(template);
+    setCloningId(null);
+    if (cloned) {
+      // Open the edit dialog on the new copy so user can rename/customize
+      setEditingTemplate(cloned);
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deletingTemplate) return;
+    setIsDeleting(true);
+    const success = await deleteTemplate(deletingTemplate.id);
+    setIsDeleting(false);
+    if (success) {
+      // Toast with undo hint (templates are gone — make user aware)
+      toast.info("Template deleted. This cannot be undone.");
+      if (selectedId === deletingTemplate.id) setSelectedId(null);
+      setDeletingTemplate(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -64,6 +110,55 @@ export function TemplateGallery({
       </div>
     );
   }
+
+  const renderActionButtons = (template: CardTemplate) => (
+    <div className="flex shrink-0 items-center gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={(e) => handleClone(e, template)}
+        title="Clone template"
+        disabled={cloningId === template.id}
+      >
+        {cloningId === template.id ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Copy className="h-4 w-4" />
+        )}
+      </Button>
+      {canEditTemplate(template) && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={(e) => handleEdit(e, template)}
+          title="Edit template"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      )}
+      {canDeleteTemplate(template) && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={(e) => handleDelete(e, template)}
+          title="Delete template"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8"
+        onClick={(e) => handlePreview(e, template)}
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+    </div>
+  );
 
   return (
     <div className="space-y-8">
@@ -123,27 +218,7 @@ export function TemplateGallery({
                     </Badge>
                   )}
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  {canEditTemplate(userTemplate) && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={(e) => handleEdit(e, userTemplate)}
-                      title="Edit template"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => handlePreview(e, userTemplate)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                </div>
+                {renderActionButtons(userTemplate)}
               </div>
             </CardHeader>
             <CardContent>
@@ -203,27 +278,7 @@ export function TemplateGallery({
                       </div>
                       <CardDescription>Pre-designed template</CardDescription>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1">
-                      {canEditTemplate(template) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={(e) => handleEdit(e, template)}
-                          title="Edit template"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={(e) => handlePreview(e, template)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {renderActionButtons(template)}
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -262,6 +317,36 @@ export function TemplateGallery({
         onOpenChange={(open) => !open && setEditingTemplate(null)}
         restrictGlobalOption={!isAdmin}
       />
+
+      {/* Delete Confirmation */}
+      <AlertDialog
+        open={!!deletingTemplate}
+        onOpenChange={(open) => !open && !isDeleting && setDeletingTemplate(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You're about to permanently delete{" "}
+              <span className="font-semibold text-foreground">
+                "{deletingTemplate?.name}"
+              </span>
+              . This action cannot be undone. Existing cards created from this template will not be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
