@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Palette, Sparkles, User, Globe, Users, Lock, Eye, Image } from "lucide-react";
+import { Loader2, Palette, Sparkles, User, Globe, Users, Lock, Eye, Image, Pencil } from "lucide-react";
 import { useTemplates, CardTemplate, TemplateVisibility } from "@/hooks/useTemplates";
 import { TemplatePreviewDialog } from "./TemplatePreviewDialog";
+import { EditTemplateDialog } from "./EditTemplateDialog";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { CardProductImage } from "@/lib/theme";
 
@@ -32,8 +34,13 @@ export function TemplateGallery({
   loading: externalLoading,
 }: TemplateGalleryProps) {
   const { templates, userTemplate, loading } = useTemplates();
+  const { user, isAdmin } = useAuth();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<CardTemplate | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState<CardTemplate | null>(null);
+
+  const canEditTemplate = (template: CardTemplate) =>
+    isAdmin || template.owner_id === user?.id;
 
   const handleSelect = (template: CardTemplate) => {
     setSelectedId(template.id);
@@ -43,6 +50,11 @@ export function TemplateGallery({
   const handlePreview = (e: React.MouseEvent, template: CardTemplate) => {
     e.stopPropagation();
     setPreviewTemplate(template);
+  };
+
+  const handleEdit = (e: React.MouseEvent, template: CardTemplate) => {
+    e.stopPropagation();
+    setEditingTemplate(template);
   };
 
   if (loading) {
@@ -111,14 +123,27 @@ export function TemplateGallery({
                     </Badge>
                   )}
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 shrink-0"
-                  onClick={(e) => handlePreview(e, userTemplate)}
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
+                <div className="flex shrink-0 items-center gap-1">
+                  {canEditTemplate(userTemplate) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => handleEdit(e, userTemplate)}
+                      title="Edit template"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={(e) => handlePreview(e, userTemplate)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -178,14 +203,27 @@ export function TemplateGallery({
                       </div>
                       <CardDescription>Pre-designed template</CardDescription>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0"
-                      onClick={(e) => handlePreview(e, template)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {canEditTemplate(template) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={(e) => handleEdit(e, template)}
+                          title="Edit template"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => handlePreview(e, template)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -215,6 +253,14 @@ export function TemplateGallery({
         open={!!previewTemplate}
         onOpenChange={(open) => !open && setPreviewTemplate(null)}
         onSelect={handleSelect}
+      />
+
+      {/* Edit Template Dialog */}
+      <EditTemplateDialog
+        template={editingTemplate}
+        open={!!editingTemplate}
+        onOpenChange={(open) => !open && setEditingTemplate(null)}
+        restrictGlobalOption={!isAdmin}
       />
     </div>
   );
