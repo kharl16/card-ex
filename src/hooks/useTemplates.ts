@@ -300,6 +300,7 @@ export function useTemplates() {
     savePersonalTemplate,
     updateTemplate,
     deleteTemplate,
+    cloneTemplate,
     loadTemplates,
     getAllTemplatesForAdmin,
     extractLayoutData,
