@@ -56,8 +56,8 @@ function buildHtml(opts: {
 <meta property="og:url" content="${u}" />
 <meta property="og:image" content="${i}" />
 <meta property="og:image:secure_url" content="${i}" />
-<meta property="og:image:width" content="800" />
-<meta property="og:image:height" content="800" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="${t}" />
 
 <!-- Twitter -->
