@@ -2,9 +2,11 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Palette, Sparkles, User, Globe, Users, Lock, Eye, Image } from "lucide-react";
+import { Loader2, Palette, Sparkles, User, Globe, Users, Lock, Eye, Image, Pencil } from "lucide-react";
 import { useTemplates, CardTemplate, TemplateVisibility } from "@/hooks/useTemplates";
 import { TemplatePreviewDialog } from "./TemplatePreviewDialog";
+import { EditTemplateDialog } from "./EditTemplateDialog";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { CardProductImage } from "@/lib/theme";
 
