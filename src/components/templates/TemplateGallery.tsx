@@ -254,6 +254,14 @@ export function TemplateGallery({
         onOpenChange={(open) => !open && setPreviewTemplate(null)}
         onSelect={handleSelect}
       />
+
+      {/* Edit Template Dialog */}
+      <EditTemplateDialog
+        template={editingTemplate}
+        open={!!editingTemplate}
+        onOpenChange={(open) => !open && setEditingTemplate(null)}
+        restrictGlobalOption={!isAdmin}
+      />
     </div>
   );
 }
