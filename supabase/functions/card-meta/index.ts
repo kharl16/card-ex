@@ -11,7 +11,13 @@ const corsHeaders = {
 };
 
 const PUBLIC_SITE = "https://tagex.app";
-const FALLBACK_IMAGE = `${PUBLIC_SITE}/placeholder.svg`;
+const SUPABASE_FUNCTIONS_URL = `${Deno.env.get("SUPABASE_URL")}/functions/v1`;
+
+function fallbackOgImage(name: string, subtitle: string): string {
+  const params = new URLSearchParams({ name });
+  if (subtitle) params.set("subtitle", subtitle);
+  return `${SUPABASE_FUNCTIONS_URL}/og-image?${params.toString()}`;
+}
 
 function escapeHtml(s: string): string {
   return s
@@ -50,8 +56,8 @@ function buildHtml(opts: {
 <meta property="og:url" content="${u}" />
 <meta property="og:image" content="${i}" />
 <meta property="og:image:secure_url" content="${i}" />
-<meta property="og:image:width" content="800" />
-<meta property="og:image:height" content="800" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="${t}" />
 
 <!-- Twitter -->
@@ -109,7 +115,7 @@ Deno.serve(async (req) => {
       const html = buildHtml({
         title: "Card-Ex — Digital Business Portfolio",
         description: "Your premium digital business card.",
-        image: FALLBACK_IMAGE,
+        image: fallbackOgImage("Card-Ex", "Digital Business Portfolio"),
         url: PUBLIC_SITE,
       });
       return new Response(html, {
@@ -139,7 +145,7 @@ Deno.serve(async (req) => {
     const html = buildHtml({
       title: ogTitle,
       description: ogDescription,
-      image: card.avatar_url || FALLBACK_IMAGE,
+      image: card.avatar_url || fallbackOgImage(card.full_name, [card.title, card.company].filter(Boolean).join(" • ")),
       url: cardUrl,
     });
 

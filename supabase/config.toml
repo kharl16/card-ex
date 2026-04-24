@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.card-meta]
 verify_jwt = false
+
+[functions.og-image]
+verify_jwt = false
