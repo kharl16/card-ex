@@ -1,0 +1,29 @@
+{
+  "rewrites": [
+    {
+      "source": "/c/:code",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|facebookcatalog|Facebot|Twitterbot|LinkedInBot|Slackbot|Discordbot|TelegramBot|WhatsApp|Viber|Pinterest|redditbot|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Baiduspider|SkypeUriPreview|vkShare|W3C_Validator|EmbedlyBot|Iframely).*"
+        }
+      ],
+      "destination": "https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/card-meta?code=:code"
+    },
+    {
+      "source": "/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(facebookexternalhit|facebookcatalog|Facebot|Twitterbot|LinkedInBot|Slackbot|Discordbot|TelegramBot|WhatsApp|Viber|Pinterest|redditbot|Applebot|Googlebot|bingbot|DuckDuckBot|YandexBot|Baiduspider|SkypeUriPreview|vkShare|W3C_Validator|EmbedlyBot|Iframely).*"
+        }
+      ],
+      "missing": [
+        { "type": "header", "key": "x-skip-meta-rewrite" }
+      ],
+      "destination": "https://lorowpouhpjjxembvwyi.supabase.co/functions/v1/card-meta?slug=:slug"
+    }
+  ]
+}
