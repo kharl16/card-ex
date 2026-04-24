@@ -24,6 +24,8 @@ import {
   TemplateVisibility,
   useTemplates,
 } from "@/hooks/useTemplates";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface EditTemplateDialogProps {
   template: CardTemplate | null;
@@ -33,6 +35,9 @@ interface EditTemplateDialogProps {
   restrictGlobalOption?: boolean;
   onSaved?: () => void;
 }
+
+const NAME_MIN = 3;
+const NAME_MAX = 100;
 
 export function EditTemplateDialog({
   template,
@@ -46,6 +51,7 @@ export function EditTemplateDialog({
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<TemplateVisibility>("private");
   const [saving, setSaving] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
 
   useEffect(() => {
     if (template) {
@@ -55,21 +61,62 @@ export function EditTemplateDialog({
         (template.visibility as TemplateVisibility) ||
           (template.is_global ? "global" : "private"),
       );
+      setNameError(null);
     }
   }, [template]);
 
+  const validateName = (value: string): string | null => {
+    const trimmed = value.trim();
+    if (trimmed.length < NAME_MIN) return `Name must be at least ${NAME_MIN} characters`;
+    if (trimmed.length > NAME_MAX) return `Name must be ${NAME_MAX} characters or less`;
+    return null;
+  };
+
   const handleSave = async () => {
     if (!template) return;
+    const trimmedName = name.trim();
+    const localError = validateName(trimmedName);
+    if (localError) {
+      setNameError(localError);
+      return;
+    }
+
     setSaving(true);
-    const success = await updateTemplate(template.id, {
-      name: name.trim(),
-      description: description.trim(),
-      visibility,
-    });
-    setSaving(false);
-    if (success) {
-      onOpenChange(false);
-      onSaved?.();
+    try {
+      // Server-side uniqueness check (per owner, case-insensitive)
+      if (trimmedName.toLowerCase() !== template.name.toLowerCase()) {
+        const { data: existing, error: checkErr } = await supabase
+          .from("card_templates")
+          .select("id")
+          .eq("owner_id", template.owner_id)
+          .ilike("name", trimmedName)
+          .neq("id", template.id)
+          .maybeSingle();
+        if (checkErr) throw checkErr;
+        if (existing) {
+          setNameError("You already have a template with this name");
+          setSaving(false);
+          return;
+        }
+      }
+
+      const success = await updateTemplate(template.id, {
+        name: trimmedName,
+        description: description.trim(),
+        visibility,
+      });
+      if (success) {
+        onOpenChange(false);
+        onSaved?.();
+      }
+    } catch (err: any) {
+      if (err?.code === "23505") {
+        setNameError("A template with this name already exists");
+      } else {
+        toast.error("Failed to save changes");
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -89,9 +136,23 @@ export function EditTemplateDialog({
             <Input
               id="tmpl-edit-name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              maxLength={100}
+              onChange={(e) => {
+                setName(e.target.value);
+                setNameError(validateName(e.target.value));
+              }}
+              maxLength={NAME_MAX}
+              aria-invalid={!!nameError}
             />
+            <div className="flex items-center justify-between text-xs">
+              {nameError ? (
+                <span className="text-destructive">{nameError}</span>
+              ) : (
+                <span className="text-muted-foreground">
+                  {NAME_MIN}–{NAME_MAX} characters
+                </span>
+              )}
+              <span className="text-muted-foreground">{name.trim().length}/{NAME_MAX}</span>
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="tmpl-edit-description">Description</Label>
@@ -151,7 +212,10 @@ export function EditTemplateDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!name.trim() || saving}>
+          <Button
+            onClick={handleSave}
+            disabled={!name.trim() || saving || !!nameError}
+          >
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Save Changes
           </Button>
