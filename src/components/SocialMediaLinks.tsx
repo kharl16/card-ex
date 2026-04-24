@@ -41,6 +41,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { syncSocialLinksToCardLinks } from "@/lib/syncSocialLinks";
 
 export interface SocialLink {
   id: string;
