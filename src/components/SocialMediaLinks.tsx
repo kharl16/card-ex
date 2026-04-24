@@ -284,7 +284,8 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
     }
   };
 
-  // Save social links to the card's social_links JSON field
+  // Save social links to the card's social_links JSON field AND mirror them
+  // into the card_links table so both data sources stay in sync.
   const saveSocialLinksToCard = async (linksToSave: SocialLink[]) => {
     // Cast to any to bypass strict Json typing - data is valid JSON
     const { error } = await supabase
@@ -296,6 +297,14 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
       console.error("Error saving social links:", error);
       return false;
     }
+
+    // Best-effort sync to card_links table. Failure here is logged but does
+    // not block the primary save (social_links JSONB remains source of truth).
+    const syncResult = await syncSocialLinksToCardLinks(cardId, linksToSave);
+    if (!syncResult.ok) {
+      console.warn("[SocialMediaLinks] card_links sync failed:", syncResult.error);
+    }
+
     return true;
   };
 
