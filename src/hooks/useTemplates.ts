@@ -205,6 +205,54 @@ export function useTemplates() {
     }
   };
 
+  const cloneTemplate = async (template: CardTemplate): Promise<CardTemplate | null> => {
+    if (!user) {
+      toast.error("You must be logged in to clone a template");
+      return null;
+    }
+
+    try {
+      // Find a unique name (case-insensitive) for this owner
+      const baseName = `${template.name} (Copy)`;
+      let candidate = baseName;
+      let suffix = 2;
+      // Check existing names owned by current user
+      const { data: existing, error: existingErr } = await supabase
+        .from("card_templates")
+        .select("name")
+        .eq("owner_id", user.id);
+      if (existingErr) throw existingErr;
+      const lowerNames = new Set((existing || []).map((t) => t.name.toLowerCase()));
+      while (lowerNames.has(candidate.toLowerCase())) {
+        candidate = `${baseName} ${suffix++}`;
+      }
+
+      const { data, error } = await supabase
+        .from("card_templates")
+        .insert([{
+          owner_id: user.id,
+          name: candidate,
+          description: template.description,
+          thumbnail_url: template.thumbnail_url,
+          layout_data: template.layout_data as any,
+          is_global: false,
+          visibility: 'private',
+        }])
+        .select("*")
+        .single();
+
+      if (error) throw error;
+
+      toast.success(`Cloned as "${candidate}"`);
+      await loadTemplates();
+      return data as unknown as CardTemplate;
+    } catch (error: any) {
+      console.error("Error cloning template:", error);
+      toast.error("Failed to clone template");
+      return null;
+    }
+  };
+
   const deleteTemplate = async (templateId: string): Promise<boolean> => {
     try {
       const { error } = await supabase
@@ -252,6 +300,7 @@ export function useTemplates() {
     savePersonalTemplate,
     updateTemplate,
     deleteTemplate,
+    cloneTemplate,
     loadTemplates,
     getAllTemplatesForAdmin,
     extractLayoutData,
