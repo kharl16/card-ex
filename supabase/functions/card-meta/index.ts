@@ -11,7 +11,13 @@ const corsHeaders = {
 };
 
 const PUBLIC_SITE = "https://tagex.app";
-const FALLBACK_IMAGE = `${PUBLIC_SITE}/placeholder.svg`;
+const SUPABASE_FUNCTIONS_URL = `${Deno.env.get("SUPABASE_URL")}/functions/v1`;
+
+function fallbackOgImage(name: string, subtitle: string): string {
+  const params = new URLSearchParams({ name });
+  if (subtitle) params.set("subtitle", subtitle);
+  return `${SUPABASE_FUNCTIONS_URL}/og-image?${params.toString()}`;
+}
 
 function escapeHtml(s: string): string {
   return s
