@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
       const html = buildHtml({
         title: "Card-Ex — Digital Business Portfolio",
         description: "Your premium digital business card.",
-        image: FALLBACK_IMAGE,
+        image: fallbackOgImage("Card-Ex", "Digital Business Portfolio"),
         url: PUBLIC_SITE,
       });
       return new Response(html, {
@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
     const html = buildHtml({
       title: ogTitle,
       description: ogDescription,
-      image: card.avatar_url || FALLBACK_IMAGE,
+      image: card.avatar_url || fallbackOgImage(card.full_name, [card.title, card.company].filter(Boolean).join(" • ")),
       url: cardUrl,
     });
 
