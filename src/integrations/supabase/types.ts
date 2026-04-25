@@ -212,6 +212,42 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_audit_log: {
+        Row: {
+          created_at: string
+          device_fingerprint_hash: string | null
+          device_label: string | null
+          event_type: string
+          id: string
+          ip_hash: string | null
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint_hash?: string | null
+          device_label?: string | null
+          event_type: string
+          id?: string
+          ip_hash?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint_hash?: string | null
+          device_label?: string | null
+          event_type?: string
+          id?: string
+          ip_hash?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       availability_settings: {
         Row: {
           booking_enabled: boolean
@@ -754,6 +790,59 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      device_approval_requests: {
+        Row: {
+          approval_token: string | null
+          approved_by_device_id: string | null
+          created_at: string
+          device_fingerprint_hash: string
+          device_label: string | null
+          expires_at: string
+          id: string
+          ip_hash: string | null
+          resolved_at: string | null
+          status: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          approval_token?: string | null
+          approved_by_device_id?: string | null
+          created_at?: string
+          device_fingerprint_hash: string
+          device_label?: string | null
+          expires_at?: string
+          id?: string
+          ip_hash?: string | null
+          resolved_at?: string | null
+          status?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          approval_token?: string | null
+          approved_by_device_id?: string | null
+          created_at?: string
+          device_fingerprint_hash?: string
+          device_label?: string | null
+          expires_at?: string
+          id?: string
+          ip_hash?: string | null
+          resolved_at?: string | null
+          status?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_approval_requests_approved_by_device_id_fkey"
+            columns: ["approved_by_device_id"]
+            isOneToOne: false
+            referencedRelation: "trusted_devices"
             referencedColumns: ["id"]
           },
         ]
@@ -2105,6 +2194,48 @@ export type Database = {
         }
         Relationships: []
       }
+      trusted_devices: {
+        Row: {
+          approved_at: string
+          created_at: string
+          device_fingerprint_hash: string
+          device_label: string | null
+          expires_at: string | null
+          id: string
+          ip_hash: string | null
+          last_seen_at: string
+          revoked_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string
+          created_at?: string
+          device_fingerprint_hash: string
+          device_label?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          last_seen_at?: string
+          revoked_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_at?: string
+          created_at?: string
+          device_fingerprint_hash?: string
+          device_label?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          last_seen_at?: string
+          revoked_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_orb_overrides: {
         Row: {
           created_at: string
@@ -2298,6 +2429,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      expire_stale_approval_requests: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
       get_referral_code_for_user: {
         Args: { p_user_id: string }
@@ -2322,6 +2454,10 @@ export type Database = {
           p_kind: string
         }
         Returns: undefined
+      }
+      is_device_trusted: {
+        Args: { _fingerprint_hash: string; _user_id: string }
+        Returns: boolean
       }
       is_org_admin: {
         Args: { _org_id: string; _user_id: string }
