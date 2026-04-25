@@ -43,6 +43,7 @@ import Appointments from "./pages/Appointments";
 import Leads from "./pages/Leads";
 import ProspectList from "./pages/ProspectList";
 import Referrals from "./pages/Referrals";
+import Security from "./pages/Security";
 import TeamDirectory from "./pages/TeamDirectory";
 import DistributorLocator from "./pages/DistributorLocator";
 import NotFound from "./pages/NotFound";
@@ -345,6 +346,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <ProspectList />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/security"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <Security />
               </RequireAuth>
             </PageTransition>
           }
