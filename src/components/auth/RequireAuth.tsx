@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
+import RequireTrustedDevice from "./RequireTrustedDevice";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -136,5 +137,5 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     );
   }
 
-  return <>{children}</>;
+  return <RequireTrustedDevice>{children}</RequireTrustedDevice>;
 }
