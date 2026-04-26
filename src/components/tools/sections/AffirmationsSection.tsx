@@ -44,8 +44,10 @@ export default function AffirmationsSection({ initialCategory, initialLanguage }
   }, [loaded, language, category, updateAffirmations]);
 
   const current = useMemo(() => {
-    const list = affirmationCategories[category].affirmations;
-    return list[seed % list.length];
+    const meta = affirmationCategories[category] ?? affirmationCategories.success;
+    const list = meta.affirmations;
+    if (!list || list.length === 0) return { english: "", tagalog: "" };
+    return list[seed % list.length] ?? list[0];
   }, [category, seed]);
 
   const text = language === "english" ? current.english : current.tagalog;
