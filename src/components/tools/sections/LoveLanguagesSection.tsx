@@ -336,9 +336,11 @@ export default function LoveLanguagesSection({ searchQuery, cardId }: LoveLangua
 
   // ---- QUIZ SCREEN ----
   if (screen === "quiz") {
-    const question = loveLanguageQuestions[currentQuestion];
-    const progressPct = ((currentQuestion + 1) / loveLanguageQuestions.length) * 100;
-    const selected = answers[currentQuestion];
+    const safeIndex = Math.min(Math.max(currentQuestion, 0), loveLanguageQuestions.length - 1);
+    const question = loveLanguageQuestions[safeIndex];
+    if (!question) return null;
+    const progressPct = ((safeIndex + 1) / loveLanguageQuestions.length) * 100;
+    const selected = answers[safeIndex];
 
     return (
       <div className="space-y-4 animate-fade-in">
