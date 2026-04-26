@@ -640,6 +640,19 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
           </Button>
         </div>
       </div>
+
+      <SaveToCardPicker
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onConfirm={performSave}
+        saving={saving}
+        title={language === "english" ? "Save DISC result to which card?" : "Saang card i-save ang DISC?"}
+        description={
+          language === "english"
+            ? "Each card stores its own DISC personality result."
+            : "Bawat card ay may sariling DISC na resulta."
+        }
+      />
     </div>
   );
 }
