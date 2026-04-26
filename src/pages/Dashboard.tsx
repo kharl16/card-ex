@@ -32,6 +32,7 @@ const discLabels: Record<string, string> = {
   D: "Dominant (Eagle)", I: "Influential (Rooster)", S: "Steady (Carabao)", C: "Conscientious (Tarsier)",
 };
 import { discResults } from "@/data/discResults";
+import { loveLanguageResults } from "@/data/loveLanguageResults";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
