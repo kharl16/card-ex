@@ -101,8 +101,8 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
               return (
                 <span
                   title={`Love Language: ${loveLanguageLabels[t]}`}
-                  className="text-base leading-none shrink-0"
                   aria-label={loveLanguageLabels[t]}
+                  className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-primary/40 bg-primary/10 text-[11px] leading-none"
                 >
                   {loveLanguageEmojis[t]}
                 </span>
