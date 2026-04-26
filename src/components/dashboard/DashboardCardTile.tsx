@@ -3,8 +3,29 @@ import { Button } from "@/components/ui/button";
 import { Share2, Pencil, Copy, Trash2, Eye, ExternalLink } from "lucide-react";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import type { Tables } from "@/integrations/supabase/types";
+import eagleImg from "@/assets/disc/eagle.jpg";
+import roosterImg from "@/assets/disc/rooster.jpg";
+import carabaoImg from "@/assets/disc/carabao.jpg";
+import tarsierImg from "@/assets/disc/tarsier.jpg";
 
 type CardData = Tables<"cards">;
+
+const discAnimalImages: Record<string, string> = {
+  D: eagleImg, I: roosterImg, S: carabaoImg, C: tarsierImg,
+};
+const discLabels: Record<string, string> = {
+  D: "Dominant (Eagle)", I: "Influential (Rooster)", S: "Steady (Carabao)", C: "Conscientious (Tarsier)",
+};
+const loveLanguageEmojis: Record<string, string> = {
+  WORDS: "💬", ACTS: "🛠️", GIFTS: "🎁", TIME: "⏰", TOUCH: "🤗",
+};
+const loveLanguageLabels: Record<string, string> = {
+  WORDS: "Words of Affirmation",
+  ACTS: "Acts of Service",
+  GIFTS: "Receiving Gifts",
+  TIME: "Quality Time",
+  TOUCH: "Physical Touch",
+};
 
 interface DashboardCardTileProps {
   card: CardData;
@@ -56,9 +77,38 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 px-4 py-4">
         {/* Name & title */}
         <div className="min-w-0">
-          <h3 className="truncate text-base font-bold leading-tight text-foreground">
-            {card.full_name || "Untitled Card"}
-          </h3>
+          <div className="flex items-center gap-1.5 min-w-0">
+            <h3 className="truncate text-base font-bold leading-tight text-foreground">
+              {card.full_name || "Untitled Card"}
+            </h3>
+            {(() => {
+              const dr = (card as any).disc_result;
+              const t = dr?.type;
+              if (!t || !discAnimalImages[t]) return null;
+              return (
+                <img
+                  src={discAnimalImages[t]}
+                  alt={discLabels[t]}
+                  title={`DISC: ${discLabels[t]}`}
+                  className="h-5 w-5 shrink-0 rounded-full object-cover border border-primary/40"
+                />
+              );
+            })()}
+            {(() => {
+              const lr = (card as any).love_language_result;
+              const t = lr?.type;
+              if (!t || !loveLanguageEmojis[t]) return null;
+              return (
+                <span
+                  title={`Love Language: ${loveLanguageLabels[t]}`}
+                  className="text-base leading-none shrink-0"
+                  aria-label={loveLanguageLabels[t]}
+                >
+                  {loveLanguageEmojis[t]}
+                </span>
+              );
+            })()}
+          </div>
           <p className="mt-0.5 truncate text-sm text-muted-foreground">
             {card.title || "No title"}{card.company ? ` · ${card.company}` : ""}
           </p>
