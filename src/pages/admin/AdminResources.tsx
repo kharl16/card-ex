@@ -37,11 +37,30 @@ const visibilityOptions: { value: VisibilityLevel; label: string }[] = [
 
 function AdminResourcesContent() {
   const { isResourceAdmin, loading: roleLoading } = useResources();
-  const { files, ambassadors, links, directory, ways, loading: dataLoading, refetch } = useResourceData();
+  const { files, ambassadors, links, directory, ways, folders, loading: dataLoading, refetch } = useResourceData();
   const [activeTab, setActiveTab] = useState<ModuleType>("files");
   const [importing, setImporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [folderManagerOpen, setFolderManagerOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<Record<string, any> | null>(null);
+
+  const openCreate = () => {
+    setEditingItem(null);
+    setEditorOpen(true);
+  };
+  const openEdit = (item: Record<string, any>) => {
+    setEditingItem(item);
+    setEditorOpen(true);
+  };
+  const deleteItem = async (id: string | number) => {
+    if (!confirm("Delete this item?")) return;
+    const table = moduleConfig[activeTab].table;
+    const { error } = await supabase.from(table as any).delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Deleted"); refetch(); }
+  };
 
   // Get data for current tab
   const getData = useCallback(() => {
