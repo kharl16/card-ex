@@ -3,8 +3,29 @@ import { Button } from "@/components/ui/button";
 import { Share2, Pencil, Copy, Trash2, Eye, ExternalLink } from "lucide-react";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import type { Tables } from "@/integrations/supabase/types";
+import eagleImg from "@/assets/disc/eagle.jpg";
+import roosterImg from "@/assets/disc/rooster.jpg";
+import carabaoImg from "@/assets/disc/carabao.jpg";
+import tarsierImg from "@/assets/disc/tarsier.jpg";
 
 type CardData = Tables<"cards">;
+
+const discAnimalImages: Record<string, string> = {
+  D: eagleImg, I: roosterImg, S: carabaoImg, C: tarsierImg,
+};
+const discLabels: Record<string, string> = {
+  D: "Dominant (Eagle)", I: "Influential (Rooster)", S: "Steady (Carabao)", C: "Conscientious (Tarsier)",
+};
+const loveLanguageEmojis: Record<string, string> = {
+  WORDS: "💬", ACTS: "🛠️", GIFTS: "🎁", TIME: "⏰", TOUCH: "🤗",
+};
+const loveLanguageLabels: Record<string, string> = {
+  WORDS: "Words of Affirmation",
+  ACTS: "Acts of Service",
+  GIFTS: "Receiving Gifts",
+  TIME: "Quality Time",
+  TOUCH: "Physical Touch",
+};
 
 interface DashboardCardTileProps {
   card: CardData;
