@@ -78,6 +78,19 @@ export default function Dashboard() {
     loadCards();
   }, []);
 
+  // Refresh cards when user returns to dashboard (e.g. after retaking DISC / Love Language test)
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") loadCards();
+    };
+    window.addEventListener("focus", loadCards);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", loadCards);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
   const loadProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
