@@ -231,59 +231,74 @@ export default function DiscTestSection({ searchQuery, cardId }: DiscTestSection
     setScreen("welcome");
   };
 
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const performSave = useCallback(
+    async (targetCardId: string) => {
+      if (!user) {
+        toast.error("Please sign in to save your results.");
+        return;
+      }
+      setSaving(true);
+      try {
+        const discData = {
+          type: personalityType,
+          counts,
+          title: language === "english" ? result.englishTitle : result.tagalogTitle,
+          animal: result.animalName,
+          emoji: result.emoji,
+          taken_at: new Date().toISOString(),
+        };
+
+        const { error } = await supabase
+          .from("cards")
+          .update({ disc_result: discData as unknown as any })
+          .eq("id", targetCardId);
+
+        if (error) throw error;
+
+        toast.success(
+          language === "english"
+            ? "DISC results saved to your card!"
+            : "Nai-save ang DISC resulta sa iyong card!"
+        );
+        setPickerOpen(false);
+      } catch (err: any) {
+        console.error("Error saving DISC result:", err);
+        toast.error("Failed to save results. Please try again.");
+      } finally {
+        setSaving(false);
+      }
+    },
+    [user, personalityType, counts, result, language]
+  );
+
   const handleSaveToCard = useCallback(async () => {
     if (!user) {
       toast.error("Please sign in to save your results.");
       return;
     }
-
-    setSaving(true);
-    try {
-      // Find user's card
-      let targetCardId = cardId;
-      if (!targetCardId) {
-        const { data: cards } = await supabase
-          .from("cards")
-          .select("id")
-          .eq("user_id", user.id)
-          .limit(1);
-        targetCardId = cards?.[0]?.id;
-      }
-
-      if (!targetCardId) {
-        toast.error("No card found. Create a card first.");
-        setSaving(false);
-        return;
-      }
-
-      const discData = {
-        type: personalityType,
-        counts,
-        title: language === "english" ? result.englishTitle : result.tagalogTitle,
-        animal: result.animalName,
-        emoji: result.emoji,
-        taken_at: new Date().toISOString(),
-      };
-
-      const { error } = await supabase
-        .from("cards")
-        .update({ disc_result: discData as unknown as any })
-        .eq("id", targetCardId);
-
-      if (error) throw error;
-
-      toast.success(
-        language === "english"
-          ? "DISC results saved to your card!"
-          : "Nai-save ang DISC resulta sa iyong card!"
-      );
-    } catch (err: any) {
-      console.error("Error saving DISC result:", err);
-      toast.error("Failed to save results. Please try again.");
-    } finally {
-      setSaving(false);
+    // If a specific card is in context (e.g. opened from a public card), save directly.
+    if (cardId) {
+      await performSave(cardId);
+      return;
     }
-  }, [user, cardId, personalityType, counts, result, language]);
+    // Otherwise, fetch user's cards. If only one, save directly; else let user pick.
+    const { data } = await supabase
+      .from("cards")
+      .select("id")
+      .eq("user_id", user.id);
+    const list = data ?? [];
+    if (list.length === 0) {
+      toast.error("No card found. Create a card first.");
+      return;
+    }
+    if (list.length === 1) {
+      await performSave(list[0].id);
+      return;
+    }
+    setPickerOpen(true);
+  }, [user, cardId, performSave]);
 
   const handleShare = () => {
     const title = language === "english" ? result.englishTitle : result.tagalogTitle;
