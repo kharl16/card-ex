@@ -211,6 +211,18 @@ export default function Dashboard() {
     return best?.type ?? null;
   }, [cards]);
 
+  const loveLanguageType = useMemo(() => {
+    let best: { type: string; takenAt: number } | null = null;
+    for (const card of cards) {
+      const lr = card.love_language_result as any;
+      if (lr?.type) {
+        const takenAt = lr.taken_at ? new Date(lr.taken_at).getTime() : 0;
+        if (!best || takenAt > best.takenAt) best = { type: lr.type as string, takenAt };
+      }
+    }
+    return best?.type ?? null;
+  }, [cards]);
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw] pb-20 sm:pb-0">
       {/* Header - minimal */}
