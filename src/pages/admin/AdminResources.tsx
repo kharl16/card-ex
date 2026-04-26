@@ -362,8 +362,8 @@ function AdminResourcesContent() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as ModuleType)}>
-          <div className="flex items-center justify-between mb-4">
-            <TabsList>
+          <div className="flex flex-col gap-3 mb-4">
+            <TabsList className="flex-wrap h-auto">
               {(Object.keys(moduleConfig) as ModuleType[]).map((key) => (
                 <TabsTrigger key={key} value={key} className="gap-2">
                   {moduleConfig[key].icon}
@@ -372,12 +372,12 @@ function AdminResourcesContent() {
               ))}
             </TabsList>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Input
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-[200px]"
+                className="w-full sm:w-[200px]"
               />
               <input
                 type="file"
