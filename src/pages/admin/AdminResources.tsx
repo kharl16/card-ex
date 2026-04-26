@@ -467,9 +467,16 @@ function AdminResourcesContent() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon">
-                            {item.is_active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            {activeTab !== "ways" && (
+                              <Button variant="ghost" size="icon" onClick={() => openEdit(item)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="icon" onClick={() => deleteItem(item.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
