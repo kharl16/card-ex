@@ -44,8 +44,10 @@ export default function AffirmationsSection({ initialCategory, initialLanguage }
   }, [loaded, language, category, updateAffirmations]);
 
   const current = useMemo(() => {
-    const list = affirmationCategories[category].affirmations;
-    return list[seed % list.length];
+    const meta = affirmationCategories[category] ?? affirmationCategories.success;
+    const list = meta.affirmations;
+    if (!list || list.length === 0) return { english: "", tagalog: "" };
+    return list[seed % list.length] ?? list[0];
   }, [category, seed]);
 
   const text = language === "english" ? current.english : current.tagalog;
@@ -97,7 +99,7 @@ export default function AffirmationsSection({ initialCategory, initialLanguage }
 
       {/* Affirmation card */}
       <Card className="p-6 text-center bg-gradient-to-br from-primary/10 via-background to-background border-primary/20 min-h-[140px] flex flex-col justify-center">
-        <div className="text-3xl mb-2">{affirmationCategories[category].emoji}</div>
+        <div className="text-3xl mb-2">{(affirmationCategories[category] ?? affirmationCategories.success).emoji}</div>
         <p className="text-base font-semibold leading-relaxed italic">"{text}"</p>
       </Card>
 
