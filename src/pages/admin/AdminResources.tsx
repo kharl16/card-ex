@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Upload, Plus, Trash2, Eye, EyeOff, FileText, Users, Link2, MapPin, BookOpen } from "lucide-react";
+import { ArrowLeft, Upload, Plus, Trash2, Eye, EyeOff, FileText, Users, Link2, MapPin, BookOpen, FolderPlus, Pencil } from "lucide-react";
+import { ResourceFolderManager } from "@/components/admin/resources/ResourceFolderManager";
+import { ResourceItemEditor, type EditorModule } from "@/components/admin/resources/ResourceItemEditor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -35,11 +37,30 @@ const visibilityOptions: { value: VisibilityLevel; label: string }[] = [
 
 function AdminResourcesContent() {
   const { isResourceAdmin, loading: roleLoading } = useResources();
-  const { files, ambassadors, links, directory, ways, loading: dataLoading, refetch } = useResourceData();
+  const { files, ambassadors, links, directory, ways, folders, loading: dataLoading, refetch } = useResourceData();
   const [activeTab, setActiveTab] = useState<ModuleType>("files");
   const [importing, setImporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [folderManagerOpen, setFolderManagerOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<Record<string, any> | null>(null);
+
+  const openCreate = () => {
+    setEditingItem(null);
+    setEditorOpen(true);
+  };
+  const openEdit = (item: Record<string, any>) => {
+    setEditingItem(item);
+    setEditorOpen(true);
+  };
+  const deleteItem = async (id: string | number) => {
+    if (!confirm("Delete this item?")) return;
+    const table = moduleConfig[activeTab].table;
+    const { error } = await supabase.from(table as any).delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Deleted"); refetch(); }
+  };
 
   // Get data for current tab
   const getData = useCallback(() => {
@@ -365,6 +386,18 @@ function AdminResourcesContent() {
                 onChange={handleImport}
                 className="hidden"
               />
+              {activeTab === "files" && (
+                <Button variant="outline" onClick={() => setFolderManagerOpen(true)}>
+                  <FolderPlus className="h-4 w-4 mr-2" />
+                  Manage Folders
+                </Button>
+              )}
+              {activeTab !== "ways" && (
+                <Button onClick={openCreate}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add {moduleConfig[activeTab].label.replace(/s$/, "")}
+                </Button>
+              )}
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
@@ -434,9 +467,16 @@ function AdminResourcesContent() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon">
-                            {item.is_active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            {activeTab !== "ways" && (
+                              <Button variant="ghost" size="icon" onClick={() => openEdit(item)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button variant="ghost" size="icon" onClick={() => deleteItem(item.id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -447,6 +487,22 @@ function AdminResourcesContent() {
           </Card>
         </Tabs>
       </main>
+
+      <ResourceFolderManager
+        open={folderManagerOpen}
+        onOpenChange={setFolderManagerOpen}
+        onChanged={refetch}
+      />
+      {activeTab !== "ways" && (
+        <ResourceItemEditor
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          module={activeTab as EditorModule}
+          initial={editingItem}
+          folders={folders}
+          onSaved={refetch}
+        />
+      )}
     </div>
   );
 }

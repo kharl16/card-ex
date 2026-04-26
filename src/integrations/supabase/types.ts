@@ -111,7 +111,9 @@ export type Database = {
       ambassadors_library: {
         Row: {
           allowed_sites: string[] | null
+          caption: string | null
           created_at: string
+          custom_fields: Json
           drive_link: string | null
           drive_share_link: string | null
           endorser: string | null
@@ -126,7 +128,9 @@ export type Database = {
         }
         Insert: {
           allowed_sites?: string[] | null
+          caption?: string | null
           created_at?: string
+          custom_fields?: Json
           drive_link?: string | null
           drive_share_link?: string | null
           endorser?: string | null
@@ -141,7 +145,9 @@ export type Database = {
         }
         Update: {
           allowed_sites?: string[] | null
+          caption?: string | null
           created_at?: string
+          custom_fields?: Json
           drive_link?: string | null
           drive_share_link?: string | null
           endorser?: string | null
@@ -851,7 +857,9 @@ export type Database = {
         Row: {
           address: string | null
           allowed_sites: string[] | null
+          caption: string | null
           created_at: string
+          custom_fields: Json
           facebook_page: string | null
           id: number
           is_active: boolean
@@ -872,7 +880,9 @@ export type Database = {
         Insert: {
           address?: string | null
           allowed_sites?: string[] | null
+          caption?: string | null
           created_at?: string
+          custom_fields?: Json
           facebook_page?: string | null
           id?: number
           is_active?: boolean
@@ -893,7 +903,9 @@ export type Database = {
         Update: {
           address?: string | null
           allowed_sites?: string[] | null
+          caption?: string | null
           created_at?: string
+          custom_fields?: Json
           facebook_page?: string | null
           id?: number
           is_active?: boolean
@@ -916,8 +928,10 @@ export type Database = {
       files_repository: {
         Row: {
           allowed_sites: string[] | null
+          caption: string | null
           check_match: string | null
           created_at: string
+          custom_fields: Json
           description: string | null
           drive_link_download: string | null
           drive_link_share: string | null
@@ -942,8 +956,10 @@ export type Database = {
         }
         Insert: {
           allowed_sites?: string[] | null
+          caption?: string | null
           check_match?: string | null
           created_at?: string
+          custom_fields?: Json
           description?: string | null
           drive_link_download?: string | null
           drive_link_share?: string | null
@@ -968,8 +984,10 @@ export type Database = {
         }
         Update: {
           allowed_sites?: string[] | null
+          caption?: string | null
           check_match?: string | null
           created_at?: string
+          custom_fields?: Json
           description?: string | null
           drive_link_download?: string | null
           drive_link_share?: string | null
@@ -1093,8 +1111,10 @@ export type Database = {
       iam_links: {
         Row: {
           allowed_sites: string[] | null
+          caption: string | null
           category: string | null
           created_at: string
+          custom_fields: Json
           icon_url: string | null
           id: string
           is_active: boolean
@@ -1106,8 +1126,10 @@ export type Database = {
         }
         Insert: {
           allowed_sites?: string[] | null
+          caption?: string | null
           category?: string | null
           created_at?: string
+          custom_fields?: Json
           icon_url?: string | null
           id?: string
           is_active?: boolean
@@ -1119,8 +1141,10 @@ export type Database = {
         }
         Update: {
           allowed_sites?: string[] | null
+          caption?: string | null
           category?: string | null
           created_at?: string
+          custom_fields?: Json
           icon_url?: string | null
           id?: string
           is_active?: boolean
