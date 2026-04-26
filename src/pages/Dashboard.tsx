@@ -78,6 +78,19 @@ export default function Dashboard() {
     loadCards();
   }, []);
 
+  // Refresh cards when user returns to dashboard (e.g. after retaking DISC / Love Language test)
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") loadCards();
+    };
+    window.addEventListener("focus", loadCards);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", loadCards);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
   const loadProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -186,11 +199,15 @@ export default function Dashboard() {
   }, [cards]);
 
   const discType = useMemo(() => {
+    let best: { type: string; takenAt: number } | null = null;
     for (const card of cards) {
       const dr = card.disc_result as any;
-      if (dr?.type && discAnimalImages[dr.type]) return dr.type as string;
+      if (dr?.type && discAnimalImages[dr.type]) {
+        const takenAt = dr.taken_at ? new Date(dr.taken_at).getTime() : 0;
+        if (!best || takenAt > best.takenAt) best = { type: dr.type as string, takenAt };
+      }
     }
-    return null;
+    return best?.type ?? null;
   }, [cards]);
 
   return (
