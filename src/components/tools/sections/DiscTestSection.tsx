@@ -28,6 +28,7 @@ import eagleImg from "@/assets/disc/eagle.jpg";
 import roosterImg from "@/assets/disc/rooster.jpg";
 import carabaoImg from "@/assets/disc/carabao.jpg";
 import tarsierImg from "@/assets/disc/tarsier.jpg";
+import SaveToCardPicker from "./SaveToCardPicker";
 
 const animalImages: Record<string, string> = {
   D: eagleImg,
