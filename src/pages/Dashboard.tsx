@@ -32,6 +32,7 @@ const discLabels: Record<string, string> = {
   D: "Dominant (Eagle)", I: "Influential (Rooster)", S: "Steady (Carabao)", C: "Conscientious (Tarsier)",
 };
 import { discResults } from "@/data/discResults";
+import { loveLanguageResults } from "@/data/loveLanguageResults";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
@@ -210,6 +211,18 @@ export default function Dashboard() {
     return best?.type ?? null;
   }, [cards]);
 
+  const loveLanguageType = useMemo(() => {
+    let best: { type: string; takenAt: number } | null = null;
+    for (const card of cards) {
+      const lr = card.love_language_result as any;
+      if (lr?.type) {
+        const takenAt = lr.taken_at ? new Date(lr.taken_at).getTime() : 0;
+        if (!best || takenAt > best.takenAt) best = { type: lr.type as string, takenAt };
+      }
+    }
+    return best?.type ?? null;
+  }, [cards]);
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw] pb-20 sm:pb-0">
       {/* Header - minimal */}
@@ -252,6 +265,50 @@ export default function Dashboard() {
                       <p className="text-xs font-medium mb-1">Growth Tips</p>
                       <ul className="text-xs text-muted-foreground space-y-0.5">
                         {result.growthTips.english.slice(0, 3).map((t, i) => (
+                          <li key={i} className="flex items-start gap-1"><span className="text-accent-foreground">•</span>{t}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : null;
+            })()}
+            {loveLanguageType && (() => {
+              const result = loveLanguageResults.find(r => r.type === loveLanguageType);
+              return result ? (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={result.englishTitle}
+                      className="h-7 w-7 rounded-full border-2 border-primary/50 bg-primary/10 flex items-center justify-center text-base cursor-pointer hover:scale-110 transition-transform"
+                    >
+                      <span aria-hidden>{result.emoji}</span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="bottom" align="end" className="w-72 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-12 w-12 rounded-full border-2 border-primary/30 bg-primary/10 flex items-center justify-center text-2xl">
+                        {result.emoji}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{result.englishTitle}</p>
+                        <p className="text-xs text-muted-foreground">{result.tagalogTitle}</p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">{result.englishDescription}</p>
+                    <div className="mb-2">
+                      <p className="text-xs font-medium mb-1">How to Love</p>
+                      <ul className="text-xs text-muted-foreground space-y-0.5">
+                        {result.howToLove.english.slice(0, 3).map((s, i) => (
+                          <li key={i} className="flex items-start gap-1"><span className="text-primary">•</span>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium mb-1">Examples</p>
+                      <ul className="text-xs text-muted-foreground space-y-0.5">
+                        {result.examples.english.slice(0, 3).map((t, i) => (
                           <li key={i} className="flex items-start gap-1"><span className="text-accent-foreground">•</span>{t}</li>
                         ))}
                       </ul>
