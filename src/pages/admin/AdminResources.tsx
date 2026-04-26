@@ -386,6 +386,18 @@ function AdminResourcesContent() {
                 onChange={handleImport}
                 className="hidden"
               />
+              {activeTab === "files" && (
+                <Button variant="outline" onClick={() => setFolderManagerOpen(true)}>
+                  <FolderPlus className="h-4 w-4 mr-2" />
+                  Manage Folders
+                </Button>
+              )}
+              {activeTab !== "ways" && (
+                <Button onClick={openCreate}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add {moduleConfig[activeTab].label.replace(/s$/, "")}
+                </Button>
+              )}
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
