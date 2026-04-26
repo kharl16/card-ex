@@ -487,6 +487,22 @@ function AdminResourcesContent() {
           </Card>
         </Tabs>
       </main>
+
+      <ResourceFolderManager
+        open={folderManagerOpen}
+        onOpenChange={setFolderManagerOpen}
+        onChanged={refetch}
+      />
+      {activeTab !== "ways" && (
+        <ResourceItemEditor
+          open={editorOpen}
+          onOpenChange={setEditorOpen}
+          module={activeTab as EditorModule}
+          initial={editingItem}
+          folders={folders}
+          onSaved={refetch}
+        />
+      )}
     </div>
   );
 }
