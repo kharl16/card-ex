@@ -339,15 +339,14 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       // Calculate the base image size to fill the output canvas
       const imgAspect = img.naturalWidth / img.naturalHeight;
       let baseWidth: number, baseHeight: number;
-
-      if (imgAspect > aspectRatio) {
-        // Image is wider than frame - fit by height to fill
-        baseHeight = outputHeight;
-        baseWidth = baseHeight * imgAspect;
-      } else {
-        // Image is taller than frame - fit by width to fill
+      const wider = imgAspect > aspectRatio;
+      const fitByWidth = fitWhole ? wider : !wider;
+      if (fitByWidth) {
         baseWidth = outputWidth;
         baseHeight = baseWidth / imgAspect;
+      } else {
+        baseHeight = outputHeight;
+        baseWidth = baseHeight * imgAspect;
       }
 
       // Apply zoom scaling
