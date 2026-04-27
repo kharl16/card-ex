@@ -352,13 +352,13 @@ export default function CardView({
 
       {/* Everything below the header – normal stacking, avatar/logo stay above because of z-index in RiderHeader */}
       <div className="relative z-0">
-        {/* Company + Bio (natural width) with Ad Banner to the right on desktop */}
+        {/* Company + Bio with equal square Ad Banner column */}
         {(card.company || card.bio || (card as any).ad_banner) && (
           <div className={`${bioBannerSectionPadding} transition-[padding,gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
-            <div className={`flex flex-row items-start justify-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
+            <div className={`grid grid-cols-2 items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
                 <div
-                  className="rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer flex-1 min-w-0 basis-0 break-words hyphens-auto aspect-square overflow-hidden flex flex-col"
+                  className="w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer break-words [overflow-wrap:anywhere] hyphens-auto aspect-square overflow-hidden flex flex-col"
                   lang="en"
                   style={{
                     background: "var(--glass-bg)",
@@ -370,7 +370,7 @@ export default function CardView({
                   }}
                 >
                   {card.company && (
-                    <p className="text-sm sm:text-base text-foreground/80 tracking-widest uppercase font-light break-words" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
+                    <p className="text-[11px] sm:text-base text-foreground/80 uppercase font-light leading-snug break-words [overflow-wrap:anywhere] text-balance" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
                   )}
                   {card.company && card.bio && (
                     <div
@@ -428,7 +428,7 @@ export default function CardView({
                 </div>
               )}
               {(card as any).ad_banner && (
-                <div className="flex-1 min-w-0 basis-0 self-start aspect-square [&>*]:h-full [&_.aspect-video]:!aspect-square [&_.aspect-video]:h-full">
+                <div className="w-full min-w-0 self-start aspect-square overflow-hidden [&>*]:!h-full [&>*]:!w-full [&>a]:block [&_.aspect-video]:!aspect-square [&_.aspect-video]:!h-full [&_.aspect-video]:!w-full">
                   <AdBanner banner={(card as any).ad_banner} accentColor={basePrimary} />
                 </div>
               )}
