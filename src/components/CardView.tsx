@@ -337,7 +337,7 @@ export default function CardView({
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               {(card.company || card.bio) && (
                 <div
-                  className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-fit max-w-full"
+                  className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-full sm:w-1/2 sm:flex-shrink-0 max-w-full"
                   style={{
                     background: "var(--glass-bg)",
                     backdropFilter: "blur(var(--glass-blur))",
