@@ -355,10 +355,11 @@ export default function CardView({
         {/* Company + Bio (natural width) with Ad Banner to the right on desktop */}
         {(card.company || card.bio || (card as any).ad_banner) && (
           <div className={`${bioBannerSectionPadding} transition-[padding,gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
-            <div className={`flex flex-row items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
+            <div className={`flex flex-row items-start justify-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
                 <div
-                  className="rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer w-1/2 max-w-[50%] flex-shrink-0 min-w-0 break-words aspect-square overflow-hidden flex flex-col"
+                  className="rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer flex-1 min-w-0 basis-0 break-words hyphens-auto aspect-square overflow-hidden flex flex-col"
+                  lang="en"
                   style={{
                     background: "var(--glass-bg)",
                     backdropFilter: "blur(var(--glass-blur))",
@@ -384,7 +385,7 @@ export default function CardView({
                     <>
                       {/* Mobile: clamp to 5 lines */}
                       <p
-                        className="sm:hidden text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words"
+                        className="sm:hidden text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words hyphens-auto text-pretty"
                         style={{
                           display: "-webkit-box",
                           WebkitLineClamp: 5,
@@ -397,7 +398,7 @@ export default function CardView({
                       {/* Desktop: clamp to 4 lines with Read more toggle */}
                       <div className="hidden sm:block">
                         <p
-                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words"
+                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words hyphens-auto text-pretty"
                           style={
                             bioExpanded
                               ? undefined
@@ -427,7 +428,7 @@ export default function CardView({
                 </div>
               )}
               {(card as any).ad_banner && (
-                <div className="w-1/2 max-w-[50%] flex-shrink-0 min-w-0 self-start aspect-square [&>*]:h-full [&_.aspect-video]:!aspect-square [&_.aspect-video]:h-full">
+                <div className="flex-1 min-w-0 basis-0 self-start aspect-square [&>*]:h-full [&_.aspect-video]:!aspect-square [&_.aspect-video]:h-full">
                   <AdBanner banner={(card as any).ad_banner} accentColor={basePrimary} />
                 </div>
               )}
