@@ -385,7 +385,7 @@ export default function CardView({
                     <>
                       {/* Mobile: clamp to 5 lines */}
                       <p
-                        className="sm:hidden text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words"
+                        className="sm:hidden text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words hyphens-auto text-pretty"
                         style={{
                           display: "-webkit-box",
                           WebkitLineClamp: 5,
