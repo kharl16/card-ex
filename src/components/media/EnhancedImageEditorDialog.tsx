@@ -2,7 +2,8 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Loader2, RotateCcw, RotateCw, RefreshCw, Sun, Contrast } from "lucide-react";
+import { Loader2, RotateCcw, RotateCw, RefreshCw, Sun, Contrast, Maximize2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 export type ImageType = "avatar" | "logo" | "cover";
@@ -20,9 +21,8 @@ function getAspectRatio(imageType: ImageType): number {
   switch (imageType) {
     case "avatar":
     case "logo":
-      return 1; // 1:1 square
     case "cover":
-      return 16 / 9;
+      return 1; // 1:1 square (cover is now square)
     default:
       return 1;
   }
@@ -35,7 +35,7 @@ function getOutputDimensions(imageType: ImageType): { width: number; height: num
     case "logo":
       return { width: 512, height: 512 };
     case "cover":
-      return { width: 1280, height: 720 };
+      return { width: 1080, height: 1080 };
     default:
       return { width: 512, height: 512 };
   }
@@ -55,6 +55,7 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
   const [contrast, setContrast] = useState(1);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
+  const [fitWhole, setFitWhole] = useState(false);
   const [saving, setSaving] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
@@ -77,6 +78,7 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       setContrast(1);
       setOffsetX(0);
       setOffsetY(0);
+      setFitWhole(false);
       setImageLoaded(false);
     }
   }, [open, imageSrc]);
@@ -199,18 +201,17 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       ctx.filter = `brightness(${brightness}) contrast(${contrast})`;
     }
 
-    // Calculate the base image size to fill the canvas
+    // Calculate base image size — "contain" if fitWhole, otherwise "cover"
     const imgAspect = img.naturalWidth / img.naturalHeight;
     let baseWidth: number, baseHeight: number;
-
-    if (imgAspect > aspectRatio) {
-      // Image is wider than frame - fit by height to fill
-      baseHeight = canvasHeight;
-      baseWidth = baseHeight * imgAspect;
-    } else {
-      // Image is taller than frame - fit by width to fill
+    const wider = imgAspect > aspectRatio;
+    const fitByWidth = fitWhole ? wider : !wider;
+    if (fitByWidth) {
       baseWidth = canvasWidth;
       baseHeight = baseWidth / imgAspect;
+    } else {
+      baseHeight = canvasHeight;
+      baseWidth = baseHeight * imgAspect;
     }
 
     // Apply zoom scaling
@@ -243,7 +244,7 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
         console.warn("Canvas is tainted, brightness/contrast preview limited");
       }
     }
-  }, [imageLoaded, zoom, rotation, brightness, contrast, offsetX, offsetY, aspectRatio, applyBrightnessContrast]);
+  }, [imageLoaded, zoom, rotation, brightness, contrast, offsetX, offsetY, aspectRatio, fitWhole, applyBrightnessContrast]);
 
   // Redraw on any change
   useEffect(() => {
@@ -338,15 +339,14 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       // Calculate the base image size to fill the output canvas
       const imgAspect = img.naturalWidth / img.naturalHeight;
       let baseWidth: number, baseHeight: number;
-
-      if (imgAspect > aspectRatio) {
-        // Image is wider than frame - fit by height to fill
-        baseHeight = outputHeight;
-        baseWidth = baseHeight * imgAspect;
-      } else {
-        // Image is taller than frame - fit by width to fill
+      const wider = imgAspect > aspectRatio;
+      const fitByWidth = fitWhole ? wider : !wider;
+      if (fitByWidth) {
         baseWidth = outputWidth;
         baseHeight = baseWidth / imgAspect;
+      } else {
+        baseHeight = outputHeight;
+        baseWidth = baseHeight * imgAspect;
       }
 
       // Apply zoom scaling
@@ -534,6 +534,31 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
                 </Button>
               </div>
             </div>
+          </div>
+
+          {/* Fit whole image (no crop) toggle */}
+          <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+            <div className="flex items-start gap-3">
+              <Maximize2 className="h-4 w-4 mt-0.5 text-muted-foreground" />
+              <div>
+                <label htmlFor="fit-whole-toggle" className="text-sm font-medium cursor-pointer">
+                  Don't crop (fit whole image)
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Show the entire image inside the square. Empty areas will be filled with black.
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="fit-whole-toggle"
+              checked={fitWhole}
+              onCheckedChange={(v) => {
+                setFitWhole(v);
+                setOffsetX(0);
+                setOffsetY(0);
+                setZoom(1);
+              }}
+            />
           </div>
 
           {/* Action buttons */}
