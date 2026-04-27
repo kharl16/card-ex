@@ -830,6 +830,14 @@ export default function CardEditor() {
         progress: calculateProgress("carousel"),
         content: <CarouselSettingsSection card={card} onCardChange={handleCardChange} />,
       },
+      "ad-banner": {
+        id: "ad-banner",
+        title: "Ad Banner",
+        description: "Featured image or video shown beside your bio",
+        icon: <Image className="h-4 w-4" />,
+        progress: (card as any).ad_banner ? 100 : 0,
+        content: <AdBannerSection card={card} onCardChange={handleCardChange} />,
+      },
       qr: {
         id: "qr",
         title: "QR Code Customization",
