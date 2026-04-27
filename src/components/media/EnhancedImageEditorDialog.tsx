@@ -55,6 +55,7 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
   const [contrast, setContrast] = useState(1);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
+  const [fitWhole, setFitWhole] = useState(false);
   const [saving, setSaving] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
