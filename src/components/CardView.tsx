@@ -108,6 +108,21 @@ interface CardViewProps {
   publicCardUrl?: string;
   /** Optional extra CTA rendered at the bottom of the card body */
   bottomAction?: React.ReactNode;
+  /**
+   * Tailwind gap class applied on mobile between the bio block and the ad banner.
+   * Use any Tailwind gap-* class (e.g. "gap-3", "gap-5", "gap-6"). Default: "gap-5".
+   */
+  bioBannerGapMobile?: string;
+  /**
+   * Tailwind responsive gap class applied at the `sm:` breakpoint and up between
+   * the bio block and the ad banner. Use a `sm:gap-*` class. Default: "sm:gap-4".
+   */
+  bioBannerGapDesktop?: string;
+  /**
+   * Tailwind padding/margin classes applied to the bio + banner section wrapper.
+   * Override to tune outer spacing. Default: "px-6 pb-4".
+   */
+  bioBannerSectionPadding?: string;
 }
 
 const iconMap: Record<string, any> = {
