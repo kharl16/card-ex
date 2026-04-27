@@ -359,8 +359,8 @@ export default function CardView({
           <div className={`${bioBannerSectionPadding} transition-[padding,gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
             <div className={`${hasBanner ? "grid grid-cols-2" : "block"} items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
-                <div
-                  className={`w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer overflow-hidden flex flex-col ${hasBanner ? "aspect-square" : ""}`}
+                 <div
+                  className={`${hasBanner ? "w-full" : "inline-block max-w-full"} min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer overflow-hidden flex flex-col ${hasBanner ? "aspect-square" : ""}`}
                   lang="en"
                   style={{
                     background: "var(--glass-bg)",
