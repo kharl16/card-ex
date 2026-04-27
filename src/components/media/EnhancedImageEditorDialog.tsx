@@ -21,9 +21,8 @@ function getAspectRatio(imageType: ImageType): number {
   switch (imageType) {
     case "avatar":
     case "logo":
-      return 1; // 1:1 square
     case "cover":
-      return 16 / 9;
+      return 1; // 1:1 square (cover is now square)
     default:
       return 1;
   }
@@ -36,7 +35,7 @@ function getOutputDimensions(imageType: ImageType): { width: number; height: num
     case "logo":
       return { width: 512, height: 512 };
     case "cover":
-      return { width: 1280, height: 720 };
+      return { width: 1080, height: 1080 };
     default:
       return { width: 512, height: 512 };
   }
