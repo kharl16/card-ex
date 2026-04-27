@@ -340,7 +340,7 @@ export default function CardView({
             <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               {(card.company || card.bio) && (
                 <div
-                  className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-full sm:w-1/2 sm:flex-shrink-0 max-w-full"
+                  className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-full sm:w-1/2 sm:max-w-[50%] sm:flex-shrink-0 sm:min-w-0 break-words"
                   style={{
                     background: "var(--glass-bg)",
                     backdropFilter: "blur(var(--glass-blur))",
@@ -351,7 +351,7 @@ export default function CardView({
                   }}
                 >
                   {card.company && (
-                    <p className="text-sm sm:text-base text-foreground/80 tracking-widest uppercase font-light" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
+                    <p className="text-sm sm:text-base text-foreground/80 tracking-widest uppercase font-light break-words" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
                   )}
                   {card.company && card.bio && (
                     <div
@@ -365,11 +365,11 @@ export default function CardView({
                   {card.bio && (
                     <>
                       {/* Mobile: full text always */}
-                      <p className="sm:hidden text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap">{card.bio}</p>
+                      <p className="sm:hidden text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words">{card.bio}</p>
                       {/* Desktop: clamp to 4 lines with Read more toggle */}
                       <div className="hidden sm:block">
                         <p
-                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap"
+                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words"
                           style={
                             bioExpanded
                               ? undefined
@@ -399,7 +399,7 @@ export default function CardView({
                 </div>
               )}
               {(card as any).ad_banner && (
-                <div className="w-full sm:flex-1 sm:min-w-0">
+                <div className="w-full sm:flex-1 sm:min-w-0 sm:self-start">
                   <AdBanner banner={(card as any).ad_banner} accentColor={basePrimary} />
                 </div>
               )}
