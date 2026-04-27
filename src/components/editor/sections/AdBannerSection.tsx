@@ -40,9 +40,9 @@ export function AdBannerSection({ card, onCardChange }: AdBannerSectionProps) {
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-base font-semibold">Ad Banner</h3>
+        <h3 className="text-base font-semibold">Ad Banner (Featured Media)</h3>
         <p className="text-sm text-muted-foreground">
-          Featured image or video shown beside your bio (above the Products carousel). Leave empty to hide.
+          Acts like a second cover/logo on your card. Displays to the right of your bio (below the company logo) and above the Products carousel. Leave empty to hide.
         </p>
       </div>
 
