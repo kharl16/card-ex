@@ -398,7 +398,7 @@ export default function CardView({
                       {/* Desktop: clamp to 4 lines with Read more toggle */}
                       <div className="hidden sm:block">
                         <p
-                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words"
+                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words hyphens-auto text-pretty"
                           style={
                             bioExpanded
                               ? undefined
