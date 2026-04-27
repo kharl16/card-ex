@@ -108,6 +108,7 @@ const DEFAULT_SECTION_ORDER = [
   "contact",
   "social",
   "carousel",
+  "ad-banner",
   "qr",
   "theme",
   "custom-url",
