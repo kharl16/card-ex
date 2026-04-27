@@ -353,12 +353,14 @@ export default function CardView({
       {/* Everything below the header – normal stacking, avatar/logo stay above because of z-index in RiderHeader */}
       <div className="relative z-0">
         {/* Company + Bio with equal square Ad Banner column */}
-        {(card.company || card.bio || (card as any).ad_banner) && (
+        {(card.company || card.bio || (card as any).ad_banner) && (() => {
+          const hasBanner = !!(card as any).ad_banner;
+          return (
           <div className={`${bioBannerSectionPadding} transition-[padding,gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
-            <div className={`grid grid-cols-2 items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
+            <div className={`${hasBanner ? "grid grid-cols-2" : "block"} items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
                 <div
-                  className="w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer aspect-square overflow-hidden flex flex-col"
+                  className={`w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer overflow-hidden flex flex-col ${hasBanner ? "aspect-square" : ""}`}
                   lang="en"
                   style={{
                     background: "var(--glass-bg)",
