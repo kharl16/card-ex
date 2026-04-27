@@ -244,7 +244,7 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
         console.warn("Canvas is tainted, brightness/contrast preview limited");
       }
     }
-  }, [imageLoaded, zoom, rotation, brightness, contrast, offsetX, offsetY, aspectRatio, applyBrightnessContrast]);
+  }, [imageLoaded, zoom, rotation, brightness, contrast, offsetX, offsetY, aspectRatio, fitWhole, applyBrightnessContrast]);
 
   // Redraw on any change
   useEffect(() => {
