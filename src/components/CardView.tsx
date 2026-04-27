@@ -355,10 +355,10 @@ export default function CardView({
         {/* Company + Bio (natural width) with Ad Banner to the right on desktop */}
         {(card.company || card.bio || (card as any).ad_banner) && (
           <div className={`${bioBannerSectionPadding} transition-[padding,gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
-            <div className={`flex flex-col sm:flex-row sm:items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
+            <div className={`flex flex-row items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
                 <div
-                  className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-full sm:w-1/2 sm:max-w-[50%] sm:flex-shrink-0 sm:min-w-0 break-words"
+                  className="rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer w-1/2 max-w-[50%] flex-shrink-0 min-w-0 break-words"
                   style={{
                     background: "var(--glass-bg)",
                     backdropFilter: "blur(var(--glass-blur))",
