@@ -78,6 +78,7 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       setContrast(1);
       setOffsetX(0);
       setOffsetY(0);
+      setFitWhole(false);
       setImageLoaded(false);
     }
   }, [open, imageSrc]);
