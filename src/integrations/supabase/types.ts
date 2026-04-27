@@ -596,6 +596,7 @@ export type Database = {
       }
       cards: {
         Row: {
+          ad_banner: Json | null
           avatar_url: string | null
           bio: string | null
           card_type: string | null
@@ -654,6 +655,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          ad_banner?: Json | null
           avatar_url?: string | null
           bio?: string | null
           card_type?: string | null
@@ -712,6 +714,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          ad_banner?: Json | null
           avatar_url?: string | null
           bio?: string | null
           card_type?: string | null
