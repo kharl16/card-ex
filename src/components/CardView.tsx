@@ -358,7 +358,7 @@ export default function CardView({
             <div className={`grid grid-cols-2 items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
                 <div
-                  className="w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer break-words [overflow-wrap:anywhere] hyphens-auto aspect-square overflow-hidden flex flex-col"
+                  className="w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer aspect-square overflow-hidden flex flex-col"
                   lang="en"
                   style={{
                     background: "var(--glass-bg)",
@@ -370,11 +370,16 @@ export default function CardView({
                   }}
                 >
                   {card.company && (
-                    <p className="text-[11px] sm:text-base text-foreground/80 uppercase font-light leading-snug break-words [overflow-wrap:anywhere] text-balance" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
+                    <p
+                      className="text-[11px] sm:text-base text-foreground/80 uppercase font-light leading-snug text-balance break-words [overflow-wrap:break-word] hyphens-auto line-clamp-2"
+                      style={{ letterSpacing: "0.1em", wordBreak: "normal" }}
+                    >
+                      {card.company}
+                    </p>
                   )}
                   {card.company && card.bio && (
                     <div
-                      className="my-3 h-[1px] w-full animate-gold-pulse"
+                      className="my-3 h-[1px] w-full animate-gold-pulse flex-shrink-0"
                       style={{
                         background: `linear-gradient(90deg, transparent 0%, ${basePrimary}60 20%, ${basePrimary} 50%, ${basePrimary}60 80%, transparent 100%)`,
                         boxShadow: `0 0 6px ${basePrimary}40, 0 0 12px ${basePrimary}20`,
@@ -382,31 +387,33 @@ export default function CardView({
                     />
                   )}
                   {card.bio && (
-                    <>
-                      {/* Mobile: clamp to 5 lines */}
+                    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                      {/* Mobile: fill available square height */}
                       <p
-                        className="sm:hidden text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words hyphens-auto text-pretty"
+                        className="sm:hidden text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
                         style={{
                           display: "-webkit-box",
-                          WebkitLineClamp: 5,
+                          WebkitLineClamp: 8,
                           WebkitBoxOrient: "vertical",
                           overflow: "hidden",
+                          wordBreak: "normal",
                         }}
                       >
                         {card.bio}
                       </p>
                       {/* Desktop: clamp to 4 lines with Read more toggle */}
-                      <div className="hidden sm:block">
+                      <div className="hidden sm:flex flex-col flex-1 min-h-0">
                         <p
-                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words hyphens-auto text-pretty"
+                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
                           style={
                             bioExpanded
-                              ? undefined
+                              ? { overflowY: "auto", wordBreak: "normal" }
                               : {
                                   display: "-webkit-box",
                                   WebkitLineClamp: 4,
                                   WebkitBoxOrient: "vertical",
                                   overflow: "hidden",
+                                  wordBreak: "normal",
                                 }
                           }
                         >
@@ -416,14 +423,14 @@ export default function CardView({
                           <button
                             type="button"
                             onClick={() => setBioExpanded((v) => !v)}
-                            className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
+                            className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity flex-shrink-0 self-start"
                             style={{ color: basePrimary }}
                           >
                             {bioExpanded ? "Show less" : "Read more"}
                           </button>
                         )}
                       </div>
-                    </>
+                    </div>
                   )}
                 </div>
               )}
