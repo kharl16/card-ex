@@ -49,6 +49,7 @@ import { BasicInformationSection } from "@/components/editor/sections/BasicInfor
 import { ContactInformationSection, AdditionalContact } from "@/components/editor/sections/ContactInformationSection";
 
 import { CarouselSettingsSection } from "@/components/editor/sections/CarouselSettingsSection";
+import { AdBannerSection } from "@/components/editor/sections/AdBannerSection";
 import { CustomUrlSection } from "@/components/editor/sections/CustomUrlSection";
 import { AITrainingSection } from "@/components/editor/sections/AITrainingSection";
 
