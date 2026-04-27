@@ -536,6 +536,31 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
             </div>
           </div>
 
+          {/* Fit whole image (no crop) toggle */}
+          <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+            <div className="flex items-start gap-3">
+              <Maximize2 className="h-4 w-4 mt-0.5 text-muted-foreground" />
+              <div>
+                <label htmlFor="fit-whole-toggle" className="text-sm font-medium cursor-pointer">
+                  Don't crop (fit whole image)
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Show the entire image inside the square. Empty areas will be filled with black.
+                </p>
+              </div>
+            </div>
+            <Switch
+              id="fit-whole-toggle"
+              checked={fitWhole}
+              onCheckedChange={(v) => {
+                setFitWhole(v);
+                setOffsetX(0);
+                setOffsetY(0);
+                setZoom(1);
+              }}
+            />
+          </div>
+
           {/* Action buttons */}
           <div className="flex items-center justify-between gap-4 pt-2 border-t">
             <Button
