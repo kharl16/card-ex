@@ -2,7 +2,8 @@ import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Loader2, RotateCcw, RotateCw, RefreshCw, Sun, Contrast } from "lucide-react";
+import { Loader2, RotateCcw, RotateCw, RefreshCw, Sun, Contrast, Maximize2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 export type ImageType = "avatar" | "logo" | "cover";
