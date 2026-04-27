@@ -331,13 +331,13 @@ export default function CardView({
 
       {/* Everything below the header – normal stacking, avatar/logo stay above because of z-index in RiderHeader */}
       <div className="relative z-0">
-        {/* Company + Bio (left) and Ad Banner (right) — stacks on mobile */}
+        {/* Company + Bio (natural width) with Ad Banner to the right on desktop */}
         {(card.company || card.bio || (card as any).ad_banner) && (
           <div className="px-6 pb-4 transition-colors duration-500">
-            <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
               {(card.company || card.bio) && (
                 <div
-                  className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-fit max-w-full sm:flex-1 sm:min-w-0"
+                  className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-fit max-w-full"
                   style={{
                     background: "var(--glass-bg)",
                     backdropFilter: "blur(var(--glass-blur))",
@@ -363,7 +363,7 @@ export default function CardView({
                 </div>
               )}
               {(card as any).ad_banner && (
-                <div className="w-full sm:flex-1 sm:max-w-[55%] self-center">
+                <div className="w-full sm:flex-1 sm:min-w-0">
                   <AdBanner banner={(card as any).ad_banner} accentColor={basePrimary} />
                 </div>
               )}

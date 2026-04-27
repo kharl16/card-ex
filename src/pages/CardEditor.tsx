@@ -832,8 +832,8 @@ export default function CardEditor() {
       },
       "ad-banner": {
         id: "ad-banner",
-        title: "Ad Banner",
-        description: "Featured image or video shown beside your bio",
+        title: "Ad Banner (Featured Media)",
+        description: "Image or video shown to the right of your bio, above the Products carousel",
         icon: <Image className="h-4 w-4" />,
         progress: (card as any).ad_banner ? 100 : 0,
         content: <AdBannerSection card={card} onCardChange={handleCardChange} />,
