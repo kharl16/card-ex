@@ -382,8 +382,18 @@ export default function CardView({
                   )}
                   {card.bio && (
                     <>
-                      {/* Mobile: full text always */}
-                      <p className="sm:hidden text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words">{card.bio}</p>
+                      {/* Mobile: clamp to 5 lines */}
+                      <p
+                        className="sm:hidden text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words"
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 5,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                        }}
+                      >
+                        {card.bio}
+                      </p>
                       {/* Desktop: clamp to 4 lines with Read more toggle */}
                       <div className="hidden sm:block">
                         <p
@@ -417,7 +427,7 @@ export default function CardView({
                 </div>
               )}
               {(card as any).ad_banner && (
-                <div className="w-full sm:flex-1 sm:min-w-0 sm:self-start">
+                <div className="w-1/2 max-w-[50%] flex-shrink-0 min-w-0 self-start">
                   <AdBanner banner={(card as any).ad_banner} accentColor={basePrimary} />
                 </div>
               )}
