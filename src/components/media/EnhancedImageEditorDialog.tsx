@@ -201,16 +201,16 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       ctx.filter = `brightness(${brightness}) contrast(${contrast})`;
     }
 
-    // Calculate the base image size to fill the canvas
+    // Calculate the base image size — "contain" if fitWhole, otherwise "cover"
     const imgAspect = img.naturalWidth / img.naturalHeight;
     let baseWidth: number, baseHeight: number;
 
-    if (imgAspect > aspectRatio) {
-      // Image is wider than frame - fit by height to fill
+    const useContain = fitWhole;
+    if ((imgAspect > aspectRatio) !== useContain) {
+      // cover-by-height OR contain-by-width
       baseHeight = canvasHeight;
       baseWidth = baseHeight * imgAspect;
     } else {
-      // Image is taller than frame - fit by width to fill
       baseWidth = canvasWidth;
       baseHeight = baseWidth / imgAspect;
     }
