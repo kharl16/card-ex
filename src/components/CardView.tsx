@@ -337,7 +337,7 @@ export default function CardView({
         {/* Company + Bio (natural width) with Ad Banner to the right on desktop */}
         {(card.company || card.bio || (card as any).ad_banner) && (
           <div className="px-6 pb-4 transition-colors duration-500">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-5 sm:gap-4">
               {(card.company || card.bio) && (
                 <div
                   className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-full sm:w-1/2 sm:max-w-[50%] sm:flex-shrink-0 sm:min-w-0 break-words"
