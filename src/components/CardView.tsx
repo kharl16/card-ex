@@ -428,7 +428,7 @@ export default function CardView({
                 </div>
               )}
               {(card as any).ad_banner && (
-                <div className="w-1/2 max-w-[50%] flex-shrink-0 min-w-0 self-start aspect-square [&>*]:h-full [&_.aspect-video]:!aspect-square [&_.aspect-video]:h-full">
+                <div className="flex-1 min-w-0 basis-0 self-start aspect-square [&>*]:h-full [&_.aspect-video]:!aspect-square [&_.aspect-video]:h-full">
                   <AdBanner banner={(card as any).ad_banner} accentColor={basePrimary} />
                 </div>
               )}
