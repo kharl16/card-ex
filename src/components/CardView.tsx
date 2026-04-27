@@ -108,6 +108,21 @@ interface CardViewProps {
   publicCardUrl?: string;
   /** Optional extra CTA rendered at the bottom of the card body */
   bottomAction?: React.ReactNode;
+  /**
+   * Tailwind gap class applied on mobile between the bio block and the ad banner.
+   * Use any Tailwind gap-* class (e.g. "gap-3", "gap-5", "gap-6"). Default: "gap-5".
+   */
+  bioBannerGapMobile?: string;
+  /**
+   * Tailwind responsive gap class applied at the `sm:` breakpoint and up between
+   * the bio block and the ad banner. Use a `sm:gap-*` class. Default: "sm:gap-4".
+   */
+  bioBannerGapDesktop?: string;
+  /**
+   * Tailwind padding/margin classes applied to the bio + banner section wrapper.
+   * Override to tune outer spacing. Default: "px-6 pb-4".
+   */
+  bioBannerSectionPadding?: string;
 }
 
 const iconMap: Record<string, any> = {
@@ -217,6 +232,9 @@ export default function CardView({
   showVCardButtons = false,
   publicCardUrl,
   bottomAction,
+  bioBannerGapMobile = "gap-5",
+  bioBannerGapDesktop = "sm:gap-4",
+  bioBannerSectionPadding = "px-6 pb-4",
 }: CardViewProps) {
   // Global product photos shared across all cards (with this card's hide overrides applied)
   const { visibleGlobals } = useGlobalProductImages(card?.id);
@@ -336,8 +354,8 @@ export default function CardView({
       <div className="relative z-0">
         {/* Company + Bio (natural width) with Ad Banner to the right on desktop */}
         {(card.company || card.bio || (card as any).ad_banner) && (
-          <div className="px-6 pb-4 transition-colors duration-500">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-5 sm:gap-4">
+          <div className={`${bioBannerSectionPadding} transition-colors duration-500`}>
+            <div className={`flex flex-col sm:flex-row sm:items-start ${bioBannerGapMobile} ${bioBannerGapDesktop}`}>
               {(card.company || card.bio) && (
                 <div
                   className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-full sm:w-1/2 sm:max-w-[50%] sm:flex-shrink-0 sm:min-w-0 break-words"
