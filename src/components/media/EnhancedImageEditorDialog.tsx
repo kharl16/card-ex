@@ -201,18 +201,17 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       ctx.filter = `brightness(${brightness}) contrast(${contrast})`;
     }
 
-    // Calculate the base image size — "contain" if fitWhole, otherwise "cover"
+    // Calculate base image size — "contain" if fitWhole, otherwise "cover"
     const imgAspect = img.naturalWidth / img.naturalHeight;
     let baseWidth: number, baseHeight: number;
-
-    const useContain = fitWhole;
-    if ((imgAspect > aspectRatio) !== useContain) {
-      // cover-by-height OR contain-by-width
-      baseHeight = canvasHeight;
-      baseWidth = baseHeight * imgAspect;
-    } else {
+    const wider = imgAspect > aspectRatio;
+    const fitByWidth = fitWhole ? wider : !wider;
+    if (fitByWidth) {
       baseWidth = canvasWidth;
       baseHeight = baseWidth / imgAspect;
+    } else {
+      baseHeight = canvasHeight;
+      baseWidth = baseHeight * imgAspect;
     }
 
     // Apply zoom scaling
