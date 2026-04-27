@@ -358,7 +358,7 @@ export default function CardView({
             <div className={`flex flex-row items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
                 <div
-                  className="rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer w-1/2 max-w-[50%] flex-shrink-0 min-w-0 break-words"
+                  className="rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer w-1/2 max-w-[50%] flex-shrink-0 min-w-0 break-words aspect-square overflow-hidden flex flex-col"
                   style={{
                     background: "var(--glass-bg)",
                     backdropFilter: "blur(var(--glass-blur))",
@@ -427,7 +427,7 @@ export default function CardView({
                 </div>
               )}
               {(card as any).ad_banner && (
-                <div className="w-1/2 max-w-[50%] flex-shrink-0 min-w-0 self-start">
+                <div className="w-1/2 max-w-[50%] flex-shrink-0 min-w-0 self-start aspect-square [&>*]:h-full [&_.aspect-video]:!aspect-square [&_.aspect-video]:h-full">
                   <AdBanner banner={(card as any).ad_banner} accentColor={basePrimary} />
                 </div>
               )}
