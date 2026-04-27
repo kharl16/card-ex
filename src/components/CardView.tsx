@@ -389,18 +389,20 @@ export default function CardView({
                   {card.bio && (
                     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                       {/* Mobile: fill available square height */}
-                      <p
-                        className="sm:hidden text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 8,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          wordBreak: "normal",
-                        }}
-                      >
-                        {card.bio}
-                      </p>
+                      <div className="sm:hidden flex-1 min-h-0 flex">
+                        <p
+                          className="text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 8,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            wordBreak: "normal",
+                          }}
+                        >
+                          {card.bio}
+                        </p>
+                      </div>
                       {/* Desktop: clamp to 4 lines with Read more toggle */}
                       <div className="hidden sm:flex flex-col flex-1 min-h-0">
                         <p
