@@ -232,6 +232,9 @@ export default function CardView({
   showVCardButtons = false,
   publicCardUrl,
   bottomAction,
+  bioBannerGapMobile = "gap-5",
+  bioBannerGapDesktop = "sm:gap-4",
+  bioBannerSectionPadding = "px-6 pb-4",
 }: CardViewProps) {
   // Global product photos shared across all cards (with this card's hide overrides applied)
   const { visibleGlobals } = useGlobalProductImages(card?.id);
