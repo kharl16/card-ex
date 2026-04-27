@@ -445,7 +445,8 @@ export default function CardView({
               )}
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* Carousel Sections */}
         {(() => {
