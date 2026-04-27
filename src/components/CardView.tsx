@@ -359,8 +359,8 @@ export default function CardView({
           <div className={`${bioBannerSectionPadding} transition-[padding,gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
             <div className={`${hasBanner ? "grid grid-cols-2" : "block"} items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
-                 <div
-                  className={`${hasBanner ? "w-full" : "inline-block max-w-full"} min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer overflow-hidden flex flex-col ${hasBanner ? "aspect-square" : ""}`}
+                <div
+                  className={`w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer overflow-hidden flex flex-col ${hasBanner ? "aspect-square" : ""}`}
                   lang="en"
                   style={{
                     background: "var(--glass-bg)",
@@ -389,52 +389,90 @@ export default function CardView({
                     />
                   )}
                   {card.bio && (
-                    <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                      {/* Mobile: fill available square height */}
-                      <div className="sm:hidden flex-1 min-h-0 flex">
-                        <p
-                          className="text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
-                          style={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 8,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                            wordBreak: "normal",
-                          }}
-                        >
-                          {card.bio}
-                        </p>
-                      </div>
-                      {/* Desktop: clamp to 4 lines with Read more toggle */}
-                      <div className="hidden sm:flex flex-col flex-1 min-h-0">
-                        <p
-                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
-                          style={
-                            bioExpanded
-                              ? { overflowY: "auto", wordBreak: "normal" }
-                              : {
-                                  display: "-webkit-box",
-                                  WebkitLineClamp: 4,
-                                  WebkitBoxOrient: "vertical",
-                                  overflow: "hidden",
-                                  wordBreak: "normal",
-                                }
-                          }
-                        >
-                          {card.bio}
-                        </p>
-                        {card.bio.length > 160 && (
-                          <button
-                            type="button"
-                            onClick={() => setBioExpanded((v) => !v)}
-                            className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity flex-shrink-0 self-start"
-                            style={{ color: basePrimary }}
+                    hasBanner ? (
+                      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
+                        {/* Mobile: fill available square height */}
+                        <div className="sm:hidden flex-1 min-h-0 flex">
+                          <p
+                            className="text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
+                            style={{
+                              display: "-webkit-box",
+                              WebkitLineClamp: 8,
+                              WebkitBoxOrient: "vertical",
+                              overflow: "hidden",
+                              wordBreak: "normal",
+                            }}
                           >
-                            {bioExpanded ? "Show less" : "Read more"}
-                          </button>
-                        )}
+                            {card.bio}
+                          </p>
+                        </div>
+                        {/* Desktop: clamp to 4 lines with Read more toggle */}
+                        <div className="hidden sm:flex flex-col flex-1 min-h-0">
+                          <p
+                            className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
+                            style={
+                              bioExpanded
+                                ? { overflowY: "auto", wordBreak: "normal" }
+                                : {
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 4,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    wordBreak: "normal",
+                                  }
+                            }
+                          >
+                            {card.bio}
+                          </p>
+                          {card.bio.length > 160 && (
+                            <button
+                              type="button"
+                              onClick={() => setBioExpanded((v) => !v)}
+                              className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity flex-shrink-0 self-start"
+                              style={{ color: basePrimary }}
+                            >
+                              {bioExpanded ? "Show less" : "Read more"}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <>
+                        {/* Mobile: full text always */}
+                        <p className="sm:hidden text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty" style={{ wordBreak: "normal" }}>
+                          {card.bio}
+                        </p>
+                        {/* Desktop: clamp to 4 lines with Read more toggle */}
+                        <div className="hidden sm:block">
+                          <p
+                            className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
+                            style={
+                              bioExpanded
+                                ? { wordBreak: "normal" }
+                                : {
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 4,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    wordBreak: "normal",
+                                  }
+                            }
+                          >
+                            {card.bio}
+                          </p>
+                          {card.bio.length > 160 && (
+                            <button
+                              type="button"
+                              onClick={() => setBioExpanded((v) => !v)}
+                              className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
+                              style={{ color: basePrimary }}
+                            >
+                              {bioExpanded ? "Show less" : "Read more"}
+                            </button>
+                          )}
+                        </div>
+                      </>
+                    )
                   )}
                 </div>
               )}
