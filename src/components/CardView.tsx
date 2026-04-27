@@ -362,7 +362,40 @@ export default function CardView({
                       }}
                     />
                   )}
-                  {card.bio && <p className="text-sm text-foreground/70 leading-relaxed">{card.bio}</p>}
+                  {card.bio && (
+                    <>
+                      {/* Mobile: full text always */}
+                      <p className="sm:hidden text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap">{card.bio}</p>
+                      {/* Desktop: clamp to 4 lines with Read more toggle */}
+                      <div className="hidden sm:block">
+                        <p
+                          className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap"
+                          style={
+                            bioExpanded
+                              ? undefined
+                              : {
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 4,
+                                  WebkitBoxOrient: "vertical",
+                                  overflow: "hidden",
+                                }
+                          }
+                        >
+                          {card.bio}
+                        </p>
+                        {card.bio.length > 160 && (
+                          <button
+                            type="button"
+                            onClick={() => setBioExpanded((v) => !v)}
+                            className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
+                            style={{ color: basePrimary }}
+                          >
+                            {bioExpanded ? "Show less" : "Read more"}
+                          </button>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
               {(card as any).ad_banner && (
