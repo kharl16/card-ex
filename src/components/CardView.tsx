@@ -31,6 +31,7 @@ import VideoSectionRenderer from "@/components/video/VideoSectionRenderer";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
+import AdBanner from "@/components/AdBanner";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { mergeCarouselSettings, type CarouselSettingsData } from "@/lib/carouselTypes";
 import type { Tables } from "@/integrations/supabase/types";
@@ -330,33 +331,42 @@ export default function CardView({
 
       {/* Everything below the header – normal stacking, avatar/logo stay above because of z-index in RiderHeader */}
       <div className="relative z-0">
-        {/* Company and Bio – Glassmorphic Card */}
-        {(card.company || card.bio) && (
+        {/* Company + Bio (left) and Ad Banner (right) — stacks on mobile */}
+        {(card.company || card.bio || (card as any).ad_banner) && (
           <div className="px-6 pb-4 transition-colors duration-500">
-            <div
-              className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-fit max-w-full"
-              style={{
-                background: "var(--glass-bg)",
-                backdropFilter: "blur(var(--glass-blur))",
-                WebkitBackdropFilter: "blur(var(--glass-blur))",
-                border: "1px solid var(--glass-border)",
-                borderTop: "1px solid var(--glass-border-highlight)",
-                boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
-              }}
-            >
-              {card.company && (
-                <p className="text-sm sm:text-base text-foreground/80 tracking-widest uppercase font-light" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
-              )}
-              {card.company && card.bio && (
+            <div className="flex flex-col sm:flex-row sm:items-stretch gap-4">
+              {(card.company || card.bio) && (
                 <div
-                  className="my-3 h-[1px] w-full animate-gold-pulse"
+                  className="rounded-2xl p-4 px-5 animate-slide-up-fade glass-shimmer w-fit max-w-full sm:flex-1 sm:min-w-0"
                   style={{
-                    background: `linear-gradient(90deg, transparent 0%, ${basePrimary}60 20%, ${basePrimary} 50%, ${basePrimary}60 80%, transparent 100%)`,
-                    boxShadow: `0 0 6px ${basePrimary}40, 0 0 12px ${basePrimary}20`,
+                    background: "var(--glass-bg)",
+                    backdropFilter: "blur(var(--glass-blur))",
+                    WebkitBackdropFilter: "blur(var(--glass-blur))",
+                    border: "1px solid var(--glass-border)",
+                    borderTop: "1px solid var(--glass-border-highlight)",
+                    boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
                   }}
-                />
+                >
+                  {card.company && (
+                    <p className="text-sm sm:text-base text-foreground/80 tracking-widest uppercase font-light" style={{ letterSpacing: "0.12em" }}>{card.company}</p>
+                  )}
+                  {card.company && card.bio && (
+                    <div
+                      className="my-3 h-[1px] w-full animate-gold-pulse"
+                      style={{
+                        background: `linear-gradient(90deg, transparent 0%, ${basePrimary}60 20%, ${basePrimary} 50%, ${basePrimary}60 80%, transparent 100%)`,
+                        boxShadow: `0 0 6px ${basePrimary}40, 0 0 12px ${basePrimary}20`,
+                      }}
+                    />
+                  )}
+                  {card.bio && <p className="text-sm text-foreground/70 leading-relaxed">{card.bio}</p>}
+                </div>
               )}
-              {card.bio && <p className="text-sm text-foreground/70 leading-relaxed">{card.bio}</p>}
+              {(card as any).ad_banner && (
+                <div className="w-full sm:flex-1 sm:max-w-[55%] self-center">
+                  <AdBanner banner={(card as any).ad_banner} accentColor={basePrimary} />
+                </div>
+              )}
             </div>
           </div>
         )}

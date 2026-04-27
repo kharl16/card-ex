@@ -49,6 +49,7 @@ import { BasicInformationSection } from "@/components/editor/sections/BasicInfor
 import { ContactInformationSection, AdditionalContact } from "@/components/editor/sections/ContactInformationSection";
 
 import { CarouselSettingsSection } from "@/components/editor/sections/CarouselSettingsSection";
+import { AdBannerSection } from "@/components/editor/sections/AdBannerSection";
 import { CustomUrlSection } from "@/components/editor/sections/CustomUrlSection";
 import { AITrainingSection } from "@/components/editor/sections/AITrainingSection";
 
@@ -107,6 +108,7 @@ const DEFAULT_SECTION_ORDER = [
   "contact",
   "social",
   "carousel",
+  "ad-banner",
   "qr",
   "theme",
   "custom-url",
@@ -294,6 +296,7 @@ export default function CardEditor() {
         testimony_images: (card as any).testimony_images,
         video_items: (card as any).video_items,
         disc_result: (card as any).disc_result,
+        ad_banner: (card as any).ad_banner,
       })
       .eq("id", card.id);
 
@@ -826,6 +829,14 @@ export default function CardEditor() {
         icon: <Settings className="h-4 w-4" />,
         progress: calculateProgress("carousel"),
         content: <CarouselSettingsSection card={card} onCardChange={handleCardChange} />,
+      },
+      "ad-banner": {
+        id: "ad-banner",
+        title: "Ad Banner",
+        description: "Featured image or video shown beside your bio",
+        icon: <Image className="h-4 w-4" />,
+        progress: (card as any).ad_banner ? 100 : 0,
+        content: <AdBannerSection card={card} onCardChange={handleCardChange} />,
       },
       qr: {
         id: "qr",

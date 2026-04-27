@@ -1,0 +1,2 @@
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS ad_banner jsonb DEFAULT NULL;
+COMMENT ON COLUMN public.cards.ad_banner IS 'Per-card ad banner. Shape: { "type": "image" | "video", "url": "...", "link"?: "..." } or null when unset.';

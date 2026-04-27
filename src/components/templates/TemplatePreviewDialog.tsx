@@ -28,6 +28,7 @@ export function TemplatePreviewDialog({
     id: "preview",
     user_id: "",
     slug: "preview",
+    ad_banner: null,
     full_name: layoutData.full_name || "Your Name",
     first_name: layoutData.first_name || null,
     middle_name: layoutData.middle_name || null,
