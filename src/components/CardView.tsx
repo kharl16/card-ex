@@ -441,7 +441,7 @@ export default function CardView({
                           style={{ color: basePrimary }}
                           aria-hidden="true"
                         >
-                          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
+                          <span className="text-sm sm:text-base font-bold uppercase tracking-wider whitespace-nowrap">
                             Limited Time Only!!!
                           </span>
                           <svg
@@ -452,7 +452,7 @@ export default function CardView({
                             strokeWidth="2.5"
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            className="h-4 w-4 sm:h-5 sm:w-5"
+                            className="h-6 w-6 sm:h-7 sm:w-7"
                           >
                             <path d="M5 12h14" />
                             <path d="m13 6 6 6-6 6" />
