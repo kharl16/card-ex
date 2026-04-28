@@ -93,7 +93,7 @@ export default function VideoSectionRenderer({
 
   const ctaStyle = cta?.style ?? { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const };
   const ctaClasses = getCTAButtonClasses(ctaStyle);
-  const showCTA = cta?.enabled && videos.length > 0;
+  const showCTA = cta?.enabled && visibleVideos.length > 0;
   const buttonVariant = ctaStyle.variant === "solid" ? "default" : ctaStyle.variant;
 
   const ctaInlineStyle: React.CSSProperties = {};
