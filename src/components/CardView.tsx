@@ -437,11 +437,11 @@ export default function CardView({
                         </div>
                         {/* Promo nudge pointing to the Ad Banner image */}
                         <div
-                          className="mt-2 flex-shrink-0 flex items-center gap-1.5 self-end animate-pulse"
+                          className="mt-2 flex-shrink-0 flex items-center gap-1.5 self-start sm:self-end animate-pulse max-w-full"
                           style={{ color: basePrimary }}
                           aria-hidden="true"
                         >
-                          <span className="text-sm sm:text-base font-bold uppercase tracking-wider whitespace-nowrap">
+                          <span className="text-sm sm:text-base font-bold uppercase tracking-wider break-words sm:whitespace-nowrap">
                             Limited Time Only!!!
                           </span>
                           <svg
