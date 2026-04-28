@@ -215,13 +215,71 @@ Deno.serve(async (req) => {
             metadata: { request_id: requestId, device_label },
           });
         }
+
+        // Stash plaintext OTP for fallback retrieval (10-min TTL via request expiry).
+        // Only retrievable by the same authenticated user via 'reveal_fallback_otp'
+        // and only if the email failed.
+        if (isFirstDevice && approvalToken) {
+          await sb
+            .from("device_approval_requests")
+            .update({
+              metadata: {
+                email_status: emailStatus,
+                email_error: emailError ?? null,
+                fallback_otp: emailStatus === "failed" ? approvalToken : null,
+              },
+            })
+            .eq("id", requestId);
+        }
+      }
+
+      // Re-read email status if request already existed
+      let emailStatusOut: string | undefined;
+      if (isFirstDevice) {
+        const { data: meta } = await sb
+          .from("device_approval_requests")
+          .select("metadata")
+          .eq("id", requestId)
+          .maybeSingle();
+        emailStatusOut = (meta?.metadata as any)?.email_status;
       }
 
       return json({
         status: "pending",
         request_id: requestId,
         is_first_device: isFirstDevice,
+        email_status: emailStatusOut,
       });
+    }
+
+    // ─── REVEAL FALLBACK OTP (only when email delivery failed) ───────────
+    if (action === "reveal_fallback_otp") {
+      const { request_id } = body;
+      if (!request_id) return json({ error: "Missing request_id" }, 400);
+
+      const { data: reqRow } = await sb
+        .from("device_approval_requests")
+        .select("id, status, expires_at, metadata")
+        .eq("id", request_id)
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      if (!reqRow) return json({ error: "Request not found" }, 404);
+      if (new Date(reqRow.expires_at) < new Date()) return json({ error: "Request expired" }, 410);
+
+      const meta = (reqRow.metadata as any) || {};
+      if (meta.email_status !== "failed" || !meta.fallback_otp) {
+        return json({ error: "Fallback not available" }, 403);
+      }
+
+      await sb.from("auth_audit_log").insert({
+        user_id: user.id,
+        event_type: "first_device_otp_fallback_revealed",
+        ip_hash: ipHash,
+      });
+
+      return json({ status: "revealed", otp: meta.fallback_otp });
     }
 
     // ─── APPROVE A PENDING REQUEST (from a trusted device) ───────────────
