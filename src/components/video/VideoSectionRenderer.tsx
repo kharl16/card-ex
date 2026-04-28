@@ -47,8 +47,9 @@ export default function VideoSectionRenderer({
   const imageSize = settings.imageSize ?? "md";
   const imageGap = settings.imageGap ?? 12;
 
+  const visibleVideos = videos.filter((v) => !v.hidden);
   const isEnabled = settings.enabled !== false;
-  const shouldRender = isEnabled && videos.length > 0;
+  const shouldRender = isEnabled && visibleVideos.length > 0;
 
   const handleCTAClick = useCallback(() => {
     if (!isInteractive) return;
