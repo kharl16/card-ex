@@ -295,6 +295,35 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
             <p className="text-xs text-muted-foreground mt-1 truncate">{state.fingerprint.userAgent}</p>
           </div>
 
+          {/* Countdown + remaining sends indicator */}
+          {state.expiresAt && (
+            <div
+              className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${
+                expired
+                  ? "border-destructive/40 bg-destructive/10 text-destructive"
+                  : expiryMs < 60_000
+                  ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                  : "border-border bg-muted/30 text-muted-foreground"
+              }`}
+              role="status"
+              aria-live="polite"
+            >
+              <span className="flex items-center gap-1.5 font-mono tabular-nums">
+                <span aria-hidden>⏱</span>
+                {expired ? "Expired" : `Expires in ${formatRemaining(expiryMs)}`}
+              </span>
+              <span>
+                {Math.max(0, state.maxSends - state.sendCount)} of {state.maxSends} sends left
+              </span>
+            </div>
+          )}
+
+          {expired && (
+            <Button className="w-full" onClick={checkDevice}>
+              Start a new request
+            </Button>
+          )}
+
           {state.isFirstDevice ? (
             <>
               {/* Email delivery indicator */}
