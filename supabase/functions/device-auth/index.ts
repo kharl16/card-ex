@@ -531,6 +531,13 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (consumeErr || !consumed) {
+        await sb.from("auth_audit_log").insert({
+          user_id: user.id,
+          event_type: "otp_replay_attempt",
+          device_fingerprint_hash: callerFp ?? reqRow.device_fingerprint_hash,
+          user_agent: req.headers.get("user-agent"),
+          metadata: { request_id, reason: consumeErr?.message ?? "already_consumed" },
+        });
         return json({ error: "Code already used or request changed. Try again." }, 409);
       }
 
