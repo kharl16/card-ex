@@ -31,6 +31,7 @@ import {
   mergeCarouselSettings,
 } from "@/lib/carouselTypes";
 import CarouselImageUploader from "@/components/carousel/CarouselImageUploader";
+import GlobalProductsManager from "@/components/GlobalProductsManager";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
