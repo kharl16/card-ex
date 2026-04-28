@@ -121,7 +121,12 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("device-auth", {
-        body: { action: "verify_otp", request_id: state.requestId, otp },
+        body: {
+          action: "verify_otp",
+          request_id: state.requestId,
+          otp,
+          fingerprint_hash: state.fingerprint.hash,
+        },
       });
       if (error) throw error;
       if (data.status === "approved") {
@@ -141,6 +146,10 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
 
   const handleRequestEmailOtp = async () => {
     if (state.phase !== "pending") return;
+    if (state.sendCount >= state.maxSends) {
+      toast.error("Maximum send attempts reached for this request.");
+      return;
+    }
     setRequestingEmailOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke("device-auth", {
@@ -148,6 +157,17 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
       });
       if (error) throw error;
       setSelfApproveMode(true);
+      // Merge updated counters/expiry from server
+      setState((prev) =>
+        prev.phase === "pending"
+          ? {
+              ...prev,
+              sendCount: Number(data?.send_count ?? prev.sendCount + 1),
+              maxSends: Number(data?.max_sends ?? prev.maxSends),
+              expiresAt: data?.expires_at ?? prev.expiresAt,
+            }
+          : prev,
+      );
       if (data?.email_status === "sent") {
         setSelfApproveStatus("sent");
         toast.success("Verification code sent to your email");
