@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical } from "lucide-react";
+import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
 import { parseVideoUrl, detectVideoSource, type VideoItem } from "@/lib/videoUtils";
 import {
   type CarouselKey,
@@ -996,6 +996,12 @@ function VideoUrlManager({
     onVideosChange(updated);
   };
 
+  const handleToggleHidden = (index: number, visible: boolean) => {
+    const updated = [...videos];
+    updated[index] = { ...updated[index], hidden: !visible };
+    onVideosChange(updated);
+  };
+
   return (
     <div className="space-y-3">
       {/* Add new video URL */}
@@ -1021,39 +1027,58 @@ function VideoUrlManager({
       </p>
 
       {/* Video list */}
-      {videos.map((video, index) => (
-        <div key={index} className="flex items-center gap-2 p-2 rounded-lg border border-border bg-muted/30">
-          <div className="flex-shrink-0">
-            <Badge variant="outline" className="text-[10px]">
-              {video.source === "youtube" ? "YT" : "GD"}
-            </Badge>
-          </div>
-          <div className="flex-1 min-w-0 space-y-1">
-            <Input
-              value={video.title || ""}
-              onChange={(e) => handleTitleChange(index, e.target.value)}
-              placeholder="Video title (optional)"
-              className="h-7 text-xs"
-            />
-            <Input
-              value={video.description || ""}
-              onChange={(e) => handleDescriptionChange(index, e.target.value)}
-              placeholder="Description (optional)"
-              className="h-7 text-xs"
-            />
-            <p className="text-[10px] text-muted-foreground truncate">{video.url}</p>
-          </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 flex-shrink-0 text-destructive hover:text-destructive"
-            onClick={() => handleRemove(index)}
+      {videos.map((video, index) => {
+        const isVisible = !video.hidden;
+        return (
+          <div
+            key={index}
+            className={`flex items-center gap-2 p-2 rounded-lg border bg-muted/30 transition ${
+              isVisible ? "border-border" : "border-dashed border-muted-foreground/40 opacity-70"
+            }`}
           >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      ))}
+            <div className="flex-shrink-0">
+              <Badge variant="outline" className="text-[10px]">
+                {video.source === "youtube" ? "YT" : "GD"}
+              </Badge>
+            </div>
+            <div className="flex-1 min-w-0 space-y-1">
+              <Input
+                value={video.title || ""}
+                onChange={(e) => handleTitleChange(index, e.target.value)}
+                placeholder="Video title (optional)"
+                className="h-7 text-xs"
+              />
+              <Input
+                value={video.description || ""}
+                onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                placeholder="Description (optional)"
+                className="h-7 text-xs"
+              />
+              <p className="text-[10px] text-muted-foreground truncate">{video.url}</p>
+            </div>
+            <div className="flex flex-col items-center gap-1 flex-shrink-0">
+              <Switch
+                checked={isVisible}
+                onCheckedChange={(checked) => handleToggleHidden(index, checked)}
+                aria-label={isVisible ? "Hide video" : "Show video"}
+              />
+              <span className="text-[9px] text-muted-foreground flex items-center gap-0.5">
+                {isVisible ? <Eye className="h-2.5 w-2.5" /> : <EyeOff className="h-2.5 w-2.5" />}
+                {isVisible ? "On" : "Off"}
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 flex-shrink-0 text-destructive hover:text-destructive"
+              onClick={() => handleRemove(index)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        );
+      })}
 
       {videos.length === 0 && (
         <div className="text-center py-6 text-muted-foreground text-sm">

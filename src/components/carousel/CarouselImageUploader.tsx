@@ -13,7 +13,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Upload, X, GripVertical, Trash2, ImagePlus, Pencil } from "lucide-react";
+import { Upload, X, GripVertical, Trash2, ImagePlus, Pencil, Eye, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import {
   DndContext,
   closestCenter,
@@ -50,6 +51,7 @@ interface SortableImageItemProps {
   onDelete: (index: number) => void;
   onEdit: (index: number) => void;
   onDescriptionChange: (index: number, description: string) => void;
+  onToggleVisibility: (index: number, visible: boolean) => void;
 }
 
 interface PendingImage {
@@ -57,7 +59,7 @@ interface PendingImage {
   previewUrl: string;
 }
 
-function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange }: SortableImageItemProps) {
+function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange, onToggleVisibility }: SortableImageItemProps) {
   const {
     attributes,
     listeners,
@@ -73,18 +75,30 @@ function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const isVisible = !image.hidden;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="relative group rounded-lg border border-border overflow-hidden bg-card"
+      className={`relative group rounded-lg border overflow-hidden bg-card transition ${
+        isVisible ? "border-border" : "border-dashed border-muted-foreground/40"
+      }`}
     >
       <div className="aspect-video relative">
         <img
           src={image.url}
           alt={image.alt || "Carousel image"}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition ${
+            isVisible ? "" : "grayscale opacity-50"
+          }`}
         />
+        {!isVisible && (
+          <div className="absolute top-1 left-1 bg-background/90 text-[10px] font-medium px-1.5 py-0.5 rounded flex items-center gap-1 text-muted-foreground">
+            <EyeOff className="h-3 w-3" />
+            Hidden
+          </div>
+        )}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           <Button
             variant="secondary"
@@ -102,18 +116,30 @@ function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange
           </Button>
         </div>
       </div>
-      <div className="p-2">
+      <div className="p-2 space-y-2">
         <div className="flex items-center gap-2">
           <button
             {...attributes}
             {...listeners}
             className="cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded"
+            aria-label="Drag to reorder"
           >
             <GripVertical className="h-4 w-4 text-muted-foreground" />
           </button>
           <span className="text-xs text-muted-foreground truncate flex-1">
             {image.alt || `Image ${index + 1}`}
           </span>
+        </div>
+        <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/50">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            {isVisible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+            <span>{isVisible ? "Visible" : "Hidden"}</span>
+          </div>
+          <Switch
+            checked={isVisible}
+            onCheckedChange={(checked) => onToggleVisibility(index, checked)}
+            aria-label={isVisible ? "Hide from public view" : "Show on public view"}
+          />
         </div>
       </div>
     </div>
@@ -452,6 +478,19 @@ export default function CarouselImageUploader({
     [editingIndex, images, onImagesChange]
   );
 
+  const handleToggleVisibility = useCallback(
+    (index: number, visible: boolean) => {
+      const updated = images.map((img, i) =>
+        i === index ? { ...img, hidden: !visible } : img
+      );
+      onImagesChange(updated);
+      toast.success(visible ? "Image is now visible" : "Image hidden from public view");
+    },
+    [images, onImagesChange]
+  );
+
+  const visibleCount = images.filter((img) => !img.hidden).length;
+
   const carouselLabels: Record<CarouselKey, string> = {
     products: "Products",
     packages: "Packages",
@@ -465,6 +504,11 @@ export default function CarouselImageUploader({
         <Label className="text-sm font-medium">
           {carouselLabels[carouselKey]} Images ({images.length}/{maxImages})
         </Label>
+        {images.length > 0 && images.length !== visibleCount && (
+          <span className="text-xs text-muted-foreground">
+            {visibleCount} visible · {images.length - visibleCount} hidden
+          </span>
+        )}
       </div>
 
       {images.length > 0 && (
@@ -486,6 +530,7 @@ export default function CarouselImageUploader({
                   onDelete={handleDelete}
                   onEdit={handleEdit}
                   onDescriptionChange={handleInlineDescriptionChange}
+                  onToggleVisibility={handleToggleVisibility}
                 />
               ))}
             </div>

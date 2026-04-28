@@ -65,9 +65,12 @@ export default function CarouselSectionRenderer({
   const imageSize = settings.imageSize ?? "md";
   const imageGap = settings.imageGap ?? 12;
 
+  // Filter out hidden items - they remain stored but are not shown publicly
+  const visibleImages = images.filter((img) => !img.hidden);
+
   // Check if should render
   const isEnabled = settings.enabled !== false;
-  const shouldRender = isEnabled && images.length > 0;
+  const shouldRender = isEnabled && visibleImages.length > 0;
 
   // Handle CTA actions - must be defined before any early return
   const handleCTAClick = useCallback(() => {
@@ -116,7 +119,7 @@ export default function CarouselSectionRenderer({
   }
 
   // Convert images to CardExCarousel format
-  const carouselItems = images
+  const carouselItems = visibleImages
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .slice(0, settings.maxImages ?? 50)
     .map((img, idx) => ({
@@ -135,7 +138,7 @@ export default function CarouselSectionRenderer({
   // CTA button classes - with safe defaults
   const ctaStyle = cta?.style ?? { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const };
   const ctaClasses = getCTAButtonClasses(ctaStyle);
-  const showCTA = cta?.enabled && images.length > 0;
+  const showCTA = cta?.enabled && visibleImages.length > 0;
 
   // CTA variant mapping
   const buttonVariant = ctaStyle.variant === "solid" ? "default" : ctaStyle.variant;

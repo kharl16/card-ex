@@ -12,6 +12,7 @@ export interface VideoItem {
   thumbnail?: string;
   order?: number;
   description?: string;
+  hidden?: boolean; // when true, video is kept but not shown publicly
 }
 
 /** Extract YouTube video ID from various URL formats */

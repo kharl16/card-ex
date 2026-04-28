@@ -47,8 +47,9 @@ export default function VideoSectionRenderer({
   const imageSize = settings.imageSize ?? "md";
   const imageGap = settings.imageGap ?? 12;
 
+  const visibleVideos = videos.filter((v) => !v.hidden);
   const isEnabled = settings.enabled !== false;
-  const shouldRender = isEnabled && videos.length > 0;
+  const shouldRender = isEnabled && visibleVideos.length > 0;
 
   const handleCTAClick = useCallback(() => {
     if (!isInteractive) return;
@@ -82,7 +83,7 @@ export default function VideoSectionRenderer({
 
   if (!shouldRender) return null;
 
-  const displayVideos = videos
+  const displayVideos = visibleVideos
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .slice(0, settings.maxImages ?? 25);
 
@@ -92,7 +93,7 @@ export default function VideoSectionRenderer({
 
   const ctaStyle = cta?.style ?? { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const };
   const ctaClasses = getCTAButtonClasses(ctaStyle);
-  const showCTA = cta?.enabled && videos.length > 0;
+  const showCTA = cta?.enabled && visibleVideos.length > 0;
   const buttonVariant = ctaStyle.variant === "solid" ? "default" : ctaStyle.variant;
 
   const ctaInlineStyle: React.CSSProperties = {};

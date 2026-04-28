@@ -76,6 +76,7 @@ export interface CarouselImage {
   order?: number;
   shareText?: string; // optional caption override for sharing
   description?: string; // description shown in table below carousel
+  hidden?: boolean; // when true, item is kept in storage but not shown publicly
 }
 
 export type DescriptionTableColumns = 1 | 2;
