@@ -470,7 +470,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
                 variant="outline"
                 className="w-full"
                 onClick={handleRequestEmailOtp}
-                disabled={requestingEmailOtp}
+                disabled={requestingEmailOtp || expired || state.sendCount >= state.maxSends}
               >
                 {requestingEmailOtp ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
