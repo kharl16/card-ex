@@ -151,14 +151,9 @@ Deno.serve(async (req) => {
         });
 
         // Notify or email OTP
-        if (isFirstDevice && approvalToken && RESEND_API_KEY && user.email) {
+        if (isFirstDevice && approvalToken && LOVABLE_API_KEY && user.email) {
           try {
-            const resend = new Resend(RESEND_API_KEY);
-            await resend.emails.send({
-              from: `Card-Ex Security <${RESEND_FROM}>`,
-              to: user.email,
-              subject: `Your Card-Ex device verification code: ${approvalToken}`,
-              html: `
+            const html = `
                 <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0a0a0a;color:#f5f5f5;border-radius:12px;">
                   <h2 style="color:#D4AF37;margin-top:0;">Verify your device</h2>
                   <p>Someone is trying to sign in to your Card-Ex account from a new device:</p>
@@ -170,8 +165,22 @@ Deno.serve(async (req) => {
                     ${approvalToken}
                   </div>
                   <p style="color:#888;font-size:13px;">This code expires in 10 minutes. If you didn't request this, ignore this email and consider changing your password.</p>
-                </div>`,
-            });
+                </div>`;
+            const text = `Your Card-Ex device verification code: ${approvalToken}\n\nDevice: ${device_label || "Unknown device"}\n\nThis code expires in 10 minutes. If you didn't request this, ignore this email.`;
+
+            await sendLovableEmail(
+              {
+                to: user.email,
+                from: FROM_ADDRESS,
+                sender_domain: SENDER_DOMAIN,
+                subject: `Your Card-Ex device verification code: ${approvalToken}`,
+                html,
+                text,
+                purpose: "transactional",
+                idempotency_key: `device-otp-${requestId}`,
+              },
+              { apiKey: LOVABLE_API_KEY },
+            );
 
             await sb.from("auth_audit_log").insert({
               user_id: user.id,
@@ -181,7 +190,15 @@ Deno.serve(async (req) => {
               ip_hash: ipHash,
             });
           } catch (e) {
-            console.error("OTP email failed:", e);
+            console.error("OTP email failed:", (e as Error).message, e);
+            await sb.from("auth_audit_log").insert({
+              user_id: user.id,
+              event_type: "first_device_otp_failed",
+              device_fingerprint_hash: fingerprint_hash,
+              device_label,
+              ip_hash: ipHash,
+              metadata: { error: (e as Error).message },
+            });
           }
         } else if (!isFirstDevice) {
           // In-app notification to existing trusted devices
