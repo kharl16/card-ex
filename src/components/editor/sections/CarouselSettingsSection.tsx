@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical } from "lucide-react";
+import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
 import { parseVideoUrl, detectVideoSource, type VideoItem } from "@/lib/videoUtils";
 import {
   type CarouselKey,
