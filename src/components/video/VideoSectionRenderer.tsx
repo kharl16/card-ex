@@ -83,7 +83,7 @@ export default function VideoSectionRenderer({
 
   if (!shouldRender) return null;
 
-  const displayVideos = videos
+  const displayVideos = visibleVideos
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .slice(0, settings.maxImages ?? 25);
 
