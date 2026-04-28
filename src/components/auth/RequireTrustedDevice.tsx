@@ -444,10 +444,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
                 variant="ghost"
                 className="w-full text-xs"
                 onClick={handleRequestEmailOtp}
-                disabled={requestingEmailOtp}
-              >
-                {requestingEmailOtp ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Mail className="h-3 w-3 mr-2" />}
-                Resend email code
+                disabled={requestingEmailOtp || expired || state.sendCount >= state.maxSends}
               </Button>
             </>
           ) : (
