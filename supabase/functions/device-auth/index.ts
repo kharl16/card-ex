@@ -151,6 +151,8 @@ Deno.serve(async (req) => {
         });
 
         // Notify or email OTP
+        let emailStatus: "sent" | "failed" | "skipped" = "skipped";
+        let emailError: string | undefined;
         if (isFirstDevice && approvalToken && LOVABLE_API_KEY && user.email) {
           try {
             const html = `
@@ -176,12 +178,13 @@ Deno.serve(async (req) => {
                 subject: `Your Card-Ex device verification code: ${approvalToken}`,
                 html,
                 text,
-                purpose: "transactional",
+                purpose: "notification",
                 idempotency_key: `device-otp-${requestId}`,
               },
               { apiKey: LOVABLE_API_KEY },
             );
 
+            emailStatus = "sent";
             await sb.from("auth_audit_log").insert({
               user_id: user.id,
               event_type: "first_device_otp_sent",
@@ -190,14 +193,16 @@ Deno.serve(async (req) => {
               ip_hash: ipHash,
             });
           } catch (e) {
-            console.error("OTP email failed:", (e as Error).message, e);
+            emailStatus = "failed";
+            emailError = (e as Error).message;
+            console.error("OTP email failed:", emailError, e);
             await sb.from("auth_audit_log").insert({
               user_id: user.id,
               event_type: "first_device_otp_failed",
               device_fingerprint_hash: fingerprint_hash,
               device_label,
               ip_hash: ipHash,
-              metadata: { error: (e as Error).message },
+              metadata: { error: emailError },
             });
           }
         } else if (!isFirstDevice) {
