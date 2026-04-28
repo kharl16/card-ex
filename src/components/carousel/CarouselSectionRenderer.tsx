@@ -119,7 +119,7 @@ export default function CarouselSectionRenderer({
   }
 
   // Convert images to CardExCarousel format
-  const carouselItems = images
+  const carouselItems = visibleImages
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
     .slice(0, settings.maxImages ?? 50)
     .map((img, idx) => ({
