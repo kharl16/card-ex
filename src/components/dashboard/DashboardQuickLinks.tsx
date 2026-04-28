@@ -81,7 +81,7 @@ export function DashboardQuickLinks() {
     <div className="space-y-2">
       <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">Quick Links</h3>
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-4 md:grid-cols-8">
-        {links.map((link) => {
+        {visibleLinks.map((link) => {
           if (link.path === "__analytics__" && cards.length > 1) {
             return (
               <DropdownMenu key={link.label}>
