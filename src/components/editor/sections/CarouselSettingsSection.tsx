@@ -31,6 +31,7 @@ import {
   mergeCarouselSettings,
 } from "@/lib/carouselTypes";
 import CarouselImageUploader from "@/components/carousel/CarouselImageUploader";
+import GlobalProductsManager from "@/components/GlobalProductsManager";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
@@ -945,6 +946,24 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                     maxImages={MAX_IMAGES[key]}
                     onImagesChange={(images) => updateImages(key, images)}
                   />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Shared product photos — only on Products tab. Lets each card owner hide globals from their own carousel. */}
+            {key === "products" && card?.id && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    Shared Product Photos
+                  </CardTitle>
+                  <CardDescription>
+                    Photos added by the admin that appear on every card. Hide any you don't want on your card — your own uploads above are always yours.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <GlobalProductsManager cardId={card.id} />
                 </CardContent>
               </Card>
             )}
