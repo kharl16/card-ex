@@ -65,9 +65,12 @@ export default function CarouselSectionRenderer({
   const imageSize = settings.imageSize ?? "md";
   const imageGap = settings.imageGap ?? 12;
 
+  // Filter out hidden items - they remain stored but are not shown publicly
+  const visibleImages = images.filter((img) => !img.hidden);
+
   // Check if should render
   const isEnabled = settings.enabled !== false;
-  const shouldRender = isEnabled && images.length > 0;
+  const shouldRender = isEnabled && visibleImages.length > 0;
 
   // Handle CTA actions - must be defined before any early return
   const handleCTAClick = useCallback(() => {
