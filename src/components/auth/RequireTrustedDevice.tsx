@@ -115,6 +115,33 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     }
   };
 
+  const [selfApproveMode, setSelfApproveMode] = useState(false);
+  const [selfApproveStatus, setSelfApproveStatus] = useState<"sent" | "failed" | null>(null);
+  const [requestingEmailOtp, setRequestingEmailOtp] = useState(false);
+
+  const handleRequestEmailOtp = async () => {
+    if (state.phase !== "pending") return;
+    setRequestingEmailOtp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("device-auth", {
+        body: { action: "request_email_otp", request_id: state.requestId },
+      });
+      if (error) throw error;
+      setSelfApproveMode(true);
+      if (data?.email_status === "sent") {
+        setSelfApproveStatus("sent");
+        toast.success("Verification code sent to your email");
+      } else {
+        setSelfApproveStatus("failed");
+        toast.error("Email delivery failed — use the backup code");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Could not send code");
+    } finally {
+      setRequestingEmailOtp(false);
+    }
+  };
+
   const [revealedOtp, setRevealedOtp] = useState<string | null>(null);
   const [revealing, setRevealing] = useState(false);
 
