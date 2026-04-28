@@ -996,6 +996,12 @@ function VideoUrlManager({
     onVideosChange(updated);
   };
 
+  const handleToggleHidden = (index: number, visible: boolean) => {
+    const updated = [...videos];
+    updated[index] = { ...updated[index], hidden: !visible };
+    onVideosChange(updated);
+  };
+
   return (
     <div className="space-y-3">
       {/* Add new video URL */}
