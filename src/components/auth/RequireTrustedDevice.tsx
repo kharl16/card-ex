@@ -115,6 +115,29 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     }
   };
 
+  const [revealedOtp, setRevealedOtp] = useState<string | null>(null);
+  const [revealing, setRevealing] = useState(false);
+
+  const handleRevealFallback = async () => {
+    if (state.phase !== "pending") return;
+    setRevealing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("device-auth", {
+        body: { action: "reveal_fallback_otp", request_id: state.requestId },
+      });
+      if (error) throw error;
+      if (data?.otp) {
+        setRevealedOtp(data.otp);
+        setOtp(data.otp);
+        toast.success("Backup code retrieved");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Could not retrieve backup code");
+    } finally {
+      setRevealing(false);
+    }
+  };
+
   const handleSignOut = async () => {
     clearDeviceToken();
     await supabase.auth.signOut();
