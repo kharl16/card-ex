@@ -101,13 +101,16 @@ export default function SharedCard() {
       return;
     }
 
-    // Get card data
-    const { data, error } = await supabase
-      .from("cards")
+    // Get card data from public-safe view (excludes payment internals,
+    // referral chain attribution, and personality assessment results).
+    const { data: rawData, error } = await supabase
+      .from("cards_public" as any)
       .select("*")
       .eq("id", shareLink.card_id)
       .eq("is_published", true)
       .single();
+
+    const data = rawData as unknown as CardData | null;
 
     if (!error && data) {
       setCard(data);

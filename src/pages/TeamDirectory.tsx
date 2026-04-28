@@ -64,15 +64,15 @@ export default function TeamDirectory() {
     if (membershipData && membershipData.length > 0) {
       const userIds = membershipData.map((m) => m.user_id);
 
+      // Use cards_public view (already restricted to is_published = true; excludes internal fields).
       const { data: cards } = await supabase
-        .from("cards")
+        .from("cards_public" as any)
         .select("id, full_name, title, company, avatar_url, bio, location, email, phone, slug, custom_slug")
         .in("user_id", userIds)
-        .eq("is_published", true)
-        .eq("is_template", false);
+        .eq("is_published", true);
 
       if (cards) {
-        setMembers(cards);
+        setMembers(cards as any);
       }
     }
 
