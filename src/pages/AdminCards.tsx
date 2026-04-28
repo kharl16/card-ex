@@ -836,6 +836,10 @@ export default function AdminCards() {
             <ShieldCheck className="h-4 w-4" />
             OTP Audit
           </Button>
+          <Button onClick={() => navigate("/admin/device-approvals")} variant="outline" className="gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            Device Approvals
+          </Button>
           {/* Note: "Create Card for User" now available via the "+ Card" button on individual users in the All Users tab */}
         </div>
 
