@@ -813,6 +813,7 @@ export type Database = {
           expires_at: string
           id: string
           ip_hash: string | null
+          metadata: Json | null
           resolved_at: string | null
           status: string
           user_agent: string | null
@@ -827,6 +828,7 @@ export type Database = {
           expires_at?: string
           id?: string
           ip_hash?: string | null
+          metadata?: Json | null
           resolved_at?: string | null
           status?: string
           user_agent?: string | null
@@ -841,6 +843,7 @@ export type Database = {
           expires_at?: string
           id?: string
           ip_hash?: string | null
+          metadata?: Json | null
           resolved_at?: string | null
           status?: string
           user_agent?: string | null
