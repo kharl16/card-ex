@@ -13,7 +13,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Upload, X, GripVertical, Trash2, ImagePlus, Pencil } from "lucide-react";
+import { Upload, X, GripVertical, Trash2, ImagePlus, Pencil, Eye, EyeOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import {
   DndContext,
   closestCenter,
