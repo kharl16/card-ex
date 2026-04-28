@@ -106,6 +106,13 @@ export type Database = {
             referencedRelation: "cards"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ai_training_qa_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       ambassadors_library: {
@@ -199,6 +206,13 @@ export type Database = {
             columns: ["card_id"]
             isOneToOne: false
             referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_daily_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
             referencedColumns: ["id"]
           },
         ]
@@ -359,6 +373,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "card_appointments_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "card_appointments_owner_user_id_fkey"
             columns: ["owner_user_id"]
             isOneToOne: false
@@ -404,6 +425,13 @@ export type Database = {
             columns: ["card_id"]
             isOneToOne: false
             referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_events_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
             referencedColumns: ["id"]
           },
         ]
@@ -467,6 +495,13 @@ export type Database = {
             referencedRelation: "cards"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "card_images_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       card_links: {
@@ -506,6 +541,13 @@ export type Database = {
             columns: ["card_id"]
             isOneToOne: false
             referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_links_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1214,6 +1256,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "leads_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "leads_owner_user_id_fkey"
             columns: ["owner_user_id"]
             isOneToOne: false
@@ -1411,6 +1460,13 @@ export type Database = {
             columns: ["card_id"]
             isOneToOne: false
             referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
             referencedColumns: ["id"]
           },
           {
@@ -1760,6 +1816,13 @@ export type Database = {
             referencedRelation: "cards"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "prospects_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       rate_limits: {
@@ -1850,6 +1913,13 @@ export type Database = {
             columns: ["referred_card_id"]
             isOneToOne: false
             referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referred_card_id_fkey"
+            columns: ["referred_card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
             referencedColumns: ["id"]
           },
           {
@@ -2010,6 +2080,13 @@ export type Database = {
             columns: ["card_id"]
             isOneToOne: false
             referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "share_links_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
             referencedColumns: ["id"]
           },
         ]
@@ -2429,6 +2506,146 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      cards_public: {
+        Row: {
+          ad_banner: Json | null
+          avatar_url: string | null
+          bio: string | null
+          card_type: string | null
+          carousel_enabled: boolean | null
+          carousel_settings: Json | null
+          company: string | null
+          cover_url: string | null
+          created_at: string | null
+          custom_slug: string | null
+          email: string | null
+          first_name: string | null
+          full_name: string | null
+          id: string | null
+          is_published: boolean | null
+          last_name: string | null
+          location: string | null
+          logo_url: string | null
+          middle_name: string | null
+          organization_id: string | null
+          owner_name: string | null
+          package_images: Json | null
+          phone: string | null
+          prefix: string | null
+          product_images: Json | null
+          public_url: string | null
+          published_at: string | null
+          qr_code_url: string | null
+          share_url: string | null
+          slug: string | null
+          social_links: Json | null
+          suffix: string | null
+          testimony_images: Json | null
+          theme: Json | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+          vcard_url: string | null
+          video_items: Json | null
+          wallet_pass_url: string | null
+          website: string | null
+        }
+        Insert: {
+          ad_banner?: Json | null
+          avatar_url?: string | null
+          bio?: string | null
+          card_type?: string | null
+          carousel_enabled?: boolean | null
+          carousel_settings?: Json | null
+          company?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          custom_slug?: string | null
+          email?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_published?: boolean | null
+          last_name?: string | null
+          location?: string | null
+          logo_url?: string | null
+          middle_name?: string | null
+          organization_id?: string | null
+          owner_name?: string | null
+          package_images?: Json | null
+          phone?: string | null
+          prefix?: string | null
+          product_images?: Json | null
+          public_url?: string | null
+          published_at?: string | null
+          qr_code_url?: string | null
+          share_url?: string | null
+          slug?: string | null
+          social_links?: Json | null
+          suffix?: string | null
+          testimony_images?: Json | null
+          theme?: Json | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vcard_url?: string | null
+          video_items?: Json | null
+          wallet_pass_url?: string | null
+          website?: string | null
+        }
+        Update: {
+          ad_banner?: Json | null
+          avatar_url?: string | null
+          bio?: string | null
+          card_type?: string | null
+          carousel_enabled?: boolean | null
+          carousel_settings?: Json | null
+          company?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          custom_slug?: string | null
+          email?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_published?: boolean | null
+          last_name?: string | null
+          location?: string | null
+          logo_url?: string | null
+          middle_name?: string | null
+          organization_id?: string | null
+          owner_name?: string | null
+          package_images?: Json | null
+          phone?: string | null
+          prefix?: string | null
+          product_images?: Json | null
+          public_url?: string | null
+          published_at?: string | null
+          qr_code_url?: string | null
+          share_url?: string | null
+          slug?: string | null
+          social_links?: Json | null
+          suffix?: string | null
+          testimony_images?: Json | null
+          theme?: Json | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vcard_url?: string | null
+          video_items?: Json | null
+          wallet_pass_url?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cards_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
