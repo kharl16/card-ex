@@ -29,8 +29,12 @@ const links = [
 
 export function DashboardQuickLinks() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [cards, setCards] = useState<CardOption[]>([]);
+
+  const visibleLinks = isAdmin
+    ? [...links, { icon: ShieldAlert, label: "OTP Audit", path: "/admin/otp-audit", color: "text-red-500" }]
+    : links;
 
   useEffect(() => {
     if (!user) return;
