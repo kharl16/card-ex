@@ -5,14 +5,16 @@ import { getDeviceFingerprint, clearDeviceToken, type DeviceFingerprint } from "
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Shield, ShieldCheck, ShieldAlert, LogOut, Mail, Loader2 } from "lucide-react";
+import { Shield, ShieldCheck, ShieldAlert, LogOut, Mail, Loader2, MailCheck, MailX, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
+
+type EmailStatus = "sent" | "failed" | "skipped" | undefined;
 
 type State =
   | { phase: "loading" }
   | { phase: "trusted" }
-  | { phase: "pending"; requestId: string; isFirstDevice: boolean; fingerprint: DeviceFingerprint }
+  | { phase: "pending"; requestId: string; isFirstDevice: boolean; fingerprint: DeviceFingerprint; emailStatus: EmailStatus }
   | { phase: "error"; message: string };
 
 export default function RequireTrustedDevice({ children }: { children: React.ReactNode }) {
@@ -41,6 +43,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
           requestId: data.request_id,
           isFirstDevice: !!data.is_first_device,
           fingerprint: fp,
+          emailStatus: data.email_status as EmailStatus,
         });
       } else {
         setState({ phase: "error", message: "Unexpected response" });
@@ -109,6 +112,29 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
       toast.error(e.message || "Invalid code");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const [revealedOtp, setRevealedOtp] = useState<string | null>(null);
+  const [revealing, setRevealing] = useState(false);
+
+  const handleRevealFallback = async () => {
+    if (state.phase !== "pending") return;
+    setRevealing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("device-auth", {
+        body: { action: "reveal_fallback_otp", request_id: state.requestId },
+      });
+      if (error) throw error;
+      if (data?.otp) {
+        setRevealedOtp(data.otp);
+        setOtp(data.otp);
+        toast.success("Backup code retrieved");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Could not retrieve backup code");
+    } finally {
+      setRevealing(false);
     }
   };
 
@@ -190,6 +216,26 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
 
           {state.isFirstDevice ? (
             <>
+              {/* Email delivery indicator */}
+              {state.emailStatus === "sent" && (
+                <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm">
+                  <MailCheck className="h-4 w-4 mt-0.5 text-emerald-500 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-emerald-600 dark:text-emerald-400">Email sent</p>
+                    <p className="text-xs text-muted-foreground">Check your inbox (and spam folder) for the 6-digit code.</p>
+                  </div>
+                </div>
+              )}
+              {state.emailStatus === "failed" && (
+                <div className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
+                  <MailX className="h-4 w-4 mt-0.5 text-destructive flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-medium text-destructive">Email delivery failed</p>
+                    <p className="text-xs text-muted-foreground">Use the backup code below to continue.</p>
+                  </div>
+                </div>
+              )}
+
               <Input
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -198,6 +244,26 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
                 maxLength={6}
                 inputMode="numeric"
               />
+
+              {/* Backup code reveal — only when email failed */}
+              {state.emailStatus === "failed" && !revealedOtp && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleRevealFallback}
+                  disabled={revealing}
+                >
+                  {revealing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <KeyRound className="h-4 w-4 mr-2" />}
+                  Show backup verification code
+                </Button>
+              )}
+              {revealedOtp && (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Backup code (already filled in)</p>
+                  <p className="text-2xl font-mono font-bold tracking-[0.4em] text-primary">{revealedOtp}</p>
+                </div>
+              )}
+
               <Button
                 className="w-full"
                 onClick={handleVerifyOtp}

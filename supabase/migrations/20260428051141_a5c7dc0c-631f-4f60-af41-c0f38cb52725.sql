@@ -1,0 +1,1 @@
+ALTER TABLE public.device_approval_requests ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
