@@ -233,22 +233,22 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Re-read email status if request already existed
-      let emailStatusOut: string | undefined;
-      if (isFirstDevice) {
-        const { data: meta } = await sb
-          .from("device_approval_requests")
-          .select("metadata")
-          .eq("id", requestId)
-          .maybeSingle();
-        emailStatusOut = (meta?.metadata as any)?.email_status;
-      }
+      // Re-read for fresh expiry/metadata
+      const { data: reqMeta } = await sb
+        .from("device_approval_requests")
+        .select("expires_at, metadata")
+        .eq("id", requestId)
+        .maybeSingle();
+      const metaOut = (reqMeta?.metadata as any) || {};
 
       return json({
         status: "pending",
         request_id: requestId,
         is_first_device: isFirstDevice,
-        email_status: emailStatusOut,
+        email_status: isFirstDevice ? metaOut.email_status : undefined,
+        expires_at: reqMeta?.expires_at,
+        send_count: Number(metaOut.email_otp_send_count || (isFirstDevice ? 1 : 0)),
+        max_sends: 3,
       });
     }
 
