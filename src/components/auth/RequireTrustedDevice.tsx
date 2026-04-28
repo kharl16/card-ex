@@ -112,6 +112,20 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     };
   }, [state, checkDevice]);
 
+  // Countdown ticker — re-renders every second while pending
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (state.phase !== "pending" || !state.expiresAt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [state.phase, state.phase === "pending" ? state.expiresAt : null]);
+
+  const expiryMs =
+    state.phase === "pending" && state.expiresAt
+      ? new Date(state.expiresAt).getTime() - now
+      : 0;
+  const expired = state.phase === "pending" && !!state.expiresAt && expiryMs <= 0;
+
   const handleVerifyOtp = async () => {
     if (state.phase !== "pending") return;
     if (otp.length !== 6) {
