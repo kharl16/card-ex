@@ -435,6 +435,29 @@ export default function CardView({
                             </button>
                           )}
                         </div>
+                        {/* Promo nudge pointing to the Ad Banner image */}
+                        <div
+                          className="mt-2 flex-shrink-0 flex items-center gap-1.5 self-end animate-pulse"
+                          style={{ color: basePrimary }}
+                          aria-hidden="true"
+                        >
+                          <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider whitespace-nowrap">
+                            Limited Time Only!!!
+                          </span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4 sm:h-5 sm:w-5"
+                          >
+                            <path d="M5 12h14" />
+                            <path d="m13 6 6 6-6 6" />
+                          </svg>
+                        </div>
                       </div>
                     ) : (
                       <>
