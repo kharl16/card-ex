@@ -98,9 +98,11 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
     // referral attribution, or assessment results) so anonymous visitors don't leak data.
     const query = supabase.from("cards_public" as any).select("*").eq("is_published", true);
 
-    const { data, error } = customSlug
+    const { data: rawData, error } = customSlug
       ? await query.eq("custom_slug", slugValue).single()
       : await query.eq("slug", slugValue).single();
+
+    const data = rawData as unknown as CardData | null;
 
     if (!error && data) {
       setCard(data);
