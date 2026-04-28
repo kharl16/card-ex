@@ -644,6 +644,151 @@ Deno.serve(async (req) => {
       return json({ status: "signed_out_all" });
     }
 
+    // ─── ADMIN: list all pending device approval requests ────────────────
+    if (action === "admin_list_pending") {
+      const { data: isAdmin } = await sb.rpc("is_super_admin", { _user_id: user.id });
+      if (!isAdmin) return json({ error: "Forbidden" }, 403);
+
+      // Auto-expire stale ones first
+      await sb.rpc("expire_stale_approval_requests").catch(() => {});
+
+      const { data: requests, error } = await sb
+        .from("device_approval_requests")
+        .select("*")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) return json({ error: error.message }, 500);
+
+      const list = requests ?? [];
+      const userIds = Array.from(new Set(list.map((r: any) => r.user_id)));
+
+      // Fetch profile names + auth emails + enrolled device counts
+      const [{ data: profiles }, { data: devices }] = await Promise.all([
+        sb.from("profiles").select("id, full_name").in("id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"]),
+        sb
+          .from("trusted_devices")
+          .select("user_id")
+          .in("user_id", userIds.length ? userIds : ["00000000-0000-0000-0000-000000000000"])
+          .is("revoked_at", null),
+      ]);
+
+      const nameMap: Record<string, string> = {};
+      (profiles ?? []).forEach((p: any) => (nameMap[p.id] = p.full_name ?? ""));
+
+      const countMap: Record<string, number> = {};
+      (devices ?? []).forEach((d: any) => {
+        countMap[d.user_id] = (countMap[d.user_id] ?? 0) + 1;
+      });
+
+      // Email lookups (best-effort)
+      const emailMap: Record<string, string> = {};
+      await Promise.all(
+        userIds.map(async (uid) => {
+          try {
+            const { data } = await sb.auth.admin.getUserById(uid);
+            if (data?.user?.email) emailMap[uid] = data.user.email;
+          } catch (_) {}
+        })
+      );
+
+      const enriched = list.map((r: any) => ({
+        ...r,
+        full_name: nameMap[r.user_id] ?? null,
+        email: emailMap[r.user_id] ?? null,
+        enrolled_device_count: countMap[r.user_id] ?? 0,
+      }));
+
+      return json({ requests: enriched });
+    }
+
+    // ─── ADMIN: approve a device request on behalf of a user ─────────────
+    if (action === "admin_approve") {
+      const { request_id } = body;
+      if (!request_id) return json({ error: "Missing request_id" }, 400);
+
+      const { data: isAdmin } = await sb.rpc("is_super_admin", { _user_id: user.id });
+      if (!isAdmin) return json({ error: "Forbidden" }, 403);
+
+      const { data: reqRow } = await sb
+        .from("device_approval_requests")
+        .select("*")
+        .eq("id", request_id)
+        .eq("status", "pending")
+        .maybeSingle();
+      if (!reqRow) return json({ error: "Request not found or already resolved" }, 404);
+      if (new Date(reqRow.expires_at) < new Date()) return json({ error: "Request expired" }, 410);
+
+      // Add to trusted devices for the target user
+      await sb.from("trusted_devices").upsert(
+        {
+          user_id: reqRow.user_id,
+          device_fingerprint_hash: reqRow.device_fingerprint_hash,
+          device_label: reqRow.device_label,
+          user_agent: reqRow.user_agent,
+          ip_hash: reqRow.ip_hash,
+        },
+        { onConflict: "user_id,device_fingerprint_hash" }
+      );
+
+      await sb
+        .from("device_approval_requests")
+        .update({
+          status: "approved",
+          resolved_at: new Date().toISOString(),
+          metadata: { ...(reqRow.metadata ?? {}), approved_by_admin: user.id },
+        })
+        .eq("id", request_id);
+
+      await sb.from("auth_audit_log").insert({
+        user_id: reqRow.user_id,
+        event_type: "device_approved_by_admin",
+        device_fingerprint_hash: reqRow.device_fingerprint_hash,
+        device_label: reqRow.device_label,
+        user_agent: reqRow.user_agent,
+        metadata: { approved_by_admin: user.id, request_id },
+      });
+
+      return json({ status: "approved" });
+    }
+
+    // ─── ADMIN: deny a device request ────────────────────────────────────
+    if (action === "admin_deny") {
+      const { request_id } = body;
+      if (!request_id) return json({ error: "Missing request_id" }, 400);
+
+      const { data: isAdmin } = await sb.rpc("is_super_admin", { _user_id: user.id });
+      if (!isAdmin) return json({ error: "Forbidden" }, 403);
+
+      const { data: reqRow } = await sb
+        .from("device_approval_requests")
+        .select("*")
+        .eq("id", request_id)
+        .eq("status", "pending")
+        .maybeSingle();
+      if (!reqRow) return json({ error: "Request not found or already resolved" }, 404);
+
+      await sb
+        .from("device_approval_requests")
+        .update({
+          status: "denied",
+          resolved_at: new Date().toISOString(),
+          metadata: { ...(reqRow.metadata ?? {}), denied_by_admin: user.id },
+        })
+        .eq("id", request_id);
+
+      await sb.from("auth_audit_log").insert({
+        user_id: reqRow.user_id,
+        event_type: "device_denied_by_admin",
+        device_fingerprint_hash: reqRow.device_fingerprint_hash,
+        device_label: reqRow.device_label,
+        user_agent: reqRow.user_agent,
+        metadata: { denied_by_admin: user.id, request_id },
+      });
+
+      return json({ status: "denied" });
+    }
+
     return json({ error: "Unknown action" }, 400);
   } catch (e) {
     console.error("device-auth error:", e);
