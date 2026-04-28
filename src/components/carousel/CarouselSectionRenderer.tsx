@@ -138,7 +138,7 @@ export default function CarouselSectionRenderer({
   // CTA button classes - with safe defaults
   const ctaStyle = cta?.style ?? { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const };
   const ctaClasses = getCTAButtonClasses(ctaStyle);
-  const showCTA = cta?.enabled && images.length > 0;
+  const showCTA = cta?.enabled && visibleImages.length > 0;
 
   // CTA variant mapping
   const buttonVariant = ctaStyle.variant === "solid" ? "default" : ctaStyle.variant;
