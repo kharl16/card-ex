@@ -1,7 +1,7 @@
 // Device-binding auth: handles check / approve / deny / revoke / first-device OTP / sign-out-all.
 // All sensitive writes happen here with the service role.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-import { Resend } from "https://esm.sh/resend@4.0.0";
+import { sendLovableEmail } from "npm:@lovable.dev/email-js@0.0.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,8 +12,9 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
-const RESEND_FROM = Deno.env.get("RESEND_FROM_EMAIL") || "noreply@tagex.app";
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const SENDER_DOMAIN = "notify.tagex.app";
+const FROM_ADDRESS = `Card-Ex Security <noreply@tagex.app>`;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
