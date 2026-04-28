@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Users, CalendarDays, MapPin, Gift, BarChart3, BookOpen, Wrench, UserPlus, ListTree, ChevronDown } from "lucide-react";
+import { Users, CalendarDays, MapPin, Gift, BarChart3, BookOpen, Wrench, UserPlus, ListTree, ChevronDown, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
