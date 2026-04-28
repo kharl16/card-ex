@@ -43,6 +43,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
           requestId: data.request_id,
           isFirstDevice: !!data.is_first_device,
           fingerprint: fp,
+          emailStatus: data.email_status as EmailStatus,
         });
       } else {
         setState({ phase: "error", message: "Unexpected response" });
