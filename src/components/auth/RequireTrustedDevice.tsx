@@ -5,14 +5,16 @@ import { getDeviceFingerprint, clearDeviceToken, type DeviceFingerprint } from "
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Shield, ShieldCheck, ShieldAlert, LogOut, Mail, Loader2 } from "lucide-react";
+import { Shield, ShieldCheck, ShieldAlert, LogOut, Mail, Loader2, MailCheck, MailX, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
+
+type EmailStatus = "sent" | "failed" | "skipped" | undefined;
 
 type State =
   | { phase: "loading" }
   | { phase: "trusted" }
-  | { phase: "pending"; requestId: string; isFirstDevice: boolean; fingerprint: DeviceFingerprint }
+  | { phase: "pending"; requestId: string; isFirstDevice: boolean; fingerprint: DeviceFingerprint; emailStatus: EmailStatus }
   | { phase: "error"; message: string };
 
 export default function RequireTrustedDevice({ children }: { children: React.ReactNode }) {
