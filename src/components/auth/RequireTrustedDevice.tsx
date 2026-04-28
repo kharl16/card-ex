@@ -61,6 +61,9 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
           isFirstDevice: !!data.is_first_device,
           fingerprint: fp,
           emailStatus: data.email_status as EmailStatus,
+          expiresAt: data.expires_at ?? null,
+          sendCount: Number(data.send_count ?? 0),
+          maxSends: Number(data.max_sends ?? 3),
         });
       } else {
         setState({ phase: "error", message: "Unexpected response" });
