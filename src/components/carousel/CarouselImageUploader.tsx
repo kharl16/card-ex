@@ -51,6 +51,7 @@ interface SortableImageItemProps {
   onDelete: (index: number) => void;
   onEdit: (index: number) => void;
   onDescriptionChange: (index: number, description: string) => void;
+  onToggleVisibility: (index: number, visible: boolean) => void;
 }
 
 interface PendingImage {
