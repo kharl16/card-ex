@@ -478,6 +478,19 @@ export default function CarouselImageUploader({
     [editingIndex, images, onImagesChange]
   );
 
+  const handleToggleVisibility = useCallback(
+    (index: number, visible: boolean) => {
+      const updated = images.map((img, i) =>
+        i === index ? { ...img, hidden: !visible } : img
+      );
+      onImagesChange(updated);
+      toast.success(visible ? "Image is now visible" : "Image hidden from public view");
+    },
+    [images, onImagesChange]
+  );
+
+  const visibleCount = images.filter((img) => !img.hidden).length;
+
   const carouselLabels: Record<CarouselKey, string> = {
     products: "Products",
     packages: "Packages",
