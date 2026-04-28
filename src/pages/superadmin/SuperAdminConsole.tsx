@@ -1,5 +1,5 @@
 import { Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Users, Shield, Settings, Activity, Brain } from "lucide-react";
+import { ArrowLeft, Users, Shield, Settings, Activity, Brain, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,6 +55,13 @@ function SuperAdminConsoleContent() {
       icon: <Brain className="h-8 w-8" />,
       href: "/admin/ai-training",
       color: "bg-cyan-500/10 text-cyan-500",
+    },
+    {
+      title: "OTP Failure Audit",
+      description: "Monitor device-approval OTP failures, replays, and fingerprint mismatches",
+      icon: <ShieldAlert className="h-8 w-8" />,
+      href: "/admin/otp-audit",
+      color: "bg-red-500/10 text-red-500",
     },
     {
       title: "Activity Logs",

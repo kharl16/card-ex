@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Users, CalendarDays, MapPin, Gift, BarChart3, BookOpen, Wrench, UserPlus, ListTree, ChevronDown } from "lucide-react";
+import { Users, CalendarDays, MapPin, Gift, BarChart3, BookOpen, Wrench, UserPlus, ListTree, ChevronDown, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -29,8 +29,12 @@ const links = [
 
 export function DashboardQuickLinks() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [cards, setCards] = useState<CardOption[]>([]);
+
+  const visibleLinks = isAdmin
+    ? [...links, { icon: ShieldAlert, label: "OTP Audit", path: "/admin/otp-audit", color: "text-red-500" }]
+    : links;
 
   useEffect(() => {
     if (!user) return;
@@ -77,7 +81,7 @@ export function DashboardQuickLinks() {
     <div className="space-y-2">
       <h3 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">Quick Links</h3>
       <div className="grid grid-cols-4 gap-2 sm:grid-cols-4 md:grid-cols-8">
-        {links.map((link) => {
+        {visibleLinks.map((link) => {
           if (link.path === "__analytics__" && cards.length > 1) {
             return (
               <DropdownMenu key={link.label}>

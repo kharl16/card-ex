@@ -832,6 +832,10 @@ export default function AdminCards() {
             <UserPlus className="h-4 w-4" />
             Create New User
           </Button>
+          <Button onClick={() => navigate("/admin/otp-audit")} variant="outline" className="gap-2">
+            <ShieldCheck className="h-4 w-4" />
+            OTP Audit
+          </Button>
           {/* Note: "Create Card for User" now available via the "+ Card" button on individual users in the All Users tab */}
         </div>
 
