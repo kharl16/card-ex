@@ -650,7 +650,7 @@ Deno.serve(async (req) => {
       if (!isAdmin) return json({ error: "Forbidden" }, 403);
 
       // Auto-expire stale ones first
-      await sb.rpc("expire_stale_approval_requests").catch(() => {});
+      try { await sb.rpc("expire_stale_approval_requests"); } catch (_) {}
 
       const { data: requests, error } = await sb
         .from("device_approval_requests")
