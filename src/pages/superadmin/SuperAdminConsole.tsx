@@ -57,6 +57,13 @@ function SuperAdminConsoleContent() {
       color: "bg-cyan-500/10 text-cyan-500",
     },
     {
+      title: "OTP Failure Audit",
+      description: "Monitor device-approval OTP failures, replays, and fingerprint mismatches",
+      icon: <ShieldAlert className="h-8 w-8" />,
+      href: "/admin/otp-audit",
+      color: "bg-red-500/10 text-red-500",
+    },
+    {
       title: "Activity Logs",
       description: "View audit logs and system activity",
       icon: <Activity className="h-8 w-8" />,
