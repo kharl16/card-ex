@@ -233,22 +233,22 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Re-read email status if request already existed
-      let emailStatusOut: string | undefined;
-      if (isFirstDevice) {
-        const { data: meta } = await sb
-          .from("device_approval_requests")
-          .select("metadata")
-          .eq("id", requestId)
-          .maybeSingle();
-        emailStatusOut = (meta?.metadata as any)?.email_status;
-      }
+      // Re-read for fresh expiry/metadata
+      const { data: reqMeta } = await sb
+        .from("device_approval_requests")
+        .select("expires_at, metadata")
+        .eq("id", requestId)
+        .maybeSingle();
+      const metaOut = (reqMeta?.metadata as any) || {};
 
       return json({
         status: "pending",
         request_id: requestId,
         is_first_device: isFirstDevice,
-        email_status: emailStatusOut,
+        email_status: isFirstDevice ? metaOut.email_status : undefined,
+        expires_at: reqMeta?.expires_at,
+        send_count: Number(metaOut.email_otp_send_count || (isFirstDevice ? 1 : 0)),
+        max_sends: 3,
       });
     }
 
@@ -350,10 +350,15 @@ Deno.serve(async (req) => {
         metadata: { error: emailError ?? null, attempt: sendCount + 1 },
       });
 
+      const responseBase = {
+        send_count: sendCount + 1,
+        max_sends: 3,
+        expires_at: reqRow.expires_at,
+      };
       if (emailStatus === "failed") {
-        return json({ status: "failed", email_status: "failed", error: emailError }, 200);
+        return json({ status: "failed", email_status: "failed", error: emailError, ...responseBase }, 200);
       }
-      return json({ status: "sent", email_status: "sent" });
+      return json({ status: "sent", email_status: "sent", ...responseBase });
     }
 
     // ─── REVEAL FALLBACK OTP (only when email delivery failed) ───────────
@@ -444,10 +449,16 @@ Deno.serve(async (req) => {
       return json({ status: "approved" });
     }
 
-    // ─── VERIFY OTP (first device) ───────────────────────────────────────
+    // ─── VERIFY OTP (first device or self-approve) ───────────────────────
     if (action === "verify_otp") {
-      const { request_id, otp } = body;
+      const { request_id, otp, fingerprint_hash } = body;
       if (!request_id || !otp) return json({ error: "Missing fields" }, 400);
+      if (typeof otp !== "string" || !/^\d{6}$/.test(otp)) {
+        return json({ error: "Invalid code format" }, 400);
+      }
+
+      // Re-derive caller's fingerprint server-side (client-supplied is for cross-check only)
+      const callerFp = typeof fingerprint_hash === "string" ? fingerprint_hash : null;
 
       const { data: reqRow } = await sb
         .from("device_approval_requests")
@@ -459,10 +470,69 @@ Deno.serve(async (req) => {
 
       if (!reqRow) return json({ error: "Request not found" }, 404);
       if (new Date(reqRow.expires_at) < new Date()) return json({ error: "Code expired" }, 410);
-      if (!reqRow.approval_token) return json({ error: "No OTP for this request" }, 400);
+      if (!reqRow.approval_token) {
+        return json({ error: "No active code for this request. Request a new one." }, 400);
+      }
+
+      // Bind: OTP must be redeemed from the SAME device the request was issued for.
+      if (callerFp && callerFp !== reqRow.device_fingerprint_hash) {
+        await sb.from("auth_audit_log").insert({
+          user_id: user.id,
+          event_type: "otp_fingerprint_mismatch",
+          device_fingerprint_hash: callerFp,
+          ip_hash: ipHash,
+          metadata: { request_id, expected: reqRow.device_fingerprint_hash },
+        });
+        return json({ error: "This code was issued for a different device." }, 403);
+      }
+
+      // Track + cap verification attempts (5 max per request)
+      const meta = (reqRow.metadata as any) || {};
+      const attempts = Number(meta.verify_attempts || 0);
+      if (attempts >= 5) {
+        return json({ error: "Too many invalid attempts. Request a new code." }, 429);
+      }
 
       const otpHash = await sha256(otp);
-      if (otpHash !== reqRow.approval_token) return json({ error: "Invalid code" }, 401);
+      if (otpHash !== reqRow.approval_token) {
+        await sb
+          .from("device_approval_requests")
+          .update({ metadata: { ...meta, verify_attempts: attempts + 1 } })
+          .eq("id", request_id);
+        await sb.from("auth_audit_log").insert({
+          user_id: user.id,
+          event_type: "otp_invalid_attempt",
+          device_fingerprint_hash: reqRow.device_fingerprint_hash,
+          ip_hash: ipHash,
+          metadata: { request_id, attempt: attempts + 1 },
+        });
+        return json({ error: "Invalid code", attempts_remaining: 5 - (attempts + 1) }, 401);
+      }
+
+      // Atomic one-time consume: clear approval_token guarded by its current value
+      // so a concurrent request can never redeem the same OTP twice.
+      const { data: consumed, error: consumeErr } = await sb
+        .from("device_approval_requests")
+        .update({
+          status: "approved",
+          resolved_at: new Date().toISOString(),
+          approval_token: null,
+          metadata: {
+            ...meta,
+            verify_attempts: attempts + 1,
+            fallback_otp: null,
+            consumed_at: new Date().toISOString(),
+          },
+        })
+        .eq("id", request_id)
+        .eq("status", "pending")
+        .eq("approval_token", reqRow.approval_token)
+        .select("id")
+        .maybeSingle();
+
+      if (consumeErr || !consumed) {
+        return json({ error: "Code already used or request changed. Try again." }, 409);
+      }
 
       await sb.from("trusted_devices").upsert(
         {
@@ -474,11 +544,6 @@ Deno.serve(async (req) => {
         },
         { onConflict: "user_id,device_fingerprint_hash" }
       );
-
-      await sb
-        .from("device_approval_requests")
-        .update({ status: "approved", resolved_at: new Date().toISOString() })
-        .eq("id", request_id);
 
       await sb.from("auth_audit_log").insert({
         user_id: user.id,

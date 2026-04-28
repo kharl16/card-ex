@@ -14,8 +14,25 @@ type EmailStatus = "sent" | "failed" | "skipped" | undefined;
 type State =
   | { phase: "loading" }
   | { phase: "trusted" }
-  | { phase: "pending"; requestId: string; isFirstDevice: boolean; fingerprint: DeviceFingerprint; emailStatus: EmailStatus }
+  | {
+      phase: "pending";
+      requestId: string;
+      isFirstDevice: boolean;
+      fingerprint: DeviceFingerprint;
+      emailStatus: EmailStatus;
+      expiresAt: string | null;
+      sendCount: number;
+      maxSends: number;
+    }
   | { phase: "error"; message: string };
+
+function formatRemaining(ms: number) {
+  if (ms <= 0) return "0:00";
+  const total = Math.floor(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 export default function RequireTrustedDevice({ children }: { children: React.ReactNode }) {
   const { session, isAdmin, loading: authLoading } = useAuth();
@@ -44,6 +61,9 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
           isFirstDevice: !!data.is_first_device,
           fingerprint: fp,
           emailStatus: data.email_status as EmailStatus,
+          expiresAt: data.expires_at ?? null,
+          sendCount: Number(data.send_count ?? 0),
+          maxSends: Number(data.max_sends ?? 3),
         });
       } else {
         setState({ phase: "error", message: "Unexpected response" });
@@ -92,6 +112,20 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     };
   }, [state, checkDevice]);
 
+  // Countdown ticker — re-renders every second while pending
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (state.phase !== "pending" || !state.expiresAt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [state.phase, state.phase === "pending" ? state.expiresAt : null]);
+
+  const expiryMs =
+    state.phase === "pending" && state.expiresAt
+      ? new Date(state.expiresAt).getTime() - now
+      : 0;
+  const expired = state.phase === "pending" && !!state.expiresAt && expiryMs <= 0;
+
   const handleVerifyOtp = async () => {
     if (state.phase !== "pending") return;
     if (otp.length !== 6) {
@@ -101,7 +135,12 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     setSubmitting(true);
     try {
       const { data, error } = await supabase.functions.invoke("device-auth", {
-        body: { action: "verify_otp", request_id: state.requestId, otp },
+        body: {
+          action: "verify_otp",
+          request_id: state.requestId,
+          otp,
+          fingerprint_hash: state.fingerprint.hash,
+        },
       });
       if (error) throw error;
       if (data.status === "approved") {
@@ -121,6 +160,10 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
 
   const handleRequestEmailOtp = async () => {
     if (state.phase !== "pending") return;
+    if (state.sendCount >= state.maxSends) {
+      toast.error("Maximum send attempts reached for this request.");
+      return;
+    }
     setRequestingEmailOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke("device-auth", {
@@ -128,6 +171,17 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
       });
       if (error) throw error;
       setSelfApproveMode(true);
+      // Merge updated counters/expiry from server
+      setState((prev) =>
+        prev.phase === "pending"
+          ? {
+              ...prev,
+              sendCount: Number(data?.send_count ?? prev.sendCount + 1),
+              maxSends: Number(data?.max_sends ?? prev.maxSends),
+              expiresAt: data?.expires_at ?? prev.expiresAt,
+            }
+          : prev,
+      );
       if (data?.email_status === "sent") {
         setSelfApproveStatus("sent");
         toast.success("Verification code sent to your email");
@@ -240,6 +294,35 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
             <p className="font-medium">{state.fingerprint.label}</p>
             <p className="text-xs text-muted-foreground mt-1 truncate">{state.fingerprint.userAgent}</p>
           </div>
+
+          {/* Countdown + remaining sends indicator */}
+          {state.expiresAt && (
+            <div
+              className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-xs ${
+                expired
+                  ? "border-destructive/40 bg-destructive/10 text-destructive"
+                  : expiryMs < 60_000
+                  ? "border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                  : "border-border bg-muted/30 text-muted-foreground"
+              }`}
+              role="status"
+              aria-live="polite"
+            >
+              <span className="flex items-center gap-1.5 font-mono tabular-nums">
+                <span aria-hidden>⏱</span>
+                {expired ? "Expired" : `Expires in ${formatRemaining(expiryMs)}`}
+              </span>
+              <span>
+                {Math.max(0, state.maxSends - state.sendCount)} of {state.maxSends} sends left
+              </span>
+            </div>
+          )}
+
+          {expired && (
+            <Button className="w-full" onClick={checkDevice}>
+              Start a new request
+            </Button>
+          )}
 
           {state.isFirstDevice ? (
             <>
@@ -361,10 +444,10 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
                 variant="ghost"
                 className="w-full text-xs"
                 onClick={handleRequestEmailOtp}
-                disabled={requestingEmailOtp}
+                disabled={requestingEmailOtp || expired || state.sendCount >= state.maxSends}
               >
                 {requestingEmailOtp ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Mail className="h-3 w-3 mr-2" />}
-                Resend email code
+                {state.sendCount >= state.maxSends ? "No sends remaining" : "Resend email code"}
               </Button>
             </>
           ) : (
@@ -387,7 +470,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
                 variant="outline"
                 className="w-full"
                 onClick={handleRequestEmailOtp}
-                disabled={requestingEmailOtp}
+                disabled={requestingEmailOtp || expired || state.sendCount >= state.maxSends}
               >
                 {requestingEmailOtp ? (
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />
