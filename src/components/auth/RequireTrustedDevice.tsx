@@ -115,6 +115,33 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     }
   };
 
+  const [selfApproveMode, setSelfApproveMode] = useState(false);
+  const [selfApproveStatus, setSelfApproveStatus] = useState<"sent" | "failed" | null>(null);
+  const [requestingEmailOtp, setRequestingEmailOtp] = useState(false);
+
+  const handleRequestEmailOtp = async () => {
+    if (state.phase !== "pending") return;
+    setRequestingEmailOtp(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("device-auth", {
+        body: { action: "request_email_otp", request_id: state.requestId },
+      });
+      if (error) throw error;
+      setSelfApproveMode(true);
+      if (data?.email_status === "sent") {
+        setSelfApproveStatus("sent");
+        toast.success("Verification code sent to your email");
+      } else {
+        setSelfApproveStatus("failed");
+        toast.error("Email delivery failed — use the backup code");
+      }
+    } catch (e: any) {
+      toast.error(e.message || "Could not send code");
+    } finally {
+      setRequestingEmailOtp(false);
+    }
+  };
+
   const [revealedOtp, setRevealedOtp] = useState<string | null>(null);
   const [revealing, setRevealing] = useState(false);
 
@@ -273,10 +300,105 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
                 Verify & Continue
               </Button>
             </>
+          ) : selfApproveMode ? (
+            <>
+              {selfApproveStatus === "sent" && (
+                <div className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm">
+                  <MailCheck className="h-4 w-4 mt-0.5 text-emerald-500 flex-shrink-0" />
+                  <div>
+                    <p className="font-medium text-emerald-600 dark:text-emerald-400">Code sent</p>
+                    <p className="text-xs text-muted-foreground">We emailed a 6-digit code to <strong className="text-foreground">{session?.user?.email}</strong>. Check your inbox and spam folder.</p>
+                  </div>
+                </div>
+              )}
+              {selfApproveStatus === "failed" && (
+                <div className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">
+                  <MailX className="h-4 w-4 mt-0.5 text-destructive flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-medium text-destructive">Email delivery failed</p>
+                    <p className="text-xs text-muted-foreground">Use the backup code below to continue.</p>
+                  </div>
+                </div>
+              )}
+
+              <Input
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="000000"
+                className="text-center text-2xl tracking-[0.5em] font-mono h-14"
+                maxLength={6}
+                inputMode="numeric"
+              />
+
+              {selfApproveStatus === "failed" && !revealedOtp && (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleRevealFallback}
+                  disabled={revealing}
+                >
+                  {revealing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <KeyRound className="h-4 w-4 mr-2" />}
+                  Show backup verification code
+                </Button>
+              )}
+              {revealedOtp && (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 text-center">
+                  <p className="text-xs text-muted-foreground mb-1">Backup code (already filled in)</p>
+                  <p className="text-2xl font-mono font-bold tracking-[0.4em] text-primary">{revealedOtp}</p>
+                </div>
+              )}
+
+              <Button
+                className="w-full"
+                onClick={handleVerifyOtp}
+                disabled={submitting || otp.length !== 6}
+              >
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Verify & Continue
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full text-xs"
+                onClick={handleRequestEmailOtp}
+                disabled={requestingEmailOtp}
+              >
+                {requestingEmailOtp ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Mail className="h-3 w-3 mr-2" />}
+                Resend email code
+              </Button>
+            </>
           ) : (
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Listening for approval…
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Listening for approval…
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">Or</span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleRequestEmailOtp}
+                disabled={requestingEmailOtp}
+              >
+                {requestingEmailOtp ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Mail className="h-4 w-4 mr-2" />
+                )}
+                Email me a code to approve this device
+              </Button>
+              <p className="text-xs text-muted-foreground text-center">
+                Can't access your trusted device? Get a verification code at <strong className="text-foreground">{session?.user?.email}</strong>.
+              </p>
             </div>
           )}
 

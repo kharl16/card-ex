@@ -252,6 +252,110 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ─── REQUEST EMAIL OTP (self-approve when no trusted device available) ─
+    if (action === "request_email_otp") {
+      const { request_id } = body;
+      if (!request_id) return json({ error: "Missing request_id" }, 400);
+
+      const { data: reqRow } = await sb
+        .from("device_approval_requests")
+        .select("id, status, expires_at, device_label, device_fingerprint_hash, metadata")
+        .eq("id", request_id)
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      if (!reqRow) return json({ error: "Request not found" }, 404);
+      if (new Date(reqRow.expires_at) < new Date()) return json({ error: "Request expired" }, 410);
+      if (!user.email) return json({ error: "No email on file" }, 400);
+
+      // Rate-limit: max 3 sends per request
+      const meta = (reqRow.metadata as any) || {};
+      const sendCount = Number(meta.email_otp_send_count || 0);
+      if (sendCount >= 3) {
+        return json({ error: "Too many attempts. Please try again later." }, 429);
+      }
+
+      // Generate fresh OTP and store its hash on the request
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpHash = await sha256(otp);
+
+      let emailStatus: "sent" | "failed" = "sent";
+      let emailError: string | undefined;
+
+      if (!LOVABLE_API_KEY) {
+        emailStatus = "failed";
+        emailError = "Email service not configured";
+      } else {
+        try {
+          const html = `
+            <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0a0a0a;color:#f5f5f5;border-radius:12px;">
+              <h2 style="color:#D4AF37;margin-top:0;">Approve this device</h2>
+              <p>You requested an email code to approve a new device on your Card-Ex account:</p>
+              <p style="background:#1a1a1a;padding:12px;border-radius:8px;border-left:3px solid #D4AF37;">
+                <strong>${reqRow.device_label || "Unknown device"}</strong>
+              </p>
+              <p>Enter this 6-digit code on the device to approve it:</p>
+              <div style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#D4AF37;text-align:center;padding:16px;background:#1a1a1a;border-radius:8px;margin:16px 0;">
+                ${otp}
+              </div>
+              <p style="color:#888;font-size:13px;">This code expires in 10 minutes. If you didn't request this, deny the request from Security settings and change your password immediately.</p>
+            </div>`;
+          const text = `Your Card-Ex device approval code: ${otp}\n\nDevice: ${reqRow.device_label || "Unknown device"}\n\nThis code expires in 10 minutes. If you didn't request this, deny the request and change your password.`;
+
+          await sendLovableEmail(
+            {
+              to: user.email,
+              from: FROM_ADDRESS,
+              sender_domain: SENDER_DOMAIN,
+              subject: `Your Card-Ex device approval code: ${otp}`,
+              html,
+              text,
+              purpose: "notification",
+              idempotency_key: `device-self-otp-${request_id}-${sendCount + 1}`,
+            },
+            { apiKey: LOVABLE_API_KEY },
+          );
+        } catch (e) {
+          emailStatus = "failed";
+          emailError = (e as Error).message;
+          console.error("Self-approve OTP email failed:", emailError, e);
+        }
+      }
+
+      // Persist hashed OTP + bookkeeping. Store fallback plaintext only on failure
+      // so the user can still proceed using the existing reveal_fallback_otp flow.
+      await sb
+        .from("device_approval_requests")
+        .update({
+          approval_token: otpHash,
+          metadata: {
+            ...meta,
+            email_status: emailStatus,
+            email_error: emailError ?? null,
+            email_otp_send_count: sendCount + 1,
+            self_approve_requested_at: new Date().toISOString(),
+            fallback_otp: emailStatus === "failed" ? otp : null,
+          },
+        })
+        .eq("id", request_id);
+
+      await sb.from("auth_audit_log").insert({
+        user_id: user.id,
+        event_type:
+          emailStatus === "sent" ? "self_approve_otp_sent" : "self_approve_otp_failed",
+        device_fingerprint_hash: reqRow.device_fingerprint_hash,
+        device_label: reqRow.device_label,
+        ip_hash: ipHash,
+        metadata: { error: emailError ?? null, attempt: sendCount + 1 },
+      });
+
+      if (emailStatus === "failed") {
+        return json({ status: "failed", email_status: "failed", error: emailError }, 200);
+      }
+      return json({ status: "sent", email_status: "sent" });
+    }
+
     // ─── REVEAL FALLBACK OTP (only when email delivery failed) ───────────
     if (action === "reveal_fallback_otp") {
       const { request_id } = body;
