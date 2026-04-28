@@ -530,6 +530,7 @@ export default function CarouselImageUploader({
                   onDelete={handleDelete}
                   onEdit={handleEdit}
                   onDescriptionChange={handleInlineDescriptionChange}
+                  onToggleVisibility={handleToggleVisibility}
                 />
               ))}
             </div>
