@@ -35,6 +35,7 @@ import RecentPage from "./pages/resources/RecentPage";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminAITraining from "./pages/admin/AdminAITraining";
 import AdminGlobalProducts from "./pages/admin/AdminGlobalProducts";
+import AdminOtpAudit from "./pages/admin/AdminOtpAudit";
 import SuperAdminConsole from "./pages/superadmin/SuperAdminConsole";
 import UserRolesPage from "./pages/superadmin/UserRolesPage";
 import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
@@ -186,6 +187,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <AdminGlobalProducts />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/otp-audit"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminOtpAudit />
               </RequireAuth>
             </PageTransition>
           }
