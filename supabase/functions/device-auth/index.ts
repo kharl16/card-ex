@@ -350,10 +350,15 @@ Deno.serve(async (req) => {
         metadata: { error: emailError ?? null, attempt: sendCount + 1 },
       });
 
+      const responseBase = {
+        send_count: sendCount + 1,
+        max_sends: 3,
+        expires_at: reqRow.expires_at,
+      };
       if (emailStatus === "failed") {
-        return json({ status: "failed", email_status: "failed", error: emailError }, 200);
+        return json({ status: "failed", email_status: "failed", error: emailError, ...responseBase }, 200);
       }
-      return json({ status: "sent", email_status: "sent" });
+      return json({ status: "sent", email_status: "sent", ...responseBase });
     }
 
     // ─── REVEAL FALLBACK OTP (only when email delivery failed) ───────────
