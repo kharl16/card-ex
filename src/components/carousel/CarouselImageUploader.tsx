@@ -504,6 +504,11 @@ export default function CarouselImageUploader({
         <Label className="text-sm font-medium">
           {carouselLabels[carouselKey]} Images ({images.length}/{maxImages})
         </Label>
+        {images.length > 0 && images.length !== visibleCount && (
+          <span className="text-xs text-muted-foreground">
+            {visibleCount} visible · {images.length - visibleCount} hidden
+          </span>
+        )}
       </div>
 
       {images.length > 0 && (
