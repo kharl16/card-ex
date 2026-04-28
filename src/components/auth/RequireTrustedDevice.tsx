@@ -14,8 +14,25 @@ type EmailStatus = "sent" | "failed" | "skipped" | undefined;
 type State =
   | { phase: "loading" }
   | { phase: "trusted" }
-  | { phase: "pending"; requestId: string; isFirstDevice: boolean; fingerprint: DeviceFingerprint; emailStatus: EmailStatus }
+  | {
+      phase: "pending";
+      requestId: string;
+      isFirstDevice: boolean;
+      fingerprint: DeviceFingerprint;
+      emailStatus: EmailStatus;
+      expiresAt: string | null;
+      sendCount: number;
+      maxSends: number;
+    }
   | { phase: "error"; message: string };
+
+function formatRemaining(ms: number) {
+  if (ms <= 0) return "0:00";
+  const total = Math.floor(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
 
 export default function RequireTrustedDevice({ children }: { children: React.ReactNode }) {
   const { session, isAdmin, loading: authLoading } = useAuth();
