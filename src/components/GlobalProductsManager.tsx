@@ -14,29 +14,32 @@ interface Props {
  * Hidden globals stay hidden for this card only; admins still control the source list.
  */
 export default function GlobalProductsManager({ cardId }: Props) {
-  const { allGlobals, hiddenIds, loading, reload } = useGlobalProductImages(cardId);
+  const { allGlobals, hiddenIds, loading, setHiddenLocal } = useGlobalProductImages(cardId);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   async function toggle(globalImageId: string) {
+    const wasHidden = hiddenIds.has(globalImageId);
+    // Optimistic flip
+    setHiddenLocal(globalImageId, !wasHidden);
     setBusyId(globalImageId);
-    if (hiddenIds.has(globalImageId)) {
-      // Currently hidden → show again by removing override
-      const { error } = await supabase
-        .from("card_global_image_overrides")
-        .delete()
-        .eq("card_id", cardId)
-        .eq("global_image_id", globalImageId);
-      if (error) toast.error(error.message);
-      else toast.success("Photo will show on your card");
+
+    const { error } = wasHidden
+      ? await supabase
+          .from("card_global_image_overrides")
+          .delete()
+          .eq("card_id", cardId)
+          .eq("global_image_id", globalImageId)
+      : await supabase
+          .from("card_global_image_overrides")
+          .insert({ card_id: cardId, global_image_id: globalImageId });
+
+    if (error) {
+      // Rollback
+      setHiddenLocal(globalImageId, wasHidden);
+      toast.error(error.message);
     } else {
-      // Currently visible → hide by inserting override
-      const { error } = await supabase
-        .from("card_global_image_overrides")
-        .insert({ card_id: cardId, global_image_id: globalImageId });
-      if (error) toast.error(error.message);
-      else toast.success("Photo hidden from your card");
+      toast.success(wasHidden ? "Photo will show on your card" : "Photo hidden from your card");
     }
-    await reload();
     setBusyId(null);
   }
 

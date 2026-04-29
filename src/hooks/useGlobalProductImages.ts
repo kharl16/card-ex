@@ -11,8 +11,8 @@ export type GlobalProductImage = {
 
 /**
  * Fetches all active global product images plus this card's hide-overrides.
- * Returns the visible globals (with overrides excluded), the full list,
- * and the set of hidden ids — so callers can either render or manage them.
+ * Subscribes to realtime changes so toggles sync instantly across tabs/devices.
+ * Exposes setHiddenLocal for optimistic updates from callers.
  */
 export function useGlobalProductImages(cardId: string | null | undefined) {
   const [allGlobals, setAllGlobals] = useState<GlobalProductImage[]>([]);
@@ -50,7 +50,50 @@ export function useGlobalProductImages(cardId: string | null | undefined) {
     load();
   }, [load]);
 
+  // Realtime sync across tabs/devices for this card's overrides
+  useEffect(() => {
+    if (!cardId) return;
+    const channel = supabase
+      .channel(`card_global_image_overrides:${cardId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "card_global_image_overrides",
+          filter: `card_id=eq.${cardId}`,
+        },
+        (payload) => {
+          setHiddenIds((prev) => {
+            const next = new Set(prev);
+            if (payload.eventType === "INSERT") {
+              const id = (payload.new as { global_image_id: string }).global_image_id;
+              next.add(id);
+            } else if (payload.eventType === "DELETE") {
+              const id = (payload.old as { global_image_id: string }).global_image_id;
+              next.delete(id);
+            }
+            return next;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [cardId]);
+
+  const setHiddenLocal = useCallback((id: string, hidden: boolean) => {
+    setHiddenIds((prev) => {
+      const next = new Set(prev);
+      if (hidden) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }, []);
+
   const visibleGlobals = allGlobals.filter((g) => !hiddenIds.has(g.id));
 
-  return { allGlobals, hiddenIds, visibleGlobals, loading, reload: load };
+  return { allGlobals, hiddenIds, visibleGlobals, loading, reload: load, setHiddenLocal };
 }
