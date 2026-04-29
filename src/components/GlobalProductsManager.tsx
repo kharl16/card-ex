@@ -57,29 +57,35 @@ export default function GlobalProductsManager({ cardId }: Props) {
           return (
             <div
               key={g.id}
-              className={`group relative rounded-lg border bg-card p-2 transition ${
+              className={`group relative overflow-hidden rounded-lg border bg-card transition ${
                 hidden ? "border-border/40 opacity-60" : "border-primary/40"
               }`}
             >
-              <img src={g.url} alt={g.caption ?? ""} className="h-28 w-full rounded object-cover" />
-              {g.caption && <p className="mt-1 truncate text-xs text-muted-foreground">{g.caption}</p>}
-              <Button
-                size="sm"
-                variant={hidden ? "outline" : "secondary"}
-                disabled={busyId === g.id}
-                onClick={() => toggle(g.id)}
-                className="mt-2 w-full"
-              >
-                {hidden ? (
-                  <>
-                    <Eye className="mr-1 h-3 w-3" /> Show on my card
-                  </>
-                ) : (
-                  <>
-                    <EyeOff className="mr-1 h-3 w-3" /> Hide from my card
-                  </>
+              <div className="relative">
+                <img
+                  src={g.url}
+                  alt={g.caption ?? ""}
+                  className="h-28 w-full object-cover"
+                />
+                <button
+                  type="button"
+                  disabled={busyId === g.id}
+                  onClick={() => toggle(g.id)}
+                  aria-label={hidden ? "Show on my card" : "Hide from my card"}
+                  title={hidden ? "Show on my card" : "Hide from my card"}
+                  className="absolute right-1.5 top-1.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur-sm transition hover:bg-background disabled:opacity-50"
+                >
+                  {hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              <div className="p-2">
+                {g.caption && (
+                  <p className="mb-1 truncate text-xs text-muted-foreground">{g.caption}</p>
                 )}
-              </Button>
+                <p className="text-[11px] font-medium text-muted-foreground">
+                  {hidden ? "Hidden on your card" : "Showing on your card"}
+                </p>
+              </div>
             </div>
           );
         })}
