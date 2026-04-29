@@ -1,0 +1,2 @@
+ALTER TABLE public.card_global_image_overrides REPLICA IDENTITY FULL;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.card_global_image_overrides;
