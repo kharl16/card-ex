@@ -123,8 +123,10 @@ export default function VideoCarousel({
             className="-ml-1"
             style={{ gap: `${imageGap}px` }}
           >
-            {videos.map((video, index) => {
-              const isActive = index === activeIndex;
+            {displayVideos.map((video, index) => {
+              const originalIndex = index % videos.length;
+              const isActive = originalIndex === activeIndex && index === api?.selectedScrollSnap();
+              const isVisuallyActive = originalIndex === activeIndex;
               const thumbnail = video.thumbnail || getThumbnailUrl(video.url);
               const embedUrl = getEmbedUrl(video.url, true);
 
@@ -136,7 +138,7 @@ export default function VideoCarousel({
                     videos.length === 1
                       ? "basis-4/5 sm:basis-3/5 md:basis-1/2 mx-auto"
                       : "basis-4/5 sm:basis-3/5 md:basis-1/2",
-                    isActive ? "scale-100 opacity-100" : "scale-95 opacity-70"
+                    isVisuallyActive ? "scale-100 opacity-100" : "scale-95 opacity-70"
                   )}
                 >
                   <div className="flex flex-col">
