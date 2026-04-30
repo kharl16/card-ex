@@ -127,7 +127,7 @@ export default function VideoCarousel({
           >
             {displayVideos.map((video, index) => {
               const originalIndex = index % videos.length;
-              const isActive = originalIndex === activeIndex && index === api?.selectedScrollSnap();
+              const isActive = index === activeSnap;
               const isVisuallyActive = originalIndex === activeIndex;
               const thumbnail = video.thumbnail || getThumbnailUrl(video.url);
               const embedUrl = getEmbedUrl(video.url, true);
