@@ -162,6 +162,7 @@ const SECTIONS: TocSection[] = [
     entries: [
       { label: "Admin Cards", description: "Manage all user cards", path: "/admin/cards", badge: "Admin" },
       { label: "Global Product Photos", description: "Shared image library", path: "/admin/global-products", badge: "Admin" },
+      { label: "Global Package Photos", description: "Shared packages library (Hope, Copper, Bronze…)", path: "/admin/global-packages", badge: "Admin" },
       { label: "AI Training", description: "Global AI Q&A knowledge", path: "/admin/ai-training", badge: "Admin" },
       { label: "Resources Admin", description: "Manage files & links", path: "/admin/resources", badge: "Admin" },
       { label: "Design Patcher", description: "Bulk design changes", path: "/admin/design-patcher", badge: "Admin" },
