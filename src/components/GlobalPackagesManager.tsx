@@ -19,6 +19,11 @@ export default function GlobalPackagesManager({ cardId }: Props) {
   async function toggle(globalImageId: string) {
     const wasHidden = hiddenIds.has(globalImageId);
     setHiddenLocal(globalImageId, !wasHidden);
+    window.dispatchEvent(
+      new CustomEvent("global-package-override-changed", {
+        detail: { cardId, id: globalImageId, hidden: !wasHidden },
+      })
+    );
     setBusyId(globalImageId);
 
     const { error } = wasHidden
