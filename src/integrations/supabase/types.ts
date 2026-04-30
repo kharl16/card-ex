@@ -465,6 +465,35 @@ export type Database = {
           },
         ]
       }
+      card_global_package_overrides: {
+        Row: {
+          card_id: string
+          created_at: string
+          global_package_image_id: string
+          id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          global_package_image_id: string
+          id?: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          global_package_image_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_global_package_overrides_global_package_image_id_fkey"
+            columns: ["global_package_image_id"]
+            isOneToOne: false
+            referencedRelation: "global_package_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_images: {
         Row: {
           card_id: string
@@ -1057,6 +1086,39 @@ export type Database = {
           view_video_url?: string | null
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
           wholesale_package_commission?: string | null
+        }
+        Relationships: []
+      }
+      global_package_images: {
+        Row: {
+          caption: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          sort_index: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          updated_at?: string
+          url?: string
         }
         Relationships: []
       }
