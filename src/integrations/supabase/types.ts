@@ -2764,6 +2764,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      is_card_published: { Args: { _card_id: string }; Returns: boolean }
       is_device_trusted: {
         Args: { _fingerprint_hash: string; _user_id: string }
         Returns: boolean
