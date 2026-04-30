@@ -46,17 +46,34 @@ export default function VideoCarousel({
 }: VideoCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [activeSnap, setActiveSnap] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
 
-  // Track active slide
+  // Duplicate slides when only a few videos to allow Embla loop to work
+  // (Embla disables loop when total slide width < container width × 2)
+  const displayVideos = useMemo(() => {
+    if (videos.length === 0) return [];
+    if (videos.length === 1) return videos;
+    if (videos.length < 4) {
+      // Repeat enough times to comfortably exceed container width
+      return [...videos, ...videos, ...videos];
+    }
+    return videos;
+  }, [videos]);
+
+  // Track active slide (modulo original length so duplicates map correctly)
   useEffect(() => {
     if (!api) return;
-    const onSelect = () => setActiveIndex(api.selectedScrollSnap());
+    const onSelect = () => {
+      const snap = api.selectedScrollSnap();
+      setActiveSnap(snap);
+      setActiveIndex(videos.length > 0 ? snap % videos.length : 0);
+    };
     api.on("select", onSelect);
     onSelect();
     return () => { api.off("select", onSelect); };
-  }, [api]);
+  }, [api, videos.length]);
 
   const openFullscreen = useCallback((index: number) => {
     setFullscreenIndex(index);
@@ -108,8 +125,10 @@ export default function VideoCarousel({
             className="-ml-1"
             style={{ gap: `${imageGap}px` }}
           >
-            {videos.map((video, index) => {
-              const isActive = index === activeIndex;
+            {displayVideos.map((video, index) => {
+              const originalIndex = index % videos.length;
+              const isActive = index === activeSnap;
+              const isVisuallyActive = originalIndex === activeIndex;
               const thumbnail = video.thumbnail || getThumbnailUrl(video.url);
               const embedUrl = getEmbedUrl(video.url, true);
 
@@ -121,7 +140,7 @@ export default function VideoCarousel({
                     videos.length === 1
                       ? "basis-4/5 sm:basis-3/5 md:basis-1/2 mx-auto"
                       : "basis-4/5 sm:basis-3/5 md:basis-1/2",
-                    isActive ? "scale-100 opacity-100" : "scale-95 opacity-70"
+                    isVisuallyActive ? "scale-100 opacity-100" : "scale-95 opacity-70"
                   )}
                 >
                   <div className="flex flex-col">
@@ -144,7 +163,7 @@ export default function VideoCarousel({
                         <button
                           type="button"
                           className="w-full h-full flex items-center justify-center cursor-pointer group"
-                          onClick={() => openFullscreen(index)}
+                          onClick={() => openFullscreen(originalIndex)}
                         >
                           {thumbnail ? (
                             <img
@@ -173,7 +192,7 @@ export default function VideoCarousel({
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 bg-black/60 hover:bg-black/80 text-white rounded-full"
-                            onClick={(e) => { e.stopPropagation(); openFullscreen(index); }}
+                            onClick={(e) => { e.stopPropagation(); openFullscreen(originalIndex); }}
                             aria-label="Fullscreen"
                           >
                             <Play className="h-4 w-4" />
