@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Download } from "lucide-react";
+import { Download, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCornerTypesFromEyeStyle } from "./QRLivePreview";
 import { toast } from "sonner";
@@ -32,6 +32,9 @@ interface QRCodeDisplayProps {
   size?: number;
   className?: string;
   showDownload?: boolean;
+  showShare?: boolean;
+  shareTitle?: string;
+  shareText?: string;
   downloadFileName?: string;
 }
 
@@ -111,6 +114,9 @@ export default function QRCodeDisplay({
   size = 192,
   className = "",
   showDownload = false,
+  showShare = false,
+  shareTitle = "My Card-Ex QR Code",
+  shareText = "Scan this QR to view my card",
   downloadFileName = "qr-code",
 }: QRCodeDisplayProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -352,6 +358,40 @@ export default function QRCodeDisplay({
     qrImg.src = URL.createObjectURL(qrBlobRef.current);
   }, [downloadFileName, settings, size]);
 
+  const handleShare = useCallback(async () => {
+    if (!qrBlobRef.current) {
+      toast.error("QR code not ready yet");
+      return;
+    }
+    if (typeof navigator === "undefined") return;
+    const nav: Navigator = navigator;
+    try {
+      const file = new File([qrBlobRef.current], `${downloadFileName}.png`, { type: "image/png" });
+      const shareData: ShareData = { title: shareTitle, text: shareText, url };
+      const canShareFiles =
+        "canShare" in nav && nav.canShare({ files: [file] });
+      if (canShareFiles) {
+        await nav.share({ ...shareData, files: [file] });
+        return;
+      }
+      if ("share" in nav) {
+        await nav.share(shareData);
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied — sharing not supported on this device");
+    } catch (err: any) {
+      if (err?.name === "AbortError") return;
+      console.warn("QR share failed:", err);
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard");
+      } catch {
+        toast.error("Could not share QR code");
+      }
+    }
+  }, [downloadFileName, shareTitle, shareText, url]);
+
   // Frame styling helpers
   const getFrameShadow = (shadow?: string) => {
     switch (shadow) {
@@ -415,16 +455,21 @@ export default function QRCodeDisplay({
           style={{ width: size, height: size }}
         />
       )}
-      {showDownload && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleDownload}
-          className="gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Download QR
-        </Button>
+      {(showDownload || showShare) && (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {showDownload && (
+            <Button variant="outline" size="sm" onClick={handleDownload} className="gap-2">
+              <Download className="h-4 w-4" />
+              Download
+            </Button>
+          )}
+          {showShare && (
+            <Button size="sm" onClick={handleShare} className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Share QR
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

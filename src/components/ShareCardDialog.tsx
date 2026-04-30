@@ -71,6 +71,24 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
     toast.success(`✅ Link copied: ${label || url}`);
   };
 
+  const handleShareUrl = async (url: string, title: string, text: string) => {
+    if (typeof navigator !== "undefined" && "share" in navigator) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+        console.warn("Share failed:", err);
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied — sharing not supported on this device");
+    } catch {
+      toast.error("Could not share link");
+    }
+  };
+
   const renderCardSection = (card: CardData, showLabel: boolean) => {
     const shareUrl = card.public_url || card.share_url;
     const customUrl = card.custom_slug ? `https://tagex.app/${card.custom_slug}` : null;
@@ -87,6 +105,13 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
               <Input value={shareUrl} readOnly className="flex-1 font-mono text-sm" />
               <Button variant="outline" size="icon" onClick={() => handleCopy(shareUrl)} title="Copy link">
                 <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                onClick={() => handleShareUrl(shareUrl, card.full_name || "My Card", "Check out my digital business card")}
+                title="Share link"
+              >
+                <Share2 className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -111,6 +136,13 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
                 title="Copy custom link"
               >
                 <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                onClick={() => handleShareUrl(`https://tagex.app/${card.custom_slug}`, card.full_name || "My Card", "Check out my digital business card")}
+                title="Share custom link"
+              >
+                <Share2 className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-xs text-[hsl(var(--primary))]">✓ Your personalized branded URL</p>
@@ -152,6 +184,9 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
                       settings={card.theme?.qr}
                       size={192}
                       showDownload={true}
+                      showShare={true}
+                      shareTitle={card.full_name ? `${card.full_name}'s Card` : "My Card"}
+                      shareText="Scan this QR to view my digital business card"
                       downloadFileName={`card-ex-${card.full_name?.replace(/\s+/g, "-") || card.slug}`}
                     />
                   </div>
@@ -180,6 +215,13 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
                 title="Copy referral link"
               >
                 <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                onClick={() => handleShareUrl(referralLink, "Join Card-Ex by Tagex.app", "Sign up using my referral link to get started!")}
+                title="Share referral link"
+              >
+                <Share2 className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
