@@ -384,7 +384,7 @@ export default function QRCodeDisplay({
       if (err?.name === "AbortError") return;
       console.warn("QR share failed:", err);
       try {
-        await nav.clipboard.writeText(url);
+        await navigator.clipboard.writeText(url);
         toast.success("Link copied to clipboard");
       } catch {
         toast.error("Could not share QR code");
