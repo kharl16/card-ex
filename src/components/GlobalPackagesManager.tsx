@@ -38,6 +38,11 @@ export default function GlobalPackagesManager({ cardId }: Props) {
 
     if (error) {
       setHiddenLocal(globalImageId, wasHidden);
+      window.dispatchEvent(
+        new CustomEvent("global-package-override-changed", {
+          detail: { cardId, id: globalImageId, hidden: wasHidden },
+        })
+      );
       toast.error(error.message);
     } else {
       toast.success(wasHidden ? "Package will show on your card" : "Package hidden from your card");
