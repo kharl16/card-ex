@@ -71,6 +71,24 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
     toast.success(`✅ Link copied: ${label || url}`);
   };
 
+  const handleShareUrl = async (url: string, title: string, text: string) => {
+    if (typeof navigator !== "undefined" && "share" in navigator) {
+      try {
+        await navigator.share({ title, text, url });
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+        console.warn("Share failed:", err);
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied — sharing not supported on this device");
+    } catch {
+      toast.error("Could not share link");
+    }
+  };
+
   const renderCardSection = (card: CardData, showLabel: boolean) => {
     const shareUrl = card.public_url || card.share_url;
     const customUrl = card.custom_slug ? `https://tagex.app/${card.custom_slug}` : null;
