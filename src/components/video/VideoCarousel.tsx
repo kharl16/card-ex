@@ -46,6 +46,7 @@ export default function VideoCarousel({
 }: VideoCarouselProps) {
   const [api, setApi] = useState<CarouselApi>();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [activeSnap, setActiveSnap] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
 
