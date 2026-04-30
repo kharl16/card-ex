@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRenderer";
 import { useGlobalProductImages } from "@/hooks/useGlobalProductImages";
+import { useGlobalPackageImages } from "@/hooks/useGlobalPackageImages";
 import VideoSectionRenderer from "@/components/video/VideoSectionRenderer";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
@@ -238,6 +239,8 @@ export default function CardView({
 }: CardViewProps) {
   // Global product photos shared across all cards (with this card's hide overrides applied)
   const { visibleGlobals } = useGlobalProductImages(card?.id);
+  // Global package photos shared across all cards (with this card's hide overrides applied)
+  const { visibleGlobals: visibleGlobalPackages } = useGlobalPackageImages(card?.id);
 
   // Bio expand/collapse (desktop only — mobile always shows full text)
   const [bioExpanded, setBioExpanded] = useState(false);
@@ -539,7 +542,15 @@ export default function CardView({
             shareText: g.caption ?? undefined,
           }));
           const productImagesData = [...ownProductImages, ...globalAsCarousel];
-          const packageImagesData = normalizeCarouselImages((card as any).package_images);
+          const ownPackageImages = normalizeCarouselImages((card as any).package_images);
+          const globalPackagesAsCarousel = visibleGlobalPackages.map((g, idx) => ({
+            url: g.url,
+            alt: g.caption ?? undefined,
+            order: ownPackageImages.length + idx,
+            description: g.caption ?? undefined,
+            shareText: g.caption ?? undefined,
+          }));
+          const packageImagesData = [...ownPackageImages, ...globalPackagesAsCarousel];
           const testimonyImagesData = normalizeCarouselImages((card as any).testimony_images);
           const videoItems = Array.isArray((card as any).video_items) ? (card as any).video_items : [];
           const cardSlug = card.slug;
