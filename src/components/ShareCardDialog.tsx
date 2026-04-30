@@ -216,6 +216,13 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
               >
                 <Copy className="h-4 w-4" />
               </Button>
+              <Button
+                size="icon"
+                onClick={() => handleShareUrl(referralLink, "Join Card-Ex by Tagex.app", "Sign up using my referral link to get started!")}
+                title="Share referral link"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground">
               Share this link to invite others and earn rewards when they sign up.
