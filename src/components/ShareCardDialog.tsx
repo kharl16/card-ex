@@ -38,6 +38,10 @@ interface CardData {
 export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange }: ShareCardDialogProps) {
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(false);
+  const { data: referralProfile } = useReferralProfile();
+  const referralLink = referralProfile?.referral_code
+    ? `https://tagex.app/signup?ref=${referralProfile.referral_code}`
+    : null;
 
   const idsToLoad = allCardIds && allCardIds.length > 0 ? allCardIds : [cardId];
 
