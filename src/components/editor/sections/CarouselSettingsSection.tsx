@@ -32,6 +32,7 @@ import {
 } from "@/lib/carouselTypes";
 import CarouselImageUploader from "@/components/carousel/CarouselImageUploader";
 import GlobalProductsManager from "@/components/GlobalProductsManager";
+import GlobalPackagesManager from "@/components/GlobalPackagesManager";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
@@ -964,6 +965,24 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                 </CardHeader>
                 <CardContent>
                   <GlobalProductsManager cardId={card.id} />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Shared package photos — only on Packages tab. Same pattern as Shared Product Photos. */}
+            {key === "packages" && card?.id && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    Shared Package Photos
+                  </CardTitle>
+                  <CardDescription>
+                    Packages added by the admin (e.g. Hope, Copper, Bronze) that appear on every card. Hide any you don't want on your card — your own uploads above are always yours.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <GlobalPackagesManager cardId={card.id} />
                 </CardContent>
               </Card>
             )}
