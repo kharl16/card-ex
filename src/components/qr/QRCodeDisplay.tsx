@@ -114,6 +114,9 @@ export default function QRCodeDisplay({
   size = 192,
   className = "",
   showDownload = false,
+  showShare = false,
+  shareTitle = "My Card-Ex QR Code",
+  shareText = "Scan this QR to view my card",
   downloadFileName = "qr-code",
 }: QRCodeDisplayProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
