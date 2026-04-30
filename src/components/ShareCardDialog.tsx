@@ -10,10 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Share2 } from "lucide-react";
+import { Copy, Share2, Gift } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import type { QRDisplaySettings } from "@/components/qr/QRCodeDisplay";
+import { useReferralProfile } from "@/hooks/useReferral";
 
 interface ShareCardDialogProps {
   cardId: string;
@@ -37,6 +38,10 @@ interface CardData {
 export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange }: ShareCardDialogProps) {
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(false);
+  const { data: referralProfile } = useReferralProfile();
+  const referralLink = referralProfile?.referral_code
+    ? `https://tagex.app/signup?ref=${referralProfile.referral_code}`
+    : null;
 
   const idsToLoad = allCardIds && allCardIds.length > 0 ? allCardIds : [cardId];
 
@@ -157,6 +162,29 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
         ) : (
           <div className="text-center py-8 text-muted-foreground">
             Failed to load card
+          </div>
+        )}
+
+        {referralLink && (
+          <div className="mt-2 space-y-2 rounded-lg border border-[hsl(var(--primary))]/30 bg-gradient-to-r from-[hsl(var(--primary))]/10 to-transparent p-3">
+            <Label className="flex items-center gap-1.5 text-[hsl(var(--primary))]">
+              <Gift className="h-4 w-4" />
+              Your Referral Link
+            </Label>
+            <div className="flex gap-2">
+              <Input value={referralLink} readOnly className="flex-1 font-mono text-xs" />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => handleCopy(referralLink, "Referral link")}
+                title="Copy referral link"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Share this link to invite others and earn rewards when they sign up.
+            </p>
           </div>
         )}
       </DialogContent>
