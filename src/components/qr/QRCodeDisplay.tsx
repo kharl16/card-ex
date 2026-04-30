@@ -378,7 +378,7 @@ export default function QRCodeDisplay({
         await nav.share(shareData);
         return;
       }
-      await nav.clipboard.writeText(url);
+      await navigator.clipboard.writeText(url);
       toast.success("Link copied — sharing not supported on this device");
     } catch (err: any) {
       if (err?.name === "AbortError") return;
