@@ -32,6 +32,9 @@ interface QRCodeDisplayProps {
   size?: number;
   className?: string;
   showDownload?: boolean;
+  showShare?: boolean;
+  shareTitle?: string;
+  shareText?: string;
   downloadFileName?: string;
 }
 
