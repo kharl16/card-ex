@@ -364,7 +364,7 @@ export default function QRCodeDisplay({
       return;
     }
     if (typeof navigator === "undefined") return;
-    const nav = navigator;
+    const nav: Navigator = navigator;
     try {
       const file = new File([qrBlobRef.current], `${downloadFileName}.png`, { type: "image/png" });
       const shareData: ShareData = { title: shareTitle, text: shareText, url };
