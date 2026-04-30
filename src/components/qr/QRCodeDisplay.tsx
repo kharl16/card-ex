@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-import { Download } from "lucide-react";
+import { Download, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCornerTypesFromEyeStyle } from "./QRLivePreview";
 import { toast } from "sonner";
