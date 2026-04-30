@@ -21,6 +21,11 @@ export default function GlobalProductsManager({ cardId }: Props) {
     const wasHidden = hiddenIds.has(globalImageId);
     // Optimistic flip
     setHiddenLocal(globalImageId, !wasHidden);
+    window.dispatchEvent(
+      new CustomEvent("global-product-override-changed", {
+        detail: { cardId, id: globalImageId, hidden: !wasHidden },
+      })
+    );
     setBusyId(globalImageId);
 
     const { error } = wasHidden
@@ -36,6 +41,11 @@ export default function GlobalProductsManager({ cardId }: Props) {
     if (error) {
       // Rollback
       setHiddenLocal(globalImageId, wasHidden);
+      window.dispatchEvent(
+        new CustomEvent("global-product-override-changed", {
+          detail: { cardId, id: globalImageId, hidden: wasHidden },
+        })
+      );
       toast.error(error.message);
     } else {
       toast.success(wasHidden ? "Photo will show on your card" : "Photo hidden from your card");

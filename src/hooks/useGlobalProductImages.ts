@@ -50,6 +50,23 @@ export function useGlobalProductImages(cardId: string | null | undefined) {
     load();
   }, [load]);
 
+  // Cross-component instant sync within the same tab (toggle button -> preview)
+  useEffect(() => {
+    if (!cardId) return;
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { cardId: string; id: string; hidden: boolean };
+      if (!detail || detail.cardId !== cardId) return;
+      setHiddenIds((prev) => {
+        const next = new Set(prev);
+        if (detail.hidden) next.add(detail.id);
+        else next.delete(detail.id);
+        return next;
+      });
+    };
+    window.addEventListener("global-product-override-changed", handler as EventListener);
+    return () => window.removeEventListener("global-product-override-changed", handler as EventListener);
+  }, [cardId]);
+
   // Realtime sync across tabs/devices for this card's overrides
   useEffect(() => {
     if (!cardId) return;

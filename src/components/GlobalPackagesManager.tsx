@@ -19,6 +19,11 @@ export default function GlobalPackagesManager({ cardId }: Props) {
   async function toggle(globalImageId: string) {
     const wasHidden = hiddenIds.has(globalImageId);
     setHiddenLocal(globalImageId, !wasHidden);
+    window.dispatchEvent(
+      new CustomEvent("global-package-override-changed", {
+        detail: { cardId, id: globalImageId, hidden: !wasHidden },
+      })
+    );
     setBusyId(globalImageId);
 
     const { error } = wasHidden
@@ -33,6 +38,11 @@ export default function GlobalPackagesManager({ cardId }: Props) {
 
     if (error) {
       setHiddenLocal(globalImageId, wasHidden);
+      window.dispatchEvent(
+        new CustomEvent("global-package-override-changed", {
+          detail: { cardId, id: globalImageId, hidden: wasHidden },
+        })
+      );
       toast.error(error.message);
     } else {
       toast.success(wasHidden ? "Package will show on your card" : "Package hidden from your card");
