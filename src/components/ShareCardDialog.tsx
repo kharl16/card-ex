@@ -10,10 +10,11 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Share2 } from "lucide-react";
+import { Copy, Share2, Gift } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import type { QRDisplaySettings } from "@/components/qr/QRCodeDisplay";
+import { useReferralProfile } from "@/hooks/useReferral";
 
 interface ShareCardDialogProps {
   cardId: string;
