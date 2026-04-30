@@ -67,6 +67,7 @@ export default function VideoCarousel({
     if (!api) return;
     const onSelect = () => {
       const snap = api.selectedScrollSnap();
+      setActiveSnap(snap);
       setActiveIndex(videos.length > 0 ? snap % videos.length : 0);
     };
     api.on("select", onSelect);
