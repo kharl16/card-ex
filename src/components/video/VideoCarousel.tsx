@@ -163,7 +163,7 @@ export default function VideoCarousel({
                         <button
                           type="button"
                           className="w-full h-full flex items-center justify-center cursor-pointer group"
-                          onClick={() => openFullscreen(index)}
+                          onClick={() => openFullscreen(originalIndex)}
                         >
                           {thumbnail ? (
                             <img
@@ -192,7 +192,7 @@ export default function VideoCarousel({
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 bg-black/60 hover:bg-black/80 text-white rounded-full"
-                            onClick={(e) => { e.stopPropagation(); openFullscreen(index); }}
+                            onClick={(e) => { e.stopPropagation(); openFullscreen(originalIndex); }}
                             aria-label="Fullscreen"
                           >
                             <Play className="h-4 w-4" />
