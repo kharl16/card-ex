@@ -106,6 +106,13 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
               <Button variant="outline" size="icon" onClick={() => handleCopy(shareUrl)} title="Copy link">
                 <Copy className="h-4 w-4" />
               </Button>
+              <Button
+                size="icon"
+                onClick={() => handleShareUrl(shareUrl, card.full_name || "My Card", "Check out my digital business card")}
+                title="Share link"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
             </div>
             <p className="text-xs text-muted-foreground">
               {card.public_url?.includes('/c/') ? 'Permanent shareable link' : 'Branded short URL'}
@@ -129,6 +136,13 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
                 title="Copy custom link"
               >
                 <Copy className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                onClick={() => handleShareUrl(`https://tagex.app/${card.custom_slug}`, card.full_name || "My Card", "Check out my digital business card")}
+                title="Share custom link"
+              >
+                <Share2 className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-xs text-[hsl(var(--primary))]">✓ Your personalized branded URL</p>
