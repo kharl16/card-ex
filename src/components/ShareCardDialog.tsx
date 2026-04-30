@@ -184,6 +184,9 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
                       settings={card.theme?.qr}
                       size={192}
                       showDownload={true}
+                      showShare={true}
+                      shareTitle={card.full_name ? `${card.full_name}'s Card` : "My Card"}
+                      shareText="Scan this QR to view my digital business card"
                       downloadFileName={`card-ex-${card.full_name?.replace(/\s+/g, "-") || card.slug}`}
                     />
                   </div>
