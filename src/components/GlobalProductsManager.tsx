@@ -21,6 +21,11 @@ export default function GlobalProductsManager({ cardId }: Props) {
     const wasHidden = hiddenIds.has(globalImageId);
     // Optimistic flip
     setHiddenLocal(globalImageId, !wasHidden);
+    window.dispatchEvent(
+      new CustomEvent("global-product-override-changed", {
+        detail: { cardId, id: globalImageId, hidden: !wasHidden },
+      })
+    );
     setBusyId(globalImageId);
 
     const { error } = wasHidden
