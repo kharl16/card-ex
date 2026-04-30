@@ -455,16 +455,21 @@ export default function QRCodeDisplay({
           style={{ width: size, height: size }}
         />
       )}
-      {showDownload && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleDownload}
-          className="gap-2"
-        >
-          <Download className="h-4 w-4" />
-          Download QR
-        </Button>
+      {(showDownload || showShare) && (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {showDownload && (
+            <Button variant="outline" size="sm" onClick={handleDownload} className="gap-2">
+              <Download className="h-4 w-4" />
+              Download
+            </Button>
+          )}
+          {showShare && (
+            <Button size="sm" onClick={handleShare} className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Share QR
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );
