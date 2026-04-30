@@ -358,6 +358,40 @@ export default function QRCodeDisplay({
     qrImg.src = URL.createObjectURL(qrBlobRef.current);
   }, [downloadFileName, settings, size]);
 
+  const handleShare = useCallback(async () => {
+    if (!qrBlobRef.current) {
+      toast.error("QR code not ready yet");
+      return;
+    }
+    try {
+      const file = new File([qrBlobRef.current], `${downloadFileName}.png`, { type: "image/png" });
+      const shareData: ShareData = { title: shareTitle, text: shareText, url };
+      const canShareFiles =
+        typeof navigator !== "undefined" &&
+        "canShare" in navigator &&
+        navigator.canShare({ files: [file] });
+      if (canShareFiles) {
+        await navigator.share({ ...shareData, files: [file] });
+        return;
+      }
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied — sharing not supported on this device");
+    } catch (err: any) {
+      if (err?.name === "AbortError") return;
+      console.warn("QR share failed:", err);
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copied to clipboard");
+      } catch {
+        toast.error("Could not share QR code");
+      }
+    }
+  }, [downloadFileName, shareTitle, shareText, url]);
+
   // Frame styling helpers
   const getFrameShadow = (shadow?: string) => {
     switch (shadow) {
