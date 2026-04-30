@@ -49,14 +49,29 @@ export default function VideoCarousel({
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
 
-  // Track active slide
+  // Duplicate slides when only a few videos to allow Embla loop to work
+  // (Embla disables loop when total slide width < container width × 2)
+  const displayVideos = useMemo(() => {
+    if (videos.length === 0) return [];
+    if (videos.length === 1) return videos;
+    if (videos.length < 4) {
+      // Repeat enough times to comfortably exceed container width
+      return [...videos, ...videos, ...videos];
+    }
+    return videos;
+  }, [videos]);
+
+  // Track active slide (modulo original length so duplicates map correctly)
   useEffect(() => {
     if (!api) return;
-    const onSelect = () => setActiveIndex(api.selectedScrollSnap());
+    const onSelect = () => {
+      const snap = api.selectedScrollSnap();
+      setActiveIndex(videos.length > 0 ? snap % videos.length : 0);
+    };
     api.on("select", onSelect);
     onSelect();
     return () => { api.off("select", onSelect); };
-  }, [api]);
+  }, [api, videos.length]);
 
   const openFullscreen = useCallback((index: number) => {
     setFullscreenIndex(index);
