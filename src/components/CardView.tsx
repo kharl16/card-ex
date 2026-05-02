@@ -236,6 +236,7 @@ export default function CardView({
   showQRCode = false,
   showVCardButtons = false,
   publicCardUrl,
+  referralCode,
   bottomAction,
   bioBannerGapMobile = "gap-5",
   bioBannerGapDesktop = "sm:gap-4",
