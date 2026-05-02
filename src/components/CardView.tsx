@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import CardShareDialog from "@/components/CardShareDialog";
+import DraggableShareFab from "@/components/DraggableShareFab";
 import {
   Mail,
   Phone,
@@ -926,19 +927,7 @@ export default function CardView({
       )}
 
       {isInteractive && publicCardUrl && (
-        <button
-          type="button"
-          onClick={() => setShareDialogOpen(true)}
-          aria-label="Share Card (Link, QR, Referral)"
-          style={{
-            bottom: "calc(env(safe-area-inset-bottom, 0px) + 88px)",
-            right: "calc(env(safe-area-inset-right, 0px) + 16px)",
-          }}
-          className="fixed z-[60] h-14 w-14 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))]/70 text-primary-foreground shadow-2xl shadow-[hsl(var(--primary))]/40 ring-1 ring-[hsl(var(--primary))]/40 flex items-center justify-center transition-transform hover:scale-105 active:scale-95 sm:!bottom-8 sm:!right-8 sm:h-16 sm:w-16"
-        >
-          <Share2 className="h-6 w-6" />
-          <span className="sr-only">Share Card</span>
-        </button>
+        <DraggableShareFab onClick={() => setShareDialogOpen(true)} />
       )}
 
       {isInteractive && publicCardUrl && (
