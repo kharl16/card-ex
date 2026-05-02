@@ -309,6 +309,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           showQRCode={true}
           showVCardButtons={true}
           publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
+          referralCode={ownerReferralCode}
           bottomAction={
             bookingEnabled ? (
               <Button
