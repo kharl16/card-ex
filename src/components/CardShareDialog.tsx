@@ -335,28 +335,6 @@ export default function CardShareDialog({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-3">
-            <Button
-              variant="outline"
-              onClick={copyAll}
-              className="h-11 gap-2 border-[hsl(var(--primary))]/40 font-semibold"
-            >
-              <CopyCheck className="h-4 w-4" />
-              Copy all
-              <Badge value={counts.copy_all} label={ACTION_LABELS.copy_all} />
-            </Button>
-            <Button
-              onClick={shareAll}
-              className="h-11 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg"
-            >
-              <Share2 className="h-4 w-4" />
-              Share all
-              <Badge value={counts.share_all} label={ACTION_LABELS.share_all} />
-            </Button>
-          </div>
-          <p className="text-[11px] text-muted-foreground text-center mt-2">
-            Includes Card URL, QR image & referral link
-          </p>
         </div>
 
         {/* Scrollable content for individual links */}
