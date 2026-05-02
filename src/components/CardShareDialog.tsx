@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Share2, Gift } from "lucide-react";
+import { Copy, Share2, Gift, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeDisplay, { type QRDisplaySettings } from "@/components/qr/QRCodeDisplay";
 import { shareEverything } from "@/lib/shareEverything";
@@ -66,29 +66,52 @@ export default function CardShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
+        <DialogHeader className="px-6 pt-6 pb-3 border-b border-border/40">
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
             Share Card
           </DialogTitle>
           <DialogDescription>
-            Share the link, QR code, and your referral link — all in one place.
+            Share the link, QR code, and referral — all from one place.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
+        {/* Sticky QR header — always visible */}
+        <div className="sticky top-0 z-10 bg-gradient-to-b from-background to-background/95 backdrop-blur px-6 py-4 border-b border-border/40">
+          <div className="flex flex-col items-center gap-2 rounded-lg border border-border/60 bg-card p-3">
+            <QRCodeDisplay
+              url={primaryUrl}
+              settings={qrSettings}
+              size={160}
+              showDownload
+              showShare
+              shareTitle={title}
+              shareText="Scan this QR to view my digital business card"
+              downloadFileName={`card-ex-${slugForFile || "card"}`}
+            />
+            <p className="text-[11px] text-muted-foreground text-center">
+              Scan, download, or share this QR
+            </p>
+          </div>
+
           <Button
             onClick={shareAll}
-            className="w-full h-12 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg"
+            className="w-full h-11 mt-3 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg"
           >
-            <Share2 className="h-5 w-5" />
+            <Share2 className="h-4 w-4" />
             Share Everything (Link + QR + Referral)
           </Button>
+        </div>
 
-          {/* Custom / Primary URL */}
+        {/* Scrollable content for individual links */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {/* Primary URL */}
           <div className="space-y-2">
-            <Label>Card URL</Label>
+            <Label className="flex items-center gap-1.5">
+              <LinkIcon className="h-4 w-4" />
+              Card URL
+            </Label>
             <div className="flex gap-2">
               <Input value={primaryUrl} readOnly className="flex-1 font-mono text-sm" />
               <Button variant="outline" size="icon" onClick={() => copy(primaryUrl, "Card URL")} title="Copy">
@@ -106,7 +129,10 @@ export default function CardShareDialog({
 
           {altUrl && altUrl !== primaryUrl && (
             <div className="space-y-2">
-              <Label>Alternate URL</Label>
+              <Label className="flex items-center gap-1.5">
+                <LinkIcon className="h-4 w-4" />
+                Alternate URL
+              </Label>
               <div className="flex gap-2">
                 <Input value={altUrl} readOnly className="flex-1 font-mono text-sm" />
                 <Button variant="outline" size="icon" onClick={() => copy(altUrl, "Alternate URL")} title="Copy">
@@ -122,23 +148,6 @@ export default function CardShareDialog({
               </div>
             </div>
           )}
-
-          {/* QR Code */}
-          <div className="space-y-2">
-            <Label>QR Code</Label>
-            <div className="flex flex-col items-center gap-2 rounded-lg border p-4 bg-card">
-              <QRCodeDisplay
-                url={primaryUrl}
-                settings={qrSettings}
-                size={192}
-                showDownload
-                showShare
-                shareTitle={title}
-                shareText="Scan this QR to view my digital business card"
-                downloadFileName={`card-ex-${slugForFile || "card"}`}
-              />
-            </div>
-          </div>
 
           {/* Referral */}
           {referralLink && (
@@ -172,7 +181,7 @@ export default function CardShareDialog({
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Share this link to invite others and earn rewards when they sign up.
+                Invite others and earn rewards when they sign up.
               </p>
             </div>
           )}
