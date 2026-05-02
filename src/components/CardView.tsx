@@ -926,16 +926,15 @@ export default function CardView({
       )}
 
       {isInteractive && publicCardUrl && (
-        <div className="px-5 pb-3 pt-1">
-          <Button
-            type="button"
-            onClick={() => setShareDialogOpen(true)}
-            className="w-full h-12 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg rounded-2xl"
-          >
-            <Share2 className="h-5 w-5" />
-            Share Card (Link + QR + Referral)
-          </Button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setShareDialogOpen(true)}
+          aria-label="Share Card (Link, QR, Referral)"
+          className="fixed bottom-24 right-5 z-40 h-14 w-14 rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))]/70 text-primary-foreground shadow-2xl shadow-[hsl(var(--primary))]/40 ring-1 ring-[hsl(var(--primary))]/40 flex items-center justify-center transition-transform hover:scale-105 active:scale-95 sm:bottom-8 sm:right-8 sm:h-16 sm:w-16"
+        >
+          <Share2 className="h-6 w-6" />
+          <span className="sr-only">Share Card</span>
+        </button>
       )}
 
       {isInteractive && publicCardUrl && (
