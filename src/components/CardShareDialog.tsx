@@ -1,15 +1,19 @@
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Share2, Gift, Link as LinkIcon, CopyCheck } from "lucide-react";
+import { Copy, Share2, Gift, Link as LinkIcon, CopyCheck, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeDisplay, { type QRDisplaySettings } from "@/components/qr/QRCodeDisplay";
 import { shareEverything } from "@/lib/shareEverything";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CardShareDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Card id is required for tracking analytics. If omitted, dialog still works without tracking. */
+  cardId?: string | null;
   fullName?: string | null;
   /** Primary public URL (custom slug if available, else /c/ url) */
   primaryUrl: string;
@@ -20,9 +24,52 @@ interface CardShareDialogProps {
   slugForFile?: string | null;
 }
 
+type ActionKey =
+  | "url_copy"
+  | "url_share"
+  | "alt_copy"
+  | "alt_share"
+  | "referral_copy"
+  | "referral_share"
+  | "copy_all"
+  | "share_all";
+
+const ACTION_LABELS: Record<ActionKey, string> = {
+  url_copy: "Card URL copied",
+  url_share: "Card URL shared",
+  alt_copy: "Alt URL copied",
+  alt_share: "Alt URL shared",
+  referral_copy: "Referral copied",
+  referral_share: "Referral shared",
+  copy_all: "Copy all",
+  share_all: "Share all",
+};
+
+const sessionKey = (cardId: string | null | undefined, key: ActionKey) =>
+  `cex_share_count:${cardId || "anon"}:${key}`;
+
+function getCount(cardId: string | null | undefined, key: ActionKey): number {
+  try {
+    return Number(localStorage.getItem(sessionKey(cardId, key)) || "0") || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function bumpCount(cardId: string | null | undefined, key: ActionKey): number {
+  try {
+    const next = getCount(cardId, key) + 1;
+    localStorage.setItem(sessionKey(cardId, key), String(next));
+    return next;
+  } catch {
+    return 0;
+  }
+}
+
 export default function CardShareDialog({
   open,
   onOpenChange,
+  cardId,
   fullName,
   primaryUrl,
   altUrl,
@@ -32,35 +79,116 @@ export default function CardShareDialog({
 }: CardShareDialogProps) {
   const referralLink = referralCode ? `https://tagex.app/signup?ref=${referralCode}` : null;
 
-  const copy = async (value: string, label: string) => {
+  // Per-action local counts (this device)
+  const [counts, setCounts] = useState<Record<ActionKey, number>>(() => ({
+    url_copy: 0,
+    url_share: 0,
+    alt_copy: 0,
+    alt_share: 0,
+    referral_copy: 0,
+    referral_share: 0,
+    copy_all: 0,
+    share_all: 0,
+  }));
+
+  // Lifetime CTA totals fetched from analytics_daily
+  const [lifetimeCta, setLifetimeCta] = useState<number | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+
+  // Refresh both local counts and lifetime totals when dialog opens
+  useEffect(() => {
+    if (!open) return;
+
+    // Reload local counts from storage
+    setCounts({
+      url_copy: getCount(cardId, "url_copy"),
+      url_share: getCount(cardId, "url_share"),
+      alt_copy: getCount(cardId, "alt_copy"),
+      alt_share: getCount(cardId, "alt_share"),
+      referral_copy: getCount(cardId, "referral_copy"),
+      referral_share: getCount(cardId, "referral_share"),
+      copy_all: getCount(cardId, "copy_all"),
+      share_all: getCount(cardId, "share_all"),
+    });
+
+    // Fetch lifetime CTA totals
+    if (!cardId) return;
+    setLoadingStats(true);
+    supabase
+      .from("analytics_daily")
+      .select("cta_clicks")
+      .eq("card_id", cardId)
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn("Failed to fetch share analytics:", error);
+          setLifetimeCta(null);
+        } else {
+          const sum = (data || []).reduce((acc, r) => acc + (r.cta_clicks || 0), 0);
+          setLifetimeCta(sum);
+        }
+        setLoadingStats(false);
+      });
+  }, [open, cardId]);
+
+  const track = (key: ActionKey) => {
+    // Update session count immediately
+    bumpCount(cardId, key);
+    setCounts((prev) => ({ ...prev, [key]: prev[key] + 1 }));
+
+    // Fire-and-forget server-side cta_click event
+    if (cardId) {
+      supabase.functions
+        .invoke("track-card-event", {
+          body: { card_id: cardId, kind: "cta_click", source: `share_dialog:${key}` },
+        })
+        .then(() => {
+          // Optimistic local bump of lifetime total
+          setLifetimeCta((prev) => (prev == null ? prev : prev + 1));
+        })
+        .catch((e) => console.warn("track share event failed", e));
+    }
+  };
+
+  const copy = async (value: string, label: string, key: ActionKey) => {
     try {
       await navigator.clipboard.writeText(value);
       toast.success(`✅ Copied: ${label}`);
+      track(key);
     } catch {
       toast.error("Could not copy");
     }
   };
 
-  const shareUrl = async (url: string, title: string, text: string) => {
+  const shareUrlAction = async (url: string, t: string, text: string, key: ActionKey) => {
     if (typeof navigator !== "undefined" && "share" in navigator) {
       try {
-        await navigator.share({ title, text, url });
+        await navigator.share({ title: t, text, url });
+        track(key);
         return;
       } catch (err: any) {
         if (err?.name === "AbortError") return;
       }
     }
-    await copy(url, title);
+    // Fallback: copy
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+      track(key);
+    } catch {
+      toast.error("Could not share");
+    }
   };
 
-  const shareAll = () =>
-    shareEverything({
+  const shareAll = async () => {
+    await shareEverything({
       fullName,
       primaryUrl,
       altUrl: altUrl || null,
       referralCode: referralCode || null,
       slugForFile: slugForFile || null,
     });
+    track("share_all");
+  };
 
   const buildAllText = () => {
     const lines: string[] = [];
@@ -76,13 +204,12 @@ export default function CardShareDialog({
 
   const copyAll = async () => {
     const text = buildAllText();
-    // Try to copy QR image + text together using ClipboardItem (Chrome/Edge support image/png)
     try {
       const QRCode = (await import("qrcode")).default;
       const dataUrl = await QRCode.toDataURL(primaryUrl, { width: 512, margin: 2 });
       const pngBlob = await (await fetch(dataUrl)).blob();
       const textBlob = new Blob([text], { type: "text/plain" });
-      // @ts-ignore - ClipboardItem may not be in TS lib
+      // @ts-ignore
       if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
         // @ts-ignore
         await navigator.clipboard.write([
@@ -90,6 +217,7 @@ export default function CardShareDialog({
           new ClipboardItem({ "image/png": pngBlob, "text/plain": textBlob }),
         ]);
         toast.success("✅ Copied URL, QR image & referral link");
+        track("copy_all");
         return;
       }
     } catch (e) {
@@ -98,12 +226,36 @@ export default function CardShareDialog({
     try {
       await navigator.clipboard.writeText(text);
       toast.success("✅ Copied URL & referral link (QR image not supported here)");
+      track("copy_all");
     } catch {
       toast.error("Could not copy");
     }
   };
 
   const title = fullName ? `${fullName}'s Card` : "My Card";
+
+  // Aggregate per-action counts for display
+  const cardUrlActions = counts.url_copy + counts.url_share;
+  const referralActions = counts.referral_copy + counts.referral_share;
+  const totalActions =
+    counts.url_copy +
+    counts.url_share +
+    counts.alt_copy +
+    counts.alt_share +
+    counts.referral_copy +
+    counts.referral_share +
+    counts.copy_all +
+    counts.share_all;
+
+  const Badge = ({ value, label }: { value: number; label: string }) =>
+    value > 0 ? (
+      <span
+        className="ml-1 inline-flex items-center gap-1 rounded-full bg-[hsl(var(--primary))]/15 px-2 py-0.5 text-[10px] font-semibold text-[hsl(var(--primary))]"
+        title={label}
+      >
+        {value}
+      </span>
+    ) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -144,6 +296,7 @@ export default function CardShareDialog({
             >
               <CopyCheck className="h-4 w-4" />
               Copy all
+              <Badge value={counts.copy_all} label={ACTION_LABELS.copy_all} />
             </Button>
             <Button
               onClick={shareAll}
@@ -151,12 +304,51 @@ export default function CardShareDialog({
             >
               <Share2 className="h-4 w-4" />
               Share all
+              <Badge value={counts.share_all} label={ACTION_LABELS.share_all} />
             </Button>
           </div>
           <p className="text-[11px] text-muted-foreground text-center mt-2">
             Includes Card URL, QR image & referral link
           </p>
         </div>
+
+        {/* Live stats strip */}
+        {cardId && (
+          <div className="px-6 py-3 border-b border-border/40 bg-muted/20">
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart3 className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Share analytics
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-md border border-border/40 bg-card/60 p-2">
+                <div className="text-base font-bold text-foreground tabular-nums">
+                  {loadingStats ? "…" : lifetimeCta ?? "—"}
+                </div>
+                <div className="text-[10px] text-muted-foreground leading-tight">
+                  Lifetime CTA clicks
+                </div>
+              </div>
+              <div className="rounded-md border border-border/40 bg-card/60 p-2">
+                <div className="text-base font-bold text-foreground tabular-nums">
+                  {totalActions}
+                </div>
+                <div className="text-[10px] text-muted-foreground leading-tight">
+                  This session
+                </div>
+              </div>
+              <div className="rounded-md border border-[hsl(var(--primary))]/30 bg-[hsl(var(--primary))]/10 p-2">
+                <div className="text-base font-bold text-[hsl(var(--primary))] tabular-nums">
+                  {referralActions}
+                </div>
+                <div className="text-[10px] text-muted-foreground leading-tight">
+                  Referral shares
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Scrollable content for individual links */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
@@ -165,20 +357,31 @@ export default function CardShareDialog({
             <Label className="flex items-center gap-1.5">
               <LinkIcon className="h-4 w-4" />
               Card URL
+              <Badge value={cardUrlActions} label="Card URL shares" />
             </Label>
             <div className="flex gap-2">
               <Input value={primaryUrl} readOnly className="flex-1 font-mono text-sm" />
-              <Button variant="outline" size="icon" onClick={() => copy(primaryUrl, "Card URL")} title="Copy">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => copy(primaryUrl, "Card URL", "url_copy")}
+                title="Copy"
+              >
                 <Copy className="h-4 w-4" />
               </Button>
               <Button
                 size="icon"
-                onClick={() => shareUrl(primaryUrl, title, "Check out my digital business card")}
+                onClick={() =>
+                  shareUrlAction(primaryUrl, title, "Check out my digital business card", "url_share")
+                }
                 title="Share"
               >
                 <Share2 className="h-4 w-4" />
               </Button>
             </div>
+            <p className="text-[10px] text-muted-foreground">
+              Copied {counts.url_copy}× · Shared {counts.url_share}× on this device
+            </p>
           </div>
 
           {altUrl && altUrl !== primaryUrl && (
@@ -186,15 +389,23 @@ export default function CardShareDialog({
               <Label className="flex items-center gap-1.5">
                 <LinkIcon className="h-4 w-4" />
                 Alternate URL
+                <Badge value={counts.alt_copy + counts.alt_share} label="Alt URL shares" />
               </Label>
               <div className="flex gap-2">
                 <Input value={altUrl} readOnly className="flex-1 font-mono text-sm" />
-                <Button variant="outline" size="icon" onClick={() => copy(altUrl, "Alternate URL")} title="Copy">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => copy(altUrl, "Alternate URL", "alt_copy")}
+                  title="Copy"
+                >
                   <Copy className="h-4 w-4" />
                 </Button>
                 <Button
                   size="icon"
-                  onClick={() => shareUrl(altUrl, title, "Check out my digital business card")}
+                  onClick={() =>
+                    shareUrlAction(altUrl, title, "Check out my digital business card", "alt_share")
+                  }
                   title="Share"
                 >
                   <Share2 className="h-4 w-4" />
@@ -209,13 +420,14 @@ export default function CardShareDialog({
               <Label className="flex items-center gap-1.5 text-[hsl(var(--primary))]">
                 <Gift className="h-4 w-4" />
                 Referral Link
+                <Badge value={referralActions} label="Referral shares" />
               </Label>
               <div className="flex gap-2">
                 <Input value={referralLink} readOnly className="flex-1 font-mono text-xs" />
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => copy(referralLink, "Referral link")}
+                  onClick={() => copy(referralLink, "Referral link", "referral_copy")}
                   title="Copy"
                 >
                   <Copy className="h-4 w-4" />
@@ -223,10 +435,11 @@ export default function CardShareDialog({
                 <Button
                   size="icon"
                   onClick={() =>
-                    shareUrl(
+                    shareUrlAction(
                       referralLink,
                       "Join Card-Ex by Tagex.app",
-                      "Sign up using my referral link to get started!"
+                      "Sign up using my referral link to get started!",
+                      "referral_share"
                     )
                   }
                   title="Share"
@@ -234,8 +447,8 @@ export default function CardShareDialog({
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Invite others and earn rewards when they sign up.
+              <p className="text-[10px] text-muted-foreground">
+                Copied {counts.referral_copy}× · Shared {counts.referral_share}× on this device
               </p>
             </div>
           )}
