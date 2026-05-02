@@ -109,6 +109,8 @@ interface CardViewProps {
   showVCardButtons?: boolean;
   /** Public card URL for sharing - must be https://tagex.app/c/{slug}, never editor URL */
   publicCardUrl?: string;
+  /** Owner's referral code, used by the in-card Share button */
+  referralCode?: string | null;
   /** Optional extra CTA rendered at the bottom of the card body */
   bottomAction?: React.ReactNode;
   /**
