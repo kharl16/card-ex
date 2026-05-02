@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -257,10 +257,56 @@ export default function CardShareDialog({
       </span>
     ) : null;
 
+  // Swipe-to-close (mobile): vertical drag down on the dialog closes it.
+  const swipeRef = useRef<{ startY: number; startX: number; dy: number; active: boolean } | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (typeof window !== "undefined" && window.innerWidth >= 640) return; // mobile only
+    const t = e.touches[0];
+    swipeRef.current = { startY: t.clientY, startX: t.clientX, dy: 0, active: true };
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    const s = swipeRef.current;
+    if (!s?.active) return;
+    const t = e.touches[0];
+    const dy = t.clientY - s.startY;
+    const dx = Math.abs(t.clientX - s.startX);
+    // Only track downward, mostly-vertical swipes
+    if (dy > 0 && dy > dx) {
+      s.dy = dy;
+      setSwipeOffset(Math.min(dy, 400));
+    }
+  };
+  const onTouchEnd = () => {
+    const s = swipeRef.current;
+    swipeRef.current = null;
+    if (s && s.dy > 100) {
+      onOpenChange(false);
+    }
+    setSwipeOffset(0);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
-        <DialogHeader className="px-6 pt-6 pb-3 border-b border-border/40">
+      <DialogContent
+        className="sm:max-w-md max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col"
+        style={{
+          transform: swipeOffset
+            ? `translate(-50%, calc(-50% + ${swipeOffset}px))`
+            : undefined,
+          transition: swipeOffset ? "none" : undefined,
+          opacity: swipeOffset ? Math.max(0.4, 1 - swipeOffset / 400) : undefined,
+        }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Mobile swipe handle */}
+        <div className="sm:hidden flex justify-center pt-2 pb-1" aria-hidden="true">
+          <div className="h-1.5 w-12 rounded-full bg-muted-foreground/30" />
+        </div>
+        <DialogHeader className="px-6 pt-4 pb-3 border-b border-border/40">
           <DialogTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
             Share Card
@@ -269,6 +315,7 @@ export default function CardShareDialog({
             Share the link, QR code, and referral — all from one place.
           </DialogDescription>
         </DialogHeader>
+
 
         {/* Sticky QR header — always visible */}
         <div className="sticky top-0 z-10 bg-gradient-to-b from-background to-background/95 backdrop-blur px-6 py-4 border-b border-border/40">
