@@ -62,6 +62,47 @@ export default function CardShareDialog({
       slugForFile: slugForFile || null,
     });
 
+  const buildAllText = () => {
+    const lines: string[] = [];
+    lines.push(`Check out ${fullName ? `${fullName}'s` : "my"} digital business card:`);
+    lines.push(primaryUrl);
+    if (altUrl && altUrl !== primaryUrl) lines.push(`Alt link: ${altUrl}`);
+    if (referralLink) {
+      lines.push("");
+      lines.push(`Want one too? Sign up with my referral link: ${referralLink}`);
+    }
+    return lines.join("\n");
+  };
+
+  const copyAll = async () => {
+    const text = buildAllText();
+    // Try to copy QR image + text together using ClipboardItem (Chrome/Edge support image/png)
+    try {
+      const QRCode = (await import("qrcode")).default;
+      const dataUrl = await QRCode.toDataURL(primaryUrl, { width: 512, margin: 2 });
+      const pngBlob = await (await fetch(dataUrl)).blob();
+      const textBlob = new Blob([text], { type: "text/plain" });
+      // @ts-ignore - ClipboardItem may not be in TS lib
+      if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
+        // @ts-ignore
+        await navigator.clipboard.write([
+          // @ts-ignore
+          new ClipboardItem({ "image/png": pngBlob, "text/plain": textBlob }),
+        ]);
+        toast.success("✅ Copied URL, QR image & referral link");
+        return;
+      }
+    } catch (e) {
+      console.warn("Copy with image failed, falling back to text:", e);
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("✅ Copied URL & referral link (QR image not supported here)");
+    } catch {
+      toast.error("Could not copy");
+    }
+  };
+
   const title = fullName ? `${fullName}'s Card` : "My Card";
 
   return (
