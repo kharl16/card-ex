@@ -250,6 +250,7 @@ export default function CardView({
 
   // Bio expand/collapse (desktop only — mobile always shows full text)
   const [bioExpanded, setBioExpanded] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   // Normalize social links whether passed as a prop or loaded from Supabase JSON
   const resolvedSocialLinks: SocialLink[] = React.useMemo(() => {
