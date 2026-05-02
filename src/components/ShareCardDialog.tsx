@@ -89,6 +89,58 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
     }
   };
 
+  const buildShareAllText = (card: CardData) => {
+    const customUrl = card.custom_slug ? `https://tagex.app/${card.custom_slug}` : null;
+    const primaryUrl = customUrl || card.public_url || card.share_url;
+    const lines: string[] = [];
+    lines.push(`Check out ${card.full_name ? `${card.full_name}'s` : "my"} digital business card:`);
+    lines.push(primaryUrl);
+    if (customUrl && card.public_url && card.public_url !== customUrl) {
+      lines.push(`Alt link: ${card.public_url}`);
+    }
+    if (referralLink) {
+      lines.push("");
+      lines.push(`Want one too? Sign up with my referral link: ${referralLink}`);
+    }
+    return { primaryUrl, text: lines.join("\n") };
+  };
+
+  const handleShareAll = async (card: CardData) => {
+    const { primaryUrl, text } = buildShareAllText(card);
+    const title = card.full_name ? `${card.full_name}'s Card` : "My Card";
+
+    // Try to attach QR code as a file when supported
+    let qrFile: File | null = null;
+    try {
+      const QRCode = (await import("qrcode")).default;
+      const dataUrl = await QRCode.toDataURL(primaryUrl, { width: 512, margin: 2 });
+      const blob = await (await fetch(dataUrl)).blob();
+      qrFile = new File([blob], `card-qr-${card.slug || card.id}.png`, { type: "image/png" });
+    } catch (e) {
+      console.warn("QR generation for share failed:", e);
+    }
+
+    if (typeof navigator !== "undefined" && "share" in navigator) {
+      try {
+        const payload: ShareData = { title, text, url: primaryUrl };
+        if (qrFile && (navigator as any).canShare?.({ files: [qrFile] })) {
+          (payload as any).files = [qrFile];
+        }
+        await (navigator as any).share(payload);
+        return;
+      } catch (err: any) {
+        if (err?.name === "AbortError") return;
+        console.warn("Share all failed:", err);
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(`${text}`);
+      toast.success("Card details copied to clipboard");
+    } catch {
+      toast.error("Could not share card");
+    }
+  };
+
   const renderCardSection = (card: CardData, showLabel: boolean) => {
     const shareUrl = card.public_url || card.share_url;
     const customUrl = card.custom_slug ? `https://tagex.app/${card.custom_slug}` : null;
@@ -98,6 +150,13 @@ export default function ShareCardDialog({ cardId, allCardIds, open, onOpenChange
         {showLabel && (
           <p className="text-sm font-semibold text-foreground">{card.full_name || "Untitled Card"}</p>
         )}
+        <Button
+          onClick={() => handleShareAll(card)}
+          className="w-full h-12 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg"
+        >
+          <Share2 className="h-5 w-5" />
+          Share Everything (Link + QR + Referral)
+        </Button>
         {!hideShareUrl && (
           <div className="space-y-2">
             <Label>Share URL</Label>
