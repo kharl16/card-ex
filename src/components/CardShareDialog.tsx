@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Share2, Gift, Link as LinkIcon } from "lucide-react";
+import { Copy, Share2, Gift, Link as LinkIcon, CopyCheck } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeDisplay, { type QRDisplaySettings } from "@/components/qr/QRCodeDisplay";
 import { shareEverything } from "@/lib/shareEverything";
