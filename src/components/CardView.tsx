@@ -929,20 +929,34 @@ export default function CardView({
         <div className="px-5 pb-3 pt-1">
           <Button
             type="button"
-            onClick={() =>
-              shareEverything({
-                fullName: (card as any)?.full_name,
-                primaryUrl: publicCardUrl,
-                referralCode: referralCode || null,
-                slugForFile: (card as any)?.custom_slug || (card as any)?.slug,
-              })
-            }
+            onClick={() => setShareDialogOpen(true)}
             className="w-full h-12 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg rounded-2xl"
           >
             <Share2 className="h-5 w-5" />
             Share Card (Link + QR + Referral)
           </Button>
         </div>
+      )}
+
+      {isInteractive && publicCardUrl && (
+        <CardShareDialog
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          fullName={(card as any)?.full_name}
+          primaryUrl={
+            (card as any)?.custom_slug
+              ? `https://tagex.app/${(card as any).custom_slug}`
+              : publicCardUrl
+          }
+          altUrl={
+            (card as any)?.custom_slug && publicCardUrl && !publicCardUrl.endsWith(`/${(card as any).custom_slug}`)
+              ? publicCardUrl
+              : null
+          }
+          referralCode={referralCode || null}
+          qrSettings={(card as any)?.theme?.qr}
+          slugForFile={(card as any)?.custom_slug || (card as any)?.slug}
+        />
       )}
 
       {bottomAction && (
