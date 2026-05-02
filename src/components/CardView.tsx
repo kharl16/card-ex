@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import CardShareDialog from "@/components/CardShareDialog";
 import {
   Mail,
   Phone,
