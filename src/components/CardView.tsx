@@ -942,6 +942,7 @@ export default function CardView({
         <CardShareDialog
           open={shareDialogOpen}
           onOpenChange={setShareDialogOpen}
+          cardId={(card as any)?.id}
           fullName={(card as any)?.full_name}
           primaryUrl={
             (card as any)?.custom_slug
