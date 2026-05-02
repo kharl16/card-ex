@@ -923,6 +923,26 @@ export default function CardView({
         </div>
       )}
 
+      {isInteractive && publicCardUrl && (
+        <div className="px-5 pb-3 pt-1">
+          <Button
+            type="button"
+            onClick={() =>
+              shareEverything({
+                fullName: (card as any)?.full_name,
+                primaryUrl: publicCardUrl,
+                referralCode: referralCode || null,
+                slugForFile: (card as any)?.custom_slug || (card as any)?.slug,
+              })
+            }
+            className="w-full h-12 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg rounded-2xl"
+          >
+            <Share2 className="h-5 w-5" />
+            Share Card (Link + QR + Referral)
+          </Button>
+        </div>
+      )}
+
       {bottomAction && (
         <div className={isInteractive ? "px-5 pb-5 pt-1" : "px-5 pb-5 pt-0"}>
           {bottomAction}
