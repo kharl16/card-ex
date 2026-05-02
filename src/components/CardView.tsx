@@ -5,7 +5,9 @@ import {
   MapPin,
   Globe,
   Download,
+  Share2,
 } from "lucide-react";
+import { shareEverything } from "@/lib/shareEverything";
 import {
   SiFacebook,
   SiMessenger,
