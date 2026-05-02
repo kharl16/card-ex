@@ -5,7 +5,9 @@ import {
   MapPin,
   Globe,
   Download,
+  Share2,
 } from "lucide-react";
+import { shareEverything } from "@/lib/shareEverything";
 import {
   SiFacebook,
   SiMessenger,
@@ -107,6 +109,8 @@ interface CardViewProps {
   showVCardButtons?: boolean;
   /** Public card URL for sharing - must be https://tagex.app/c/{slug}, never editor URL */
   publicCardUrl?: string;
+  /** Owner's referral code, used by the in-card Share button */
+  referralCode?: string | null;
   /** Optional extra CTA rendered at the bottom of the card body */
   bottomAction?: React.ReactNode;
   /**
@@ -232,6 +236,7 @@ export default function CardView({
   showQRCode = false,
   showVCardButtons = false,
   publicCardUrl,
+  referralCode,
   bottomAction,
   bioBannerGapMobile = "gap-5",
   bioBannerGapDesktop = "sm:gap-4",
@@ -915,6 +920,26 @@ export default function CardView({
           >
             <span className="relative z-10 tracking-wider uppercase text-sm">Save Contact</span>
           </button>
+        </div>
+      )}
+
+      {isInteractive && publicCardUrl && (
+        <div className="px-5 pb-3 pt-1">
+          <Button
+            type="button"
+            onClick={() =>
+              shareEverything({
+                fullName: (card as any)?.full_name,
+                primaryUrl: publicCardUrl,
+                referralCode: referralCode || null,
+                slugForFile: (card as any)?.custom_slug || (card as any)?.slug,
+              })
+            }
+            className="w-full h-12 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg rounded-2xl"
+          >
+            <Share2 className="h-5 w-5" />
+            Share Card (Link + QR + Referral)
+          </Button>
         </div>
       )}
 
