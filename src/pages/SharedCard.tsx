@@ -291,6 +291,7 @@ export default function SharedCard() {
           showQRCode={true}
           showVCardButtons={true}
           publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
+          referralCode={ownerReferralCode}
           bottomAction={
             bookingEnabled ? (
               <Button
