@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Share2, Gift, Link as LinkIcon } from "lucide-react";
+import { Copy, Share2, Gift, Link as LinkIcon, CopyCheck } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeDisplay, { type QRDisplaySettings } from "@/components/qr/QRCodeDisplay";
 import { shareEverything } from "@/lib/shareEverything";
@@ -62,6 +62,47 @@ export default function CardShareDialog({
       slugForFile: slugForFile || null,
     });
 
+  const buildAllText = () => {
+    const lines: string[] = [];
+    lines.push(`Check out ${fullName ? `${fullName}'s` : "my"} digital business card:`);
+    lines.push(primaryUrl);
+    if (altUrl && altUrl !== primaryUrl) lines.push(`Alt link: ${altUrl}`);
+    if (referralLink) {
+      lines.push("");
+      lines.push(`Want one too? Sign up with my referral link: ${referralLink}`);
+    }
+    return lines.join("\n");
+  };
+
+  const copyAll = async () => {
+    const text = buildAllText();
+    // Try to copy QR image + text together using ClipboardItem (Chrome/Edge support image/png)
+    try {
+      const QRCode = (await import("qrcode")).default;
+      const dataUrl = await QRCode.toDataURL(primaryUrl, { width: 512, margin: 2 });
+      const pngBlob = await (await fetch(dataUrl)).blob();
+      const textBlob = new Blob([text], { type: "text/plain" });
+      // @ts-ignore - ClipboardItem may not be in TS lib
+      if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
+        // @ts-ignore
+        await navigator.clipboard.write([
+          // @ts-ignore
+          new ClipboardItem({ "image/png": pngBlob, "text/plain": textBlob }),
+        ]);
+        toast.success("✅ Copied URL, QR image & referral link");
+        return;
+      }
+    } catch (e) {
+      console.warn("Copy with image failed, falling back to text:", e);
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("✅ Copied URL & referral link (QR image not supported here)");
+    } catch {
+      toast.error("Could not copy");
+    }
+  };
+
   const title = fullName ? `${fullName}'s Card` : "My Card";
 
   return (
@@ -95,13 +136,26 @@ export default function CardShareDialog({
             </p>
           </div>
 
-          <Button
-            onClick={shareAll}
-            className="w-full h-11 mt-3 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg"
-          >
-            <Share2 className="h-4 w-4" />
-            Share Everything (Link + QR + Referral)
-          </Button>
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <Button
+              variant="outline"
+              onClick={copyAll}
+              className="h-11 gap-2 border-[hsl(var(--primary))]/40 font-semibold"
+            >
+              <CopyCheck className="h-4 w-4" />
+              Copy all
+            </Button>
+            <Button
+              onClick={shareAll}
+              className="h-11 gap-2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary))]/80 text-primary-foreground font-semibold shadow-lg"
+            >
+              <Share2 className="h-4 w-4" />
+              Share all
+            </Button>
+          </div>
+          <p className="text-[11px] text-muted-foreground text-center mt-2">
+            Includes Card URL, QR image & referral link
+          </p>
         </div>
 
         {/* Scrollable content for individual links */}
