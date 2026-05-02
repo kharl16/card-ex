@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Share2, Gift, Link as LinkIcon, CopyCheck, BarChart3 } from "lucide-react";
+import { Copy, Share2, Gift, Link as LinkIcon, CopyCheck } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeDisplay, { type QRDisplaySettings } from "@/components/qr/QRCodeDisplay";
 import { shareEverything } from "@/lib/shareEverything";
@@ -311,44 +311,6 @@ export default function CardShareDialog({
             Includes Card URL, QR image & referral link
           </p>
         </div>
-
-        {/* Live stats strip */}
-        {cardId && (
-          <div className="px-6 py-3 border-b border-border/40 bg-muted/20">
-            <div className="flex items-center gap-2 mb-2">
-              <BarChart3 className="h-3.5 w-3.5 text-[hsl(var(--primary))]" />
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Share analytics
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-md border border-border/40 bg-card/60 p-2">
-                <div className="text-base font-bold text-foreground tabular-nums">
-                  {loadingStats ? "…" : lifetimeCta ?? "—"}
-                </div>
-                <div className="text-[10px] text-muted-foreground leading-tight">
-                  Lifetime CTA clicks
-                </div>
-              </div>
-              <div className="rounded-md border border-border/40 bg-card/60 p-2">
-                <div className="text-base font-bold text-foreground tabular-nums">
-                  {totalActions}
-                </div>
-                <div className="text-[10px] text-muted-foreground leading-tight">
-                  This session
-                </div>
-              </div>
-              <div className="rounded-md border border-[hsl(var(--primary))]/30 bg-[hsl(var(--primary))]/10 p-2">
-                <div className="text-base font-bold text-[hsl(var(--primary))] tabular-nums">
-                  {referralActions}
-                </div>
-                <div className="text-[10px] text-muted-foreground leading-tight">
-                  Referral shares
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Scrollable content for individual links */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
