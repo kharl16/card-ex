@@ -44,3 +44,9 @@ verify_jwt = false
 
 [functions.og-image]
 verify_jwt = false
+
+[functions.paymongo-create-checkout]
+verify_jwt = false
+
+[functions.paymongo-webhook]
+verify_jwt = false

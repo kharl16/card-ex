@@ -250,11 +250,43 @@ export default function Billing() {
                 <Button
                   className="w-full"
                   size="lg"
+                  onClick={async () => {
+                    if (!cardId || !selectedPlanId) {
+                      toast.error("Please select a plan");
+                      return;
+                    }
+                    try {
+                      const { data, error } = await supabase.functions.invoke(
+                        "paymongo-create-checkout",
+                        { body: { cardId, planId: selectedPlanId } }
+                      );
+                      if (error) throw error;
+                      if (data?.checkoutUrl) {
+                        window.location.href = data.checkoutUrl;
+                      } else {
+                        toast.error("Failed to start checkout");
+                      }
+                    } catch (e: any) {
+                      toast.error(e?.message || "Checkout failed");
+                    }
+                  }}
+                  disabled={!selectedPlanId}
+                >
+                  Pay with PayMongo (GCash / Card / Maya)
+                </Button>
+
+                <Separator />
+
+                <Button
+                  className="w-full"
+                  size="lg"
+                  variant="outline"
                   onClick={handleSubmitPayment}
                   disabled={!selectedPlanId || !paymentMethod || submitPayment.isPending}
                 >
-                  {submitPayment.isPending ? "Processing..." : "Complete Payment"}
+                  {submitPayment.isPending ? "Processing..." : "Submit Manual Payment"}
                 </Button>
+
 
                 <p className="text-xs text-center text-muted-foreground">
                   By completing payment, you agree to our Terms of Service

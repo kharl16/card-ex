@@ -1473,6 +1473,83 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_sessions: {
+        Row: {
+          amount: number
+          card_id: string
+          checkout_session_id: string
+          checkout_url: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          paid_at: string | null
+          paymongo_payment_id: string | null
+          plan_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          card_id: string
+          checkout_session_id: string
+          checkout_url?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          paid_at?: string | null
+          paymongo_payment_id?: string | null
+          plan_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          card_id?: string
+          checkout_session_id?: string
+          checkout_url?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          paid_at?: string | null
+          paymongo_payment_id?: string | null
+          plan_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_sessions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_sessions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
