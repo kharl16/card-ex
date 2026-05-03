@@ -1603,9 +1603,12 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          facebook_url: string | null
           full_name: string | null
           has_referral_access: boolean
+          iam_id: string | null
           id: string
+          onboarding_completed_at: string | null
           phone: string | null
           phone_verified: boolean | null
           referral_code: string | null
@@ -1618,9 +1621,12 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          facebook_url?: string | null
           full_name?: string | null
           has_referral_access?: boolean
+          iam_id?: string | null
           id: string
+          onboarding_completed_at?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
@@ -1633,9 +1639,12 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          facebook_url?: string | null
           full_name?: string | null
           has_referral_access?: boolean
+          iam_id?: string | null
           id?: string
+          onboarding_completed_at?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
