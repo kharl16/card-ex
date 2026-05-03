@@ -42,6 +42,8 @@ import SuperAdminConsole from "./pages/superadmin/SuperAdminConsole";
 import UserRolesPage from "./pages/superadmin/UserRolesPage";
 import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
 import RequireAuth from "./components/auth/RequireAuth";
+import RequireOnboarding from "./components/auth/RequireOnboarding";
+import Onboarding from "./pages/Onboarding";
 import Appointments from "./pages/Appointments";
 import Leads from "./pages/Leads";
 import ProspectList from "./pages/ProspectList";
@@ -69,11 +71,23 @@ const AnimatedRoutes = () => {
         <Route path="/oauth/consent" element={<PageTransition><OAuthConsent /></PageTransition>} />
         <Route path="/auth/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route
+          path="/onboarding"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <Onboarding />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
           path="/dashboard"
           element={
             <PageTransition>
               <RequireAuth>
-                <Dashboard />
+                <RequireOnboarding>
+                  <Dashboard />
+                </RequireOnboarding>
               </RequireAuth>
             </PageTransition>
           }
