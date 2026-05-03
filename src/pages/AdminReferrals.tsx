@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import { format } from "date-fns";
+import { PayoutExportPanel } from "@/components/referral/PayoutExportPanel";
 
 interface ReferralWithDetails {
   id: string;
@@ -497,7 +498,15 @@ export default function AdminReferrals() {
               <TrendingUp className="h-4 w-4" />
               Leaderboard
             </TabsTrigger>
+            <TabsTrigger value="payouts" className="gap-2">
+              <Wallet className="h-4 w-4" />
+              Payouts
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="payouts" className="space-y-4">
+            <PayoutExportPanel />
+          </TabsContent>
 
           {/* Analytics Tab */}
           <TabsContent value="overview" className="space-y-6">
