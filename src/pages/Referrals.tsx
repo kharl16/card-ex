@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReferralPanel } from "@/components/referral/ReferralPanel";
+import { PayoutDetailsCard } from "@/components/referral/PayoutDetailsCard";
 
 export default function Referrals() {
   const navigate = useNavigate();
@@ -16,8 +17,9 @@ export default function Referrals() {
           <h1 className="text-lg font-bold tracking-tight">Referrals</h1>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 py-6 space-y-6">
         <ReferralPanel />
+        <PayoutDetailsCard />
       </main>
     </div>
   );
