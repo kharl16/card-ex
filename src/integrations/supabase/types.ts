@@ -1686,6 +1686,9 @@ export type Database = {
           iam_id: string | null
           id: string
           onboarding_completed_at: string | null
+          payout_account_name: string | null
+          payout_account_number: string | null
+          payout_method: string | null
           phone: string | null
           phone_verified: boolean | null
           referral_code: string | null
@@ -1704,6 +1707,9 @@ export type Database = {
           iam_id?: string | null
           id: string
           onboarding_completed_at?: string | null
+          payout_account_name?: string | null
+          payout_account_number?: string | null
+          payout_method?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
@@ -1722,6 +1728,9 @@ export type Database = {
           iam_id?: string | null
           id?: string
           onboarding_completed_at?: string | null
+          payout_account_name?: string | null
+          payout_account_number?: string | null
+          payout_method?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
@@ -2003,32 +2012,80 @@ export type Database = {
         }
         Relationships: []
       }
-      referrals: {
+      referral_payout_batches: {
         Row: {
           created_at: string
+          created_by: string | null
+          csv_filename: string | null
           id: string
+          notes: string | null
+          status: string
+          total_amount: number
+          total_recipients: number
+          total_referrals: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          csv_filename?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          total_amount?: number
+          total_recipients?: number
+          total_referrals?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          csv_filename?: string | null
+          id?: string
+          notes?: string | null
+          status?: string
+          total_amount?: number
+          total_recipients?: number
+          total_referrals?: number
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          commission_amount: number | null
+          created_at: string
+          id: string
+          paid_out_at: string | null
           payment_id: string | null
+          payout_batch_id: string | null
           plan_id: string | null
+          qualified_at: string | null
           referred_card_id: string | null
           referred_user_id: string
           referrer_user_id: string
           status: string
         }
         Insert: {
+          commission_amount?: number | null
           created_at?: string
           id?: string
+          paid_out_at?: string | null
           payment_id?: string | null
+          payout_batch_id?: string | null
           plan_id?: string | null
+          qualified_at?: string | null
           referred_card_id?: string | null
           referred_user_id: string
           referrer_user_id: string
           status?: string
         }
         Update: {
+          commission_amount?: number | null
           created_at?: string
           id?: string
+          paid_out_at?: string | null
           payment_id?: string | null
+          payout_batch_id?: string | null
           plan_id?: string | null
+          qualified_at?: string | null
           referred_card_id?: string | null
           referred_user_id?: string
           referrer_user_id?: string
@@ -2820,6 +2877,20 @@ export type Database = {
         Returns: boolean
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      create_referral_payout_batch: {
+        Args: { p_min_amount?: number }
+        Returns: {
+          batch_id: string
+          payout_account_name: string
+          payout_account_number: string
+          payout_method: string
+          referral_count: number
+          referral_ids: string[]
+          referrer_name: string
+          referrer_user_id: string
+          total_amount: number
+        }[]
+      }
       ensure_user_referral_code: {
         Args: { p_user_id: string }
         Returns: string
@@ -2875,6 +2946,7 @@ export type Database = {
         }
         Returns: string
       }
+      qualify_pending_referrals: { Args: never; Returns: number }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"
