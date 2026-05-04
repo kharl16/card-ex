@@ -130,6 +130,33 @@ export default function Onboarding() {
         },
       ];
 
+      // Helper to substitute IAM ID into URLs that contain idno=XXXXXXXX or ?ref=XXXXXXXX
+      const iamId8 = parsed.data.isIamMember && parsed.data.iamId ? parsed.data.iamId : null;
+      const substituteIamId = (url: string | undefined | null): string | undefined | null => {
+        if (!url || !iamId8) return url;
+        return url
+          .replace(/(idno=)\d{6,}/gi, `$1${iamId8}`)
+          .replace(/(\?|&)(ref|referrer|referral|iamid|iam_id)=\d{6,}/gi, `$1$2=${iamId8}`);
+      };
+      const substituteInItems = <T extends { link?: string | null; url?: string | null }>(items: T[] | undefined | null): T[] | undefined | null => {
+        if (!Array.isArray(items)) return items;
+        return items.map((it) => ({ ...it, link: substituteIamId((it as any).link) ?? (it as any).link })) as T[];
+      };
+      const substituteInCarouselSettings = (cs: any): any => {
+        if (!cs || typeof cs !== "object") return cs;
+        const next = { ...cs };
+        for (const k of Object.keys(next)) {
+          const section = next[k];
+          if (section && typeof section === "object" && section.cta) {
+            next[k] = {
+              ...section,
+              cta: { ...section.cta, href: substituteIamId(section.cta.href) ?? section.cta.href },
+            };
+          }
+        }
+        return next;
+      };
+
       let insertData: Record<string, any>;
 
       if (selectedTemplate) {
@@ -141,6 +168,12 @@ export default function Onboarding() {
           is_published: false,
         });
         insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
+
+        // Substitute IAM ID into template carousel CTA URLs and image links
+        insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings);
+        insertData.product_images = substituteInItems(insertData.product_images);
+        insertData.package_images = substituteInItems(insertData.package_images);
+        insertData.testimony_images = substituteInItems(insertData.testimony_images);
 
         // Override ALL identity/contact fields with user-entered data
         insertData.full_name = fullName;
@@ -210,6 +243,9 @@ export default function Onboarding() {
             if (k === "facebook" || k === "messenger") {
               facebookHandled = true;
               return { ...link, value: parsed.data.facebookUrl };
+            }
+            if (k === "url" || k === "custom") {
+              return { ...link, value: substituteIamId(link.value) ?? link.value };
             }
             return link;
           });
