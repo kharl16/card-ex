@@ -65,11 +65,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    let isSuperAdmin = false;
     if (card.user_id !== user.id) {
-      return new Response(JSON.stringify({ error: "Card does not belong to user", cardOwner: card.user_id, userId: user.id }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const { data: adminCheck } = await supabase.rpc("is_super_admin", { _user_id: user.id });
+      isSuperAdmin = !!adminCheck;
+      if (!isSuperAdmin) {
+        return new Response(JSON.stringify({ error: "Card does not belong to user", cardOwner: card.user_id, userId: user.id }), {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      console.log("Super admin paying on behalf of user", { adminId: user.id, cardOwner: card.user_id });
     }
 
     if (card.is_paid) {
