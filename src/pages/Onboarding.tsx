@@ -121,10 +121,28 @@ export default function Onboarding() {
           is_published: false,
         });
         insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
+
+        // Override ALL identity/contact fields with user-entered data
+        insertData.full_name = fullName;
+        insertData.owner_name = fullName;
         insertData.first_name = parsed.data.firstName;
         insertData.last_name = parsed.data.lastName;
+        insertData.middle_name = null;
+        insertData.prefix = null;
+        insertData.suffix = null;
         insertData.phone = parsed.data.phone;
         insertData.email = parsed.data.email;
+
+        // Replace any facebook entry in social_links with the user's URL
+        const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links : [];
+        const filteredSocial = existingSocial.filter(
+          (s: any) => (s?.kind || "").toLowerCase() !== "facebook"
+        );
+        insertData.social_links = [
+          ...filteredSocial,
+          { kind: "facebook", label: "Facebook", url: parsed.data.facebookUrl, value: parsed.data.facebookUrl },
+        ];
+
         // Keep template product images if it has any; otherwise seed with IAM placeholder
         if (!snapshot.product_images || snapshot.product_images.length === 0) {
           insertData.product_images = productImages;
