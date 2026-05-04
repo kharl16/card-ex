@@ -97,7 +97,7 @@ export default function Onboarding() {
     e.preventDefault();
     if (!user) return;
 
-    const parsed = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, iamId });
+    const parsed = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId });
     if (!parsed.success) {
       toast.error(parsed.error.errors[0]?.message ?? "Please check the form");
       return;
@@ -113,7 +113,9 @@ export default function Onboarding() {
           id: crypto.randomUUID(),
           url: "/cardex/placeholders/product-gold-2.svg",
           caption: "Product 1",
-          link: `https://iamworldwide.com/?ref=${parsed.data.iamId}`,
+          link: parsed.data.isIamMember && parsed.data.iamId
+            ? `https://iamworldwide.com/?ref=${parsed.data.iamId}`
+            : `https://iamworldwide.com/`,
         },
       ];
 
