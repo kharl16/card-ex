@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Sparkles, Layers } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { TemplateSelectionModal } from "@/components/templates/TemplateSelectionModal";
@@ -28,15 +29,20 @@ const DEFAULT_THEME = {
 const schema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(50),
   lastName: z.string().trim().min(1, "Last name is required").max(50),
-  phone: z.string().trim().min(7, "Enter a valid mobile number").max(30),
-  email: z.string().trim().email("Invalid email").max(255),
+  phone: z.string().trim().min(7, "Mobile number is required").max(30),
+  email: z.string().trim().email("Valid email is required").max(255),
   facebookUrl: z
     .string()
     .trim()
+    .min(1, "Facebook link is required")
     .url("Must be a valid URL")
     .refine((v) => /facebook\.com|fb\.com|fb\.me/i.test(v), "Must be a Facebook link"),
-  iamId: z.string().trim().regex(/^\d{8}$/, "IAM ID must be exactly 8 digits"),
-});
+  isIamMember: z.boolean(),
+  iamId: z.string().trim().optional(),
+}).refine(
+  (d) => !d.isIamMember || /^\d{8}$/.test(d.iamId ?? ""),
+  { message: "IAM ID must be exactly 8 digits", path: ["iamId"] }
+);
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -52,6 +58,7 @@ export default function Onboarding() {
   const [email, setEmail] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
   const [iamId, setIamId] = useState("");
+  const [isIamMember, setIsIamMember] = useState(false);
 
   // Prefill & redirect-if-already-onboarded
   useEffect(() => {
@@ -90,7 +97,7 @@ export default function Onboarding() {
     e.preventDefault();
     if (!user) return;
 
-    const parsed = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, iamId });
+    const parsed = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId });
     if (!parsed.success) {
       toast.error(parsed.error.errors[0]?.message ?? "Please check the form");
       return;
@@ -106,7 +113,9 @@ export default function Onboarding() {
           id: crypto.randomUUID(),
           url: "/cardex/placeholders/product-gold-2.svg",
           caption: "Product 1",
-          link: `https://iamworldwide.com/?ref=${parsed.data.iamId}`,
+          link: parsed.data.isIamMember && parsed.data.iamId
+            ? `https://iamworldwide.com/?ref=${parsed.data.iamId}`
+            : `https://iamworldwide.com/`,
         },
       ];
 
@@ -215,7 +224,7 @@ export default function Onboarding() {
         .update({
           full_name: fullName,
           phone: parsed.data.phone,
-          iam_id: parsed.data.iamId,
+          iam_id: parsed.data.isIamMember ? parsed.data.iamId : null,
           facebook_url: parsed.data.facebookUrl,
           onboarding_completed_at: new Date().toISOString(),
         } as any)
@@ -345,21 +354,43 @@ export default function Onboarding() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="iam">IAM ID Number (last 8 digits)</Label>
-              <Input
-                id="iam"
-                inputMode="numeric"
-                pattern="\d{8}"
-                maxLength={8}
-                placeholder="12345678"
-                value={iamId}
-                onChange={(e) => setIamId(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                We'll attach this to your product carousel automatically.
-              </p>
+            <div className="space-y-2 rounded-lg border border-border/50 p-3 bg-background/40">
+              <Label className="text-sm">IAM Worldwide Member?</Label>
+              <div className="flex items-center gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={isIamMember}
+                    onCheckedChange={(c) => setIsIamMember(c === true)}
+                  />
+                  <span className="text-sm">Yes</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={!isIamMember}
+                    onCheckedChange={(c) => { if (c === true) { setIsIamMember(false); setIamId(""); } }}
+                  />
+                  <span className="text-sm">No</span>
+                </label>
+              </div>
+
+              {isIamMember && (
+                <div className="space-y-2 pt-2">
+                  <Label htmlFor="iam">IAM ID Number (last 8 digits)</Label>
+                  <Input
+                    id="iam"
+                    inputMode="numeric"
+                    pattern="\d{8}"
+                    maxLength={8}
+                    placeholder="12345678"
+                    value={iamId}
+                    onChange={(e) => setIamId(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    We'll attach this to your product carousel automatically.
+                  </p>
+                </div>
+              )}
             </div>
 
             <Button type="submit" className="w-full h-12" disabled={submitting}>
