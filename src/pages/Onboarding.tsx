@@ -354,21 +354,43 @@ export default function Onboarding() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="iam">IAM ID Number (last 8 digits)</Label>
-              <Input
-                id="iam"
-                inputMode="numeric"
-                pattern="\d{8}"
-                maxLength={8}
-                placeholder="12345678"
-                value={iamId}
-                onChange={(e) => setIamId(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                We'll attach this to your product carousel automatically.
-              </p>
+            <div className="space-y-2 rounded-lg border border-border/50 p-3 bg-background/40">
+              <Label className="text-sm">IAM Worldwide Member?</Label>
+              <div className="flex items-center gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={isIamMember}
+                    onCheckedChange={(c) => setIsIamMember(c === true)}
+                  />
+                  <span className="text-sm">Yes</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={!isIamMember}
+                    onCheckedChange={(c) => { if (c === true) { setIsIamMember(false); setIamId(""); } }}
+                  />
+                  <span className="text-sm">No</span>
+                </label>
+              </div>
+
+              {isIamMember && (
+                <div className="space-y-2 pt-2">
+                  <Label htmlFor="iam">IAM ID Number (last 8 digits)</Label>
+                  <Input
+                    id="iam"
+                    inputMode="numeric"
+                    pattern="\d{8}"
+                    maxLength={8}
+                    placeholder="12345678"
+                    value={iamId}
+                    onChange={(e) => setIamId(e.target.value.replace(/\D/g, "").slice(0, 8))}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    We'll attach this to your product carousel automatically.
+                  </p>
+                </div>
+              )}
             </div>
 
             <Button type="submit" className="w-full h-12" disabled={submitting}>
