@@ -174,25 +174,41 @@ export default function Onboarding() {
 
       if (cardErr) throw cardErr;
 
-      // If template had card_links, copy them; otherwise insert just Facebook
+      // If template had card_links, copy them with user's contact data substituted in
+      let facebookHandled = false;
       if (selectedTemplate) {
         const snapshot = selectedTemplate.layout_data as CardSnapshot;
         if (snapshot.card_links && snapshot.card_links.length > 0) {
-          const linkInserts = buildCardLinksInsertFromSnapshot(snapshot, card.id);
+          const linkInserts = buildCardLinksInsertFromSnapshot(snapshot, card.id).map((link) => {
+            const k = (link.kind || "").toLowerCase();
+            if (k === "phone" || k === "sms" || k === "whatsapp" || k === "viber" || k === "telegram") {
+              return { ...link, value: parsed.data.phone };
+            }
+            if (k === "email") {
+              return { ...link, value: parsed.data.email };
+            }
+            if (k === "facebook" || k === "messenger") {
+              facebookHandled = true;
+              return { ...link, value: parsed.data.facebookUrl };
+            }
+            return link;
+          });
           await supabase.from("card_links").insert(linkInserts);
         }
       }
 
-      // Always ensure Facebook link exists
-      const { error: linkErr } = await supabase.from("card_links").insert({
-        card_id: card.id,
-        kind: "facebook",
-        label: "Facebook",
-        value: parsed.data.facebookUrl,
-        icon: "facebook",
-        sort_index: 999,
-      } as any);
-      if (linkErr) console.warn("Facebook link insert failed:", linkErr);
+      // Ensure Facebook link exists if not already in template
+      if (!facebookHandled) {
+        const { error: linkErr } = await supabase.from("card_links").insert({
+          card_id: card.id,
+          kind: "facebook",
+          label: "Facebook",
+          value: parsed.data.facebookUrl,
+          icon: "facebook",
+          sort_index: 999,
+        } as any);
+        if (linkErr) console.warn("Facebook link insert failed:", linkErr);
+      }
 
       const { error: profileErr } = await supabase
         .from("profiles")
