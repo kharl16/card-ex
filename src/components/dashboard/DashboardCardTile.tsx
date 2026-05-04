@@ -73,6 +73,20 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
         />
       </div>
 
+      {/* Big launch button (upper right) */}
+      <button
+        type="button"
+        title="Open Card"
+        aria-label="Open Card"
+        onClick={(e) => {
+          e.stopPropagation();
+          window.open(getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug), "_blank");
+        }}
+        className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-primary/40 bg-gradient-to-br from-primary/90 to-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-110 hover:shadow-primary/40 active:scale-95"
+      >
+        <ExternalLink className="h-5 w-5" />
+      </button>
+
       {/* Right: Info + actions */}
       <div className="flex min-w-0 flex-1 flex-col justify-center gap-2 px-4 py-4">
         {/* Name & title */}
