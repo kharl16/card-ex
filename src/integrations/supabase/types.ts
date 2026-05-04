@@ -2933,6 +2933,20 @@ export type Database = {
       is_resource_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_resource_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      list_referral_payout_batches: {
+        Args: never
+        Returns: {
+          created_at: string
+          created_by: string
+          created_by_name: string
+          id: string
+          notes: string
+          status: string
+          total_amount: number
+          total_recipients: number
+          total_referrals: number
+        }[]
+      }
       process_card_payment: {
         Args: {
           p_amount: number
@@ -2946,7 +2960,16 @@ export type Database = {
         }
         Returns: string
       }
-      qualify_pending_referrals: { Args: never; Returns: number }
+      qualify_pending_referrals: {
+        Args: never
+        Returns: {
+          commission_amount: number
+          referral_id: string
+          referred_user_name: string
+          referrer_name: string
+          referrer_user_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "owner" | "admin" | "member"

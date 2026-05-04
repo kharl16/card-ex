@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ReferralPanel } from "@/components/referral/ReferralPanel";
 import { PayoutDetailsCard } from "@/components/referral/PayoutDetailsCard";
+import { CommissionStatusLegend } from "@/components/referral/CommissionStatusLegend";
 
 export default function Referrals() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function Referrals() {
       </header>
       <main className="container mx-auto px-4 py-6 space-y-6">
         <ReferralPanel />
+        <CommissionStatusLegend />
         <PayoutDetailsCard />
       </main>
     </div>

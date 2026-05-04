@@ -41,6 +41,7 @@ import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import { format } from "date-fns";
 import { PayoutExportPanel } from "@/components/referral/PayoutExportPanel";
+import { PayoutBatchHistory } from "@/components/referral/PayoutBatchHistory";
 
 interface ReferralWithDetails {
   id: string;
@@ -506,6 +507,7 @@ export default function AdminReferrals() {
 
           <TabsContent value="payouts" className="space-y-4">
             <PayoutExportPanel />
+            <PayoutBatchHistory />
           </TabsContent>
 
           {/* Analytics Tab */}
