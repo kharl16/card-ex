@@ -392,7 +392,7 @@ export default function Onboarding() {
                 </label>
               </div>
 
-              {isIamMember && (
+              {isIamMember === true && (
                 <div className="space-y-2 pt-2">
                   <Label htmlFor="iam">IAM ID Number (last 8 digits)</Label>
                   <Input
