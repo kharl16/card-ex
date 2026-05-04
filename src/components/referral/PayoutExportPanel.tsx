@@ -20,25 +20,60 @@ interface PayoutRow {
   referral_ids: string[];
 }
 
+interface QualifiedRow {
+  referral_id: string;
+  referrer_user_id: string;
+  referrer_name: string | null;
+  referred_user_name: string | null;
+  commission_amount: number;
+}
+
 export function PayoutExportPanel() {
   const [rows, setRows] = useState<PayoutRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [minAmount, setMinAmount] = useState(1000);
 
+  const sendEmail = (referrer_user_id: string, referred_user_name: string, new_status: "qualified" | "paid_out") =>
+    supabase.functions
+      .invoke("send-referral-notification", {
+        body: {
+          referrer_user_id,
+          referred_user_name,
+          old_status: new_status === "qualified" ? "pending" : "qualified",
+          new_status,
+        },
+      })
+      .catch((err) => console.error("Email notification failed:", err));
+
   const handleExport = async () => {
     if (!confirm(`Generate a payout batch for all qualified referrals with totals ≥ ₱${minAmount}? This will mark them as paid_out.`)) return;
     setLoading(true);
     try {
+      // 1. Auto-qualify any pending referrals past cooldown (returns the rows just qualified)
+      const { data: qualified, error: qErr } = await supabase.rpc("qualify_pending_referrals");
+      if (qErr) throw qErr;
+      const qList = (qualified ?? []) as QualifiedRow[];
+      qList.forEach((q) => sendEmail(q.referrer_user_id, q.referred_user_name ?? "your referral", "qualified"));
+      if (qList.length > 0) toast.message(`${qList.length} referral(s) just qualified — emails sent.`);
+
+      // 2. Create batch
       const { data, error } = await supabase.rpc("create_referral_payout_batch", {
         p_min_amount: minAmount,
       });
       if (error) throw error;
       const result = (data ?? []) as PayoutRow[];
       setRows(result);
+
       if (result.length === 0) {
         toast.info("No referrers reached the minimum payout threshold yet.");
         return;
       }
+
+      // 3. Email each paid-out referrer
+      result.forEach((r) =>
+        sendEmail(r.referrer_user_id, `${r.referral_count} referral(s)`, "paid_out")
+      );
+
       downloadCsv(result);
       toast.success(`Batch created — ${result.length} payout(s), CSV downloaded.`);
     } catch (e: any) {
@@ -91,8 +126,8 @@ export function PayoutExportPanel() {
           Payout Export
         </CardTitle>
         <CardDescription>
-          Auto-qualifies referrals after a 7-day cooldown, then exports a CSV of payable commissions
-          (default minimum ₱1,000 per referrer) and marks them as paid out.
+          Auto-qualifies referrals after a 7-day cooldown (with email notifications), then exports a CSV of payable
+          commissions (default minimum ₱1,000 per referrer) and marks them as paid out.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
