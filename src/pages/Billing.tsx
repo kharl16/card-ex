@@ -272,7 +272,8 @@ export default function Billing() {
                   }}
                   disabled={!selectedPlanId}
                 >
-                  Pay with PayMongo (GCash / Card / Maya)
+                  Pay with PayMongo
+                  <span className="block text-xs font-normal opacity-80">GCash / Card / Maya</span>
                 </Button>
 
                 <Separator />
