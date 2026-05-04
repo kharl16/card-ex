@@ -244,6 +244,9 @@ export default function Onboarding() {
               facebookHandled = true;
               return { ...link, value: parsed.data.facebookUrl };
             }
+            if (k === "url" || k === "custom") {
+              return { ...link, value: substituteIamId(link.value) ?? link.value };
+            }
             return link;
           });
           await supabase.from("card_links").insert(linkInserts);
