@@ -322,11 +322,13 @@ export default function Onboarding() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="first">First Name</Label>
-                <Input id="first" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                <Input id="first" value={firstName} onChange={(e) => setFirstName(e.target.value)} required aria-invalid={!!errors.firstName} />
+                {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="last">Last Name</Label>
-                <Input id="last" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                <Input id="last" value={lastName} onChange={(e) => setLastName(e.target.value)} required aria-invalid={!!errors.lastName} />
+                {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
               </div>
             </div>
 
@@ -339,7 +341,9 @@ export default function Onboarding() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
+                aria-invalid={!!errors.phone}
               />
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
 
             <div className="space-y-2">
@@ -350,7 +354,9 @@ export default function Onboarding() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                aria-invalid={!!errors.email}
               />
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
@@ -362,7 +368,9 @@ export default function Onboarding() {
                 value={facebookUrl}
                 onChange={(e) => setFacebookUrl(e.target.value)}
                 required
+                aria-invalid={!!errors.facebookUrl}
               />
+              {errors.facebookUrl && <p className="text-xs text-destructive">{errors.facebookUrl}</p>}
             </div>
 
             <div className="space-y-2 rounded-lg border border-border/50 p-3 bg-background/40">
