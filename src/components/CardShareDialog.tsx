@@ -181,9 +181,7 @@ export default function CardShareDialog({
     counts.alt_copy +
     counts.alt_share +
     counts.referral_copy +
-    counts.referral_share +
-    counts.copy_all +
-    counts.share_all;
+    counts.referral_share;
 
   const Badge = ({ value, label }: { value: number; label: string }) =>
     value > 0 ? (
