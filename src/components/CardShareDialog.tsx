@@ -3,10 +3,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Share2, Gift, Link as LinkIcon, CopyCheck } from "lucide-react";
+import { Copy, Share2, Gift, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeDisplay, { type QRDisplaySettings } from "@/components/qr/QRCodeDisplay";
-import { shareEverything } from "@/lib/shareEverything";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CardShareDialogProps {
@@ -30,9 +29,7 @@ type ActionKey =
   | "alt_copy"
   | "alt_share"
   | "referral_copy"
-  | "referral_share"
-  | "copy_all"
-  | "share_all";
+  | "referral_share";
 
 const ACTION_LABELS: Record<ActionKey, string> = {
   url_copy: "Card URL copied",
@@ -41,8 +38,6 @@ const ACTION_LABELS: Record<ActionKey, string> = {
   alt_share: "Alt URL shared",
   referral_copy: "Referral copied",
   referral_share: "Referral shared",
-  copy_all: "Copy all",
-  share_all: "Share all",
 };
 
 const sessionKey = (cardId: string | null | undefined, key: ActionKey) =>
@@ -87,8 +82,6 @@ export default function CardShareDialog({
     alt_share: 0,
     referral_copy: 0,
     referral_share: 0,
-    copy_all: 0,
-    share_all: 0,
   }));
 
   // Lifetime CTA totals fetched from analytics_daily
@@ -107,8 +100,6 @@ export default function CardShareDialog({
       alt_share: getCount(cardId, "alt_share"),
       referral_copy: getCount(cardId, "referral_copy"),
       referral_share: getCount(cardId, "referral_share"),
-      copy_all: getCount(cardId, "copy_all"),
-      share_all: getCount(cardId, "share_all"),
     });
 
     // Fetch lifetime CTA totals
@@ -179,59 +170,6 @@ export default function CardShareDialog({
     }
   };
 
-  const shareAll = async () => {
-    await shareEverything({
-      fullName,
-      primaryUrl,
-      altUrl: altUrl || null,
-      referralCode: referralCode || null,
-      slugForFile: slugForFile || null,
-    });
-    track("share_all");
-  };
-
-  const buildAllText = () => {
-    const lines: string[] = [];
-    lines.push(`Check out ${fullName ? `${fullName}'s` : "my"} digital business card:`);
-    lines.push(primaryUrl);
-    if (altUrl && altUrl !== primaryUrl) lines.push(`Alt link: ${altUrl}`);
-    if (referralLink) {
-      lines.push("");
-      lines.push(`Want one too? Sign up with my referral link: ${referralLink}`);
-    }
-    return lines.join("\n");
-  };
-
-  const copyAll = async () => {
-    const text = buildAllText();
-    try {
-      const QRCode = (await import("qrcode")).default;
-      const dataUrl = await QRCode.toDataURL(primaryUrl, { width: 512, margin: 2 });
-      const pngBlob = await (await fetch(dataUrl)).blob();
-      const textBlob = new Blob([text], { type: "text/plain" });
-      // @ts-ignore
-      if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
-        // @ts-ignore
-        await navigator.clipboard.write([
-          // @ts-ignore
-          new ClipboardItem({ "image/png": pngBlob, "text/plain": textBlob }),
-        ]);
-        toast.success("✅ Copied URL, QR image & referral link");
-        track("copy_all");
-        return;
-      }
-    } catch (e) {
-      console.warn("Copy with image failed, falling back to text:", e);
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("✅ Copied URL & referral link (QR image not supported here)");
-      track("copy_all");
-    } catch {
-      toast.error("Could not copy");
-    }
-  };
-
   const title = fullName ? `${fullName}'s Card` : "My Card";
 
   // Aggregate per-action counts for display
@@ -243,9 +181,7 @@ export default function CardShareDialog({
     counts.alt_copy +
     counts.alt_share +
     counts.referral_copy +
-    counts.referral_share +
-    counts.copy_all +
-    counts.share_all;
+    counts.referral_share;
 
   const Badge = ({ value, label }: { value: number; label: string }) =>
     value > 0 ? (
