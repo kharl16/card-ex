@@ -145,14 +145,14 @@ export default function Onboarding() {
       const substituteInCarouselSettings = (cs: any): any => {
         if (!cs || typeof cs !== "object") return cs;
         const next = { ...cs };
-        for (const k of Object.keys(next)) {
-          const section = next[k];
-          if (section && typeof section === "object" && section.cta) {
-            next[k] = {
-              ...section,
-              cta: { ...section.cta, href: substituteIamId(section.cta.href) ?? section.cta.href },
-            };
-          }
+        // Only apply IAM ID substitution to the Products carousel CTA URL.
+        // Packages and Testimonies are intentionally left untouched.
+        const section = next.products;
+        if (section && typeof section === "object" && section.cta) {
+          next.products = {
+            ...section,
+            cta: { ...section.cta, href: substituteIamId(section.cta.href) ?? section.cta.href },
+          };
         }
         return next;
       };
@@ -172,8 +172,7 @@ export default function Onboarding() {
         // Substitute IAM ID into template carousel CTA URLs and image links
         insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings);
         insertData.product_images = substituteInItems(insertData.product_images);
-        insertData.package_images = substituteInItems(insertData.package_images);
-        insertData.testimony_images = substituteInItems(insertData.testimony_images);
+        // Note: package_images and testimony_images intentionally NOT substituted
 
         // Override ALL identity/contact fields with user-entered data
         insertData.full_name = fullName;
