@@ -144,7 +144,7 @@ Deno.serve(async (req) => {
     const checkoutUrl = pmData.data.attributes.checkout_url;
 
     await supabase.from("payment_sessions").insert({
-      user_id: user.id,
+      user_id: card.user_id,
       card_id: cardId,
       plan_id: planId,
       checkout_session_id: sessionId,
