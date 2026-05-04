@@ -29,15 +29,20 @@ const DEFAULT_THEME = {
 const schema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(50),
   lastName: z.string().trim().min(1, "Last name is required").max(50),
-  phone: z.string().trim().min(7, "Enter a valid mobile number").max(30),
-  email: z.string().trim().email("Invalid email").max(255),
+  phone: z.string().trim().min(7, "Mobile number is required").max(30),
+  email: z.string().trim().email("Valid email is required").max(255),
   facebookUrl: z
     .string()
     .trim()
+    .min(1, "Facebook link is required")
     .url("Must be a valid URL")
     .refine((v) => /facebook\.com|fb\.com|fb\.me/i.test(v), "Must be a Facebook link"),
-  iamId: z.string().trim().regex(/^\d{8}$/, "IAM ID must be exactly 8 digits"),
-});
+  isIamMember: z.boolean(),
+  iamId: z.string().trim().optional(),
+}).refine(
+  (d) => !d.isIamMember || /^\d{8}$/.test(d.iamId ?? ""),
+  { message: "IAM ID must be exactly 8 digits", path: ["iamId"] }
+);
 
 export default function Onboarding() {
   const navigate = useNavigate();
