@@ -3,13 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTemplates, type CardTemplate } from "@/hooks/useTemplates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, Layers } from "lucide-react";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import { TemplateSelectionModal } from "@/components/templates/TemplateSelectionModal";
+import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
+import { Badge } from "@/components/ui/badge";
 
 const DEFAULT_THEME = {
   name: "Black&Gold",
@@ -39,6 +43,8 @@ export default function Onboarding() {
   const { user, loading: authLoading } = useAuth();
   const [checking, setChecking] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate | null>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -65,7 +71,6 @@ export default function Onboarding() {
         setLastName(parts.slice(1).join(" ") ?? "");
       }
 
-      // If they already have a card, skip onboarding
       const { data: existing } = await supabase
         .from("cards")
         .select("id")
@@ -96,7 +101,6 @@ export default function Onboarding() {
       const fullName = `${parsed.data.firstName} ${parsed.data.lastName}`.trim();
       const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
 
-      // Seed product carousel — last item URL contains the IAM ID
       const productImages = [
         {
           id: crypto.randomUUID(),
@@ -106,9 +110,27 @@ export default function Onboarding() {
         },
       ];
 
-      const { data: card, error: cardErr } = await supabase
-        .from("cards")
-        .insert({
+      let insertData: Record<string, any>;
+
+      if (selectedTemplate) {
+        // Apply template, then override with user-entered fields
+        const snapshot = selectedTemplate.layout_data as CardSnapshot;
+        insertData = buildCardInsertFromSnapshot(snapshot, user.id, slug, {
+          full_name: fullName,
+          owner_name: fullName,
+          is_published: false,
+        });
+        insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
+        insertData.first_name = parsed.data.firstName;
+        insertData.last_name = parsed.data.lastName;
+        insertData.phone = parsed.data.phone;
+        insertData.email = parsed.data.email;
+        // Keep template product images if it has any; otherwise seed with IAM placeholder
+        if (!snapshot.product_images || snapshot.product_images.length === 0) {
+          insertData.product_images = productImages;
+        }
+      } else {
+        insertData = {
           user_id: user.id,
           slug,
           full_name: fullName,
@@ -123,24 +145,37 @@ export default function Onboarding() {
           is_published: false,
           is_paid: false,
           product_images: productImages,
-        } as any)
+        };
+      }
+
+      const { data: card, error: cardErr } = await supabase
+        .from("cards")
+        .insert(insertData as any)
         .select()
         .single();
 
       if (cardErr) throw cardErr;
 
-      // Facebook link
+      // If template had card_links, copy them; otherwise insert just Facebook
+      if (selectedTemplate) {
+        const snapshot = selectedTemplate.layout_data as CardSnapshot;
+        if (snapshot.card_links && snapshot.card_links.length > 0) {
+          const linkInserts = buildCardLinksInsertFromSnapshot(snapshot, card.id);
+          await supabase.from("card_links").insert(linkInserts);
+        }
+      }
+
+      // Always ensure Facebook link exists
       const { error: linkErr } = await supabase.from("card_links").insert({
         card_id: card.id,
-        kind: "url",
+        kind: "facebook",
         label: "Facebook",
         value: parsed.data.facebookUrl,
         icon: "facebook",
-        sort_index: 0,
+        sort_index: 999,
       } as any);
       if (linkErr) console.warn("Facebook link insert failed:", linkErr);
 
-      // Update profile
       const { error: profileErr } = await supabase
         .from("profiles")
         .update({
@@ -153,8 +188,8 @@ export default function Onboarding() {
         .eq("id", user.id);
       if (profileErr) console.warn("Profile update failed:", profileErr);
 
-      toast.success("Profile set up! Choose a plan to publish your card.");
-      navigate(`/billing/${card.id}`, { replace: true });
+      toast.success("Card created! Preview it on your dashboard.");
+      navigate("/dashboard", { replace: true });
     } catch (err: any) {
       console.error("Onboarding failed:", err);
       toast.error(err.message ?? "Failed to create your card");
@@ -188,6 +223,48 @@ export default function Onboarding() {
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
+            {/* Template picker */}
+            <div className="rounded-lg border border-border/50 p-3 bg-background/40">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Layers className="h-4 w-4 text-primary" />
+                    Starting template
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {selectedTemplate
+                      ? selectedTemplate.name
+                      : "Default Black & Gold (no template)"}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {selectedTemplate && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedTemplate(null)}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setTemplateModalOpen(true)}
+                  >
+                    {selectedTemplate ? "Change" : "Choose"}
+                  </Button>
+                </div>
+              </div>
+              {selectedTemplate && (
+                <Badge variant="secondary" className="mt-2 text-xs">
+                  Your info below will replace the template's details
+                </Badge>
+              )}
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="first">First Name</Label>
@@ -258,12 +335,24 @@ export default function Onboarding() {
                   Creating your card...
                 </>
               ) : (
-                "Continue to Payment"
+                "Create Card"
               )}
             </Button>
           </form>
         </CardContent>
       </Card>
+
+      <TemplateSelectionModal
+        open={templateModalOpen}
+        onOpenChange={setTemplateModalOpen}
+        onSelectTemplate={(t) => {
+          setSelectedTemplate(t);
+          toast.success(`Template "${t.name}" selected`);
+        }}
+        onBuildFromScratch={() => {
+          setSelectedTemplate(null);
+        }}
+      />
     </div>
   );
 }
