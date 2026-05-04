@@ -398,11 +398,12 @@ export default function Dashboard() {
         )}
 
 
-        {/* Progress + Activity side by side */}
+        {/* Progress + Activity + Referrals */}
         {!loading && cards.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <ProgressTracker cards={cards} profile={profile} cardViewsMap={cardViewsMap} />
             <ActivityFeed />
+            <ReferralsFeed />
           </div>
         )}
       </main>
