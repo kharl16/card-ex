@@ -65,34 +65,38 @@ export function ReferralsFeed() {
             {referrals.map((ref) => (
               <div
                 key={ref.id}
-                className="flex items-center gap-2 rounded-lg border border-border/40 bg-background/40 p-2"
+                className="rounded-lg border border-border/40 bg-background/40 p-2"
               >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                  {(ref.referred_profile?.full_name || "?").charAt(0).toUpperCase()}
+                <div className="flex items-start gap-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                    {(ref.referred_profile?.full_name || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words text-xs font-medium text-foreground">
+                      {ref.referred_profile?.full_name || "Unnamed user"}
+                    </p>
+                    <p className="break-words text-[10px] text-muted-foreground">
+                      {ref.plan?.name ? `${ref.plan.name} · ` : ""}
+                      {formatDistanceToNow(new Date(ref.created_at), { addSuffix: true })}
+                    </p>
+                  </div>
+                  {ref.referred_card?.slug && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 shrink-0"
+                      onClick={() => window.open(`/c/${ref.referred_card!.slug}`, "_blank")}
+                      aria-label="Open card"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-medium text-foreground">
-                    {ref.referred_profile?.full_name || "Unnamed user"}
-                  </p>
-                  <p className="truncate text-[10px] text-muted-foreground">
-                    {ref.plan?.name ? `${ref.plan.name} · ` : ""}
-                    {formatDistanceToNow(new Date(ref.created_at), { addSuffix: true })}
-                  </p>
+                <div className="mt-1.5 flex flex-wrap items-center gap-1.5 pl-10">
+                  <Badge variant="outline" className={`text-[10px] ${statusColor[ref.status] || ""}`}>
+                    {ref.status.replace("_", " ")}
+                  </Badge>
                 </div>
-                <Badge variant="outline" className={`shrink-0 text-[10px] ${statusColor[ref.status] || ""}`}>
-                  {ref.status.replace("_", " ")}
-                </Badge>
-                {ref.referred_card?.slug && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 shrink-0"
-                    onClick={() => window.open(`/c/${ref.referred_card!.slug}`, "_blank")}
-                    aria-label="Open card"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                  </Button>
-                )}
               </div>
             ))}
           </div>
