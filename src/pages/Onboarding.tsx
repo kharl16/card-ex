@@ -103,9 +103,16 @@ export default function Onboarding() {
 
     const parsed = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId });
     if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of parsed.error.errors) {
+        const key = String(issue.path[0] ?? "form");
+        if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
       toast.error(parsed.error.errors[0]?.message ?? "Please check the form");
       return;
     }
+    setErrors({});
 
     setSubmitting(true);
     try {
