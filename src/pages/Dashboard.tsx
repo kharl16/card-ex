@@ -45,6 +45,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { ReferralsFeed } from "@/components/dashboard/ReferralsFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
 import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
