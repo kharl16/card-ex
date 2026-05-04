@@ -45,6 +45,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+import { ReferralsFeed } from "@/components/dashboard/ReferralsFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
 import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
@@ -398,11 +399,12 @@ export default function Dashboard() {
         )}
 
 
-        {/* Progress + Activity side by side */}
+        {/* Progress + Activity + Referrals */}
         {!loading && cards.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <ProgressTracker cards={cards} profile={profile} cardViewsMap={cardViewsMap} />
             <ActivityFeed />
+            <ReferralsFeed />
           </div>
         )}
       </main>
