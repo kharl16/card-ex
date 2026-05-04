@@ -170,59 +170,6 @@ export default function CardShareDialog({
     }
   };
 
-  const shareAll = async () => {
-    await shareEverything({
-      fullName,
-      primaryUrl,
-      altUrl: altUrl || null,
-      referralCode: referralCode || null,
-      slugForFile: slugForFile || null,
-    });
-    track("share_all");
-  };
-
-  const buildAllText = () => {
-    const lines: string[] = [];
-    lines.push(`Check out ${fullName ? `${fullName}'s` : "my"} digital business card:`);
-    lines.push(primaryUrl);
-    if (altUrl && altUrl !== primaryUrl) lines.push(`Alt link: ${altUrl}`);
-    if (referralLink) {
-      lines.push("");
-      lines.push(`Want one too? Sign up with my referral link: ${referralLink}`);
-    }
-    return lines.join("\n");
-  };
-
-  const copyAll = async () => {
-    const text = buildAllText();
-    try {
-      const QRCode = (await import("qrcode")).default;
-      const dataUrl = await QRCode.toDataURL(primaryUrl, { width: 512, margin: 2 });
-      const pngBlob = await (await fetch(dataUrl)).blob();
-      const textBlob = new Blob([text], { type: "text/plain" });
-      // @ts-ignore
-      if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
-        // @ts-ignore
-        await navigator.clipboard.write([
-          // @ts-ignore
-          new ClipboardItem({ "image/png": pngBlob, "text/plain": textBlob }),
-        ]);
-        toast.success("✅ Copied URL, QR image & referral link");
-        track("copy_all");
-        return;
-      }
-    } catch (e) {
-      console.warn("Copy with image failed, falling back to text:", e);
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("✅ Copied URL & referral link (QR image not supported here)");
-      track("copy_all");
-    } catch {
-      toast.error("Could not copy");
-    }
-  };
-
   const title = fullName ? `${fullName}'s Card` : "My Card";
 
   // Aggregate per-action counts for display
