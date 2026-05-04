@@ -631,8 +631,16 @@ export default function CardView({
         {resolvedSocialLinks.length > 0 && (
           <div className="flex flex-wrap gap-3 justify-center px-6 pb-3">
             {resolvedSocialLinks.map((link, index) => {
-              const IconComponent = iconMap[link.icon];
-              const customIconSrc = customIconMap[link.icon];
+              const kindToIconName: Record<string, string> = {
+                facebook: "Facebook", messenger: "Messenger", linkedin: "Linkedin",
+                instagram: "Instagram", x: "X", twitter: "X", youtube: "Youtube",
+                telegram: "Telegram", tiktok: "TikTok", whatsapp: "WhatsApp",
+                viber: "Viber", snapchat: "Snapchat", threads: "Threads",
+                pinterest: "Pinterest", discord: "Discord", url: "Globe", website: "Globe",
+              };
+              const iconKey = iconMap[link.icon] ? link.icon : kindToIconName[(link.kind || "").toLowerCase()] || link.icon;
+              const IconComponent = iconMap[iconKey];
+              const customIconSrc = customIconMap[iconKey];
               const brandConfig = socialBrandConfig[link.kind] || { bg: "bg-primary", glow: "hover:shadow-[0_0_16px_rgba(212,175,55,0.5)]" };
               const bounceDelay = `${index * 0.08}s`;
 
