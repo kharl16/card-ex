@@ -172,8 +172,7 @@ export default function Onboarding() {
         // Substitute IAM ID into template carousel CTA URLs and image links
         insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings);
         insertData.product_images = substituteInItems(insertData.product_images);
-        insertData.package_images = substituteInItems(insertData.package_images);
-        insertData.testimony_images = substituteInItems(insertData.testimony_images);
+        // Note: package_images and testimony_images intentionally NOT substituted
 
         // Override ALL identity/contact fields with user-entered data
         insertData.full_name = fullName;
