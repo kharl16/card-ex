@@ -82,8 +82,6 @@ export default function CardShareDialog({
     alt_share: 0,
     referral_copy: 0,
     referral_share: 0,
-    copy_all: 0,
-    share_all: 0,
   }));
 
   // Lifetime CTA totals fetched from analytics_daily
@@ -102,8 +100,6 @@ export default function CardShareDialog({
       alt_share: getCount(cardId, "alt_share"),
       referral_copy: getCount(cardId, "referral_copy"),
       referral_share: getCount(cardId, "referral_share"),
-      copy_all: getCount(cardId, "copy_all"),
-      share_all: getCount(cardId, "share_all"),
     });
 
     // Fetch lifetime CTA totals
