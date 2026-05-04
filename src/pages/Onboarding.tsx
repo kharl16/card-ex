@@ -404,15 +404,25 @@ export default function Onboarding() {
                     value={iamId}
                     onChange={(e) => setIamId(e.target.value.replace(/\D/g, "").slice(0, 8))}
                     required
+                    aria-invalid={iamIdMissing || !!errors.iamId}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    We'll attach this to your product carousel automatically.
-                  </p>
+                  {iamIdMissing ? (
+                    <p className="text-xs text-destructive">
+                      IAM ID is required (must be exactly 8 digits) when "Yes" is selected.
+                    </p>
+                  ) : errors.iamId ? (
+                    <p className="text-xs text-destructive">{errors.iamId}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      We'll attach this to your product carousel automatically.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
 
-            <Button type="submit" className="w-full h-12" disabled={submitting}>
+            <Button type="submit" className="w-full h-12" disabled={submitDisabled}>
+
               {submitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
