@@ -50,15 +50,24 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const { data: card } = await supabase
+    const { data: card, error: cardErr } = await supabase
       .from("cards")
       .select("id, full_name, user_id, is_paid")
       .eq("id", cardId)
-      .single();
+      .maybeSingle();
 
-    if (!card || card.user_id !== user.id) {
-      return new Response(JSON.stringify({ error: "Card not found" }), {
+    console.log("checkout debug", { cardId, userId: user.id, card, cardErr });
+
+    if (!card) {
+      return new Response(JSON.stringify({ error: "Card not found", cardId }), {
         status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (card.user_id !== user.id) {
+      return new Response(JSON.stringify({ error: "Card does not belong to user", cardOwner: card.user_id, userId: user.id }), {
+        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
