@@ -59,6 +59,10 @@ export default function Onboarding() {
   const [facebookUrl, setFacebookUrl] = useState("");
   const [iamId, setIamId] = useState("");
   const [isIamMember, setIsIamMember] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const iamIdMissing = isIamMember && !/^\d{8}$/.test(iamId);
+  const submitDisabled = submitting || iamIdMissing;
 
   // Prefill & redirect-if-already-onboarded
   useEffect(() => {
@@ -99,9 +103,16 @@ export default function Onboarding() {
 
     const parsed = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId });
     if (!parsed.success) {
+      const fieldErrors: Record<string, string> = {};
+      for (const issue of parsed.error.errors) {
+        const key = String(issue.path[0] ?? "form");
+        if (!fieldErrors[key]) fieldErrors[key] = issue.message;
+      }
+      setErrors(fieldErrors);
       toast.error(parsed.error.errors[0]?.message ?? "Please check the form");
       return;
     }
+    setErrors({});
 
     setSubmitting(true);
     try {
@@ -311,11 +322,13 @@ export default function Onboarding() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="first">First Name</Label>
-                <Input id="first" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                <Input id="first" value={firstName} onChange={(e) => setFirstName(e.target.value)} required aria-invalid={!!errors.firstName} />
+                {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="last">Last Name</Label>
-                <Input id="last" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                <Input id="last" value={lastName} onChange={(e) => setLastName(e.target.value)} required aria-invalid={!!errors.lastName} />
+                {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
               </div>
             </div>
 
@@ -328,7 +341,9 @@ export default function Onboarding() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
+                aria-invalid={!!errors.phone}
               />
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
 
             <div className="space-y-2">
@@ -339,7 +354,9 @@ export default function Onboarding() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                aria-invalid={!!errors.email}
               />
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
@@ -351,7 +368,9 @@ export default function Onboarding() {
                 value={facebookUrl}
                 onChange={(e) => setFacebookUrl(e.target.value)}
                 required
+                aria-invalid={!!errors.facebookUrl}
               />
+              {errors.facebookUrl && <p className="text-xs text-destructive">{errors.facebookUrl}</p>}
             </div>
 
             <div className="space-y-2 rounded-lg border border-border/50 p-3 bg-background/40">
@@ -385,15 +404,25 @@ export default function Onboarding() {
                     value={iamId}
                     onChange={(e) => setIamId(e.target.value.replace(/\D/g, "").slice(0, 8))}
                     required
+                    aria-invalid={iamIdMissing || !!errors.iamId}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    We'll attach this to your product carousel automatically.
-                  </p>
+                  {iamIdMissing ? (
+                    <p className="text-xs text-destructive">
+                      IAM ID is required (must be exactly 8 digits) when "Yes" is selected.
+                    </p>
+                  ) : errors.iamId ? (
+                    <p className="text-xs text-destructive">{errors.iamId}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      We'll attach this to your product carousel automatically.
+                    </p>
+                  )}
                 </div>
               )}
             </div>
 
-            <Button type="submit" className="w-full h-12" disabled={submitting}>
+            <Button type="submit" className="w-full h-12" disabled={submitDisabled}>
+
               {submitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
