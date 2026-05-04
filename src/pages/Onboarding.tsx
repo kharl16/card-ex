@@ -224,7 +224,7 @@ export default function Onboarding() {
         .update({
           full_name: fullName,
           phone: parsed.data.phone,
-          iam_id: parsed.data.iamId,
+          iam_id: parsed.data.isIamMember ? parsed.data.iamId : null,
           facebook_url: parsed.data.facebookUrl,
           onboarding_completed_at: new Date().toISOString(),
         } as any)
