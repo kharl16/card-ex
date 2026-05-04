@@ -145,14 +145,14 @@ export default function Onboarding() {
       const substituteInCarouselSettings = (cs: any): any => {
         if (!cs || typeof cs !== "object") return cs;
         const next = { ...cs };
-        for (const k of Object.keys(next)) {
-          const section = next[k];
-          if (section && typeof section === "object" && section.cta) {
-            next[k] = {
-              ...section,
-              cta: { ...section.cta, href: substituteIamId(section.cta.href) ?? section.cta.href },
-            };
-          }
+        // Only apply IAM ID substitution to the Products carousel CTA URL.
+        // Packages and Testimonies are intentionally left untouched.
+        const section = next.products;
+        if (section && typeof section === "object" && section.cta) {
+          next.products = {
+            ...section,
+            cta: { ...section.cta, href: substituteIamId(section.cta.href) ?? section.cta.href },
+          };
         }
         return next;
       };
