@@ -29,9 +29,7 @@ type ActionKey =
   | "alt_copy"
   | "alt_share"
   | "referral_copy"
-  | "referral_share"
-  | "copy_all"
-  | "share_all";
+  | "referral_share";
 
 const ACTION_LABELS: Record<ActionKey, string> = {
   url_copy: "Card URL copied",
@@ -40,8 +38,6 @@ const ACTION_LABELS: Record<ActionKey, string> = {
   alt_share: "Alt URL shared",
   referral_copy: "Referral copied",
   referral_share: "Referral shared",
-  copy_all: "Copy all",
-  share_all: "Share all",
 };
 
 const sessionKey = (cardId: string | null | undefined, key: ActionKey) =>
