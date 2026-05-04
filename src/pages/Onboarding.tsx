@@ -121,10 +121,28 @@ export default function Onboarding() {
           is_published: false,
         });
         insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
+
+        // Override ALL identity/contact fields with user-entered data
+        insertData.full_name = fullName;
+        insertData.owner_name = fullName;
         insertData.first_name = parsed.data.firstName;
         insertData.last_name = parsed.data.lastName;
+        insertData.middle_name = null;
+        insertData.prefix = null;
+        insertData.suffix = null;
         insertData.phone = parsed.data.phone;
         insertData.email = parsed.data.email;
+
+        // Replace any facebook entry in social_links with the user's URL
+        const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links : [];
+        const filteredSocial = existingSocial.filter(
+          (s: any) => (s?.kind || "").toLowerCase() !== "facebook"
+        );
+        insertData.social_links = [
+          ...filteredSocial,
+          { kind: "facebook", label: "Facebook", url: parsed.data.facebookUrl, value: parsed.data.facebookUrl },
+        ];
+
         // Keep template product images if it has any; otherwise seed with IAM placeholder
         if (!snapshot.product_images || snapshot.product_images.length === 0) {
           insertData.product_images = productImages;
@@ -156,25 +174,41 @@ export default function Onboarding() {
 
       if (cardErr) throw cardErr;
 
-      // If template had card_links, copy them; otherwise insert just Facebook
+      // If template had card_links, copy them with user's contact data substituted in
+      let facebookHandled = false;
       if (selectedTemplate) {
         const snapshot = selectedTemplate.layout_data as CardSnapshot;
         if (snapshot.card_links && snapshot.card_links.length > 0) {
-          const linkInserts = buildCardLinksInsertFromSnapshot(snapshot, card.id);
+          const linkInserts = buildCardLinksInsertFromSnapshot(snapshot, card.id).map((link) => {
+            const k = (link.kind || "").toLowerCase();
+            if (k === "phone" || k === "sms" || k === "whatsapp" || k === "viber" || k === "telegram") {
+              return { ...link, value: parsed.data.phone };
+            }
+            if (k === "email") {
+              return { ...link, value: parsed.data.email };
+            }
+            if (k === "facebook" || k === "messenger") {
+              facebookHandled = true;
+              return { ...link, value: parsed.data.facebookUrl };
+            }
+            return link;
+          });
           await supabase.from("card_links").insert(linkInserts);
         }
       }
 
-      // Always ensure Facebook link exists
-      const { error: linkErr } = await supabase.from("card_links").insert({
-        card_id: card.id,
-        kind: "facebook",
-        label: "Facebook",
-        value: parsed.data.facebookUrl,
-        icon: "facebook",
-        sort_index: 999,
-      } as any);
-      if (linkErr) console.warn("Facebook link insert failed:", linkErr);
+      // Ensure Facebook link exists if not already in template
+      if (!facebookHandled) {
+        const { error: linkErr } = await supabase.from("card_links").insert({
+          card_id: card.id,
+          kind: "facebook",
+          label: "Facebook",
+          value: parsed.data.facebookUrl,
+          icon: "facebook",
+          sort_index: 999,
+        } as any);
+        if (linkErr) console.warn("Facebook link insert failed:", linkErr);
+      }
 
       const { error: profileErr } = await supabase
         .from("profiles")
