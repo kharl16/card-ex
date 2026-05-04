@@ -59,6 +59,10 @@ export default function Onboarding() {
   const [facebookUrl, setFacebookUrl] = useState("");
   const [iamId, setIamId] = useState("");
   const [isIamMember, setIsIamMember] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const iamIdMissing = isIamMember && !/^\d{8}$/.test(iamId);
+  const submitDisabled = submitting || iamIdMissing;
 
   // Prefill & redirect-if-already-onboarded
   useEffect(() => {
