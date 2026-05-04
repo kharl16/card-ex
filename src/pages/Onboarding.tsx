@@ -58,6 +58,7 @@ export default function Onboarding() {
   const [email, setEmail] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
   const [iamId, setIamId] = useState("");
+  const [isIamMember, setIsIamMember] = useState(false);
 
   // Prefill & redirect-if-already-onboarded
   useEffect(() => {
