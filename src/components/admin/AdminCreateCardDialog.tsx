@@ -331,12 +331,12 @@ export function AdminCreateCardDialog({
 
         <form onSubmit={onSubmit} className="space-y-4 pt-2">
           {/* Template picker */}
-          <div className="rounded-lg border border-border/50 p-3 bg-background/40">
+          <div className={`rounded-lg border p-3 bg-background/40 ${!selectedTemplate ? "border-destructive" : "border-border/50"}`}>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Layers className="h-4 w-4 text-primary" />
-                  Starting template
+                  Starting template <span className="text-destructive">*</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 truncate">
                   {selectedTemplate ? selectedTemplate.name : "Default Black & Gold (no template)"}
@@ -362,7 +362,7 @@ export function AdminCreateCardDialog({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="admin-first">First Name</Label>
+              <Label htmlFor="admin-first">First Name <span className="text-destructive">*</span></Label>
               <Input
                 id="admin-first"
                 value={firstName}
@@ -373,7 +373,7 @@ export function AdminCreateCardDialog({
               {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="admin-last">Last Name</Label>
+              <Label htmlFor="admin-last">Last Name <span className="text-destructive">*</span></Label>
               <Input
                 id="admin-last"
                 value={lastName}
@@ -386,7 +386,7 @@ export function AdminCreateCardDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="admin-phone">Mobile Number</Label>
+            <Label htmlFor="admin-phone">Mobile Number <span className="text-destructive">*</span></Label>
             <Input
               id="admin-phone"
               type="tel"
@@ -400,7 +400,7 @@ export function AdminCreateCardDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="admin-email">Email Address</Label>
+            <Label htmlFor="admin-email">Email Address <span className="text-destructive">*</span></Label>
             <Input
               id="admin-email"
               type="email"
@@ -413,7 +413,7 @@ export function AdminCreateCardDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="admin-fb">Facebook Link</Label>
+            <Label htmlFor="admin-fb">Facebook Link <span className="text-destructive">*</span></Label>
             <Input
               id="admin-fb"
               type="url"
@@ -427,7 +427,7 @@ export function AdminCreateCardDialog({
           </div>
 
           <div className="space-y-2 rounded-lg border border-border/50 p-3 bg-background/40">
-            <Label className="text-sm">IAM Worldwide Member?</Label>
+            <Label className="text-sm">IAM Worldwide Member? <span className="text-destructive">*</span></Label>
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-2 cursor-pointer">
                 <Checkbox checked={isIamMember} onCheckedChange={(c) => setIsIamMember(c === true)} />
@@ -449,7 +449,7 @@ export function AdminCreateCardDialog({
 
             {isIamMember && (
               <div className="space-y-2 pt-2">
-                <Label htmlFor="admin-iam">IAM ID Number (last 8 digits)</Label>
+                <Label htmlFor="admin-iam">IAM ID Number (last 8 digits) <span className="text-destructive">*</span></Label>
                 <Input
                   id="admin-iam"
                   inputMode="numeric"
