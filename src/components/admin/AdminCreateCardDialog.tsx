@@ -104,17 +104,31 @@ export function AdminCreateCardDialog({
         setIamId("");
       }
 
-      // Fetch email via admin edge function
+      // Fetch email via dedicated, safer edge function (never blocks the form)
+      let resolvedEmail = "";
       try {
-        const { data: result } = await supabase.functions.invoke("admin-list-users", {
-          body: { user_ids: [targetUserId] },
+        const { data: result } = await supabase.functions.invoke("admin-get-user-email", {
+          body: { user_id: targetUserId },
         });
-        const e = result?.users?.[targetUserId];
-        if (e) setEmail(e);
-        else setEmail("");
-      } catch {
-        setEmail("");
+        if (result?.email) resolvedEmail = String(result.email);
+      } catch (err) {
+        console.warn("admin-get-user-email failed, falling back:", err);
       }
+
+      // Fallback 1: legacy bulk endpoint
+      if (!resolvedEmail) {
+        try {
+          const { data: result } = await supabase.functions.invoke("admin-list-users", {
+            body: { user_ids: [targetUserId] },
+          });
+          const e = result?.users?.[targetUserId];
+          if (e) resolvedEmail = String(e);
+        } catch (err) {
+          console.warn("admin-list-users fallback failed:", err);
+        }
+      }
+
+      setEmail(resolvedEmail);
     })();
   }, [open, targetUserId, targetUserName]);
 
