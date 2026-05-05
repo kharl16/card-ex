@@ -79,7 +79,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
         {/* Name & title */}
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            <h3 className="truncate text-base font-bold leading-tight text-primary [text-shadow:0_0_10px_hsl(var(--primary)/0.7),0_0_20px_hsl(var(--primary)/0.4)] transition-all group-hover:[text-shadow:0_0_14px_hsl(var(--primary)/0.95),0_0_28px_hsl(var(--primary)/0.6)]">
+            <h3 className="truncate text-base font-bold leading-tight text-primary underline decoration-primary/70 decoration-2 underline-offset-4 [text-shadow:0_0_10px_hsl(var(--primary)/0.85),0_0_22px_hsl(var(--primary)/0.55)] transition-all group-hover:decoration-primary group-hover:[text-shadow:0_0_16px_hsl(var(--primary)),0_0_32px_hsl(var(--primary)/0.7)]">
               {card.full_name || "Untitled Card"}
             </h3>
             {(() => {
