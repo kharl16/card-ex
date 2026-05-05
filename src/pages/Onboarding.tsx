@@ -102,6 +102,12 @@ export default function Onboarding() {
     e.preventDefault();
     if (!user) return;
 
+    if (!selectedTemplate) {
+      setErrors({ template: "Please choose a starting template" });
+      toast.error("Please choose a starting template");
+      return;
+    }
+
     const parsed = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId });
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {};
