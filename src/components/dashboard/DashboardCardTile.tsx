@@ -44,7 +44,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
 
   return (
     <div
-      className="group relative flex w-full cursor-pointer items-stretch overflow-hidden rounded-2xl border border-primary/40 bg-card shadow-[0_0_20px_-4px_hsl(var(--primary)/0.45)] ring-1 ring-primary/20 transition-all duration-300 hover:border-primary/70 hover:shadow-[0_0_32px_-2px_hsl(var(--primary)/0.7)] hover:ring-primary/40 active:scale-[0.98]"
+      className="group relative flex w-full cursor-pointer items-stretch overflow-hidden rounded-2xl border-2 border-primary/60 bg-card shadow-[0_0_24px_-4px_hsl(var(--primary)/0.55)] ring-1 ring-primary/30 transition-all duration-300 hover:border-primary hover:bg-primary/10 hover:shadow-[0_0_36px_-2px_hsl(var(--primary)/0.85)] hover:ring-primary/60 active:scale-[0.98]"
       onClick={() => navigate(`/cards/${card.id}/edit`)}
     >
       {/* Left: Avatar strip */}
