@@ -62,7 +62,8 @@ export default function Onboarding() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const iamIdMissing = isIamMember && !/^\d{8}$/.test(iamId);
-  const submitDisabled = submitting || iamIdMissing;
+  const templateMissing = !selectedTemplate;
+  const submitDisabled = submitting || iamIdMissing || templateMissing;
 
   // Prefill & redirect-if-already-onboarded
   useEffect(() => {
@@ -312,34 +313,27 @@ export default function Onboarding() {
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="space-y-4">
-            {/* Template picker */}
-            <div className="rounded-lg border border-border/50 p-3 bg-background/40">
+            {/* Template picker (required) */}
+            <div className={`rounded-lg border p-3 bg-background/40 ${errors.template ? "border-destructive" : "border-border/50"}`}>
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <Layers className="h-4 w-4 text-primary" />
-                    Starting template
+                    Starting template <span className="text-destructive">*</span>
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                    {selectedTemplate
-                      ? selectedTemplate.name
-                      : "Default Black & Gold (no template)"}
+                    {selectedTemplate ? selectedTemplate.name : "Required — choose a template to continue"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {selectedTemplate && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedTemplate(null)}
-                    >
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedTemplate(null)}>
                       Clear
                     </Button>
                   )}
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant={selectedTemplate ? "secondary" : "default"}
                     size="sm"
                     onClick={() => setTemplateModalOpen(true)}
                   >
@@ -347,28 +341,30 @@ export default function Onboarding() {
                   </Button>
                 </div>
               </div>
-              {selectedTemplate && (
+              {selectedTemplate ? (
                 <Badge variant="secondary" className="mt-2 text-xs">
                   Your info below will replace the template's details
                 </Badge>
-              )}
+              ) : errors.template ? (
+                <p className="text-xs text-destructive mt-2">{errors.template}</p>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="first">First Name</Label>
+                <Label htmlFor="first">First Name <span className="text-destructive">*</span></Label>
                 <Input id="first" value={firstName} onChange={(e) => setFirstName(e.target.value)} required aria-invalid={!!errors.firstName} />
                 {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="last">Last Name</Label>
+                <Label htmlFor="last">Last Name <span className="text-destructive">*</span></Label>
                 <Input id="last" value={lastName} onChange={(e) => setLastName(e.target.value)} required aria-invalid={!!errors.lastName} />
                 {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Mobile Number</Label>
+              <Label htmlFor="phone">Mobile Number <span className="text-destructive">*</span></Label>
               <Input
                 id="phone"
                 type="tel"
@@ -382,7 +378,7 @@ export default function Onboarding() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">Email Address <span className="text-destructive">*</span></Label>
               <Input
                 id="email"
                 type="email"
@@ -395,7 +391,7 @@ export default function Onboarding() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fb">Facebook Link</Label>
+              <Label htmlFor="fb">Facebook Link <span className="text-destructive">*</span></Label>
               <Input
                 id="fb"
                 type="url"
