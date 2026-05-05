@@ -44,7 +44,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
 
   return (
     <div
-      className="group relative flex w-full cursor-pointer items-stretch overflow-hidden rounded-2xl border border-border/30 bg-card transition-all duration-200 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98]"
+      className="group relative flex w-full cursor-pointer items-stretch overflow-hidden rounded-2xl border border-primary/40 bg-card shadow-[0_0_20px_-4px_hsl(var(--primary)/0.45)] ring-1 ring-primary/20 transition-all duration-300 hover:border-primary/70 hover:shadow-[0_0_32px_-2px_hsl(var(--primary)/0.7)] hover:ring-primary/40 active:scale-[0.98]"
       onClick={() => navigate(`/cards/${card.id}/edit`)}
     >
       {/* Left: Avatar strip */}
@@ -79,7 +79,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
         {/* Name & title */}
         <div className="min-w-0">
           <div className="flex items-center gap-1.5 min-w-0">
-            <h3 className="truncate text-base font-bold leading-tight text-foreground">
+            <h3 className="truncate text-base font-bold leading-tight text-primary [text-shadow:0_0_10px_hsl(var(--primary)/0.7),0_0_20px_hsl(var(--primary)/0.4)] transition-all group-hover:[text-shadow:0_0_14px_hsl(var(--primary)/0.95),0_0_28px_hsl(var(--primary)/0.6)]">
               {card.full_name || "Untitled Card"}
             </h3>
             {(() => {
