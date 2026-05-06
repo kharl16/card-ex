@@ -248,21 +248,21 @@ export function TemplateGallery({
                 onClick={() => handleSelect(template)}
               >
                 <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-3">
                     {template.thumbnail_url ? (
                       <img
                         src={template.thumbnail_url}
                         alt={template.name}
-                        className="h-12 w-12 rounded-lg object-cover"
+                        className="h-12 w-12 shrink-0 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-primary/30 to-primary/10">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/30 to-primary/10">
                         <Palette className="h-6 w-6 text-primary" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <CardTitle className="text-lg">{template.name}</CardTitle>
+                      <CardTitle className="text-lg break-words">{template.name}</CardTitle>
+                      <div className="mt-1 flex items-center gap-2 flex-wrap">
                         {template.visibility && visibilityConfig[template.visibility as TemplateVisibility] && (
                           <Badge variant={visibilityConfig[template.visibility as TemplateVisibility].variant} className="text-xs flex items-center gap-1">
                             {visibilityConfig[template.visibility as TemplateVisibility].icon}
@@ -276,8 +276,10 @@ export function TemplateGallery({
                           </Badge>
                         )}
                       </div>
-                      <CardDescription>Pre-designed template</CardDescription>
+                      <CardDescription className="mt-1">Pre-designed template</CardDescription>
                     </div>
+                  </div>
+                  <div className="mt-3 flex justify-end border-t pt-2">
                     {renderActionButtons(template)}
                   </div>
                 </CardHeader>
