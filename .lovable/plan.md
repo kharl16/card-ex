@@ -1,78 +1,53 @@
-# Self-Service Card Onboarding & Automation
+## Problem
 
-Goal: After signup + email verification, the user lands on an onboarding wizard that collects only the 5 fields you currently ask for, auto-creates their card, then routes them through payment. Eventually, payment confirmation and referral payouts run hands-free.
+The "Create New Card" dialog launched from the Dashboard (`NewCardDialog`) creates a card immediately when the user clicks **Build from Scratch** or picks a template — no required fields are validated. This is inconsistent with the Onboarding wizard (`/onboarding`), which already enforces First Name, Last Name, Mobile, Email, Facebook URL, IAM membership/ID, and template selection before enabling the submit button.
 
-## Phase 1 — Onboarding Wizard (this iteration)
+## Fix
 
-### New route: `/onboarding`
-A 1–2 step wizard shown on the user's first authenticated visit after email verification.
+Bring the Dashboard's create-card flow to parity with Onboarding so the **Create Card** button is disabled until every required field is valid.
 
-**Fields collected:**
-1. Full Name → split into `first_name` + `last_name` (auto-assembled into `cards.full_name` via existing `sync_full_name` trigger)
-2. Mobile number → `cards.phone`
-3. Email address → prefilled from `auth.user.email`, editable → `cards.email`
-4. Facebook link → stored as a `card_links` row (`kind='url'`, `label='Facebook'`)
-5. IAM ID number (8 digits) → stored two ways:
-   - `profiles.iam_id` (new column) for canonical reference
-   - Appended to the last item's URL in `cards.product_images` carousel (matches your current manual workflow)
+### Changes in `src/components/templates/NewCardDialog.tsx`
 
-### Routing logic
-- Add `RequireOnboarding` wrapper around `/dashboard` and other authenticated app routes.
-- Redirects to `/onboarding` if: user is verified, has no card yet (or has a card with no `phone`/`first_name`).
-- Once onboarding is submitted → redirects to `/billing` (existing PlanSelector flow) so they can pay.
+1. Replace the current two-card "choice" step (Build from Scratch vs Use a Template) with a single form identical to the Onboarding wizard:
+   - First Name * (prefill from `profileName`)
+   - Last Name * (prefill)
+   - Mobile Number *
+   - Email Address * (prefill from `user.email`)
+   - Facebook Link * (validated as facebook.com / fb.com / fb.me URL)
+   - IAM Worldwide Member? Yes/No, with IAM ID * (8 digits) shown when Yes
+   - Starting template * (opens `TemplateSelectionModal`; "Build from Scratch" available as a chip inside the picker)
 
-### What the wizard does on submit
-1. Calls existing card-creation logic (similar to `AdminCreateCardDialog` but for self-serve):
-   - Inserts a row in `cards` with the user as owner, status `is_published=false`, `is_paid=false`.
-   - Generates a slug from the name.
-2. Inserts the Facebook link into `card_links`.
-3. Seeds `product_images` carousel with placeholder items, last item URL containing the IAM ID.
-4. Updates `profiles` with `iam_id` and `phone`.
-5. Navigates to `/billing?card=<id>`.
+2. Reuse the same `zod` schema and disabled-button logic from `Onboarding.tsx`:
+   ```
+   const submitDisabled = submitting || iamIdMissing || templateMissing || !formValid;
+   ```
+   The "Create Card" button uses `disabled={submitDisabled}` and re-evaluates live as fields change (already proven to work after the previous Onboarding fix).
 
-### DB migration needed
-- `ALTER TABLE profiles ADD COLUMN iam_id text;` (with simple length/format check via trigger — 8 digits).
-- Add `iam_id` validation in `validate_card_data` if you want it on cards too (optional).
+3. On submit, build the card using the same logic Onboarding uses (template snapshot + IAM URL substitution + override of identity/contact fields + Facebook social link + `card_links` insertion), then navigate to `/cards/:id/edit`.
 
-## Phase 2 — Automated Payment (next iteration, not in this build)
+4. Keep the existing card-limit error handling and `DEFAULT_THEME` merge.
 
-You already have `process_card_payment` RPC, `payments` table, and `card_plans`. Today payment requires admin verification (evidence_url upload). To go fully automated:
+### Shared helper (small refactor)
 
-- **PayMongo webhook** (PH GCash/Maya/Card) → new edge function `paymongo-webhook` that calls `process_card_payment` with `status='paid'` automatically when PayMongo confirms.
-- **Stripe webhook** for international cards (already partially scaffolded).
-- After webhook fires, `cards.is_paid=true` triggers `ensure_referral_on_card_paid_published` → card goes live + referral attribution locks in.
-- Add a "Pay Now" button on `/billing` that opens PayMongo checkout link (already in `usePayments`).
+To avoid duplicating ~150 lines of card-build logic between `Onboarding.tsx` and `NewCardDialog.tsx`, extract the shared submit logic into `src/lib/createCardFromOnboarding.ts`:
 
-## Phase 3 — Automated Referral Payouts (later)
+```text
+createCardFromOnboarding({
+  user, profileUpdate?: boolean,
+  firstName, lastName, phone, email, facebookUrl,
+  isIamMember, iamId, selectedTemplate
+}) -> { cardId }
+```
 
-You already track:
-- `referrals` table (status: pending → qualified → paid_out)
-- `notify_referrer_on_status_change` trigger sends in-app notification
+- `Onboarding.tsx` calls it with `profileUpdate: true` (also writes `profiles.onboarding_completed_at`).
+- `NewCardDialog.tsx` calls it with `profileUpdate: false`.
 
-To automate disbursement:
-- Add `referrer_payout_method` to profiles (GCash number / bank account).
-- New edge function `process-referral-payouts` (scheduled nightly via pg_cron):
-  - Finds `referrals` with `status='qualified'` and age ≥ X days (cool-down).
-  - Calls PayMongo Disbursements API (or Xendit) to send commission.
-  - Updates `status='paid_out'` → existing trigger notifies referrer.
-- Admin dashboard already exists at `AdminReferrals.tsx` for manual override.
+### Result
 
-## Scope of THIS plan (what gets built now)
+From the Dashboard, clicking "+ Create New Card" opens a dialog where:
+- Removing the email or Facebook link re-disables **Create Card** instantly.
+- Missing IAM ID (when "Yes" is selected) keeps the button disabled.
+- Not picking a template keeps the button disabled.
+- Only when every required field is valid does the button become clickable — matching the corrected Onboarding behavior.
 
-Phase 1 only. Concretely:
-
-1. **DB migration** — add `profiles.iam_id` column.
-2. **New page** `src/pages/Onboarding.tsx` — single-form wizard (no multi-step needed for 5 fields).
-3. **New guard** `src/components/auth/RequireOnboarding.tsx` — checks if user has a usable card; if not redirects to `/onboarding`. Wrap `/dashboard` route in `App.tsx`.
-4. **Route registration** in `App.tsx`: `/onboarding` (auth-required, no onboarding guard).
-5. **Submit handler** uses Supabase client to insert card + link + profile update, then `navigate('/billing')`.
-
-Phases 2 & 3 are documented above so you can approve them as separate builds when you're ready to wire up PayMongo webhooks and disbursement automation.
-
-## Technical notes
-
-- Use existing `useAuth()` for the user; `cards` insert respects the `check_card_limit` trigger (1 card max for non-admins, which matches the goal).
-- Slug generation: reuse logic in `AdminCreateCardDialog` (slugify full name + short hash).
-- IAM ID validation: client-side `z.string().regex(/^\d{8}$/)`.
-- Facebook link validation: must start with `https://` and contain `facebook.com` or `fb.com`.
-- After onboarding the user lands on `/billing` where they pick a plan and pay. Until paid, the card exists as a draft (already supported by `is_paid=false`).
+No other files need changes.

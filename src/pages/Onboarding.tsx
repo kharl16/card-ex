@@ -13,20 +13,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { TemplateSelectionModal } from "@/components/templates/TemplateSelectionModal";
-import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
 import { Badge } from "@/components/ui/badge";
+import { createCardFromOnboarding } from "@/lib/createCardFromOnboarding";
 
-const DEFAULT_THEME = {
-  name: "Black&Gold",
-  text: "#F8F8F8",
-  primary: "#D4AF37",
-  accent: "#FACC15",
-  background: "#0B0B0C",
-  buttonColor: "#D4AF37",
-  baseMode: "dark",
-};
-
-const schema = z.object({
+export const onboardingFormSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(50),
   lastName: z.string().trim().min(1, "Last name is required").max(50),
   phone: z.string().trim().min(7, "Mobile number is required").max(30),
@@ -63,7 +53,7 @@ export default function Onboarding() {
 
   const iamIdMissing = isIamMember && !/^\d{8}$/.test(iamId);
   const templateMissing = !selectedTemplate;
-  const formValid = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId }).success;
+  const formValid = onboardingFormSchema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId }).success;
   const submitDisabled = submitting || iamIdMissing || templateMissing || !formValid;
 
   // Prefill & redirect-if-already-onboarded
@@ -109,7 +99,7 @@ export default function Onboarding() {
       return;
     }
 
-    const parsed = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId });
+    const parsed = onboardingFormSchema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId });
     if (!parsed.success) {
       const fieldErrors: Record<string, string> = {};
       for (const issue of parsed.error.errors) {
@@ -124,167 +114,18 @@ export default function Onboarding() {
 
     setSubmitting(true);
     try {
-      const fullName = `${parsed.data.firstName} ${parsed.data.lastName}`.trim();
-      const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
-
-      const productImages = [
-        {
-          id: crypto.randomUUID(),
-          url: "/cardex/placeholders/product-gold-2.svg",
-          caption: "Product 1",
-          link: parsed.data.isIamMember && parsed.data.iamId
-            ? `https://iamworldwide.com/?ref=${parsed.data.iamId}`
-            : `https://iamworldwide.com/`,
-        },
-      ];
-
-      // Helper to substitute IAM ID into URLs that contain idno=XXXXXXXX or ?ref=XXXXXXXX
-      const iamId8 = parsed.data.isIamMember && parsed.data.iamId ? parsed.data.iamId : null;
-      const substituteIamId = (url: string | undefined | null): string | undefined | null => {
-        if (!url || !iamId8) return url;
-        return url
-          .replace(/(idno=)\d{6,}/gi, `$1${iamId8}`)
-          .replace(/(\?|&)(ref|referrer|referral|iamid|iam_id)=\d{6,}/gi, `$1$2=${iamId8}`);
-      };
-      const substituteInItems = <T extends { link?: string | null; url?: string | null }>(items: T[] | undefined | null): T[] | undefined | null => {
-        if (!Array.isArray(items)) return items;
-        return items.map((it) => ({ ...it, link: substituteIamId((it as any).link) ?? (it as any).link })) as T[];
-      };
-      const substituteInCarouselSettings = (cs: any): any => {
-        if (!cs || typeof cs !== "object") return cs;
-        const next = { ...cs };
-        // Only apply IAM ID substitution to the Products carousel CTA URL.
-        // Packages and Testimonies are intentionally left untouched.
-        const section = next.products;
-        if (section && typeof section === "object" && section.cta) {
-          next.products = {
-            ...section,
-            cta: { ...section.cta, href: substituteIamId(section.cta.href) ?? section.cta.href },
-          };
-        }
-        return next;
-      };
-
-      let insertData: Record<string, any>;
-
-      if (selectedTemplate) {
-        // Apply template, then override with user-entered fields
-        const snapshot = selectedTemplate.layout_data as CardSnapshot;
-        insertData = buildCardInsertFromSnapshot(snapshot, user.id, slug, {
-          full_name: fullName,
-          owner_name: fullName,
-          is_published: false,
-        });
-        insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
-
-        // Substitute IAM ID into template carousel CTA URLs and image links
-        insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings);
-        insertData.product_images = substituteInItems(insertData.product_images);
-        // Note: package_images and testimony_images intentionally NOT substituted
-
-        // Override ALL identity/contact fields with user-entered data
-        insertData.full_name = fullName;
-        insertData.owner_name = fullName;
-        insertData.first_name = parsed.data.firstName;
-        insertData.last_name = parsed.data.lastName;
-        insertData.middle_name = null;
-        insertData.prefix = null;
-        insertData.suffix = null;
-        insertData.phone = parsed.data.phone;
-        insertData.email = parsed.data.email;
-
-        // Replace any facebook entry in social_links with the user's URL
-        const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links : [];
-        const filteredSocial = existingSocial.filter(
-          (s: any) => (s?.kind || "").toLowerCase() !== "facebook"
-        );
-        insertData.social_links = [
-          ...filteredSocial,
-          { kind: "facebook", label: "Facebook", url: parsed.data.facebookUrl, value: parsed.data.facebookUrl },
-        ];
-
-        // Keep template product images if it has any; otherwise seed with IAM placeholder
-        if (!snapshot.product_images || snapshot.product_images.length === 0) {
-          insertData.product_images = productImages;
-        }
-      } else {
-        insertData = {
-          user_id: user.id,
-          slug,
-          full_name: fullName,
-          first_name: parsed.data.firstName,
-          last_name: parsed.data.lastName,
-          owner_name: fullName,
-          phone: parsed.data.phone,
-          email: parsed.data.email,
-          theme: DEFAULT_THEME,
-          carousel_enabled: true,
-          card_type: "publishable",
-          is_published: false,
-          is_paid: false,
-          product_images: productImages,
-        };
-      }
-
-      const { data: card, error: cardErr } = await supabase
-        .from("cards")
-        .insert(insertData as any)
-        .select()
-        .single();
-
-      if (cardErr) throw cardErr;
-
-      // If template had card_links, copy them with user's contact data substituted in
-      let facebookHandled = false;
-      if (selectedTemplate) {
-        const snapshot = selectedTemplate.layout_data as CardSnapshot;
-        if (snapshot.card_links && snapshot.card_links.length > 0) {
-          const linkInserts = buildCardLinksInsertFromSnapshot(snapshot, card.id).map((link) => {
-            const k = (link.kind || "").toLowerCase();
-            if (k === "phone" || k === "sms" || k === "whatsapp" || k === "viber" || k === "telegram") {
-              return { ...link, value: parsed.data.phone };
-            }
-            if (k === "email") {
-              return { ...link, value: parsed.data.email };
-            }
-            if (k === "facebook" || k === "messenger") {
-              facebookHandled = true;
-              return { ...link, value: parsed.data.facebookUrl };
-            }
-            if (k === "url" || k === "custom") {
-              return { ...link, value: substituteIamId(link.value) ?? link.value };
-            }
-            return link;
-          });
-          await supabase.from("card_links").insert(linkInserts);
-        }
-      }
-
-      // Ensure Facebook link exists if not already in template
-      if (!facebookHandled) {
-        const { error: linkErr } = await supabase.from("card_links").insert({
-          card_id: card.id,
-          kind: "facebook",
-          label: "Facebook",
-          value: parsed.data.facebookUrl,
-          icon: "facebook",
-          sort_index: 999,
-        } as any);
-        if (linkErr) console.warn("Facebook link insert failed:", linkErr);
-      }
-
-      const { error: profileErr } = await supabase
-        .from("profiles")
-        .update({
-          full_name: fullName,
-          phone: parsed.data.phone,
-          iam_id: parsed.data.isIamMember ? parsed.data.iamId : null,
-          facebook_url: parsed.data.facebookUrl,
-          onboarding_completed_at: new Date().toISOString(),
-        } as any)
-        .eq("id", user.id);
-      if (profileErr) console.warn("Profile update failed:", profileErr);
-
+      await createCardFromOnboarding({
+        user,
+        firstName: parsed.data.firstName,
+        lastName: parsed.data.lastName,
+        phone: parsed.data.phone,
+        email: parsed.data.email,
+        facebookUrl: parsed.data.facebookUrl,
+        isIamMember: parsed.data.isIamMember,
+        iamId: parsed.data.iamId,
+        selectedTemplate,
+        updateProfile: true,
+      });
       toast.success("Card created! Preview it on your dashboard.");
       navigate("/dashboard", { replace: true });
     } catch (err: any) {
