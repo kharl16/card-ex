@@ -13,20 +13,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { TemplateSelectionModal } from "@/components/templates/TemplateSelectionModal";
-import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
 import { Badge } from "@/components/ui/badge";
+import { createCardFromOnboarding } from "@/lib/createCardFromOnboarding";
 
-const DEFAULT_THEME = {
-  name: "Black&Gold",
-  text: "#F8F8F8",
-  primary: "#D4AF37",
-  accent: "#FACC15",
-  background: "#0B0B0C",
-  buttonColor: "#D4AF37",
-  baseMode: "dark",
-};
-
-const schema = z.object({
+export const onboardingFormSchema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(50),
   lastName: z.string().trim().min(1, "Last name is required").max(50),
   phone: z.string().trim().min(7, "Mobile number is required").max(30),
