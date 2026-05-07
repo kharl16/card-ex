@@ -95,6 +95,10 @@ export default {
           '0%, 100%': { opacity: '0.4' },
           '50%': { opacity: '0.8' },
         },
+        'tile-glow-pulse': {
+          '0%, 100%': { boxShadow: '0 0 16px -4px hsl(var(--primary) / 0.45), 0 0 0 1px hsl(var(--primary) / 0.25)' },
+          '50%': { boxShadow: '0 0 36px 2px hsl(var(--primary) / 0.85), 0 0 0 1px hsl(var(--primary) / 0.55)' },
+        },
         'glass-shimmer': {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
@@ -127,6 +131,7 @@ export default {
         "gold-pulse": "gold-pulse 3s ease-in-out infinite",
         "slide-up-fade": "slide-up-fade 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards",
         "glass-shimmer": "glass-shimmer 6s ease-in-out infinite",
+        "tile-glow-pulse": "tile-glow-pulse 2.4s ease-in-out infinite",
       },
     },
   },
