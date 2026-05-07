@@ -51,6 +51,7 @@ import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
 import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
 import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
 import { ProgressTracker } from "@/components/dashboard/ProgressTracker";
+import { ReferralEarningsBadge } from "@/components/referral/ReferralEarningsBadge";
 
 type CardData = Tables<"cards">;
 
@@ -349,6 +350,11 @@ export default function Dashboard() {
 
         {/* Stats */}
         {!loading && <AnimatedStatsCards cards={cards} />}
+
+        {/* Total Referral Commission Earned */}
+        {!loading && profile?.id && (
+          <ReferralEarningsBadge userId={profile.id} variant="dashboard" />
+        )}
 
         {/* Quick Actions */}
         <QuickActions
