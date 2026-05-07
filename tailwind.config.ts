@@ -131,7 +131,7 @@ export default {
         "gold-pulse": "gold-pulse 3s ease-in-out infinite",
         "slide-up-fade": "slide-up-fade 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards",
         "glass-shimmer": "glass-shimmer 6s ease-in-out infinite",
-        "tile-glow-pulse": "tile-glow-pulse var(--tile-glow-duration) ease-in-out infinite",
+        "tile-glow-pulse": "tile-glow-pulse 2.5s ease-in-out infinite",
       },
     },
   },
