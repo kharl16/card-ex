@@ -351,10 +351,29 @@ export default function Dashboard() {
         {/* Stats */}
         {!loading && <AnimatedStatsCards cards={cards} />}
 
-        {/* Total Referral Commission Earned */}
+        {/* Total Referral Commission Earned (click to reveal Your Referrals) */}
         {!loading && profile?.id && (
-          <ReferralEarningsBadge userId={profile.id} variant="dashboard" />
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={() => setReferralsExpanded((v) => !v)}
+              className="w-full text-left transition-transform hover:scale-[1.005] active:scale-[0.995] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 rounded-2xl"
+              aria-expanded={referralsExpanded}
+              aria-controls="referrals-feed-panel"
+            >
+              <ReferralEarningsBadge userId={profile.id} variant="dashboard" />
+              <p className="mt-1 px-2 text-[11px] text-amber-200/60">
+                {referralsExpanded ? "Tap to hide referrals ▲" : "Tap to view your referrals ▼"}
+              </p>
+            </button>
+            {referralsExpanded && (
+              <div id="referrals-feed-panel">
+                <ReferralsFeed />
+              </div>
+            )}
+          </div>
         )}
+
 
         {/* Quick Actions */}
         <QuickActions
