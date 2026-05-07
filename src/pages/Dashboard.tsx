@@ -425,12 +425,11 @@ export default function Dashboard() {
         )}
 
 
-        {/* Progress + Activity + Referrals */}
+        {/* Progress + Activity */}
         {!loading && cards.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <ProgressTracker cards={cards} profile={profile} cardViewsMap={cardViewsMap} />
             <ActivityFeed />
-            <ReferralsFeed />
           </div>
         )}
       </main>
