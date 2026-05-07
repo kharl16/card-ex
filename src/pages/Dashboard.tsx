@@ -63,6 +63,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [cardViewsMap, setCardViewsMap] = useState<Record<string, number>>({});
+  const [referralsExpanded, setReferralsExpanded] = useState(false);
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
