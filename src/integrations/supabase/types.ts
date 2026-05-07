@@ -2897,6 +2897,13 @@ export type Database = {
       }
       expire_stale_approval_requests: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
+      get_card_referral_stats: {
+        Args: { p_card_id: string }
+        Returns: {
+          paid_out_amount: number
+          paid_out_count: number
+        }[]
+      }
       get_referral_code_for_user: {
         Args: { p_user_id: string }
         Returns: string
@@ -2904,6 +2911,13 @@ export type Database = {
       get_resource_role: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["resource_role"]
+      }
+      get_user_referral_stats: {
+        Args: { p_user_id: string }
+        Returns: {
+          paid_out_amount: number
+          paid_out_count: number
+        }[]
       }
       has_role: {
         Args: {
