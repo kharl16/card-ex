@@ -53,7 +53,7 @@ export default function Onboarding() {
 
   const iamIdMissing = isIamMember && !/^\d{8}$/.test(iamId);
   const templateMissing = !selectedTemplate;
-  const formValid = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId }).success;
+  const formValid = onboardingFormSchema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId }).success;
   const submitDisabled = submitting || iamIdMissing || templateMissing || !formValid;
 
   // Prefill & redirect-if-already-onboarded
