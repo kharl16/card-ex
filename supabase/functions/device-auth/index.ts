@@ -1,6 +1,6 @@
 // Device-binding auth: handles check / approve / deny / revoke / first-device OTP / sign-out-all.
 // All sensitive writes happen here with the service role.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { sendLovableEmail } from "npm:@lovable.dev/email-js@0.0.4";
 
 const corsHeaders = {
@@ -12,6 +12,7 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const SENDER_DOMAIN = "notify.tagex.app";
 const FROM_ADDRESS = `Card-Ex Security <noreply@tagex.app>`;
@@ -40,12 +41,25 @@ function getIpHash(req: Request) {
 
 async function getUser(req: Request) {
   const auth = req.headers.get("Authorization");
-  if (!auth) return null;
+  if (!auth?.startsWith("Bearer ")) return null;
   const token = auth.replace("Bearer ", "");
-  const sb = createClient(SUPABASE_URL, SERVICE_ROLE);
-  const { data, error } = await sb.auth.getUser(token);
-  if (error || !data.user) return null;
-  return data.user;
+
+  // Use anon-key client so getClaims() verifies via JWKS (compatible with
+  // Supabase's new asymmetric signing keys). The old getUser(token) on a
+  // service-role client returns null for asymmetric JWTs.
+  const sb = createClient(SUPABASE_URL, ANON_KEY, {
+    global: { headers: { Authorization: auth } },
+  });
+
+  try {
+    const { data, error } = await sb.auth.getClaims(token);
+    if (error || !data?.claims?.sub) return null;
+    const claims = data.claims as { sub: string; email?: string };
+    return { id: claims.sub, email: claims.email ?? null };
+  } catch (e) {
+    console.error("getClaims failed:", (e as Error).message);
+    return null;
+  }
 }
 
 Deno.serve(async (req) => {
