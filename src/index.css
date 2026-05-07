@@ -49,7 +49,7 @@ All colors MUST be HSL.
     --gold-subtle: 45 68% 66%;
     --text-primary: 240 9% 96%;
     --text-secondary: 220 7% 61%;
-    --tile-glow-duration: 4s;
+    --tile-glow-duration: 2.5s;
     
     /* Gradients */
     --gradient-gold: linear-gradient(135deg, hsl(45 72% 53%), hsl(45 68% 66%));
