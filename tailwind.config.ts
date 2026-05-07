@@ -95,6 +95,10 @@ export default {
           '0%, 100%': { opacity: '0.4' },
           '50%': { opacity: '0.8' },
         },
+        'tile-glow-pulse': {
+          '0%, 100%': { boxShadow: '0 0 16px -4px hsl(var(--primary) / 0.45), 0 0 0 1px hsl(var(--primary) / 0.25)' },
+          '50%': { boxShadow: '0 0 36px 2px hsl(var(--primary) / 0.85), 0 0 0 1px hsl(var(--primary) / 0.55)' },
+        },
         'glass-shimmer': {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
