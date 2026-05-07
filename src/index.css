@@ -49,7 +49,7 @@ All colors MUST be HSL.
     --gold-subtle: 45 68% 66%;
     --text-primary: 240 9% 96%;
     --text-secondary: 220 7% 61%;
-    --tile-glow-duration: 2.5s;
+    --tile-glow-duration: 5s;
     
     /* Gradients */
     --gradient-gold: linear-gradient(135deg, hsl(45 72% 53%), hsl(45 68% 66%));
@@ -106,6 +106,19 @@ All colors MUST be HSL.
   
   .animate-in {
     animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-tile-glow-pulse {
+    animation: tile-glow-pulse var(--tile-glow-duration) ease-in-out infinite !important;
+  }
+
+  @keyframes tile-glow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 16px -4px hsl(var(--primary) / 0.45), 0 0 0 1px hsl(var(--primary) / 0.25);
+    }
+    50% {
+      box-shadow: 0 0 36px 2px hsl(var(--primary) / 0.85), 0 0 0 1px hsl(var(--primary) / 0.55);
+    }
   }
 
   @keyframes fadeIn {
