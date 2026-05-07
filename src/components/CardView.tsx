@@ -37,6 +37,7 @@ import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import AdBanner from "@/components/AdBanner";
+import { ReferralEarningsBadge } from "@/components/referral/ReferralEarningsBadge";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { mergeCarouselSettings, type CarouselSettingsData } from "@/lib/carouselTypes";
 import type { Tables } from "@/integrations/supabase/types";
@@ -519,6 +520,9 @@ export default function CardView({
           </div>
           );
         })()}
+
+        {/* Referral Earnings Badge — public proof of successful referrals */}
+        {card?.id && <ReferralEarningsBadge cardId={card.id} variant="card" />}
 
         {/* Carousel Sections */}
         {(() => {
