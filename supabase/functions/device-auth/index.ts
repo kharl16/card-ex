@@ -1,6 +1,6 @@
 // Device-binding auth: handles check / approve / deny / revoke / first-device OTP / sign-out-all.
 // All sensitive writes happen here with the service role.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
 import { sendLovableEmail } from "npm:@lovable.dev/email-js@0.0.4";
 
 const corsHeaders = {
