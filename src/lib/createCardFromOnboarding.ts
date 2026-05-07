@@ -177,15 +177,12 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
   }
 
   if (!facebookHandled) {
-    const { error: linkErr } = await supabase.from("card_links").insert({
-      card_id: card.id,
-      kind: "facebook",
-      label: "Facebook",
-      value: facebookUrl,
-      icon: "facebook",
-      sort_index: 999,
-    } as any);
-    if (linkErr) console.warn("Facebook link insert failed:", linkErr);
+    const baseLinks = [
+      { card_id: card.id, kind: "facebook" as const, label: "Facebook", value: facebookUrl, icon: "facebook", sort_index: 0 },
+      { card_id: card.id, kind: "messenger" as const, label: "Messenger", value: messengerUrl, icon: "messenger", sort_index: 2 },
+    ];
+    const { error: linkErr } = await supabase.from("card_links").insert(baseLinks as any);
+    if (linkErr) console.warn("Default social link insert failed:", linkErr);
   }
 
   if (updateProfile) {
