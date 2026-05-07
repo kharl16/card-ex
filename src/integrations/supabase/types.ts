@@ -2897,6 +2897,12 @@ export type Database = {
       }
       expire_stale_approval_requests: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
+      get_booked_appointment_slots: {
+        Args: { p_card_id: string; p_date: string }
+        Returns: {
+          appointment_time: string
+        }[]
+      }
       get_card_referral_stats: {
         Args: { p_card_id: string }
         Returns: {
