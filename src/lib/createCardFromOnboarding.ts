@@ -120,6 +120,25 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
 
   if (cardErr) throw cardErr;
 
+  // Extract Facebook handle (the part after facebook.com/) for Messenger URL
+  const extractFbHandle = (url: string): string | null => {
+    if (!url) return null;
+    const m = url.match(/facebook\.com\/([^/?#]+)/i);
+    return m ? m[1] : null;
+  };
+  const fbHandle = extractFbHandle(facebookUrl);
+  const messengerUrl = fbHandle ? `https://m.me/${fbHandle}` : "https://m.me/";
+
+  // Desired ordering for social-style kinds: Facebook → Website → Messenger
+  const SOCIAL_ORDER: Record<string, number> = {
+    facebook: 0,
+    url: 1,
+    website: 1,
+    messenger: 2,
+  };
+  const orderForKind = (k: string) =>
+    SOCIAL_ORDER[k] !== undefined ? SOCIAL_ORDER[k] : 100;
+
   let facebookHandled = false;
   if (selectedTemplate) {
     const snapshot = selectedTemplate.layout_data as CardSnapshot;
@@ -130,29 +149,40 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
           return { ...link, value: phone };
         }
         if (k === "email") return { ...link, value: email };
-        if (k === "facebook" || k === "messenger") {
+        if (k === "facebook") {
           facebookHandled = true;
           return { ...link, value: facebookUrl };
+        }
+        if (k === "messenger") {
+          facebookHandled = true;
+          return { ...link, value: messengerUrl };
         }
         if (k === "url" || k === "custom") {
           return { ...link, value: substituteIamId(link.value) ?? link.value };
         }
         return link;
       });
+      // Reorder Facebook → Website → Messenger; preserve relative order otherwise
+      linkInserts.sort((a, b) => {
+        const ao = orderForKind((a.kind || "").toLowerCase());
+        const bo = orderForKind((b.kind || "").toLowerCase());
+        if (ao !== bo) return ao - bo;
+        return (a.sort_index ?? 0) - (b.sort_index ?? 0);
+      });
+      linkInserts.forEach((l, i) => {
+        l.sort_index = i;
+      });
       await supabase.from("card_links").insert(linkInserts);
     }
   }
 
   if (!facebookHandled) {
-    const { error: linkErr } = await supabase.from("card_links").insert({
-      card_id: card.id,
-      kind: "facebook",
-      label: "Facebook",
-      value: facebookUrl,
-      icon: "facebook",
-      sort_index: 999,
-    } as any);
-    if (linkErr) console.warn("Facebook link insert failed:", linkErr);
+    const baseLinks = [
+      { card_id: card.id, kind: "facebook" as const, label: "Facebook", value: facebookUrl, icon: "facebook", sort_index: 0 },
+      { card_id: card.id, kind: "messenger" as const, label: "Messenger", value: messengerUrl, icon: "messenger", sort_index: 2 },
+    ];
+    const { error: linkErr } = await supabase.from("card_links").insert(baseLinks as any);
+    if (linkErr) console.warn("Default social link insert failed:", linkErr);
   }
 
   if (updateProfile) {
