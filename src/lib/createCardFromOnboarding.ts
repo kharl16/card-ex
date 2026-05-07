@@ -91,7 +91,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     ];
 
     if (!snapshot.product_images || snapshot.product_images.length === 0) {
-      insertData.product_images = productImages;
+      insertData.product_images = [];
     }
   } else {
     insertData = {
