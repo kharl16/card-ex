@@ -33,14 +33,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
   const fullName = `${firstName} ${lastName}`.trim();
   const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
 
-  const productImages = [
-    {
-      id: crypto.randomUUID(),
-      url: "/cardex/placeholders/product-gold-2.svg",
-      caption: "Product 1",
-      link: isIamMember && iamId ? `https://iamworldwide.com/?ref=${iamId}` : `https://iamworldwide.com/`,
-    },
-  ];
+  const productImages: any[] = [];
 
   const iamId8 = isIamMember && iamId ? iamId : null;
   const substituteIamId = (url: string | undefined | null): string | undefined | null => {
@@ -98,7 +91,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     ];
 
     if (!snapshot.product_images || snapshot.product_images.length === 0) {
-      insertData.product_images = productImages;
+      insertData.product_images = [];
     }
   } else {
     insertData = {
