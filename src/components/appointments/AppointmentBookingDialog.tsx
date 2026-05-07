@@ -113,14 +113,12 @@ export default function AppointmentBookingDialog({
 
   const loadBookedSlots = async (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
-    const { data } = await supabase
-      .from("card_appointments")
-      .select("appointment_time")
-      .eq("card_id", cardId)
-      .eq("appointment_date", dateStr)
-      .in("status", ["pending", "confirmed"]);
+    const { data } = await supabase.rpc("get_booked_appointment_slots", {
+      p_card_id: cardId,
+      p_date: dateStr,
+    });
 
-    setBookedSlots(data?.map((a) => a.appointment_time) || []);
+    setBookedSlots((data as { appointment_time: string }[] | null)?.map((a) => a.appointment_time) || []);
   };
 
   // Generate available time slots
