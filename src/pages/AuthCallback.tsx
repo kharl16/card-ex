@@ -110,7 +110,7 @@ export default function AuthCallback() {
       // ── 4. No session — if we had a code param, verification likely succeeded
       //       but user opened link in a different browser ──
       if (code && mounted) {
-        setStatus("verified_no_session");
+        navigate(`/auth/confirm?status=verified_no_session`, { replace: true });
         return;
       }
 
