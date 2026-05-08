@@ -50,6 +50,8 @@ export default function AuthConfirm() {
   });
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
+  const [autoCancelled, setAutoCancelled] = useState(false);
 
   // Persist email to localStorage whenever it changes
   useEffect(() => {
@@ -62,17 +64,12 @@ export default function AuthConfirm() {
     }
   }, [email]);
 
-  const handleResend = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) {
-      toast.error("Please enter your email address.");
-      return;
-    }
+  const doResend = async (emailToUse: string) => {
     setResending(true);
     try {
       const { error } = await supabase.auth.resend({
         type: "signup",
-        email,
+        email: emailToUse,
         options: { emailRedirectTo: getAuthCallbackUrl() },
       });
       if (error) throw error;
@@ -84,6 +81,34 @@ export default function AuthConfirm() {
       setResending(false);
     }
   };
+
+  const handleResend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Please enter your email address.");
+      return;
+    }
+    await doResend(email);
+  };
+
+  // Auto-resend countdown when link is expired and we have an email on file
+  useEffect(() => {
+    if (status !== "expired") return;
+    if (!email) return;
+    if (autoCancelled || resent || resending) return;
+    setAutoCountdown(5);
+  }, [status, email, autoCancelled, resent, resending]);
+
+  useEffect(() => {
+    if (autoCountdown === null) return;
+    if (autoCountdown <= 0) {
+      setAutoCountdown(null);
+      doResend(email);
+      return;
+    }
+    const t = setTimeout(() => setAutoCountdown((n) => (n === null ? null : n - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [autoCountdown, email]);
 
   const Icon =
     status === "success" || status === "verified_no_session"
