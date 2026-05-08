@@ -38,11 +38,29 @@ export default function AuthConfirm() {
     ? rawStatus
     : "pending";
   const detail = searchParams.get("detail") || "";
-  const initialEmail = searchParams.get("email") || "";
+  const urlEmail = searchParams.get("email") || "";
 
-  const [email, setEmail] = useState(initialEmail);
+  const [email, setEmail] = useState(() => {
+    if (urlEmail) return urlEmail;
+    try {
+      return localStorage.getItem(EMAIL_STORAGE_KEY) || "";
+    } catch {
+      return "";
+    }
+  });
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+
+  // Persist email to localStorage whenever it changes
+  useEffect(() => {
+    if (email) {
+      try {
+        localStorage.setItem(EMAIL_STORAGE_KEY, email);
+      } catch {
+        // localStorage may be unavailable in some environments
+      }
+    }
+  }, [email]);
 
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
