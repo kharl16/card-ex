@@ -157,6 +157,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
   const [selfApproveMode, setSelfApproveMode] = useState(false);
   const [selfApproveStatus, setSelfApproveStatus] = useState<"sent" | "failed" | null>(null);
   const [requestingEmailOtp, setRequestingEmailOtp] = useState(false);
+  const [autoSentForRequest, setAutoSentForRequest] = useState<string | null>(null);
 
   const handleRequestEmailOtp = async () => {
     if (state.phase !== "pending") return;
@@ -195,6 +196,19 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
       setRequestingEmailOtp(false);
     }
   };
+
+  // Auto-send the email OTP for non-first-device flow so users land on the
+  // verify-code screen (with backup-code option) instead of a waiting screen.
+  useEffect(() => {
+    if (state.phase !== "pending") return;
+    if (state.isFirstDevice) return;
+    if (selfApproveMode) return;
+    if (autoSentForRequest === state.requestId) return;
+    if (state.sendCount >= state.maxSends) return;
+    setAutoSentForRequest(state.requestId);
+    handleRequestEmailOtp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, selfApproveMode, autoSentForRequest]);
 
   const [revealedOtp, setRevealedOtp] = useState<string | null>(null);
   const [revealing, setRevealing] = useState(false);
