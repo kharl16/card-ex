@@ -157,6 +157,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
   const [selfApproveMode, setSelfApproveMode] = useState(false);
   const [selfApproveStatus, setSelfApproveStatus] = useState<"sent" | "failed" | null>(null);
   const [requestingEmailOtp, setRequestingEmailOtp] = useState(false);
+  const [autoSentForRequest, setAutoSentForRequest] = useState<string | null>(null);
 
   const handleRequestEmailOtp = async () => {
     if (state.phase !== "pending") return;
