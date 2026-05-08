@@ -132,7 +132,7 @@ export default function AuthCallback() {
       // ── 6. Timeout fallback ──
       setTimeout(() => {
         if (mounted && status === "loading") {
-          setStatus("verified_no_session");
+          navigate(`/auth/confirm?status=verified_no_session`, { replace: true });
         }
       }, 8000);
     };
