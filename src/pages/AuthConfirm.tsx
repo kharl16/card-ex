@@ -158,6 +158,25 @@ export default function AuthConfirm() {
             </Button>
           )}
 
+          {showResend && autoCountdown !== null && (
+            <Alert>
+              <AlertTitle>Resending automatically in {autoCountdown}s</AlertTitle>
+              <AlertDescription className="flex items-center justify-between gap-2">
+                <span>We'll send a new confirmation link to {email}.</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setAutoCountdown(null);
+                    setAutoCancelled(true);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {showResend && (
             <form onSubmit={handleResend} className="space-y-3">
               <div className="space-y-2">
