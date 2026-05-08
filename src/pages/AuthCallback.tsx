@@ -41,13 +41,12 @@ export default function AuthCallback() {
       if (error) {
         console.warn("[AuthCallback] Auth error from redirect:", error, errorDesc);
         if (mounted) {
-          if (errorDesc.toLowerCase().includes("expired") || errorDesc.toLowerCase().includes("invalid")) {
-            setStatus("expired");
-            setErrorDetail(errorDesc);
-          } else {
-            setStatus("error");
-            setErrorDetail(errorDesc);
-          }
+          const isExpired =
+            errorDesc.toLowerCase().includes("expired") || errorDesc.toLowerCase().includes("invalid");
+          const next = isExpired
+            ? `/auth/confirm?status=expired`
+            : `/auth/confirm?status=error&detail=${encodeURIComponent(errorDesc)}`;
+          navigate(next, { replace: true });
         }
         return;
       }
@@ -96,8 +95,7 @@ export default function AuthCallback() {
       if (sessionError) {
         console.error("[AuthCallback] Session error:", sessionError);
         if (mounted) {
-          setStatus("error");
-          setErrorDetail(sessionError.message);
+          navigate(`/auth/confirm?status=error&detail=${encodeURIComponent(sessionError.message)}`, { replace: true });
         }
         return;
       }
@@ -112,7 +110,7 @@ export default function AuthCallback() {
       // ── 4. No session — if we had a code param, verification likely succeeded
       //       but user opened link in a different browser ──
       if (code && mounted) {
-        setStatus("verified_no_session");
+        navigate(`/auth/confirm?status=verified_no_session`, { replace: true });
         return;
       }
 
@@ -134,7 +132,7 @@ export default function AuthCallback() {
       // ── 6. Timeout fallback ──
       setTimeout(() => {
         if (mounted && status === "loading") {
-          setStatus("verified_no_session");
+          navigate(`/auth/confirm?status=verified_no_session`, { replace: true });
         }
       }, 8000);
     };
