@@ -41,13 +41,12 @@ export default function AuthCallback() {
       if (error) {
         console.warn("[AuthCallback] Auth error from redirect:", error, errorDesc);
         if (mounted) {
-          if (errorDesc.toLowerCase().includes("expired") || errorDesc.toLowerCase().includes("invalid")) {
-            setStatus("expired");
-            setErrorDetail(errorDesc);
-          } else {
-            setStatus("error");
-            setErrorDetail(errorDesc);
-          }
+          const isExpired =
+            errorDesc.toLowerCase().includes("expired") || errorDesc.toLowerCase().includes("invalid");
+          const next = isExpired
+            ? `/auth/confirm?status=expired`
+            : `/auth/confirm?status=error&detail=${encodeURIComponent(errorDesc)}`;
+          navigate(next, { replace: true });
         }
         return;
       }
