@@ -95,8 +95,7 @@ export default function AuthCallback() {
       if (sessionError) {
         console.error("[AuthCallback] Session error:", sessionError);
         if (mounted) {
-          setStatus("error");
-          setErrorDetail(sessionError.message);
+          navigate(`/auth/confirm?status=error&detail=${encodeURIComponent(sessionError.message)}`, { replace: true });
         }
         return;
       }
