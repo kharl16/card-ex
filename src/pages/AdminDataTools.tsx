@@ -337,6 +337,9 @@ export default function AdminDataTools() {
       </header>
 
       <main className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
+        {/* Bulk Cover Photo Replace */}
+        <BulkCoverReplaceTool />
+
         {/* Backfill Missing Referrals Tool */}
         <Card>
           <CardHeader>
