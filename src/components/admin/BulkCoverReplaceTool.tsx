@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ImageIcon, Search, Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,6 +18,8 @@ type MatchRow = {
 
 export default function BulkCoverReplaceTool() {
   const [company, setCompany] = useState("");
+  const [companies, setCompanies] = useState<{ name: string; count: number }[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [bannerUrl, setBannerUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [previewing, setPreviewing] = useState(false);
@@ -26,6 +29,34 @@ export default function BulkCoverReplaceTool() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const trimmedCompany = company.trim();
+
+  useEffect(() => {
+    (async () => {
+      setLoadingCompanies(true);
+      try {
+        const { data, error } = await supabase
+          .from("cards")
+          .select("company")
+          .not("company", "is", null)
+          .limit(10000);
+        if (error) throw error;
+        const counts = new Map<string, number>();
+        for (const row of (data as { company: string | null }[]) || []) {
+          const name = (row.company || "").trim();
+          if (!name) continue;
+          counts.set(name, (counts.get(name) || 0) + 1);
+        }
+        const list = Array.from(counts.entries())
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setCompanies(list);
+      } catch (e: any) {
+        toast.error(e.message || "Failed to load companies");
+      } finally {
+        setLoadingCompanies(false);
+      }
+    })();
+  }, []);
 
   async function handleUpload(file: File) {
     setUploading(true);
@@ -119,13 +150,19 @@ export default function BulkCoverReplaceTool() {
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="bulk-company">Company name (case-insensitive, exact match)</Label>
-            <Input
-              id="bulk-company"
-              placeholder="e.g. IAM Worldwide"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-            />
+            <Label htmlFor="bulk-company">Company name</Label>
+            <Select value={company} onValueChange={(v) => { setCompany(v); setMatches(null); }}>
+              <SelectTrigger id="bulk-company">
+                <SelectValue placeholder={loadingCompanies ? "Loading companies..." : "Select a company"} />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {companies.map((c) => (
+                  <SelectItem key={c.name} value={c.name}>
+                    {c.name} ({c.count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="bulk-banner-url">Banner image URL</Label>
