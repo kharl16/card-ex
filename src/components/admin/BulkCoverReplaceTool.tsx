@@ -18,6 +18,8 @@ type MatchRow = {
 
 export default function BulkCoverReplaceTool() {
   const [company, setCompany] = useState("");
+  const [companies, setCompanies] = useState<{ name: string; count: number }[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(false);
   const [bannerUrl, setBannerUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [previewing, setPreviewing] = useState(false);
@@ -27,6 +29,34 @@ export default function BulkCoverReplaceTool() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const trimmedCompany = company.trim();
+
+  useEffect(() => {
+    (async () => {
+      setLoadingCompanies(true);
+      try {
+        const { data, error } = await supabase
+          .from("cards")
+          .select("company")
+          .not("company", "is", null)
+          .limit(10000);
+        if (error) throw error;
+        const counts = new Map<string, number>();
+        for (const row of (data as { company: string | null }[]) || []) {
+          const name = (row.company || "").trim();
+          if (!name) continue;
+          counts.set(name, (counts.get(name) || 0) + 1);
+        }
+        const list = Array.from(counts.entries())
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setCompanies(list);
+      } catch (e: any) {
+        toast.error(e.message || "Failed to load companies");
+      } finally {
+        setLoadingCompanies(false);
+      }
+    })();
+  }, []);
 
   async function handleUpload(file: File) {
     setUploading(true);
