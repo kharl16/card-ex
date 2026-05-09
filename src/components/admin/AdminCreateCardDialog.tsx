@@ -133,7 +133,9 @@ export function AdminCreateCardDialog({
   }, [open, targetUserId, targetUserName]);
 
   const iamIdMissing = isIamMember && !/^\d{8}$/.test(iamId);
-  const submitDisabled = submitting || iamIdMissing;
+  const templateMissing = !selectedTemplate;
+  const formValid = schema.safeParse({ firstName, lastName, phone, email, facebookUrl, isIamMember, iamId }).success;
+  const submitDisabled = submitting || iamIdMissing || templateMissing || !formValid;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
