@@ -7,6 +7,7 @@ import { ArrowLeft, Users, Database, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import SignOutButton from "@/components/auth/SignOutButton";
+import BulkCoverReplaceTool from "@/components/admin/BulkCoverReplaceTool";
 
 const PERSONAL_PLAN_CODE = "personal";
 
