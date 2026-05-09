@@ -150,13 +150,19 @@ export default function BulkCoverReplaceTool() {
       <CardContent className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="bulk-company">Company name (case-insensitive, exact match)</Label>
-            <Input
-              id="bulk-company"
-              placeholder="e.g. IAM Worldwide"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-            />
+            <Label htmlFor="bulk-company">Company name</Label>
+            <Select value={company} onValueChange={(v) => { setCompany(v); setMatches(null); }}>
+              <SelectTrigger id="bulk-company">
+                <SelectValue placeholder={loadingCompanies ? "Loading companies..." : "Select a company"} />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {companies.map((c) => (
+                  <SelectItem key={c.name} value={c.name}>
+                    {c.name} ({c.count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="bulk-banner-url">Banner image URL</Label>
