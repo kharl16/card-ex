@@ -1,0 +1,1 @@
+UPDATE public.cards SET cover_url = 'https://tagex.app/cardex/iam-worldwide-ambassadors.jpg' WHERE company ILIKE 'IAM Worldwide';
