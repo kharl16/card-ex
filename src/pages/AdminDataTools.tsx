@@ -7,6 +7,7 @@ import { ArrowLeft, Users, Database, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import SignOutButton from "@/components/auth/SignOutButton";
+import BulkCoverReplaceTool from "@/components/admin/BulkCoverReplaceTool";
 
 const PERSONAL_PLAN_CODE = "personal";
 
@@ -336,6 +337,9 @@ export default function AdminDataTools() {
       </header>
 
       <main className="container mx-auto max-w-4xl space-y-6 px-4 py-8">
+        {/* Bulk Cover Photo Replace */}
+        <BulkCoverReplaceTool />
+
         {/* Backfill Missing Referrals Tool */}
         <Card>
           <CardHeader>
