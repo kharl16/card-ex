@@ -1,7 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
 import type { CardTemplate } from "@/hooks/useTemplates";
 import type { User } from "@supabase/supabase-js";
+
+type CardInsert = Database["public"]["Tables"]["cards"]["Insert"];
+type CardLinkInsert = Database["public"]["Tables"]["card_links"]["Insert"];
+type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
+type SocialLinkJson = Record<string, Json | undefined> & { kind?: string };
 
 const DEFAULT_THEME = {
   name: "Black&Gold",
@@ -33,7 +39,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
   const fullName = `${firstName} ${lastName}`.trim();
   const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
 
-  const productImages: any[] = [];
+  const productImages: Json[] = [];
 
   const iamId8 = isIamMember && iamId ? iamId : null;
   const substituteIamId = (url: string | undefined | null): string | undefined | null => {
@@ -42,24 +48,83 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
       .replace(/(idno=)\d{6,}/gi, `$1${iamId8}`)
       .replace(/(\?|&)(ref|referrer|referral|iamid|iam_id)=\d{6,}/gi, `$1$2=${iamId8}`);
   };
-  const substituteInItems = <T extends { link?: string | null; url?: string | null }>(items: T[] | undefined | null): T[] | undefined | null => {
-    if (!Array.isArray(items)) return items;
-    return items.map((it) => ({ ...it, link: substituteIamId((it as any).link) ?? (it as any).link })) as T[];
+  const substituteInItems = (items: unknown): Json[] | null | undefined => {
+    if (items === null) return null;
+    if (items === undefined) return undefined;
+    if (!Array.isArray(items)) return [];
+    return items.map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return item as Json;
+      const record = item as Record<string, Json | undefined>;
+      const link = typeof record.link === "string" ? record.link : null;
+      return { ...record, link: link ? substituteIamId(link) ?? link : record.link };
+    }) as Json[];
   };
-  const substituteInCarouselSettings = (cs: any): any => {
-    if (!cs || typeof cs !== "object") return cs;
-    const next = { ...cs };
+  const substituteInCarouselSettings = (cs: unknown): unknown => {
+    if (!cs || typeof cs !== "object" || Array.isArray(cs)) return cs;
+    const next = { ...(cs as Record<string, unknown>) };
     const section = next.products;
-    if (section && typeof section === "object" && section.cta) {
+    if (section && typeof section === "object" && !Array.isArray(section)) {
+      const sectionRecord = section as Record<string, unknown>;
+      const cta = sectionRecord.cta;
+      if (!cta || typeof cta !== "object" || Array.isArray(cta)) return next;
+      const ctaRecord = cta as Record<string, unknown>;
+      const href = typeof ctaRecord.href === "string" ? ctaRecord.href : null;
       next.products = {
-        ...section,
-        cta: { ...section.cta, href: substituteIamId(section.cta.href) ?? section.cta.href },
+        ...sectionRecord,
+        cta: { ...ctaRecord, href: href ? substituteIamId(href) ?? href : ctaRecord.href },
       };
     }
     return next;
   };
 
-  let insertData: Record<string, any>;
+  const extractFbHandle = (url: string): string | null => {
+    if (!url) return null;
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname.replace(/^www\.|^web\.|^m\.|^mobile\./i, "").toLowerCase();
+      if (host === "facebook.com" || host === "fb.com" || host === "fb.me") {
+        const id = parsed.searchParams.get("id");
+        if (parsed.pathname.toLowerCase().includes("profile.php") && id) return id;
+        const [handle] = parsed.pathname.split("/").filter(Boolean);
+        return handle || null;
+      }
+    } catch {
+      const match = url.match(/(?:facebook\.com|fb\.com|fb\.me)\/([^/?#]+)/i);
+      return match?.[1] || null;
+    }
+    return null;
+  };
+  const fbHandle = extractFbHandle(facebookUrl);
+  const messengerUrl = fbHandle ? `https://m.me/${fbHandle}` : "https://m.me/";
+
+  // Desired ordering for social-style kinds: Facebook → Website → Messenger
+  const SOCIAL_ORDER: Record<string, number> = {
+    facebook: 0,
+    url: 1,
+    website: 1,
+    messenger: 2,
+  };
+  const orderForKind = (k: string) =>
+    SOCIAL_ORDER[k] !== undefined ? SOCIAL_ORDER[k] : 100;
+
+  const buildOnboardingSocialLinks = (existingSocial: SocialLinkJson[] = []): Json[] => {
+    const normalizedExisting = existingSocial.filter((s) => {
+      const kind = (s?.kind || "").toLowerCase();
+      return kind !== "facebook" && kind !== "messenger";
+    });
+    const nextLinks = [
+      ...normalizedExisting,
+      { id: `link-facebook-${Date.now()}`, kind: "facebook", label: "Facebook", icon: "Facebook", url: facebookUrl, value: facebookUrl },
+      { id: `link-messenger-${Date.now()}`, kind: "messenger", label: "Messenger", icon: "Messenger", url: messengerUrl, value: messengerUrl },
+    ];
+    return nextLinks.sort((a, b) => {
+      const ao = orderForKind((a.kind || "").toLowerCase());
+      const bo = orderForKind((b.kind || "").toLowerCase());
+      return ao === bo ? 0 : ao - bo;
+    }) as Json[];
+  };
+
+  let insertData: CardInsert;
 
   if (selectedTemplate) {
     const snapshot = selectedTemplate.layout_data as CardSnapshot;
@@ -67,10 +132,10 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
       full_name: fullName,
       owner_name: fullName,
       is_published: false,
-    });
+    }) as CardInsert;
     insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
 
-    insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings);
+    insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings) as Json | null;
     insertData.product_images = substituteInItems(insertData.product_images);
 
     insertData.full_name = fullName;
@@ -83,12 +148,8 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     insertData.phone = phone;
     insertData.email = email;
 
-    const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links : [];
-    const filteredSocial = existingSocial.filter((s: any) => (s?.kind || "").toLowerCase() !== "facebook");
-    insertData.social_links = [
-      ...filteredSocial,
-      { kind: "facebook", label: "Facebook", url: facebookUrl, value: facebookUrl },
-    ];
+    const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links as SocialLinkJson[] : [];
+    insertData.social_links = buildOnboardingSocialLinks(existingSocial);
 
     if (!snapshot.product_images || snapshot.product_images.length === 0) {
       insertData.product_images = [];
@@ -109,37 +170,20 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
       is_published: false,
       is_paid: false,
       product_images: productImages,
+      social_links: buildOnboardingSocialLinks(),
     };
   }
 
   const { data: card, error: cardErr } = await supabase
     .from("cards")
-    .insert(insertData as any)
+    .insert(insertData)
     .select()
     .single();
 
   if (cardErr) throw cardErr;
 
-  // Extract Facebook handle (the part after facebook.com/) for Messenger URL
-  const extractFbHandle = (url: string): string | null => {
-    if (!url) return null;
-    const m = url.match(/facebook\.com\/([^/?#]+)/i);
-    return m ? m[1] : null;
-  };
-  const fbHandle = extractFbHandle(facebookUrl);
-  const messengerUrl = fbHandle ? `https://m.me/${fbHandle}` : "https://m.me/";
-
-  // Desired ordering for social-style kinds: Facebook → Website → Messenger
-  const SOCIAL_ORDER: Record<string, number> = {
-    facebook: 0,
-    url: 1,
-    website: 1,
-    messenger: 2,
-  };
-  const orderForKind = (k: string) =>
-    SOCIAL_ORDER[k] !== undefined ? SOCIAL_ORDER[k] : 100;
-
   let facebookHandled = false;
+  let messengerHandled = false;
   if (selectedTemplate) {
     const snapshot = selectedTemplate.layout_data as CardSnapshot;
     if (snapshot.card_links && snapshot.card_links.length > 0) {
@@ -154,7 +198,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
           return { ...link, value: facebookUrl };
         }
         if (k === "messenger") {
-          facebookHandled = true;
+          messengerHandled = true;
           return { ...link, value: messengerUrl };
         }
         if (k === "url" || k === "custom") {
@@ -176,12 +220,15 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     }
   }
 
+  const baseLinks: CardLinkInsert[] = [];
   if (!facebookHandled) {
-    const baseLinks = [
-      { card_id: card.id, kind: "facebook" as const, label: "Facebook", value: facebookUrl, icon: "facebook", sort_index: 0 },
-      { card_id: card.id, kind: "messenger" as const, label: "Messenger", value: messengerUrl, icon: "messenger", sort_index: 2 },
-    ];
-    const { error: linkErr } = await supabase.from("card_links").insert(baseLinks as any);
+    baseLinks.push({ card_id: card.id, kind: "facebook" as const, label: "Facebook", value: facebookUrl, icon: "Facebook", sort_index: 0 });
+  }
+  if (!messengerHandled) {
+    baseLinks.push({ card_id: card.id, kind: "messenger" as const, label: "Messenger", value: messengerUrl, icon: "Messenger", sort_index: 2 });
+  }
+  if (baseLinks.length > 0) {
+    const { error: linkErr } = await supabase.from("card_links").insert(baseLinks);
     if (linkErr) console.warn("Default social link insert failed:", linkErr);
   }
 
@@ -194,7 +241,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
         iam_id: isIamMember ? iamId : null,
         facebook_url: facebookUrl,
         onboarding_completed_at: new Date().toISOString(),
-      } as any)
+      } satisfies ProfileUpdate)
       .eq("id", user.id);
     if (profileErr) console.warn("Profile update failed:", profileErr);
   }
