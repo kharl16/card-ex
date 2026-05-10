@@ -48,9 +48,15 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
       .replace(/(idno=)\d{6,}/gi, `$1${iamId8}`)
       .replace(/(\?|&)(ref|referrer|referral|iamid|iam_id)=\d{6,}/gi, `$1$2=${iamId8}`);
   };
-  const substituteInItems = <T extends { link?: string | null; url?: string | null }>(items: T[] | undefined | null): T[] | undefined | null => {
+  const substituteInItems = (items: unknown): Json[] | null | undefined => {
+    if (items === null || items === undefined) return items;
     if (!Array.isArray(items)) return items;
-    return items.map((it) => ({ ...it, link: substituteIamId(it.link) ?? it.link }));
+    return items.map((item) => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return item as Json;
+      const record = item as Record<string, Json | undefined>;
+      const link = typeof record.link === "string" ? record.link : null;
+      return { ...record, link: link ? substituteIamId(link) ?? link : record.link };
+    }) as Json[];
   };
   const substituteInCarouselSettings = (cs: unknown): unknown => {
     if (!cs || typeof cs !== "object" || Array.isArray(cs)) return cs;
@@ -129,7 +135,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
 
     insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings) as Json | null;
-    insertData.product_images = substituteInItems(insertData.product_images as Json[] | undefined | null) as Json[] | null | undefined;
+    insertData.product_images = substituteInItems(insertData.product_images);
 
     insertData.full_name = fullName;
     insertData.owner_name = fullName;
@@ -213,14 +219,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     }
   }
 
-  const baseLinks: Array<{
-    card_id: string;
-    kind: "facebook" | "messenger";
-    label: string;
-    value: string;
-    icon: string;
-    sort_index: number;
-  }> = [];
+  const baseLinks: CardLinkInsert[] = [];
   if (!facebookHandled) {
     baseLinks.push({ card_id: card.id, kind: "facebook" as const, label: "Facebook", value: facebookUrl, icon: "Facebook", sort_index: 0 });
   }
@@ -228,7 +227,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     baseLinks.push({ card_id: card.id, kind: "messenger" as const, label: "Messenger", value: messengerUrl, icon: "Messenger", sort_index: 2 });
   }
   if (baseLinks.length > 0) {
-    const { error: linkErr } = await supabase.from("card_links").insert(baseLinks as any);
+    const { error: linkErr } = await supabase.from("card_links").insert(baseLinks);
     if (linkErr) console.warn("Default social link insert failed:", linkErr);
   }
 
@@ -241,7 +240,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
         iam_id: isIamMember ? iamId : null,
         facebook_url: facebookUrl,
         onboarding_completed_at: new Date().toISOString(),
-      } as any)
+      } satisfies ProfileUpdate)
       .eq("id", user.id);
     if (profileErr) console.warn("Profile update failed:", profileErr);
   }
