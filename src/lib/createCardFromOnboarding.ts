@@ -59,6 +59,53 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     return next;
   };
 
+  const extractFbHandle = (url: string): string | null => {
+    if (!url) return null;
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname.replace(/^www\.|^web\.|^m\.|^mobile\./i, "").toLowerCase();
+      if (host === "facebook.com" || host === "fb.com" || host === "fb.me") {
+        const id = parsed.searchParams.get("id");
+        if (parsed.pathname.toLowerCase().includes("profile.php") && id) return id;
+        const [handle] = parsed.pathname.split("/").filter(Boolean);
+        return handle || null;
+      }
+    } catch {
+      const match = url.match(/(?:facebook\.com|fb\.com|fb\.me)\/([^/?#]+)/i);
+      return match?.[1] || null;
+    }
+    return null;
+  };
+  const fbHandle = extractFbHandle(facebookUrl);
+  const messengerUrl = fbHandle ? `https://m.me/${fbHandle}` : "https://m.me/";
+
+  // Desired ordering for social-style kinds: Facebook → Website → Messenger
+  const SOCIAL_ORDER: Record<string, number> = {
+    facebook: 0,
+    url: 1,
+    website: 1,
+    messenger: 2,
+  };
+  const orderForKind = (k: string) =>
+    SOCIAL_ORDER[k] !== undefined ? SOCIAL_ORDER[k] : 100;
+
+  const buildOnboardingSocialLinks = (existingSocial: any[] = []) => {
+    const normalizedExisting = existingSocial.filter((s: any) => {
+      const kind = (s?.kind || "").toLowerCase();
+      return kind !== "facebook" && kind !== "messenger";
+    });
+    const nextLinks = [
+      ...normalizedExisting,
+      { id: `link-facebook-${Date.now()}`, kind: "facebook", label: "Facebook", icon: "Facebook", url: facebookUrl, value: facebookUrl },
+      { id: `link-messenger-${Date.now()}`, kind: "messenger", label: "Messenger", icon: "Messenger", url: messengerUrl, value: messengerUrl },
+    ];
+    return nextLinks.sort((a: any, b: any) => {
+      const ao = orderForKind((a.kind || "").toLowerCase());
+      const bo = orderForKind((b.kind || "").toLowerCase());
+      return ao === bo ? 0 : ao - bo;
+    });
+  };
+
   let insertData: Record<string, any>;
 
   if (selectedTemplate) {
@@ -84,11 +131,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     insertData.email = email;
 
     const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links : [];
-    const filteredSocial = existingSocial.filter((s: any) => (s?.kind || "").toLowerCase() !== "facebook");
-    insertData.social_links = [
-      ...filteredSocial,
-      { kind: "facebook", label: "Facebook", url: facebookUrl, value: facebookUrl },
-    ];
+    insertData.social_links = buildOnboardingSocialLinks(existingSocial);
 
     if (!snapshot.product_images || snapshot.product_images.length === 0) {
       insertData.product_images = [];
@@ -109,6 +152,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
       is_published: false,
       is_paid: false,
       product_images: productImages,
+      social_links: buildOnboardingSocialLinks(),
     };
   }
 
@@ -119,25 +163,6 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     .single();
 
   if (cardErr) throw cardErr;
-
-  // Extract Facebook handle (the part after facebook.com/) for Messenger URL
-  const extractFbHandle = (url: string): string | null => {
-    if (!url) return null;
-    const m = url.match(/facebook\.com\/([^/?#]+)/i);
-    return m ? m[1] : null;
-  };
-  const fbHandle = extractFbHandle(facebookUrl);
-  const messengerUrl = fbHandle ? `https://m.me/${fbHandle}` : "https://m.me/";
-
-  // Desired ordering for social-style kinds: Facebook → Website → Messenger
-  const SOCIAL_ORDER: Record<string, number> = {
-    facebook: 0,
-    url: 1,
-    website: 1,
-    messenger: 2,
-  };
-  const orderForKind = (k: string) =>
-    SOCIAL_ORDER[k] !== undefined ? SOCIAL_ORDER[k] : 100;
 
   let facebookHandled = false;
   if (selectedTemplate) {
