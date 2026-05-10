@@ -165,6 +165,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
   if (cardErr) throw cardErr;
 
   let facebookHandled = false;
+  let messengerHandled = false;
   if (selectedTemplate) {
     const snapshot = selectedTemplate.layout_data as CardSnapshot;
     if (snapshot.card_links && snapshot.card_links.length > 0) {
@@ -179,7 +180,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
           return { ...link, value: facebookUrl };
         }
         if (k === "messenger") {
-          facebookHandled = true;
+          messengerHandled = true;
           return { ...link, value: messengerUrl };
         }
         if (k === "url" || k === "custom") {
@@ -201,11 +202,14 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     }
   }
 
+  const baseLinks = [];
   if (!facebookHandled) {
-    const baseLinks = [
-      { card_id: card.id, kind: "facebook" as const, label: "Facebook", value: facebookUrl, icon: "facebook", sort_index: 0 },
-      { card_id: card.id, kind: "messenger" as const, label: "Messenger", value: messengerUrl, icon: "messenger", sort_index: 2 },
-    ];
+    baseLinks.push({ card_id: card.id, kind: "facebook" as const, label: "Facebook", value: facebookUrl, icon: "Facebook", sort_index: 0 });
+  }
+  if (!messengerHandled) {
+    baseLinks.push({ card_id: card.id, kind: "messenger" as const, label: "Messenger", value: messengerUrl, icon: "Messenger", sort_index: 2 });
+  }
+  if (baseLinks.length > 0) {
     const { error: linkErr } = await supabase.from("card_links").insert(baseLinks as any);
     if (linkErr) console.warn("Default social link insert failed:", linkErr);
   }
