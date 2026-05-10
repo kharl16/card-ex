@@ -100,8 +100,8 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
   const orderForKind = (k: string) =>
     SOCIAL_ORDER[k] !== undefined ? SOCIAL_ORDER[k] : 100;
 
-  const buildOnboardingSocialLinks = (existingSocial: any[] = []) => {
-    const normalizedExisting = existingSocial.filter((s: any) => {
+  const buildOnboardingSocialLinks = (existingSocial: SocialLinkJson[] = []): Json[] => {
+    const normalizedExisting = existingSocial.filter((s) => {
       const kind = (s?.kind || "").toLowerCase();
       return kind !== "facebook" && kind !== "messenger";
     });
@@ -110,14 +110,14 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
       { id: `link-facebook-${Date.now()}`, kind: "facebook", label: "Facebook", icon: "Facebook", url: facebookUrl, value: facebookUrl },
       { id: `link-messenger-${Date.now()}`, kind: "messenger", label: "Messenger", icon: "Messenger", url: messengerUrl, value: messengerUrl },
     ];
-    return nextLinks.sort((a: any, b: any) => {
+    return nextLinks.sort((a, b) => {
       const ao = orderForKind((a.kind || "").toLowerCase());
       const bo = orderForKind((b.kind || "").toLowerCase());
       return ao === bo ? 0 : ao - bo;
-    });
+    }) as Json[];
   };
 
-  let insertData: Record<string, any>;
+  let insertData: CardInsert;
 
   if (selectedTemplate) {
     const snapshot = selectedTemplate.layout_data as CardSnapshot;
@@ -125,11 +125,11 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
       full_name: fullName,
       owner_name: fullName,
       is_published: false,
-    });
+    }) as CardInsert;
     insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
 
-    insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings);
-    insertData.product_images = substituteInItems(insertData.product_images);
+    insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings) as Json | null;
+    insertData.product_images = substituteInItems(insertData.product_images as Json[] | undefined | null) as Json[] | null | undefined;
 
     insertData.full_name = fullName;
     insertData.owner_name = fullName;
@@ -141,7 +141,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     insertData.phone = phone;
     insertData.email = email;
 
-    const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links : [];
+    const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links as SocialLinkJson[] : [];
     insertData.social_links = buildOnboardingSocialLinks(existingSocial);
 
     if (!snapshot.product_images || snapshot.product_images.length === 0) {
@@ -169,7 +169,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
 
   const { data: card, error: cardErr } = await supabase
     .from("cards")
-    .insert(insertData as any)
+    .insert(insertData)
     .select()
     .single();
 
