@@ -202,7 +202,14 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     }
   }
 
-  const baseLinks = [];
+  const baseLinks: Array<{
+    card_id: string;
+    kind: "facebook" | "messenger";
+    label: string;
+    value: string;
+    icon: string;
+    sort_index: number;
+  }> = [];
   if (!facebookHandled) {
     baseLinks.push({ card_id: card.id, kind: "facebook" as const, label: "Facebook", value: facebookUrl, icon: "Facebook", sort_index: 0 });
   }
