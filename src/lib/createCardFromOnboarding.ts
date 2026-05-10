@@ -49,8 +49,9 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
       .replace(/(\?|&)(ref|referrer|referral|iamid|iam_id)=\d{6,}/gi, `$1$2=${iamId8}`);
   };
   const substituteInItems = (items: unknown): Json[] | null | undefined => {
-    if (items === null || items === undefined) return items;
-    if (!Array.isArray(items)) return items;
+    if (items === null) return null;
+    if (items === undefined) return undefined;
+    if (!Array.isArray(items)) return [];
     return items.map((item) => {
       if (!item || typeof item !== "object" || Array.isArray(item)) return item as Json;
       const record = item as Record<string, Json | undefined>;
