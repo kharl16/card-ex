@@ -1,53 +1,45 @@
-## Problem
+## Goal
+Upgrade the Ad Banner so it can hold up to 20 images (or a single video) and turn the on-card placeholder into a swipeable, auto-playing carousel — visible in both the live card and the editor preview. The existing placeholder shape (rounded glass `aspect-video` frame) is preserved exactly, and tapping any slide opens the existing zoomable lightbox over the full set.
 
-The "Create New Card" dialog launched from the Dashboard (`NewCardDialog`) creates a card immediately when the user clicks **Build from Scratch** or picks a template — no required fields are validated. This is inconsistent with the Onboarding wizard (`/onboarding`), which already enforces First Name, Last Name, Mobile, Email, Facebook URL, IAM membership/ID, and template selection before enabling the submit button.
+## Data shape
+The `cards.ad_banner` JSON column today holds `{ type, url, link }`. We extend the parser to also accept a multi-image shape, while staying backward compatible with the old single-object format (no DB migration).
 
-## Fix
-
-Bring the Dashboard's create-card flow to parity with Onboarding so the **Create Card** button is disabled until every required field is valid.
-
-### Changes in `src/components/templates/NewCardDialog.tsx`
-
-1. Replace the current two-card "choice" step (Build from Scratch vs Use a Template) with a single form identical to the Onboarding wizard:
-   - First Name * (prefill from `profileName`)
-   - Last Name * (prefill)
-   - Mobile Number *
-   - Email Address * (prefill from `user.email`)
-   - Facebook Link * (validated as facebook.com / fb.com / fb.me URL)
-   - IAM Worldwide Member? Yes/No, with IAM ID * (8 digits) shown when Yes
-   - Starting template * (opens `TemplateSelectionModal`; "Build from Scratch" available as a chip inside the picker)
-
-2. Reuse the same `zod` schema and disabled-button logic from `Onboarding.tsx`:
-   ```
-   const submitDisabled = submitting || iamIdMissing || templateMissing || !formValid;
-   ```
-   The "Create Card" button uses `disabled={submitDisabled}` and re-evaluates live as fields change (already proven to work after the previous Onboarding fix).
-
-3. On submit, build the card using the same logic Onboarding uses (template snapshot + IAM URL substitution + override of identity/contact fields + Facebook social link + `card_links` insertion), then navigate to `/cards/:id/edit`.
-
-4. Keep the existing card-limit error handling and `DEFAULT_THEME` merge.
-
-### Shared helper (small refactor)
-
-To avoid duplicating ~150 lines of card-build logic between `Onboarding.tsx` and `NewCardDialog.tsx`, extract the shared submit logic into `src/lib/createCardFromOnboarding.ts`:
-
-```text
-createCardFromOnboarding({
-  user, profileUpdate?: boolean,
-  firstName, lastName, phone, email, facebookUrl,
-  isIamMember, iamId, selectedTemplate
-}) -> { cardId }
+```ts
+{
+  type: "image",
+  items: [{ url, link?, alt? }, ...],   // up to 20
+  autoPlayMs?: number,                  // default 4000
+  link?: string                         // optional global click-through fallback
+}
+// or
+{ type: "video", url, link? }           // unchanged
 ```
+Legacy `{ type: "image", url, link }` is auto-normalized in memory to `{ items: [{ url, link }] }`.
 
-- `Onboarding.tsx` calls it with `profileUpdate: true` (also writes `profiles.onboarding_completed_at`).
-- `NewCardDialog.tsx` calls it with `profileUpdate: false`.
+## Display — `src/components/AdBanner.tsx`
+- **Keep the exact same outer frame**: the current `aspect-video`, `rounded-2xl`, `glass-shimmer`, gold-tinted border + glow wrapper stays as-is — it just becomes the carousel viewport.
+- If `items.length > 1`: render an Embla carousel inside the frame (`embla-carousel-react` + `embla-carousel-autoplay`, both already in the project), `object-cover`, swipe/drag enabled, autoplay at `autoPlayMs`, with subtle dot indicators along the bottom and prev/next chevrons (hover on desktop, tap zones on mobile).
+- If `items.length === 1`: render the single `<img>` exactly as today — no visible change.
+- **Click behavior (all image cases)**: clicking any slide opens `LightboxDialog` via the existing `useLightbox` hook, seeded with **all** items and starting at the tapped index. Lightbox already supports pinch/scroll zoom, swipe between images, keyboard arrows, and download. A slide that has its own `link` (or the global `link`) is wrapped in an anchor instead — link takes precedence over lightbox, matching today's behavior.
+- Video branch: unchanged.
 
-### Result
+## Editor — `src/components/editor/sections/AdBannerSection.tsx`
+- Image tab becomes a multi-image manager (max 20):
+  - Thumbnail grid with drag-to-reorder, per-item optional click-through link, and remove.
+  - "Add image" button uploads to the existing `ad-banners` storage prefix via the same upload helper used by `ImageUpload`.
+  - Small "Auto-play interval" selector (3s / 4s / 6s / Off) → `autoPlayMs`.
+- Video tab unchanged.
+- Global "Click-through link (optional)" stays as a fallback for slides without their own link.
 
-From the Dashboard, clicking "+ Create New Card" opens a dialog where:
-- Removing the email or Facebook link re-disables **Create Card** instantly.
-- Missing IAM ID (when "Yes" is selected) keeps the button disabled.
-- Not picking a template keeps the button disabled.
-- Only when every required field is valid does the button become clickable — matching the corrected Onboarding behavior.
+## Editor preview / sync
+`CardView` already passes `card.ad_banner` to `<AdBanner />`, so the editor preview, public card, and shared card all pick up the new carousel automatically with no extra wiring. `performAutosave`'s whitelist already includes `ad_banner`.
 
-No other files need changes.
+## Files to change
+- `src/components/AdBanner.tsx` — multi-image Embla carousel inside the unchanged glass frame; lightbox over full set.
+- `src/components/editor/sections/AdBannerSection.tsx` — multi-image manager + autoplay control.
+
+No DB migration. No changes to `CardView`, snapshot, or autosave whitelist.
+
+## Out of scope
+- Per-image captions/descriptions (can be added later).
+- Mixing images and a video in the same banner.
