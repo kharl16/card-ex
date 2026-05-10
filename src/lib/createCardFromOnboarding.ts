@@ -1,7 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Database, Json } from "@/integrations/supabase/types";
 import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
 import type { CardTemplate } from "@/hooks/useTemplates";
 import type { User } from "@supabase/supabase-js";
+
+type CardInsert = Database["public"]["Tables"]["cards"]["Insert"];
+type CardLinkInsert = Database["public"]["Tables"]["card_links"]["Insert"];
+type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
+type SocialLinkJson = Record<string, Json | undefined> & { kind?: string };
 
 const DEFAULT_THEME = {
   name: "Black&Gold",
@@ -33,7 +39,7 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
   const fullName = `${firstName} ${lastName}`.trim();
   const slug = `${user.id.slice(0, 8)}-${Date.now()}`;
 
-  const productImages: any[] = [];
+  const productImages: Json[] = [];
 
   const iamId8 = isIamMember && iamId ? iamId : null;
   const substituteIamId = (url: string | undefined | null): string | undefined | null => {
@@ -44,16 +50,21 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
   };
   const substituteInItems = <T extends { link?: string | null; url?: string | null }>(items: T[] | undefined | null): T[] | undefined | null => {
     if (!Array.isArray(items)) return items;
-    return items.map((it) => ({ ...it, link: substituteIamId((it as any).link) ?? (it as any).link })) as T[];
+    return items.map((it) => ({ ...it, link: substituteIamId(it.link) ?? it.link }));
   };
-  const substituteInCarouselSettings = (cs: any): any => {
-    if (!cs || typeof cs !== "object") return cs;
-    const next = { ...cs };
+  const substituteInCarouselSettings = (cs: unknown): unknown => {
+    if (!cs || typeof cs !== "object" || Array.isArray(cs)) return cs;
+    const next = { ...(cs as Record<string, unknown>) };
     const section = next.products;
-    if (section && typeof section === "object" && section.cta) {
+    if (section && typeof section === "object" && !Array.isArray(section)) {
+      const sectionRecord = section as Record<string, unknown>;
+      const cta = sectionRecord.cta;
+      if (!cta || typeof cta !== "object" || Array.isArray(cta)) return next;
+      const ctaRecord = cta as Record<string, unknown>;
+      const href = typeof ctaRecord.href === "string" ? ctaRecord.href : null;
       next.products = {
-        ...section,
-        cta: { ...section.cta, href: substituteIamId(section.cta.href) ?? section.cta.href },
+        ...sectionRecord,
+        cta: { ...ctaRecord, href: href ? substituteIamId(href) ?? href : ctaRecord.href },
       };
     }
     return next;
