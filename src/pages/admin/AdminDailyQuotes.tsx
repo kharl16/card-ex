@@ -127,6 +127,48 @@ export default function AdminDailyQuotes() {
     }
   };
 
+  const downloadTemplate = () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["text", "author", "source_url"],
+      ["The secret of getting ahead is getting started.", "Mark Twain", "https://en.wikiquote.org/wiki/Mark_Twain"],
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Quotes");
+    XLSX.writeFile(wb, "daily-quotes-template.xlsx");
+  };
+
+  const handleBulkUpload = async (file: File) => {
+    setImporting(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: "" });
+      const startSort = quotes.length ? Math.max(...quotes.map((q) => q.sort_index)) + 1 : 0;
+      const payload = rows
+        .map((r, i) => {
+          const text = String(r.text ?? r.Text ?? r.quotation ?? r.Quotation ?? r.quote ?? r.Quote ?? "").trim();
+          const author = String(r.author ?? r.Author ?? "Unknown").trim() || "Unknown";
+          const source_url = String(r.source_url ?? r["Source URL"] ?? r.source ?? "").trim() || null;
+          return text ? { text, author, source_url, sort_index: startSort + i, is_active: true } : null;
+        })
+        .filter(Boolean) as Array<{ text: string; author: string; source_url: string | null; sort_index: number; is_active: boolean }>;
+      if (payload.length === 0) {
+        toast.error("No valid rows found. Need a 'text' column.");
+        return;
+      }
+      const { error } = await supabase.from("daily_quotes").insert(payload);
+      if (error) throw error;
+      toast.success(`Imported ${payload.length} quote${payload.length === 1 ? "" : "s"}`);
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Import failed");
+    } finally {
+      setImporting(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
