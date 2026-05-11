@@ -7,6 +7,9 @@ import { X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { CardTheme } from "@/lib/theme";
 import ImageUpload from "@/components/ImageUpload";
+import { RotatingPhotoSlot } from "@/components/editor/RotatingPhotoSlot";
+import { parseImageCarousels, type ImageCarouselsData } from "@/lib/imageCarousels";
+import { useMemo } from "react";
 
 type CardData = Tables<"cards">;
 
