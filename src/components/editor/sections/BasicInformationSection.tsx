@@ -7,6 +7,9 @@ import { X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { CardTheme } from "@/lib/theme";
 import ImageUpload from "@/components/ImageUpload";
+import { RotatingPhotoSlot } from "@/components/editor/RotatingPhotoSlot";
+import { parseImageCarousels, type ImageCarouselsData } from "@/lib/imageCarousels";
+import { useMemo } from "react";
 
 type CardData = Tables<"cards">;
 
@@ -63,6 +66,11 @@ export function BasicInformationSection({
   const avatarDisplayMode = theme?.avatarDisplayMode || "contain";
   const logoDisplayMode = theme?.logoDisplayMode || "contain";
 
+  const carousels: ImageCarouselsData = useMemo(
+    () => parseImageCarousels((card as any).image_carousels),
+    [card]
+  );
+
   const handleAvatarDisplayModeChange = (mode: "contain" | "cover") => {
     if (onThemeChange && theme) {
       onThemeChange({ ...theme, avatarDisplayMode: mode });
@@ -111,36 +119,48 @@ export function BasicInformationSection({
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-x-hidden">
-      {/* Image Uploaders - Avatar, Logo, Cover */}
+      {/* Image Uploaders - Avatar, Logo, Cover (with rotating multi-photo support) */}
       <div className="space-y-3 w-full">
         <Label className="text-sm font-medium">Profile Images</Label>
+        <p className="text-xs text-muted-foreground leading-snug">
+          Each slot starts with one photo. Add more to enable a slow Ken Burns rotation.
+        </p>
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 w-full">
-          <ImageUpload
-            value={card.avatar_url}
-            onChange={(url) => onCardChange({ avatar_url: url })}
+          <RotatingPhotoSlot
+            slot="avatar"
             label="Avatar"
+            primaryUrl={card.avatar_url}
+            onPrimaryChange={(url) => onCardChange({ avatar_url: url })}
+            carousels={carousels}
+            onCarouselsChange={(next) => onCardChange({ image_carousels: next as any })}
             aspectRatio="aspect-square"
             maxSize={5}
+            imageType="avatar"
             showDisplayToggle
             displayMode={avatarDisplayMode}
             onDisplayModeChange={handleAvatarDisplayModeChange}
-            imageType="avatar"
           />
-          <ImageUpload
-            value={card.logo_url}
-            onChange={(url) => onCardChange({ logo_url: url })}
+          <RotatingPhotoSlot
+            slot="logo"
             label="Company Logo"
+            primaryUrl={card.logo_url}
+            onPrimaryChange={(url) => onCardChange({ logo_url: url })}
+            carousels={carousels}
+            onCarouselsChange={(next) => onCardChange({ image_carousels: next as any })}
             aspectRatio="aspect-square"
             maxSize={2}
+            imageType="logo"
             showDisplayToggle
             displayMode={logoDisplayMode}
             onDisplayModeChange={handleLogoDisplayModeChange}
-            imageType="logo"
           />
-          <ImageUpload
-            value={card.cover_url}
-            onChange={(url) => onCardChange({ cover_url: url })}
+          <RotatingPhotoSlot
+            slot="cover"
             label="Cover Photo"
+            primaryUrl={card.cover_url}
+            onPrimaryChange={(url) => onCardChange({ cover_url: url })}
+            carousels={carousels}
+            onCarouselsChange={(next) => onCardChange({ image_carousels: next as any })}
             aspectRatio="aspect-video"
             maxSize={5}
             imageType="cover"
