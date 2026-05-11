@@ -152,9 +152,6 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links as SocialLinkJson[] : [];
     insertData.social_links = buildOnboardingSocialLinks(existingSocial);
 
-    if (!snapshot.product_images || snapshot.product_images.length === 0) {
-      insertData.product_images = [];
-    }
   } else {
     insertData = {
       user_id: user.id,
