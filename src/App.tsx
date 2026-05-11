@@ -39,6 +39,7 @@ import AdminGlobalProducts from "./pages/admin/AdminGlobalProducts";
 import AdminGlobalPackages from "./pages/admin/AdminGlobalPackages";
 import AdminOtpAudit from "./pages/admin/AdminOtpAudit";
 import AdminDeviceApprovals from "./pages/admin/AdminDeviceApprovals";
+import AdminDailyQuotes from "./pages/admin/AdminDailyQuotes";
 import SuperAdminConsole from "./pages/superadmin/SuperAdminConsole";
 import UserRolesPage from "./pages/superadmin/UserRolesPage";
 import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
