@@ -874,6 +874,39 @@ export type Database = {
           },
         ]
       }
+      daily_quotes: {
+        Row: {
+          author: string
+          created_at: string
+          id: string
+          is_active: boolean
+          sort_index: number
+          source_url: string | null
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          source_url?: string | null
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          source_url?: string | null
+          text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       device_approval_requests: {
         Row: {
           approval_token: string | null
