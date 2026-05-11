@@ -683,6 +683,7 @@ export type Database = {
           first_name: string | null
           full_name: string
           id: string
+          image_carousels: Json | null
           is_paid: boolean
           is_published: boolean | null
           is_template: boolean
@@ -742,6 +743,7 @@ export type Database = {
           first_name?: string | null
           full_name: string
           id?: string
+          image_carousels?: Json | null
           is_paid?: boolean
           is_published?: boolean | null
           is_template?: boolean
@@ -801,6 +803,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string
           id?: string
+          image_carousels?: Json | null
           is_paid?: boolean
           is_published?: boolean | null
           is_template?: boolean
