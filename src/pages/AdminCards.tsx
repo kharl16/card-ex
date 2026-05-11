@@ -69,7 +69,7 @@ import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
 import { useAdminOverridePayment } from "@/hooks/usePayments";
 import { useCardPlans } from "@/hooks/useCardPlans";
-import { LayoutTemplate } from "lucide-react";
+import { LayoutTemplate, Quote } from "lucide-react";
 import { useTemplates, CardTemplate } from "@/hooks/useTemplates";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
