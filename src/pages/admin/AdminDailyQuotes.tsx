@@ -191,6 +191,67 @@ export default function AdminDailyQuotes() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8 max-w-4xl">
+        {/* Today's Preview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center justify-between">
+              <span>Today's preview</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                {now.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })} · {activeQuotes.length} active
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!todaysQuotes ? (
+              <p className="text-sm text-muted-foreground">No active quotes to preview.</p>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-3">
+                {([
+                  { slot: "Morning", icon: Sun, q: todaysQuotes.morning, hint: "12am – 12pm" },
+                  { slot: "Afternoon", icon: Sunset, q: todaysQuotes.afternoon, hint: "12pm – 6pm" },
+                  { slot: "Evening", icon: Moon, q: todaysQuotes.evening, hint: "6pm – 12am" },
+                ] as const).map(({ slot, icon: Icon, q, hint }) => (
+                  <div key={slot} className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                      <Icon className="h-4 w-4" />
+                      {slot} <span className="text-muted-foreground font-normal">· {hint}</span>
+                    </div>
+                    <p className="text-sm italic leading-snug">"{q.text}"</p>
+                    <p className="text-xs text-muted-foreground">— {q.author}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Bulk upload */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Bulk upload (Excel / CSV)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Upload an .xlsx or .csv file with columns: <code className="text-xs">text</code>, <code className="text-xs">author</code>, and optional <code className="text-xs">source_url</code>. Tip: for full-year coverage with 3 unique quotes/day, include 1095 rows.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={downloadTemplate} className="gap-2">
+                <Download className="h-4 w-4" /> Download template
+              </Button>
+              <Button onClick={() => fileRef.current?.click()} disabled={importing} className="gap-2">
+                <Upload className="h-4 w-4" /> {importing ? "Importing…" : "Upload file"}
+              </Button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && handleBulkUpload(e.target.files[0])}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Add a new quote</CardTitle>
