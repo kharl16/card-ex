@@ -136,7 +136,8 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
 
     insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings) as Json | null;
-    insertData.product_images = substituteInItems(insertData.product_images);
+    // Always start with an empty Products carousel — never inherit template placeholder images.
+    insertData.product_images = [];
 
     insertData.full_name = fullName;
     insertData.owner_name = fullName;
@@ -151,9 +152,6 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     const existingSocial = Array.isArray(insertData.social_links) ? insertData.social_links as SocialLinkJson[] : [];
     insertData.social_links = buildOnboardingSocialLinks(existingSocial);
 
-    if (!snapshot.product_images || snapshot.product_images.length === 0) {
-      insertData.product_images = [];
-    }
   } else {
     insertData = {
       user_id: user.id,
