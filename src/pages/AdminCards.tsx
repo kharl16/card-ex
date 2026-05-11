@@ -69,7 +69,7 @@ import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
 import { useAdminOverridePayment } from "@/hooks/usePayments";
 import { useCardPlans } from "@/hooks/useCardPlans";
-import { LayoutTemplate } from "lucide-react";
+import { LayoutTemplate, Quote } from "lucide-react";
 import { useTemplates, CardTemplate } from "@/hooks/useTemplates";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
@@ -843,6 +843,10 @@ export default function AdminCards() {
           <Button onClick={() => navigate("/admin/device-approvals")} variant="outline" className="gap-2">
             <ShieldCheck className="h-4 w-4" />
             Device Approvals
+          </Button>
+          <Button onClick={() => navigate("/admin/daily-quotes")} variant="outline" className="gap-2">
+            <Quote className="h-4 w-4" />
+            Daily Quotes
           </Button>
           {/* Note: "Create Card for User" now available via the "+ Card" button on individual users in the All Users tab */}
         </div>
