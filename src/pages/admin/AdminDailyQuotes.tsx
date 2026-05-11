@@ -28,6 +28,21 @@ export default function AdminDailyQuotes() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState({ text: "", author: "", source_url: "" });
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Mirror MotivationalQuote's deterministic slot logic
+  const now = new Date();
+  const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);
+  const activeQuotes = useMemo(() => quotes.filter((q) => q.is_active), [quotes]);
+  const todaysQuotes = useMemo(() => {
+    if (activeQuotes.length === 0) return null;
+    return {
+      morning: activeQuotes[(dayOfYear * 3 + 0) % activeQuotes.length],
+      afternoon: activeQuotes[(dayOfYear * 3 + 1) % activeQuotes.length],
+      evening: activeQuotes[(dayOfYear * 3 + 2) % activeQuotes.length],
+    };
+  }, [activeQuotes, dayOfYear]);
 
   const load = async () => {
     setLoading(true);
