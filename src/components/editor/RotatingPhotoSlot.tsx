@@ -213,52 +213,51 @@ function ExtraThumb({
   onDown: () => void;
 }) {
   return (
-    <div className="relative group rounded-md overflow-hidden border border-border/60 bg-background aspect-square">
+    <div className="relative group rounded-lg overflow-hidden border border-border/60 bg-background aspect-square">
       <img
         src={item.url}
         alt={`Photo ${idx + 2}`}
         className="h-full w-full object-cover"
         draggable={false}
       />
-      <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] text-white">
+      {/* Photo number badge */}
+      <span className="absolute top-1.5 left-1.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-medium text-white">
         #{idx + 2}
       </span>
-      {/* Always-visible remove button (top-right) */}
-      <Button
+
+      {/* Remove button — large senior-friendly touch target */}
+      <button
         type="button"
-        variant="destructive"
-        size="icon"
-        className="absolute top-1 right-1 h-6 w-6 shadow-md"
+        className="absolute top-1 right-1 flex h-11 w-11 items-center justify-center rounded-lg bg-destructive/90 text-white shadow-lg hover:bg-destructive active:scale-95 transition-all"
         onClick={onRemove}
         title="Remove photo"
         aria-label="Remove photo"
       >
-        <X className="h-3 w-3" />
-      </Button>
-      {/* Reorder controls (bottom) */}
-      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/60 px-1 py-0.5">
-        <Button
+        <X className="h-5 w-5" />
+      </button>
+
+      {/* Reorder controls — senior-friendly touch targets */}
+      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/70 px-1 py-1">
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-white hover:text-white hover:bg-white/10"
+          className="flex h-11 w-11 items-center justify-center rounded-md text-white hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
           disabled={isFirst}
           onClick={onUp}
           title="Move earlier"
+          aria-label="Move earlier"
         >
-          <ArrowUp className="h-3 w-3" />
-        </Button>
-        <Button
+          <ArrowUp className="h-5 w-5" />
+        </button>
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-white hover:text-white hover:bg-white/10"
+          className="flex h-11 w-11 items-center justify-center rounded-md text-white hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
           disabled={isLast}
           onClick={onDown}
           title="Move later"
+          aria-label="Move later"
         >
-          <ArrowDown className="h-3 w-3" />
-        </Button>
+          <ArrowDown className="h-5 w-5" />
+        </button>
       </div>
     </div>
   );
