@@ -76,16 +76,16 @@ export function resolveSlot(
   fallbackUrl?: string | null
 ): { items: ImageCarouselItem[]; autoPlayMs: number } {
   const set = carousels[slot];
-  if (set && set.items.length > 0) {
-    return {
-      items: set.items,
-      autoPlayMs: set.autoPlayMs ?? DEFAULT_AUTOPLAY,
-    };
+  const extras = set?.items ?? [];
+  const combined: ImageCarouselItem[] = [];
+  if (fallbackUrl) combined.push({ url: fallbackUrl });
+  for (const it of extras) {
+    if (!combined.some((c) => c.url === it.url)) combined.push(it);
   }
-  if (fallbackUrl) {
-    return { items: [{ url: fallbackUrl }], autoPlayMs: DEFAULT_AUTOPLAY };
-  }
-  return { items: [], autoPlayMs: DEFAULT_AUTOPLAY };
+  return {
+    items: combined,
+    autoPlayMs: set?.autoPlayMs ?? DEFAULT_AUTOPLAY,
+  };
 }
 
 export const IMAGE_CAROUSEL_MAX_ITEMS = MAX_ITEMS;
