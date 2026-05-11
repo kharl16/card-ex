@@ -64,6 +64,13 @@ function SuperAdminConsoleContent() {
       color: "bg-red-500/10 text-red-500",
     },
     {
+      title: "Daily Quotes",
+      description: "Add, edit, reorder, and toggle motivational quotes shown on the dashboard",
+      icon: <Quote className="h-8 w-8" />,
+      href: "/admin/daily-quotes",
+      color: "bg-pink-500/10 text-pink-500",
+    },
+    {
       title: "Activity Logs",
       description: "View audit logs and system activity",
       icon: <Activity className="h-8 w-8" />,
