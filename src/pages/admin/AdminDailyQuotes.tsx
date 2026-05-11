@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown, ExternalLink, Quote } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ChevronUp, ChevronDown, ExternalLink, Quote, Upload, Sun, Sunset, Moon, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,21 @@ export default function AdminDailyQuotes() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [draft, setDraft] = useState({ text: "", author: "", source_url: "" });
+  const [importing, setImporting] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Mirror MotivationalQuote's deterministic slot logic
+  const now = new Date();
+  const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);
+  const activeQuotes = useMemo(() => quotes.filter((q) => q.is_active), [quotes]);
+  const todaysQuotes = useMemo(() => {
+    if (activeQuotes.length === 0) return null;
+    return {
+      morning: activeQuotes[(dayOfYear * 3 + 0) % activeQuotes.length],
+      afternoon: activeQuotes[(dayOfYear * 3 + 1) % activeQuotes.length],
+      evening: activeQuotes[(dayOfYear * 3 + 2) % activeQuotes.length],
+    };
+  }, [activeQuotes, dayOfYear]);
 
   const load = async () => {
     setLoading(true);
@@ -111,6 +127,48 @@ export default function AdminDailyQuotes() {
     }
   };
 
+  const downloadTemplate = () => {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ["text", "author", "source_url"],
+      ["The secret of getting ahead is getting started.", "Mark Twain", "https://en.wikiquote.org/wiki/Mark_Twain"],
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Quotes");
+    XLSX.writeFile(wb, "daily-quotes-template.xlsx");
+  };
+
+  const handleBulkUpload = async (file: File) => {
+    setImporting(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws, { defval: "" });
+      const startSort = quotes.length ? Math.max(...quotes.map((q) => q.sort_index)) + 1 : 0;
+      const payload = rows
+        .map((r, i) => {
+          const text = String(r.text ?? r.Text ?? r.quotation ?? r.Quotation ?? r.quote ?? r.Quote ?? "").trim();
+          const author = String(r.author ?? r.Author ?? "Unknown").trim() || "Unknown";
+          const source_url = String(r.source_url ?? r["Source URL"] ?? r.source ?? "").trim() || null;
+          return text ? { text, author, source_url, sort_index: startSort + i, is_active: true } : null;
+        })
+        .filter(Boolean) as Array<{ text: string; author: string; source_url: string | null; sort_index: number; is_active: boolean }>;
+      if (payload.length === 0) {
+        toast.error("No valid rows found. Need a 'text' column.");
+        return;
+      }
+      const { error } = await supabase.from("daily_quotes").insert(payload);
+      if (error) throw error;
+      toast.success(`Imported ${payload.length} quote${payload.length === 1 ? "" : "s"}`);
+      load();
+    } catch (e: any) {
+      toast.error(e.message ?? "Import failed");
+    } finally {
+      setImporting(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
@@ -133,6 +191,67 @@ export default function AdminDailyQuotes() {
       </header>
 
       <main className="container mx-auto px-4 py-8 space-y-8 max-w-4xl">
+        {/* Today's Preview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center justify-between">
+              <span>Today's preview</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                {now.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })} · {activeQuotes.length} active
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {!todaysQuotes ? (
+              <p className="text-sm text-muted-foreground">No active quotes to preview.</p>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-3">
+                {([
+                  { slot: "Morning", icon: Sun, q: todaysQuotes.morning, hint: "12am – 12pm" },
+                  { slot: "Afternoon", icon: Sunset, q: todaysQuotes.afternoon, hint: "12pm – 6pm" },
+                  { slot: "Evening", icon: Moon, q: todaysQuotes.evening, hint: "6pm – 12am" },
+                ] as const).map(({ slot, icon: Icon, q, hint }) => (
+                  <div key={slot} className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                      <Icon className="h-4 w-4" />
+                      {slot} <span className="text-muted-foreground font-normal">· {hint}</span>
+                    </div>
+                    <p className="text-sm italic leading-snug">"{q.text}"</p>
+                    <p className="text-xs text-muted-foreground">— {q.author}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Bulk upload */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Bulk upload (Excel / CSV)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Upload an .xlsx or .csv file with columns: <code className="text-xs">text</code>, <code className="text-xs">author</code>, and optional <code className="text-xs">source_url</code>. Tip: for full-year coverage with 3 unique quotes/day, include 1095 rows.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" onClick={downloadTemplate} className="gap-2">
+                <Download className="h-4 w-4" /> Download template
+              </Button>
+              <Button onClick={() => fileRef.current?.click()} disabled={importing} className="gap-2">
+                <Upload className="h-4 w-4" /> {importing ? "Importing…" : "Upload file"}
+              </Button>
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="hidden"
+                onChange={(e) => e.target.files?.[0] && handleBulkUpload(e.target.files[0])}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Add a new quote</CardTitle>
