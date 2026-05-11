@@ -221,6 +221,16 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/admin/daily-quotes"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminDailyQuotes />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
           path="/admin/otp-audit"
           element={
             <PageTransition>
