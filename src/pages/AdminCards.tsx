@@ -844,6 +844,10 @@ export default function AdminCards() {
             <ShieldCheck className="h-4 w-4" />
             Device Approvals
           </Button>
+          <Button onClick={() => navigate("/admin/daily-quotes")} variant="outline" className="gap-2">
+            <Quote className="h-4 w-4" />
+            Daily Quotes
+          </Button>
           {/* Note: "Create Card for User" now available via the "+ Card" button on individual users in the All Users tab */}
         </div>
 
