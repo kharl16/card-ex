@@ -355,6 +355,7 @@ export default function CardView({
         coverUrl={card.cover_url}
         avatarUrl={card.avatar_url}
         companyLogoUrl={card.logo_url}
+        imageCarousels={(card as any).image_carousels}
         name={getLiveNameFromCard(card)}
         title={card.title || undefined}
         primaryColor={basePrimary}
