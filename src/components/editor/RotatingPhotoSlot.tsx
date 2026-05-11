@@ -223,7 +223,20 @@ function ExtraThumb({
       <span className="absolute top-1 left-1 rounded bg-black/60 px-1 text-[10px] text-white">
         #{idx + 2}
       </span>
-      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/60 px-1 py-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Always-visible remove button (top-right) */}
+      <Button
+        type="button"
+        variant="destructive"
+        size="icon"
+        className="absolute top-1 right-1 h-6 w-6 shadow-md"
+        onClick={onRemove}
+        title="Remove photo"
+        aria-label="Remove photo"
+      >
+        <X className="h-3 w-3" />
+      </Button>
+      {/* Reorder controls (bottom) */}
+      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/60 px-1 py-0.5">
         <Button
           type="button"
           variant="ghost"
@@ -245,16 +258,6 @@ function ExtraThumb({
           title="Move later"
         >
           <ArrowDown className="h-3 w-3" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-destructive hover:text-destructive hover:bg-white/10"
-          onClick={onRemove}
-          title="Remove"
-        >
-          <X className="h-3 w-3" />
         </Button>
       </div>
     </div>
