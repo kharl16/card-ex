@@ -297,6 +297,7 @@ export default function CardEditor() {
         video_items: (card as any).video_items,
         disc_result: (card as any).disc_result,
         ad_banner: (card as any).ad_banner,
+        image_carousels: (card as any).image_carousels,
       })
       .eq("id", card.id);
 
