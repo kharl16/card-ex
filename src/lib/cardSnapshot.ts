@@ -50,6 +50,7 @@ export interface CardSnapshot {
   cover_url: string | null;
   logo_url: string | null;
   avatar_url: string | null;
+  image_carousels: Record<string, any> | null;
   
   // Identity fields
   full_name: string | null;
