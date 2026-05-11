@@ -148,7 +148,7 @@ export function RotatingPhotoSlot({
 
         {/* Thumbnails of extra items */}
         {set.items.length > 0 && (
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {set.items.map((item, idx) => (
               <ExtraThumb
                 key={`${item.url}-${idx}`}
