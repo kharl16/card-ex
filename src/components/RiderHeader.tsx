@@ -1,9 +1,17 @@
 import React from "react";
+import KenBurnsRotator from "@/components/KenBurnsRotator";
+import {
+  parseImageCarousels,
+  resolveSlot,
+  type ImageCarouselsData,
+} from "@/lib/imageCarousels";
 
 interface RiderHeaderProps {
   coverUrl?: string | null;
   avatarUrl?: string | null;
   companyLogoUrl?: string | null;
+  /** Optional JSONB blob from cards.image_carousels with rotating photo sets per slot. */
+  imageCarousels?: unknown;
   name?: string;
   title?: string;
   primaryColor?: string;
@@ -37,6 +45,7 @@ export default function RiderHeader({
   coverUrl,
   avatarUrl,
   companyLogoUrl,
+  imageCarousels,
   name,
   title,
   primaryColor = "#D4AF37",
@@ -47,28 +56,39 @@ export default function RiderHeader({
   const lighterPrimary = adjustHexColor(basePrimary, 50);
   const darkerPrimary = adjustHexColor(basePrimary, -40);
 
+  const carousels: ImageCarouselsData = React.useMemo(
+    () => parseImageCarousels(imageCarousels),
+    [imageCarousels]
+  );
+  const cover = resolveSlot(carousels, "cover", coverUrl);
+  const avatar = resolveSlot(carousels, "avatar", avatarUrl);
+  const logo = resolveSlot(carousels, "logo", companyLogoUrl);
+
   return (
     <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-x-clip overflow-y-visible z-30">
-      {/* Cover image */}
+      {/* Cover image (rotating Ken Burns when multiple) */}
       <div
         className="relative h-48 sm:h-56 w-full overflow-hidden"
         style={{
           backgroundImage:
-            !coverUrl && primaryColor
+            cover.items.length === 0 && primaryColor
               ? `linear-gradient(to bottom right, ${primaryColor}33, ${primaryColor}0D)`
               : undefined,
-          backgroundColor: !coverUrl && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
+          backgroundColor:
+            cover.items.length === 0 && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
-        {coverUrl && (
-          <img
-            src={coverUrl}
-            alt="Cover"
-            className="h-full w-full object-cover object-center"
+        {cover.items.length > 0 && (
+          <KenBurnsRotator
+            items={cover.items}
+            autoPlayMs={cover.autoPlayMs}
+            objectFit="cover"
+            className="absolute inset-0 h-full w-full"
+            altFallback="Cover"
           />
         )}
 
-        {/* Luxury gradient overlay – deeper, more dramatic */}
+        {/* Luxury gradient overlay */}
         <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
       </div>
 
@@ -85,9 +105,7 @@ export default function RiderHeader({
       {/* Avatar & Logo row */}
       <div className="absolute left-0 right-0 top-48 sm:top-56 -translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
         {/* Avatar with animated rotating ring */}
-        <div
-          className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-luxury transition-all duration-500 hover:scale-105 group/avatar pointer-events-auto"
-        >
+        <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-luxury transition-all duration-500 hover:scale-105 group/avatar pointer-events-auto">
           {/* Rotating conic-gradient ring */}
           <div
             className="absolute inset-0 rounded-full animate-ring-rotate"
@@ -108,13 +126,13 @@ export default function RiderHeader({
           {/* Inner black circle + avatar */}
           <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
             <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
-              {avatarUrl && (
-                <img
-                  src={avatarUrl}
-                  alt={name || "Profile"}
-                  className={`h-full w-full ${
-                    avatarDisplayMode === "contain" ? "object-contain" : "object-cover"
-                  }`}
+              {avatar.items.length > 0 && (
+                <KenBurnsRotator
+                  items={avatar.items}
+                  autoPlayMs={avatar.autoPlayMs}
+                  objectFit={avatarDisplayMode === "contain" ? "contain" : "cover"}
+                  className="h-full w-full"
+                  altFallback={name || "Profile"}
                 />
               )}
             </div>
@@ -122,7 +140,7 @@ export default function RiderHeader({
         </div>
 
         {/* Company logo – glassmorphic square */}
-        {companyLogoUrl && (
+        {logo.items.length > 0 && (
           <div
             className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden shadow-luxury flex items-center justify-center p-2 hover:scale-105 transition-all duration-500 pointer-events-auto glass-shimmer"
             style={{
@@ -134,12 +152,12 @@ export default function RiderHeader({
               boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
             }}
           >
-            <img
-              src={companyLogoUrl}
-              alt="Company logo"
-              className={`h-full w-full ${
-                logoDisplayMode === "contain" ? "object-contain" : "object-cover"
-              }`}
+            <KenBurnsRotator
+              items={logo.items}
+              autoPlayMs={logo.autoPlayMs}
+              objectFit={logoDisplayMode === "contain" ? "contain" : "cover"}
+              className="h-full w-full"
+              altFallback="Company logo"
             />
           </div>
         )}
@@ -148,7 +166,7 @@ export default function RiderHeader({
       {/* Spacer */}
       <div className="h-20 sm:h-24" />
 
-      {/* Name/title – glassmorphic overlay */}
+      {/* Name/title */}
       {(name || title) && (
         <div className="pl-8 sm:pl-10 pr-6 pt-2 pb-2">
           <div className="flex flex-col space-y-0.5 leading-relaxed">
@@ -166,7 +184,10 @@ export default function RiderHeader({
               </h1>
             )}
             {title && (
-              <p className="text-sm sm:text-base text-muted-foreground font-light tracking-wide uppercase" style={{ letterSpacing: "0.08em" }}>
+              <p
+                className="text-sm sm:text-base text-muted-foreground font-light tracking-wide uppercase"
+                style={{ letterSpacing: "0.08em" }}
+              >
                 {title}
               </p>
             )}
