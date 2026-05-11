@@ -136,7 +136,8 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
 
     insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings) as Json | null;
-    insertData.product_images = substituteInItems(insertData.product_images);
+    // Always start with an empty Products carousel — never inherit template placeholder images.
+    insertData.product_images = [];
 
     insertData.full_name = fullName;
     insertData.owner_name = fullName;
