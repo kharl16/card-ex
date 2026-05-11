@@ -66,6 +66,11 @@ export function BasicInformationSection({
   const avatarDisplayMode = theme?.avatarDisplayMode || "contain";
   const logoDisplayMode = theme?.logoDisplayMode || "contain";
 
+  const carousels: ImageCarouselsData = useMemo(
+    () => parseImageCarousels((card as any).image_carousels),
+    [card]
+  );
+
   const handleAvatarDisplayModeChange = (mode: "contain" | "cover") => {
     if (onThemeChange && theme) {
       onThemeChange({ ...theme, avatarDisplayMode: mode });
