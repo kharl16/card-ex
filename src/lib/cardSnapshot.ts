@@ -174,6 +174,7 @@ export function buildCardSnapshot(
     cover_url: card.cover_url || null,
     logo_url: card.logo_url || null,
     avatar_url: card.avatar_url || null,
+    image_carousels: card.image_carousels || null,
     
     // Identity
     full_name: card.full_name || null,
