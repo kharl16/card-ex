@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import CardShareDialog from "@/components/CardShareDialog";
+import CardDailyQuote from "@/components/CardDailyQuote";
 import DraggableShareFab from "@/components/DraggableShareFab";
 import {
   Mail,
