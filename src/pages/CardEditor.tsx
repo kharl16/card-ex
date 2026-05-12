@@ -298,6 +298,7 @@ export default function CardEditor() {
         disc_result: (card as any).disc_result,
         ad_banner: (card as any).ad_banner,
         image_carousels: (card as any).image_carousels,
+        show_daily_quote: (card as any).show_daily_quote,
       })
       .eq("id", card.id);
 

@@ -711,6 +711,7 @@ export type Database = {
           referred_by_name: string | null
           referred_by_user_id: string | null
           share_url: string | null
+          show_daily_quote: boolean
           slug: string
           social_links: Json | null
           suffix: string | null
@@ -771,6 +772,7 @@ export type Database = {
           referred_by_name?: string | null
           referred_by_user_id?: string | null
           share_url?: string | null
+          show_daily_quote?: boolean
           slug: string
           social_links?: Json | null
           suffix?: string | null
@@ -831,6 +833,7 @@ export type Database = {
           referred_by_name?: string | null
           referred_by_user_id?: string | null
           share_url?: string | null
+          show_daily_quote?: boolean
           slug?: string
           social_links?: Json | null
           suffix?: string | null
@@ -2780,6 +2783,7 @@ export type Database = {
           published_at: string | null
           qr_code_url: string | null
           share_url: string | null
+          show_daily_quote: boolean | null
           slug: string | null
           social_links: Json | null
           suffix: string | null
@@ -2824,6 +2828,7 @@ export type Database = {
           published_at?: string | null
           qr_code_url?: string | null
           share_url?: string | null
+          show_daily_quote?: boolean | null
           slug?: string | null
           social_links?: Json | null
           suffix?: string | null
@@ -2868,6 +2873,7 @@ export type Database = {
           published_at?: string | null
           qr_code_url?: string | null
           share_url?: string | null
+          show_daily_quote?: boolean | null
           slug?: string | null
           social_links?: Json | null
           suffix?: string | null

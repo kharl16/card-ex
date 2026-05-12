@@ -51,6 +51,7 @@ export interface CardSnapshot {
   logo_url: string | null;
   avatar_url: string | null;
   image_carousels: Record<string, any> | null;
+  show_daily_quote: boolean;
   
   // Identity fields
   full_name: string | null;
@@ -175,6 +176,7 @@ export function buildCardSnapshot(
     logo_url: card.logo_url || null,
     avatar_url: card.avatar_url || null,
     image_carousels: card.image_carousels || null,
+    show_daily_quote: (card as any).show_daily_quote ?? false,
     
     // Identity
     full_name: card.full_name || null,
@@ -250,6 +252,7 @@ export function buildCardInsertFromSnapshot(
     logo_url: snapshot.logo_url,
     avatar_url: snapshot.avatar_url,
     image_carousels: snapshot.image_carousels,
+    show_daily_quote: snapshot.show_daily_quote ?? false,
     
     // Identity - use override or snapshot
     full_name: overrides?.full_name || snapshot.full_name || "New Card",

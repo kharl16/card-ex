@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import CardShareDialog from "@/components/CardShareDialog";
+import CardDailyQuote from "@/components/CardDailyQuote";
 import DraggableShareFab from "@/components/DraggableShareFab";
 import {
   Mail,
@@ -365,6 +366,10 @@ export default function CardView({
 
       {/* Everything below the header – normal stacking, avatar/logo stay above because of z-index in RiderHeader */}
       <div className="relative z-0">
+        {/* Daily inspirational quote (owner opt-in) */}
+        {(card as any).show_daily_quote && (
+          <CardDailyQuote accentColor={basePrimary} />
+        )}
         {/* Company + Bio with equal square Ad Banner column */}
         {(card.company || card.bio || (card as any).ad_banner) && (() => {
           const hasBanner = !!(card as any).ad_banner;

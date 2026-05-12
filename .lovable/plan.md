@@ -1,45 +1,52 @@
-## Goal
-Upgrade the Ad Banner so it can hold up to 20 images (or a single video) and turn the on-card placeholder into a swipeable, auto-playing carousel — visible in both the live card and the editor preview. The existing placeholder shape (rounded glass `aspect-video` frame) is preserved exactly, and tapping any slide opens the existing zoomable lightbox over the full set.
+# Plan: Daily Quote on Public Cards
 
-## Data shape
-The `cards.ad_banner` JSON column today holds `{ type, url, link }`. We extend the parser to also accept a multi-image shape, while staying backward compatible with the old single-object format (no DB migration).
+Add a rotating daily quotation to published cards, positioned just below the header (cover/profile area) and above the bio. Card owners control visibility per card via a toggle in the editor.
 
-```ts
-{
-  type: "image",
-  items: [{ url, link?, alt? }, ...],   // up to 20
-  autoPlayMs?: number,                  // default 4000
-  link?: string                         // optional global click-through fallback
-}
-// or
-{ type: "video", url, link? }           // unchanged
-```
-Legacy `{ type: "image", url, link }` is auto-normalized in memory to `{ items: [{ url, link }] }`.
+## Scope
+- Public cards (`PublicCard.tsx`) and shared card view (`SharedCard.tsx`)
+- New owner-controlled toggle in the Card Editor
+- Reuses existing `daily_quotes` table and rotation logic from `MotivationalQuote`
 
-## Display — `src/components/AdBanner.tsx`
-- **Keep the exact same outer frame**: the current `aspect-video`, `rounded-2xl`, `glass-shimmer`, gold-tinted border + glow wrapper stays as-is — it just becomes the carousel viewport.
-- If `items.length > 1`: render an Embla carousel inside the frame (`embla-carousel-react` + `embla-carousel-autoplay`, both already in the project), `object-cover`, swipe/drag enabled, autoplay at `autoPlayMs`, with subtle dot indicators along the bottom and prev/next chevrons (hover on desktop, tap zones on mobile).
-- If `items.length === 1`: render the single `<img>` exactly as today — no visible change.
-- **Click behavior (all image cases)**: clicking any slide opens `LightboxDialog` via the existing `useLightbox` hook, seeded with **all** items and starting at the tapped index. Lightbox already supports pinch/scroll zoom, swipe between images, keyboard arrows, and download. A slide that has its own `link` (or the global `link`) is wrapped in an anchor instead — link takes precedence over lightbox, matching today's behavior.
-- Video branch: unchanged.
+## What gets built
 
-## Editor — `src/components/editor/sections/AdBannerSection.tsx`
-- Image tab becomes a multi-image manager (max 20):
-  - Thumbnail grid with drag-to-reorder, per-item optional click-through link, and remove.
-  - "Add image" button uploads to the existing `ad-banners` storage prefix via the same upload helper used by `ImageUpload`.
-  - Small "Auto-play interval" selector (3s / 4s / 6s / Off) → `autoPlayMs`.
-- Video tab unchanged.
-- Global "Click-through link (optional)" stays as a fallback for slides without their own link.
+### 1. Database
+Add a single column to `cards`:
+- `show_daily_quote BOOLEAN NOT NULL DEFAULT false`
 
-## Editor preview / sync
-`CardView` already passes `card.ad_banner` to `<AdBanner />`, so the editor preview, public card, and shared card all pick up the new carousel automatically with no extra wiring. `performAutosave`'s whitelist already includes `ad_banner`.
+Default `false` so existing cards stay visually unchanged until owner opts in.
+Add `show_daily_quote` to the `cards_public` view so it surfaces to anonymous visitors.
 
-## Files to change
-- `src/components/AdBanner.tsx` — multi-image Embla carousel inside the unchanged glass frame; lightbox over full set.
-- `src/components/editor/sections/AdBannerSection.tsx` — multi-image manager + autoplay control.
+### 2. Reusable component
+Create `src/components/CardDailyQuote.tsx` — a card-tuned variant of the dashboard `MotivationalQuote`:
+- Same rotation logic (day-of-year + time-of-day slot, pulled from `daily_quotes`)
+- Styling tuned to the card's theme (uses `theme.primary` for accent line/icon, glassmorphism panel matching card aesthetic)
+- Subtle "✦ Daily inspiration" micro-label so visitors don't attribute the quote to the card owner
+- Compact padding (cards are denser than the dashboard)
 
-No DB migration. No changes to `CardView`, snapshot, or autosave whitelist.
+### 3. Integration into CardView
+In `src/components/CardView.tsx`, render `<CardDailyQuote />` immediately after the header block and before the bio section, gated on `card.show_daily_quote === true`.
+
+Because `CardView` is the single source of truth, this automatically appears in:
+- Editor live preview
+- Public card (`/c/:slug`, `/:customSlug`)
+- Shared card preview
+
+### 4. Editor toggle
+In `src/components/editor/sections/BasicInformationSection.tsx` (or the most relevant existing section — to confirm during implementation), add a single Switch:
+- Label: "Show daily inspirational quote"
+- Helper text: "A rotating quote from Card-Ex appears below your header"
+- Wired through existing autosave; add `show_daily_quote` to the autosave column whitelist (per the autosave-whitelist memory)
+
+### 5. Snapshot + types
+- Add `show_daily_quote` to `cardSnapshot.ts` so duplications and snapshots carry it
+- Supabase types regenerate automatically after migration
 
 ## Out of scope
-- Per-image captions/descriptions (can be added later).
-- Mixing images and a video in the same banner.
+- New quote sources (continues to use existing `daily_quotes` table managed via `/admin/daily-quotes`)
+- Per-card custom quotes (owners can't pick specific quotes — keeps content moderation centralized)
+- Animations beyond the existing subtle fade
+
+## Technical details
+- Migration must `DROP VIEW` and recreate `cards_public` to include the new column (same pattern used for `image_carousels` previously)
+- Component reads from `daily_quotes` with the same query as `MotivationalQuote`; safe for anonymous users since that table already has public read RLS
+- No new RLS policies needed

@@ -2,8 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { CardTheme } from "@/lib/theme";
 import ImageUpload from "@/components/ImageUpload";
@@ -327,6 +328,26 @@ export function BasicInformationSection({
         <p className="text-xs text-muted-foreground">
           {(card.bio?.length || 0)}/500 characters
         </p>
+      </div>
+
+      {/* Daily inspirational quote toggle */}
+      <div className="flex items-start justify-between gap-4 rounded-xl border border-primary/15 bg-primary/[0.03] p-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div className="min-w-0">
+            <Label htmlFor="show_daily_quote" className="text-sm font-semibold cursor-pointer">
+              Show daily inspirational quote
+            </Label>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+              A rotating quote from Card-Ex appears below your header to inspire visitors.
+            </p>
+          </div>
+        </div>
+        <Switch
+          id="show_daily_quote"
+          checked={!!(card as any).show_daily_quote}
+          onCheckedChange={(checked) => onCardChange({ show_daily_quote: checked } as any)}
+        />
       </div>
     </div>
   );
