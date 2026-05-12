@@ -252,6 +252,7 @@ export function buildCardInsertFromSnapshot(
     logo_url: snapshot.logo_url,
     avatar_url: snapshot.avatar_url,
     image_carousels: snapshot.image_carousels,
+    show_daily_quote: snapshot.show_daily_quote ?? false,
     
     // Identity - use override or snapshot
     full_name: overrides?.full_name || snapshot.full_name || "New Card",
