@@ -51,6 +51,7 @@ export interface CardSnapshot {
   logo_url: string | null;
   avatar_url: string | null;
   image_carousels: Record<string, any> | null;
+  show_daily_quote: boolean;
   
   // Identity fields
   full_name: string | null;
