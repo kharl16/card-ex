@@ -30,6 +30,7 @@ export function TemplatePreviewDialog({
     slug: "preview",
     ad_banner: null,
     image_carousels: null,
+    show_daily_quote: false,
     full_name: layoutData.full_name || "Your Name",
     first_name: layoutData.first_name || null,
     middle_name: layoutData.middle_name || null,
