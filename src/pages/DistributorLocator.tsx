@@ -377,6 +377,7 @@ export default function DistributorLocator() {
                             <Button
                               variant="outline"
                               size="sm"
+                              aria-label="Call distributor"
                               className="h-10 sm:h-11 px-1.5 gap-1 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                               onClick={() => window.open(`tel:${phones[0].replace(/[^+\d]/g, "")}`, "_self")}
                             >
@@ -388,6 +389,7 @@ export default function DistributorLocator() {
                             <Button
                               variant="outline"
                               size="sm"
+                              aria-label="Open in Maps"
                               className="h-10 sm:h-11 px-1.5 gap-1 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                               onClick={() => window.open(entry.maps_link!, "_blank")}
                             >
@@ -399,6 +401,7 @@ export default function DistributorLocator() {
                             <Button
                               variant="outline"
                               size="sm"
+                              aria-label="Open Facebook page"
                               className="h-10 sm:h-11 px-1.5 gap-1 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                               onClick={() => window.open(entry.facebook_page!, "_blank")}
                             >
@@ -409,6 +412,7 @@ export default function DistributorLocator() {
                           <Button
                             variant="default"
                             size="sm"
+                            aria-label="View distributor details"
                             className="h-10 sm:h-11 px-1.5 gap-1 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center bg-primary text-primary-foreground hover:bg-primary/90"
                             onClick={() => setDetailEntry(entry)}
                           >
