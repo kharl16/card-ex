@@ -321,9 +321,9 @@ export default function DistributorLocator() {
 
                       {/* Content */}
                       <div className="p-3 sm:p-4 space-y-2">
-                        <h3 className="font-semibold text-foreground text-base sm:text-lg leading-tight break-words">
+                        <h2 className="font-semibold text-foreground text-base sm:text-lg leading-tight break-words">
                           {entry.location || "Unknown Location"}
-                        </h3>
+                        </h2>
 
                         {entry.address && (
                           <p className="text-xs sm:text-sm text-muted-foreground break-words line-clamp-2">
