@@ -190,9 +190,9 @@ export default function TeamDirectory() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                        <h2 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors text-base">
                           {member.full_name}
-                        </h3>
+                        </h2>
                         {member.title && (
                           <p className="text-sm text-muted-foreground truncate">{member.title}</p>
                         )}
