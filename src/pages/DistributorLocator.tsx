@@ -162,12 +162,17 @@ export default function DistributorLocator() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="Distributor Locator — Find a Card-Ex partner near you"
+        description="Browse Card-Ex partner locations and distributors. Search by name, sort by distance, and view contact details."
+        path="/locator"
+      />
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-3 mb-3">
             <Link to="/">
-              <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
+              <Button variant="ghost" size="icon" aria-label="Back to home"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
             <div className="flex-1">
               <h1 className="text-xl font-bold">Find a Location</h1>
