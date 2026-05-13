@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Users, Shield } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import { SEO } from "@/components/SEO";
 const Index = () => {
   const navigate = useNavigate();
   useEffect(() => {
