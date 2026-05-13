@@ -60,7 +60,6 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
         <section aria-labelledby="features-heading" className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
           <h2 id="features-heading" className="sr-only">Platform features</h2>
           <div className="rounded-2xl border border-border/50 bg-card/50 p-4 text-center backdrop-blur">
