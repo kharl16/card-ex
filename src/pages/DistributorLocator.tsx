@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { SEO } from "@/components/SEO";
 
 const DirectoryMapView = lazy(() => import("@/components/tools/sections/DirectoryMapView"));
 
@@ -161,12 +162,17 @@ export default function DistributorLocator() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="Distributor Locator — Find a Card-Ex partner near you"
+        description="Browse Card-Ex partner locations and distributors. Search by name, sort by distance, and view contact details."
+        path="/locator"
+      />
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center gap-3 mb-3">
             <Link to="/">
-              <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
+              <Button variant="ghost" size="icon" aria-label="Back to home"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
             <div className="flex-1">
               <h1 className="text-xl font-bold">Find a Location</h1>
@@ -270,7 +276,7 @@ export default function DistributorLocator() {
                         <div className="relative h-72 md:h-80 overflow-hidden">
                           <img
                             src={entry.owner_photo_url}
-                            alt={entry.owner || "Owner"}
+                            alt={`${entry.owner || "Distributor"} — ${entry.location || "location"}`}
                             className="w-full h-full object-cover object-top"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
@@ -315,9 +321,9 @@ export default function DistributorLocator() {
 
                       {/* Content */}
                       <div className="p-3 sm:p-4 space-y-2">
-                        <h3 className="font-semibold text-foreground text-base sm:text-lg leading-tight break-words">
+                        <h2 className="font-semibold text-foreground text-base sm:text-lg leading-tight break-words">
                           {entry.location || "Unknown Location"}
-                        </h3>
+                        </h2>
 
                         {entry.address && (
                           <p className="text-xs sm:text-sm text-muted-foreground break-words line-clamp-2">
@@ -330,7 +336,7 @@ export default function DistributorLocator() {
                             {entry.owner_photo_url ? (
                               <img
                                 src={entry.owner_photo_url}
-                                alt={entry.owner}
+                                alt={`${entry.owner} avatar`}
                                 className="w-5 h-5 rounded-full object-cover flex-shrink-0"
                               />
                             ) : (
@@ -371,6 +377,7 @@ export default function DistributorLocator() {
                             <Button
                               variant="outline"
                               size="sm"
+                              aria-label="Call distributor"
                               className="h-10 sm:h-11 px-1.5 gap-1 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                               onClick={() => window.open(`tel:${phones[0].replace(/[^+\d]/g, "")}`, "_self")}
                             >
@@ -382,6 +389,7 @@ export default function DistributorLocator() {
                             <Button
                               variant="outline"
                               size="sm"
+                              aria-label="Open in Maps"
                               className="h-10 sm:h-11 px-1.5 gap-1 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                               onClick={() => window.open(entry.maps_link!, "_blank")}
                             >
@@ -393,6 +401,7 @@ export default function DistributorLocator() {
                             <Button
                               variant="outline"
                               size="sm"
+                              aria-label="Open Facebook page"
                               className="h-10 sm:h-11 px-1.5 gap-1 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
                               onClick={() => window.open(entry.facebook_page!, "_blank")}
                             >
@@ -403,6 +412,7 @@ export default function DistributorLocator() {
                           <Button
                             variant="default"
                             size="sm"
+                            aria-label="View distributor details"
                             className="h-10 sm:h-11 px-1.5 gap-1 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center bg-primary text-primary-foreground hover:bg-primary/90"
                             onClick={() => setDetailEntry(entry)}
                           >
@@ -425,7 +435,7 @@ export default function DistributorLocator() {
         <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
           {/* Header */}
           <div className="sticky top-0 z-10 bg-background border-b p-4 flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => setDetailEntry(null)}>
+            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => setDetailEntry(null)} aria-label="Close details">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h2 className="text-lg font-bold truncate flex-1">{detailEntry?.location}</h2>
@@ -451,7 +461,7 @@ function LocationDetail({ entry, userLocation }: { entry: DirectoryEntry; userLo
       {/* Owner photo */}
       {entry.owner_photo_url && (
         <div className="relative h-72 md:h-80 overflow-hidden">
-          <img src={entry.owner_photo_url} alt={entry.owner || "Owner"} className="w-full h-full object-cover object-top" />
+          <img src={entry.owner_photo_url} alt={`${entry.owner || "Distributor"} — ${entry.location || "location"}`} className="w-full h-full object-cover object-top" />
           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
         </div>
       )}

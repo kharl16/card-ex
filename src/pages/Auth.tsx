@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Mail, Chrome, ArrowLeft } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
+import { SEO } from "@/components/SEO";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -218,6 +219,13 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
+      <SEO
+        title="Sign in to Card-Ex — Digital Business Portfolio"
+        description="Sign in or create a Card-Ex account to build your premium digital business portfolio."
+        path="/auth"
+        noIndex
+      />
+      <h1 className="sr-only">Sign in to Card-Ex</h1>
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden bg-transparent animate-fade-in">

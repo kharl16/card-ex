@@ -10,6 +10,7 @@ import { Chrome, Gift } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { storeReferralCode, getStoredReferralCode } from "@/hooks/useReferral";
 import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
+import { SEO } from "@/components/SEO";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -136,6 +137,13 @@ export default function Signup() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
+      <SEO
+        title="Create your Card-Ex account — Digital Business Portfolio"
+        description="Sign up for Card-Ex and launch your premium, shareable digital business portfolio in minutes."
+        path="/signup"
+        noIndex
+      />
+      <h1 className="sr-only">Create your Card-Ex account</h1>
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden bg-transparent animate-fade-in">

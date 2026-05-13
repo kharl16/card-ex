@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Users, Shield } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import { SEO } from "@/components/SEO";
 const Index = () => {
   const navigate = useNavigate();
   useEffect(() => {
@@ -21,6 +22,11 @@ const Index = () => {
     });
   }, [navigate]);
   return <div className="flex h-screen flex-col overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+      <SEO
+        title="Card-Ex — Your Digital Business Card, Elevated"
+        description="Create stunning, shareable digital business cards in minutes. Track engagement, manage contacts, and showcase your brand on one smart platform."
+        path="/"
+      />
       <header className="shrink-0 border-b border-border/50 bg-card/30 backdrop-blur">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2">
@@ -54,7 +60,8 @@ const Index = () => {
           </div>
         </div>
 
-        <div className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
+        <section aria-labelledby="features-heading" className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
+          <h2 id="features-heading" className="sr-only">Platform features</h2>
           <div className="rounded-2xl border border-border/50 bg-card/50 p-4 text-center backdrop-blur">
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -84,7 +91,7 @@ const Index = () => {
               Your data is encrypted and secure. Control who sees your information.
             </p>
           </div>
-        </div>
+        </section>
       </main>
 
       <footer className="shrink-0 border-t border-border/50 bg-card/30 backdrop-blur">

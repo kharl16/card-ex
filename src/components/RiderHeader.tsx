@@ -84,7 +84,7 @@ export default function RiderHeader({
             autoPlayMs={cover.autoPlayMs}
             objectFit="cover"
             className="absolute inset-0 h-full w-full"
-            altFallback="Cover"
+            altFallback={`${name || "Profile"} cover photo`}
           />
         )}
 
@@ -157,7 +157,7 @@ export default function RiderHeader({
               autoPlayMs={logo.autoPlayMs}
               objectFit={logoDisplayMode === "contain" ? "contain" : "cover"}
               className="h-full w-full"
-              altFallback="Company logo"
+              altFallback={`${name || "Card"} company logo`}
             />
           </div>
         )}

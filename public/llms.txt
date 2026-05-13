@@ -1,0 +1,15 @@
+# Card-Ex
+
+> Card-Ex by Tagex.app is a premium digital business portfolio platform. Create stunning, shareable digital business cards with built-in analytics, team management, AI assistants, and a full networking ecosystem.
+
+## Pages
+
+- [Home](/): Overview of Card-Ex and the digital business portfolio platform.
+- [Sign in](/auth): Account sign in for Card-Ex members.
+- [Sign up](/signup): Create a new Card-Ex account.
+- [Distributor Locator](/locator): Find Card-Ex partner locations and distributors.
+
+## Optional
+
+- [Team Directory](/team/): Public team directory landing pages by organization slug (e.g. /team/your-org).
+- [Public Card](/c/): Published digital business cards by short slug (e.g. /c/abc123) — also accessible at the root via custom slug.
