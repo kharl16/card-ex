@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { SEO } from "@/components/SEO";
 
 const DirectoryMapView = lazy(() => import("@/components/tools/sections/DirectoryMapView"));
 
