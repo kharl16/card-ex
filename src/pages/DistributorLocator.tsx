@@ -276,7 +276,7 @@ export default function DistributorLocator() {
                         <div className="relative h-72 md:h-80 overflow-hidden">
                           <img
                             src={entry.owner_photo_url}
-                            alt={entry.owner || "Owner"}
+                            alt={`${entry.owner || "Distributor"} — ${entry.location || "location"}`}
                             className="w-full h-full object-cover object-top"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
