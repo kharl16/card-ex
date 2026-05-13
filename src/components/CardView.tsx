@@ -449,7 +449,7 @@ export default function CardView({
                               className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity flex-shrink-0 self-start"
                               style={{ color: basePrimary }}
                             >
-                              {bioExpanded ? "Show less" : "Read more"}
+                              {bioExpanded ? "Show less" : "Read full bio"}
                             </button>
                           )}
                         </div>
@@ -508,7 +508,7 @@ export default function CardView({
                               className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
                               style={{ color: basePrimary }}
                             >
-                              {bioExpanded ? "Show less" : "Read more"}
+                              {bioExpanded ? "Show less" : "Read full bio"}
                             </button>
                           )}
                         </div>
