@@ -174,10 +174,11 @@ export default function RiderHeader({
               <h1
                 className="text-xl sm:text-2xl font-bold tracking-tight"
                 style={{
-                  background: `linear-gradient(135deg, ${lighterPrimary}, #ffffff)`,
+                  background: `linear-gradient(135deg, #ffffff 0%, ${basePrimary} 100%)`,
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
+                  textShadow: `0 1px 2px rgba(0,0,0,0.45), 0 0 18px ${basePrimary}33`,
                 }}
               >
                 {name}
