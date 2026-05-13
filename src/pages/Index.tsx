@@ -61,6 +61,8 @@ const Index = () => {
         </div>
 
         <div className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
+        <section aria-labelledby="features-heading" className="grid w-full max-w-4xl gap-4 md:grid-cols-3">
+          <h2 id="features-heading" className="sr-only">Platform features</h2>
           <div className="rounded-2xl border border-border/50 bg-card/50 p-4 text-center backdrop-blur">
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
               <TrendingUp className="h-5 w-5 text-primary" />
@@ -90,7 +92,7 @@ const Index = () => {
               Your data is encrypted and secure. Control who sees your information.
             </p>
           </div>
-        </div>
+        </section>
       </main>
 
       <footer className="shrink-0 border-t border-border/50 bg-card/30 backdrop-blur">
