@@ -10,6 +10,7 @@ import { Chrome, Gift } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { storeReferralCode, getStoredReferralCode } from "@/hooks/useReferral";
 import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
+import { SEO } from "@/components/SEO";
 
 export default function Signup() {
   const navigate = useNavigate();
