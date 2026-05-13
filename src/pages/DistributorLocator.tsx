@@ -431,7 +431,7 @@ export default function DistributorLocator() {
         <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
           {/* Header */}
           <div className="sticky top-0 z-10 bg-background border-b p-4 flex items-center gap-3">
-            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => setDetailEntry(null)}>
+            <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0" onClick={() => setDetailEntry(null)} aria-label="Close details">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h2 className="text-lg font-bold truncate flex-1">{detailEntry?.location}</h2>
