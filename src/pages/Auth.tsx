@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Mail, Chrome, ArrowLeft } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
+import { SEO } from "@/components/SEO";
 
 export default function Auth() {
   const navigate = useNavigate();
