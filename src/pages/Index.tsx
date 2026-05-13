@@ -22,6 +22,11 @@ const Index = () => {
     });
   }, [navigate]);
   return <div className="flex h-screen flex-col overflow-hidden bg-gradient-to-br from-background via-background to-primary/5">
+      <SEO
+        title="Card-Ex — Your Digital Business Card, Elevated"
+        description="Create stunning, shareable digital business cards in minutes. Track engagement, manage contacts, and showcase your brand on one smart platform."
+        path="/"
+      />
       <header className="shrink-0 border-b border-border/50 bg-card/30 backdrop-blur">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <div className="flex items-center gap-2">
