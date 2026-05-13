@@ -84,7 +84,7 @@ export default function RiderHeader({
             autoPlayMs={cover.autoPlayMs}
             objectFit="cover"
             className="absolute inset-0 h-full w-full"
-            altFallback="Cover"
+            altFallback={`${name || "Profile"} cover photo`}
           />
         )}
 
