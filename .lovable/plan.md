@@ -1,34 +1,52 @@
-## Diagnosis
+# Plan: Daily Quote on Public Cards
 
-The name `Eileenita Francisco Parreno` is in the database and is being passed to `RiderHeader` correctly via `getLiveNameFromCard(card)`. Title "Branch Manager" renders below it as expected.
+Add a rotating daily quotation to published cards, positioned just below the header (cover/profile area) and above the bio. Card owners control visibility per card via a toggle in the editor.
 
-The issue is the H1 styling in `src/components/RiderHeader.tsx`:
+## Scope
+- Public cards (`PublicCard.tsx`) and shared card view (`SharedCard.tsx`)
+- New owner-controlled toggle in the Card Editor
+- Reuses existing `daily_quotes` table and rotation logic from `MotivationalQuote`
 
-```tsx
-style={{
-  background: `linear-gradient(135deg, ${lighterPrimary}, #ffffff)`,
-  WebkitBackgroundClip: "text",
-  WebkitTextFillColor: "transparent",
-  backgroundClip: "text",
-}}
-```
+## What gets built
 
-For this card's theme, `primaryColor` is a light pink/magenta. `adjustHexColor(basePrimary, 50)` pushes `lighterPrimary` to near-white, so the gradient ends up white→white. The text is filled with `transparent`, and the near-white gradient over the slightly-tinted spacer area makes the text effectively unreadable — what you see in the screenshot is the faint glyph block with no contrast against the surrounding glow/cover bleed.
+### 1. Database
+Add a single column to `cards`:
+- `show_daily_quote BOOLEAN NOT NULL DEFAULT false`
 
-This is purely a presentation issue — the data and prop wiring are fine.
+Default `false` so existing cards stay visually unchanged until owner opts in.
+Add `show_daily_quote` to the `cards_public` view so it surfaces to anonymous visitors.
 
-## Plan
+### 2. Reusable component
+Create `src/components/CardDailyQuote.tsx` — a card-tuned variant of the dashboard `MotivationalQuote`:
+- Same rotation logic (day-of-year + time-of-day slot, pulled from `daily_quotes`)
+- Styling tuned to the card's theme (uses `theme.primary` for accent line/icon, glassmorphism panel matching card aesthetic)
+- Subtle "✦ Daily inspiration" micro-label so visitors don't attribute the quote to the card owner
+- Compact padding (cards are denser than the dashboard)
 
-Update only the H1 gradient in `src/components/RiderHeader.tsx`:
+### 3. Integration into CardView
+In `src/components/CardView.tsx`, render `<CardDailyQuote />` immediately after the header block and before the bio section, gated on `card.show_daily_quote === true`.
 
-1. Replace the gradient with one that always preserves contrast against the dark card body, regardless of how light the theme primary is.
-   - Use `#ffffff` → `${basePrimary}` (white to the actual brand color), instead of `lighterPrimary` → `#ffffff`. This guarantees a visible color stop on the light end and a saturated brand stop on the other.
-2. Add a soft text shadow tinted with `basePrimary` at low opacity for legibility on busy cover bleed:
-   - `textShadow: 0 1px 2px rgba(0,0,0,0.45), 0 0 18px ${basePrimary}33`
-3. Keep `WebkitBackgroundClip: "text"` and `WebkitTextFillColor: "transparent"` as-is.
-4. No changes to title styling, layout, or any other component.
+Because `CardView` is the single source of truth, this automatically appears in:
+- Editor live preview
+- Public card (`/c/:slug`, `/:customSlug`)
+- Shared card preview
+
+### 4. Editor toggle
+In `src/components/editor/sections/BasicInformationSection.tsx` (or the most relevant existing section — to confirm during implementation), add a single Switch:
+- Label: "Show daily inspirational quote"
+- Helper text: "A rotating quote from Card-Ex appears below your header"
+- Wired through existing autosave; add `show_daily_quote` to the autosave column whitelist (per the autosave-whitelist memory)
+
+### 5. Snapshot + types
+- Add `show_daily_quote` to `cardSnapshot.ts` so duplications and snapshots carry it
+- Supabase types regenerate automatically after migration
 
 ## Out of scope
+- New quote sources (continues to use existing `daily_quotes` table managed via `/admin/daily-quotes`)
+- Per-card custom quotes (owners can't pick specific quotes — keeps content moderation centralized)
+- Animations beyond the existing subtle fade
 
-- No data changes, no editor changes, no theme system changes.
-- No changes to `CardView.tsx`, the daily quote, or the cover image carousel.
+## Technical details
+- Migration must `DROP VIEW` and recreate `cards_public` to include the new column (same pattern used for `image_carousels` previously)
+- Component reads from `daily_quotes` with the same query as `MotivationalQuote`; safe for anonymous users since that table already has public read RLS
+- No new RLS policies needed
