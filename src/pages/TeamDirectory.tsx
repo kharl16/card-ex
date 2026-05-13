@@ -105,6 +105,11 @@ export default function TeamDirectory() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title={`${orgName} — Team Directory on Card-Ex`}
+        description={`Meet the ${members.length} member${members.length !== 1 ? "s" : ""} of ${orgName}. Browse digital business cards and contact details.`}
+        path={`/team/${orgSlug || ""}`}
+      />
       {/* Header */}
       <header
         className="relative overflow-hidden"
