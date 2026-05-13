@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Search, Users, MapPin, Mail, Phone, ExternalLink } from "lucide-react";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import { getPublicCardUrl } from "@/lib/cardUrl";
+import { SEO } from "@/components/SEO";
 
 interface TeamMember {
   id: string;
