@@ -336,7 +336,7 @@ export default function DistributorLocator() {
                             {entry.owner_photo_url ? (
                               <img
                                 src={entry.owner_photo_url}
-                                alt={entry.owner}
+                                alt={`${entry.owner} avatar`}
                                 className="w-5 h-5 rounded-full object-cover flex-shrink-0"
                               />
                             ) : (
