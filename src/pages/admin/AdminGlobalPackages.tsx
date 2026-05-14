@@ -136,6 +136,15 @@ export default function AdminGlobalPackages() {
     else await load();
   }
 
+  async function updateSrp(row: Row, srp: string) {
+    const { error } = await supabase
+      .from("global_package_images")
+      .update({ srp: srp.trim() || null } as any)
+      .eq("id", row.id);
+    if (error) toast.error(error.message);
+    else await load();
+  }
+
   async function move(row: Row, dir: -1 | 1) {
     const idx = rows.findIndex((r) => r.id === row.id);
     const swap = rows[idx + dir];
