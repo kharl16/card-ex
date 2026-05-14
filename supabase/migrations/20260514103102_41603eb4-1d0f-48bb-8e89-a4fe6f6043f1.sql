@@ -1,0 +1,1 @@
+UPDATE "IAM Files" SET "Folder Name" = 'Packages' WHERE "File Name" IN ('Bronze','Copper') AND "Folder Name" IS NULL;
