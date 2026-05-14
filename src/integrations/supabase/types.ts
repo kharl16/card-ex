@@ -1198,6 +1198,8 @@ export type Database = {
         Row: {
           "Check Match": string | null
           Description: string | null
+          details_heading: string | null
+          details_rows: Json
           "Drive Link Download": string | null
           "Drive Link share": string | null
           "File Name": string | null
@@ -1218,6 +1220,8 @@ export type Database = {
         Insert: {
           "Check Match"?: string | null
           Description?: string | null
+          details_heading?: string | null
+          details_rows?: Json
           "Drive Link Download"?: string | null
           "Drive Link share"?: string | null
           "File Name"?: string | null
@@ -1238,6 +1242,8 @@ export type Database = {
         Update: {
           "Check Match"?: string | null
           Description?: string | null
+          details_heading?: string | null
+          details_rows?: Json
           "Drive Link Download"?: string | null
           "Drive Link share"?: string | null
           "File Name"?: string | null
