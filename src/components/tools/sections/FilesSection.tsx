@@ -10,6 +10,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import AdminFileDialog from "../admin/AdminFileDialog";
 
+interface DetailRow {
+  label: string;
+  value: string;
+}
+
 interface FileItem {
   id: number;
   file_name: string;
@@ -22,6 +27,8 @@ interface FileItem {
   price_dp: string | null;
   price_srp: string | null;
   is_active: boolean;
+  details_heading: string | null;
+  details_rows: DetailRow[];
 }
 
 interface ResourceFolder {
@@ -110,6 +117,8 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
         price_dp: row["Price (DP)"] || null,
         price_srp: row["Price (SRP)"] || null,
         is_active: true,
+        details_heading: row.details_heading || null,
+        details_rows: Array.isArray(row.details_rows) ? row.details_rows : [],
       }));
 
       setItems(mapped);
