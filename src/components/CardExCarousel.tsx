@@ -151,7 +151,7 @@ function RouletteMode({
   const sizeClasses = imageSizeConfig[imageSize] || imageSizeConfig.md;
 
   const lightboxImages: LightboxImage[] = useMemo(
-    () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description })),
+    () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description, srp: item.srp })),
     [items]
   );
 
