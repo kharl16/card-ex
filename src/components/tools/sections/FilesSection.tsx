@@ -380,6 +380,43 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
                   </div>
                 )}
               </div>
+
+              {/* Per-package metrics */}
+              {selectedFile && (() => {
+                const f = selectedFile;
+                const rows: Array<[string, string]> = [];
+                const push = (label: string, v: unknown) => {
+                  if (v === null || v === undefined) return;
+                  const s = String(v).trim();
+                  if (s) rows.push([label, s]);
+                };
+                push("Unilevel Points", f.unilevel_points);
+                push("Package Points (SMC)", f.package_points_smc);
+                push("RQV", f.rqv);
+                push("Infinity", f.infinity);
+                push("Check Match", f.check_match);
+                push("Give Me 5", f.give_me_5);
+                push("Just 4 You", f.just_4_you);
+                push("Wholesale Commission", f.wholesale_package_commission);
+                if (rows.length === 0) return null;
+                return (
+                  <div className="rounded-xl border border-border/60 bg-card/40 overflow-hidden">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:[&>*:nth-child(odd)]:border-r divide-border/50 sm:[&>*:nth-child(n+3)]:border-t">
+                      {rows.map(([label, value]) => (
+                        <div key={label} className="flex items-center justify-between gap-3 px-3 py-2 border-border/50">
+                          <span className="text-[11px] uppercase tracking-wide text-muted-foreground font-medium">
+                            {label}
+                          </span>
+                          <span className="text-xs font-semibold text-foreground font-mono text-right">
+                            {value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="flex gap-3">
                 {selectedFile?.drive_link_download && (
                   <Button
