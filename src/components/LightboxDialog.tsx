@@ -266,16 +266,21 @@ export default function LightboxDialog({
               </div>
             </div>
 
-            {/* Caption, Description & Counter — fixed position to ensure visibility */}
+            {/* Caption, SRP, Description & Counter — fixed position to ensure visibility */}
             <div className="fixed bottom-0 left-0 right-0 z-[60] pointer-events-none flex flex-col items-center gap-1 pb-4">
-              {(currentImage?.shareText || currentImage?.alt || currentImage?.description) && (
+              {(currentImage?.shareText || currentImage?.alt || currentImage?.description || currentImage?.srp) && (
                 <div className="w-full max-w-lg px-4 space-y-0 text-center pointer-events-auto max-h-[40vh] overflow-y-auto">
                   {(currentImage?.shareText || currentImage?.alt) && (
                     <h3 className="text-white font-semibold text-base bg-black/70 backdrop-blur-md rounded-t-lg px-4 pt-3 pb-1">
                       {currentImage?.shareText || currentImage?.alt}
                     </h3>
                   )}
-                  {currentImage?.description && (
+                  {currentImage?.srp && (
+                    <p className="text-amber-300 font-semibold text-sm bg-black/70 backdrop-blur-md px-4 py-1">
+                      SRP {currentImage.srp}
+                    </p>
+                  )}
+                  {currentImage?.description && currentImage.description !== (currentImage?.shareText || currentImage?.alt) && (
                     <p className="text-white/90 text-sm leading-relaxed bg-black/70 backdrop-blur-md rounded-b-lg px-4 pb-3 pt-1">
                       {currentImage.description}
                     </p>
