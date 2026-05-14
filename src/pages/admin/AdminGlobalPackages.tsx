@@ -32,7 +32,7 @@ export default function AdminGlobalPackages() {
     setLoading(true);
     const { data, error } = await supabase
       .from("global_package_images")
-      .select("id,url,caption,sort_index,is_active")
+      .select("id,url,caption,srp,sort_index,is_active")
       .order("sort_index", { ascending: true });
     if (error) toast.error(error.message);
     setRows((data as Row[]) ?? []);
