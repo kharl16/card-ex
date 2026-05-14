@@ -28,6 +28,7 @@ export interface CardExCarouselItem {
   href?: string;
   badge?: string;
   shareText?: string;
+  srp?: string;
 }
 
 export type CardExCarouselEventType =
