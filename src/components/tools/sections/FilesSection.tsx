@@ -29,6 +29,14 @@ interface FileItem {
   is_active: boolean;
   details_heading: string | null;
   details_rows: DetailRow[];
+  unilevel_points: string | null;
+  package_points_smc: string | null;
+  rqv: string | null;
+  infinity: string | null;
+  check_match: string | null;
+  give_me_5: string | null;
+  just_4_you: string | null;
+  wholesale_package_commission: string | null;
 }
 
 interface ResourceFolder {
