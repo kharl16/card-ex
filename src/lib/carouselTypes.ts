@@ -77,6 +77,7 @@ export interface CarouselImage {
   shareText?: string; // optional caption override for sharing
   description?: string; // description shown in table below carousel
   hidden?: boolean; // when true, item is kept in storage but not shown publicly
+  srp?: string; // Suggested Retail Price (free-form, e.g. "₱799")
 }
 
 export type DescriptionTableColumns = 1 | 2;

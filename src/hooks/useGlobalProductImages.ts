@@ -5,6 +5,7 @@ export type GlobalProductImage = {
   id: string;
   url: string;
   caption: string | null;
+  srp: string | null;
   sort_index: number;
   is_active: boolean;
 };
@@ -24,7 +25,7 @@ export function useGlobalProductImages(cardId: string | null | undefined) {
     const [{ data: globals }, overridesResult] = await Promise.all([
       supabase
         .from("global_product_images")
-        .select("id,url,caption,sort_index,is_active")
+        .select("id,url,caption,srp,sort_index,is_active")
         .eq("is_active", true)
         .order("sort_index", { ascending: true }),
       cardId

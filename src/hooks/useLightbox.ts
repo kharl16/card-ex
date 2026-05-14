@@ -5,6 +5,7 @@ export interface LightboxImage {
   alt?: string;
   shareText?: string;
   description?: string;
+  srp?: string;
 }
 
 export interface UseLightboxOptions {

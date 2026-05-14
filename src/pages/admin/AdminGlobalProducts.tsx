@@ -12,6 +12,7 @@ type Row = {
   id: string;
   url: string;
   caption: string | null;
+  srp: string | null;
   sort_index: number;
   is_active: boolean;
 };
@@ -31,7 +32,7 @@ export default function AdminGlobalProducts() {
     setLoading(true);
     const { data, error } = await supabase
       .from("global_product_images")
-      .select("id,url,caption,sort_index,is_active")
+      .select("id,url,caption,srp,sort_index,is_active")
       .order("sort_index", { ascending: true });
     if (error) toast.error(error.message);
     setRows((data as Row[]) ?? []);
@@ -135,6 +136,15 @@ export default function AdminGlobalProducts() {
     else await load();
   }
 
+  async function updateSrp(row: Row, srp: string) {
+    const { error } = await supabase
+      .from("global_product_images")
+      .update({ srp: srp.trim() || null } as any)
+      .eq("id", row.id);
+    if (error) toast.error(error.message);
+    else await load();
+  }
+
   async function move(row: Row, dir: -1 | 1) {
     const idx = rows.findIndex((r) => r.id === row.id);
     const swap = rows[idx + dir];
@@ -213,6 +223,13 @@ export default function AdminGlobalProducts() {
                 placeholder="Caption"
                 onBlur={(e) => {
                   if (e.target.value !== (r.caption ?? "")) updateCaption(r, e.target.value);
+                }}
+              />
+              <Input
+                defaultValue={r.srp ?? ""}
+                placeholder="SRP (e.g. ₱799)"
+                onBlur={(e) => {
+                  if (e.target.value !== (r.srp ?? "")) updateSrp(r, e.target.value);
                 }}
               />
               <div className="flex flex-wrap gap-2">

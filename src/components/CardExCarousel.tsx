@@ -28,6 +28,7 @@ export interface CardExCarouselItem {
   href?: string;
   badge?: string;
   shareText?: string;
+  srp?: string;
 }
 
 export type CardExCarouselEventType =
@@ -150,7 +151,7 @@ function RouletteMode({
   const sizeClasses = imageSizeConfig[imageSize] || imageSizeConfig.md;
 
   const lightboxImages: LightboxImage[] = useMemo(
-    () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description })),
+    () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description, srp: item.srp })),
     [items]
   );
 
@@ -256,6 +257,11 @@ function RouletteMode({
                         <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
                           {img.badge}
                         </Badge>
+                      )}
+                      {img.srp && (
+                        <span className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
+                          SRP {img.srp}
+                        </span>
                       )}
                     </button>
                   </div>
@@ -377,7 +383,7 @@ function FlatMode({
   const count = items.length;
 
   const lightboxImages: LightboxImage[] = useMemo(
-    () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description })),
+    () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description, srp: item.srp })),
     [items]
   );
 
@@ -467,6 +473,11 @@ function FlatMode({
                       <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
                         {item.badge}
                       </Badge>
+                    )}
+                    {item.srp && (
+                      <span className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
+                        SRP {item.srp}
+                      </span>
                     )}
                   </button>
                 </CarouselItem>

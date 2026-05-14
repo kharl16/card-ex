@@ -537,7 +537,7 @@ export default function CardView({
           );
           const contactInfo = { phone: card.phone, email: card.email, website: card.website };
 
-          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number; description?: string; shareText?: string }[] => {
+          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number; description?: string; shareText?: string; srp?: string }[] => {
             if (!raw || !Array.isArray(raw)) return [];
 
             return raw
@@ -547,6 +547,7 @@ export default function CardView({
                 order: (img?.order ?? img?.sort_order ?? idx) as number,
                 description: (img?.description ?? img?.desc) as string | undefined,
                 shareText: (img?.shareText ?? img?.share_text ?? img?.caption) as string | undefined,
+                srp: (img?.srp ?? img?.SRP ?? img?.price_srp) as string | undefined,
               }))
               .filter((img) => !!img.url);
           };
@@ -556,8 +557,9 @@ export default function CardView({
             url: g.url,
             alt: g.caption ?? undefined,
             order: ownProductImages.length + idx,
-            description: g.caption ?? undefined,
+            description: undefined,
             shareText: g.caption ?? undefined,
+            srp: (g as any).srp ?? undefined,
           }));
           const productImagesData = [...ownProductImages, ...globalAsCarousel];
           const ownPackageImages = normalizeCarouselImages((card as any).package_images);
@@ -565,8 +567,9 @@ export default function CardView({
             url: g.url,
             alt: g.caption ?? undefined,
             order: ownPackageImages.length + idx,
-            description: g.caption ?? undefined,
+            description: undefined,
             shareText: g.caption ?? undefined,
+            srp: (g as any).srp ?? undefined,
           }));
           const packageImagesData = [...ownPackageImages, ...globalPackagesAsCarousel];
           const testimonyImagesData = normalizeCarouselImages((card as any).testimony_images);
