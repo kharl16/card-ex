@@ -128,6 +128,7 @@ export default function CarouselSectionRenderer({
       alt: img.alt,
       shareText: img.shareText,
       description: img.description,
+      srp: (img as any).srp,
     }));
 
   // Background styles - generate CSS including padding and border
