@@ -12,6 +12,7 @@ type Row = {
   id: string;
   url: string;
   caption: string | null;
+  srp: string | null;
   sort_index: number;
   is_active: boolean;
 };
