@@ -326,6 +326,30 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
               {selectedFile?.description && (
                 <p className="text-muted-foreground">{selectedFile.description}</p>
               )}
+
+              {/* Package details table */}
+              {selectedFile && (selectedFile.details_heading || (selectedFile.details_rows?.length ?? 0) > 0) && (
+                <div className="rounded-xl border border-border bg-card/60 overflow-hidden">
+                  {selectedFile.details_heading && (
+                    <div className="px-4 py-3 border-b border-border bg-muted/40">
+                      <p className="text-sm font-semibold text-foreground">
+                        {selectedFile.details_heading}
+                      </p>
+                    </div>
+                  )}
+                  {selectedFile.details_rows?.length > 0 && (
+                    <div className="divide-y divide-border">
+                      {selectedFile.details_rows.map((row, idx) => (
+                        <div key={idx} className="flex items-center justify-between gap-4 px-4 py-2.5">
+                          <span className="text-sm text-muted-foreground">{row.label}</span>
+                          <span className="text-sm font-semibold text-foreground text-right">{row.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-4">
                 {selectedFile?.price_dp && (
                   <div className="p-3 rounded-xl bg-muted/50">
