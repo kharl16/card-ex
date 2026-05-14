@@ -474,6 +474,11 @@ function FlatMode({
                         {item.badge}
                       </Badge>
                     )}
+                    {item.srp && (
+                      <span className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
+                        SRP {item.srp}
+                      </span>
+                    )}
                   </button>
                 </CarouselItem>
               );
