@@ -1136,6 +1136,7 @@ export type Database = {
           id: string
           is_active: boolean
           sort_index: number
+          srp: string | null
           updated_at: string
           url: string
         }
@@ -1146,6 +1147,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           sort_index?: number
+          srp?: string | null
           updated_at?: string
           url: string
         }
@@ -1156,6 +1158,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           sort_index?: number
+          srp?: string | null
           updated_at?: string
           url?: string
         }
@@ -1169,6 +1172,7 @@ export type Database = {
           id: string
           is_active: boolean
           sort_index: number
+          srp: string | null
           updated_at: string
           url: string
         }
@@ -1179,6 +1183,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           sort_index?: number
+          srp?: string | null
           updated_at?: string
           url: string
         }
@@ -1189,6 +1194,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           sort_index?: number
+          srp?: string | null
           updated_at?: string
           url?: string
         }
