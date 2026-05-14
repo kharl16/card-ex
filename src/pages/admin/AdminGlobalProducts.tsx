@@ -225,6 +225,13 @@ export default function AdminGlobalProducts() {
                   if (e.target.value !== (r.caption ?? "")) updateCaption(r, e.target.value);
                 }}
               />
+              <Input
+                defaultValue={r.srp ?? ""}
+                placeholder="SRP (e.g. ₱799)"
+                onBlur={(e) => {
+                  if (e.target.value !== (r.srp ?? "")) updateSrp(r, e.target.value);
+                }}
+              />
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" onClick={() => move(r, -1)} disabled={i === 0}>
                   ↑
