@@ -1,52 +1,66 @@
-# Plan: Daily Quote on Public Cards
+## Goal
 
-Add a rotating daily quotation to published cards, positioned just below the header (cover/profile area) and above the bio. Card owners control visibility per card via a toggle in the editor.
+When someone opens a file from a Folder under Resources (e.g. "Jade" package), show a structured 2-column details list under the action buttons — exactly like the boxed area in your screenshot (label on the left, price/value on the right, plus an optional heading like "The VIP package (Free additional products worth P50,000)").
 
-## Scope
-- Public cards (`PublicCard.tsx`) and shared card view (`SharedCard.tsx`)
-- New owner-controlled toggle in the Card Editor
-- Reuses existing `daily_quotes` table and rotation logic from `MotivationalQuote`
+You'll get an admin form that lets you enter:
+- An optional heading line
+- Any number of rows, each with two fields: **Label** and **Value**
+- Add row / remove row / drag-to-reorder
 
-## What gets built
+---
 
-### 1. Database
-Add a single column to `cards`:
-- `show_daily_quote BOOLEAN NOT NULL DEFAULT false`
+## How it will work
 
-Default `false` so existing cards stay visually unchanged until owner opts in.
-Add `show_daily_quote` to the `cards_public` view so it surfaces to anonymous visitors.
+### 1. Storage (database)
+Add two new columns to the existing `IAM Files` table:
+- `details_heading` — short text (e.g. "The VIP package (Free additional products worth P50,000)")
+- `details_rows` — JSONB array, e.g.
+  ```
+  [
+    { "label": "Just 4 You", "value": "₱200,000" },
+    { "label": "Give Me 5", "value": "₱15,000" },
+    { "label": "Wholesale Package Commission", "value": "₱20,000" },
+    { "label": "Sales Match Commission (x2)", "value": "₱5,000" },
+    { "label": "RQV", "value": "4,000" },
+    { "label": "Infinity", "value": "₱5,000" }
+  ]
+  ```
 
-### 2. Reusable component
-Create `src/components/CardDailyQuote.tsx` — a card-tuned variant of the dashboard `MotivationalQuote`:
-- Same rotation logic (day-of-year + time-of-day slot, pulled from `daily_quotes`)
-- Styling tuned to the card's theme (uses `theme.primary` for accent line/icon, glassmorphism panel matching card aesthetic)
-- Subtle "✦ Daily inspiration" micro-label so visitors don't attribute the quote to the card owner
-- Compact padding (cards are denser than the dashboard)
+JSONB keeps it flexible (any number of rows, easy to reorder, no extra table needed).
 
-### 3. Integration into CardView
-In `src/components/CardView.tsx`, render `<CardDailyQuote />` immediately after the header block and before the bio section, gated on `card.show_daily_quote === true`.
+### 2. Admin form
+Update `src/components/tools/admin/AdminFileDialog.tsx`:
+- New "Heading" text input
+- New "Details Rows" repeater section:
+  - Each row = two inputs side-by-side (Label | Value) + a remove (×) button
+  - "Add Row" button at the bottom
+  - Up/down handles to reorder
+- Also a small "Bulk paste" helper: paste tab- or `:`-separated text and it auto-splits into rows (handy when copying from a spreadsheet)
 
-Because `CardView` is the single source of truth, this automatically appears in:
-- Editor live preview
-- Public card (`/c/:slug`, `/:customSlug`)
-- Shared card preview
+### 3. Public view
+Update the file detail dialog in `src/components/tools/sections/FilesSection.tsx`:
+- Below the existing image / Zoom / Download / Share buttons, render a card matching the screenshot:
+  - Heading row (if set) in semibold
+  - One row per `details_rows` entry: label left-aligned, value right-aligned, thin divider between rows
+- Hidden entirely if no rows are set, so existing files are unaffected.
 
-### 4. Editor toggle
-In `src/components/editor/sections/BasicInformationSection.tsx` (or the most relevant existing section — to confirm during implementation), add a single Switch:
-- Label: "Show daily inspirational quote"
-- Helper text: "A rotating quote from Card-Ex appears below your header"
-- Wired through existing autosave; add `show_daily_quote` to the autosave column whitelist (per the autosave-whitelist memory)
+Reusing the existing `DescriptionTable.tsx` pattern is not a fit (that's for items with images). This is a simpler key/value list, so we add a small new `DetailsTable` component.
 
-### 5. Snapshot + types
-- Add `show_daily_quote` to `cardSnapshot.ts` so duplications and snapshots carry it
-- Supabase types regenerate automatically after migration
+---
 
-## Out of scope
-- New quote sources (continues to use existing `daily_quotes` table managed via `/admin/daily-quotes`)
-- Per-card custom quotes (owners can't pick specific quotes — keeps content moderation centralized)
-- Animations beyond the existing subtle fade
+## Technical notes
 
-## Technical details
-- Migration must `DROP VIEW` and recreate `cards_public` to include the new column (same pattern used for `image_carousels` previously)
-- Component reads from `daily_quotes` with the same query as `MotivationalQuote`; safe for anonymous users since that table already has public read RLS
-- No new RLS policies needed
+- Migration: `ALTER TABLE "IAM Files" ADD COLUMN details_heading text, ADD COLUMN details_rows jsonb DEFAULT '[]'::jsonb;`
+- The `FilesSection.fetchItems` mapper will pick up the two new columns and pass them into the dialog.
+- Form state: `details_rows` kept as an array in React state; "Save" writes it back as JSONB.
+- No changes to RLS — table already has the right policies.
+
+---
+
+## Open question
+
+The screenshot shows currency on the right (₱200,000, ₱15,000, etc.). Do you want:
+- **A)** A single free-text "Value" field (you type "₱200,000" yourself — most flexible), or
+- **B)** Two separate inputs per row: numeric amount + currency dropdown (auto-formats)?
+
+I recommend **A** for speed and flexibility. Let me know which you prefer and I'll build it.

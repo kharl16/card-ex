@@ -7,8 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Save, Trash2 } from "lucide-react";
+import { Loader2, Save, Trash2, Plus, X, ArrowUp, ArrowDown } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+
+interface DetailRow {
+  label: string;
+  value: string;
+}
 
 interface FileItem {
   id?: number;
@@ -22,6 +27,8 @@ interface FileItem {
   price_dp: string | null;
   price_srp: string | null;
   is_active: boolean;
+  details_heading?: string | null;
+  details_rows?: DetailRow[] | null;
 }
 
 interface AdminFileDialogProps {
@@ -42,16 +49,24 @@ const emptyItem: FileItem = {
   price_dp: null,
   price_srp: null,
   is_active: true,
+  details_heading: null,
+  details_rows: [],
 };
 
 export default function AdminFileDialog({ open, onOpenChange, item, onSaved }: AdminFileDialogProps) {
   const [formData, setFormData] = useState<FileItem>(emptyItem);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [bulkPaste, setBulkPaste] = useState("");
 
   useEffect(() => {
     if (open) {
-      setFormData(item || emptyItem);
+      setFormData(
+        item
+          ? { ...item, details_rows: Array.isArray(item.details_rows) ? item.details_rows : [] }
+          : emptyItem
+      );
+      setBulkPaste("");
     }
   }, [open, item]);
 
@@ -60,8 +75,50 @@ export default function AdminFileDialog({ open, onOpenChange, item, onSaved }: A
   };
 
   const handleImageChange = (url: string | null) => {
-    // Store the URL directly as the images field (comma-separated for multiple)
     setFormData((prev) => ({ ...prev, images: url }));
+  };
+
+  const rows: DetailRow[] = formData.details_rows ?? [];
+
+  const updateRow = (idx: number, patch: Partial<DetailRow>) => {
+    const next = rows.map((r, i) => (i === idx ? { ...r, ...patch } : r));
+    handleChange("details_rows", next);
+  };
+  const addRow = () => handleChange("details_rows", [...rows, { label: "", value: "" }]);
+  const removeRow = (idx: number) =>
+    handleChange("details_rows", rows.filter((_, i) => i !== idx));
+  const moveRow = (idx: number, dir: -1 | 1) => {
+    const j = idx + dir;
+    if (j < 0 || j >= rows.length) return;
+    const next = [...rows];
+    [next[idx], next[j]] = [next[j], next[idx]];
+    handleChange("details_rows", next);
+  };
+
+  const applyBulkPaste = () => {
+    if (!bulkPaste.trim()) return;
+    const parsed: DetailRow[] = bulkPaste
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        // Split on tab, then ":" or " - " or " — " or last whitespace before currency
+        let parts = line.split(/\t/);
+        if (parts.length < 2) parts = line.split(/\s*[:|\u2014\-]\s+/);
+        if (parts.length < 2) {
+          // Fallback: split at last whitespace
+          const m = line.match(/^(.*\S)\s+(\S+)$/);
+          if (m) parts = [m[1], m[2]];
+        }
+        return {
+          label: (parts[0] || "").trim(),
+          value: (parts.slice(1).join(" ") || "").trim(),
+        };
+      })
+      .filter((r) => r.label || r.value);
+    handleChange("details_rows", [...rows, ...parsed]);
+    setBulkPaste("");
+    toast.success(`Added ${parsed.length} row${parsed.length === 1 ? "" : "s"}`);
   };
 
   const handleSave = async () => {
@@ -70,42 +127,34 @@ export default function AdminFileDialog({ open, onOpenChange, item, onSaved }: A
       return;
     }
 
+    // Strip empty rows before save
+    const cleanRows = rows.filter((r) => r.label.trim() || r.value.trim());
+
     setSaving(true);
     try {
+      const payload: any = {
+        "File Name": formData.file_name,
+        "Description": formData.description,
+        "Images": formData.images,
+        "Folder Name": formData.folder_name,
+        "Drive Link Download": formData.drive_link_download,
+        "Drive Link share": formData.drive_link_share,
+        "View Video URL": formData.view_video_url,
+        "Price (DP)": formData.price_dp,
+        "Price (SRP)": formData.price_srp,
+        details_heading: formData.details_heading,
+        details_rows: cleanRows,
+      };
+
       if (formData.id) {
         const { error } = await supabase
-          .from("files_repository")
-          .update({
-            file_name: formData.file_name,
-            description: formData.description,
-            images: formData.images,
-            folder_name: formData.folder_name,
-            drive_link_download: formData.drive_link_download,
-            drive_link_share: formData.drive_link_share,
-            view_video_url: formData.view_video_url,
-            price_dp: formData.price_dp,
-            price_srp: formData.price_srp,
-            is_active: formData.is_active,
-            updated_at: new Date().toISOString(),
-          })
+          .from("IAM Files" as any)
+          .update(payload)
           .eq("id", formData.id);
-
         if (error) throw error;
         toast.success("File updated successfully");
       } else {
-        const { error } = await supabase.from("files_repository").insert({
-          file_name: formData.file_name,
-          description: formData.description,
-          images: formData.images,
-          folder_name: formData.folder_name,
-          drive_link_download: formData.drive_link_download,
-          drive_link_share: formData.drive_link_share,
-          view_video_url: formData.view_video_url,
-          price_dp: formData.price_dp,
-          price_srp: formData.price_srp,
-          is_active: formData.is_active,
-        });
-
+        const { error } = await supabase.from("IAM Files" as any).insert(payload);
         if (error) throw error;
         toast.success("File created successfully");
       }
@@ -122,16 +171,13 @@ export default function AdminFileDialog({ open, onOpenChange, item, onSaved }: A
 
   const handleDelete = async () => {
     if (!formData.id) return;
-
     setDeleting(true);
     try {
       const { error } = await supabase
-        .from("files_repository")
+        .from("IAM Files" as any)
         .delete()
         .eq("id", formData.id);
-
       if (error) throw error;
-
       toast.success("File deleted");
       onSaved();
       onOpenChange(false);
@@ -234,6 +280,72 @@ export default function AdminFileDialog({ open, onOpenChange, item, onSaved }: A
             folderPrefix="files-repository"
             maxSize={2}
           />
+
+          {/* ── Package / Product Details ── */}
+          <div className="space-y-3 p-3 rounded-lg border border-border bg-muted/30">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-semibold">Package Details Table</Label>
+              <span className="text-xs text-muted-foreground">{rows.length} row{rows.length === 1 ? "" : "s"}</span>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs">Heading (optional)</Label>
+              <Input
+                value={formData.details_heading || ""}
+                onChange={(e) => handleChange("details_heading", e.target.value || null)}
+                placeholder="e.g. The VIP package (Free additional products worth P50,000)"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs">Rows (Label · Value)</Label>
+              {rows.length === 0 && (
+                <p className="text-xs text-muted-foreground italic">No rows yet. Add one below or paste in bulk.</p>
+              )}
+              {rows.map((row, idx) => (
+                <div key={idx} className="flex gap-1 items-center">
+                  <Input
+                    value={row.label}
+                    onChange={(e) => updateRow(idx, { label: e.target.value })}
+                    placeholder="Label (e.g. Just 4 You)"
+                    className="flex-1"
+                  />
+                  <Input
+                    value={row.value}
+                    onChange={(e) => updateRow(idx, { value: e.target.value })}
+                    placeholder="Value (e.g. ₱200,000)"
+                    className="flex-1"
+                  />
+                  <Button type="button" size="icon" variant="ghost" className="h-9 w-9 shrink-0" onClick={() => moveRow(idx, -1)} disabled={idx === 0}>
+                    <ArrowUp className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" size="icon" variant="ghost" className="h-9 w-9 shrink-0" onClick={() => moveRow(idx, 1)} disabled={idx === rows.length - 1}>
+                    <ArrowDown className="w-4 h-4" />
+                  </Button>
+                  <Button type="button" size="icon" variant="ghost" className="h-9 w-9 shrink-0 text-destructive" onClick={() => removeRow(idx)}>
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button type="button" variant="outline" size="sm" className="w-full gap-2" onClick={addRow}>
+                <Plus className="w-4 h-4" /> Add Row
+              </Button>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-border">
+              <Label className="text-xs">Bulk paste (one per line, separate with Tab, “:”, or “-”)</Label>
+              <Textarea
+                value={bulkPaste}
+                onChange={(e) => setBulkPaste(e.target.value)}
+                placeholder={"Just 4 You\t₱200,000\nGive Me 5\t₱15,000\nRQV - 4,000"}
+                rows={4}
+                className="font-mono text-xs"
+              />
+              <Button type="button" variant="secondary" size="sm" className="w-full" onClick={applyBulkPaste} disabled={!bulkPaste.trim()}>
+                Append rows from paste
+              </Button>
+            </div>
+          </div>
 
           <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
             <Label>Active</Label>
