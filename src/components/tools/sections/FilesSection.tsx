@@ -127,6 +127,14 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
         is_active: true,
         details_heading: row.details_heading || null,
         details_rows: Array.isArray(row.details_rows) ? row.details_rows : [],
+        unilevel_points: row["Unilevel Points"] != null ? String(row["Unilevel Points"]) : null,
+        package_points_smc: row["Package Points (SMC)"] || null,
+        rqv: row["RQV"] || null,
+        infinity: row["Infinity"] || null,
+        check_match: row["Check Match"] || null,
+        give_me_5: row["Give Me 5"] || null,
+        just_4_you: row["Just 4 You"] || null,
+        wholesale_package_commission: row["Wholesale Package Commission"] || null,
       }));
 
       setItems(mapped);
