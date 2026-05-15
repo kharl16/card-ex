@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { cdnImage } from "@/lib/cdnImage";
 
 export interface KenBurnsItem {
   url: string;
@@ -21,6 +22,9 @@ interface KenBurnsRotatorProps {
   staticMotion?: boolean;
   /** Optional alt fallback used when item.alt is missing. */
   altFallback?: string;
+  /** Optional CDN-resize hint in CSS pixels. The helper requests a slightly
+   *  larger image to look crisp on retina screens. */
+  cdnWidth?: number;
 }
 
 /**
