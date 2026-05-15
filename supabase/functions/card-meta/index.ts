@@ -123,7 +123,7 @@ Deno.serve(async (req) => {
         headers: {
           ...corsHeaders,
           "Content-Type": "text/html; charset=utf-8",
-          "Cache-Control": "public, max-age=300",
+          "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
         },
       });
     }
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
       headers: {
         ...corsHeaders,
         "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": "public, max-age=300",
+        "Cache-Control": "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800",
       },
     });
   } catch (err) {
