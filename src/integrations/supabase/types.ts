@@ -712,6 +712,7 @@ export type Database = {
           referred_by_user_id: string | null
           share_url: string | null
           show_daily_quote: boolean
+          show_referral_earnings: boolean
           slug: string
           social_links: Json | null
           suffix: string | null
@@ -773,6 +774,7 @@ export type Database = {
           referred_by_user_id?: string | null
           share_url?: string | null
           show_daily_quote?: boolean
+          show_referral_earnings?: boolean
           slug: string
           social_links?: Json | null
           suffix?: string | null
@@ -834,6 +836,7 @@ export type Database = {
           referred_by_user_id?: string | null
           share_url?: string | null
           show_daily_quote?: boolean
+          show_referral_earnings?: boolean
           slug?: string
           social_links?: Json | null
           suffix?: string | null
