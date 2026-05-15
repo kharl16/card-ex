@@ -67,7 +67,7 @@ export default function BulkCoverReplaceTool() {
       const path = `${user.id}/bulk-banners/${Date.now()}.${ext}`;
       const { error } = await supabase.storage
         .from("media")
-        .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+        .upload(path, file, { cacheControl: "31536000", upsert: false, contentType: file.type });
       if (error) throw error;
       const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
       setBannerUrl(urlData.publicUrl);

@@ -122,7 +122,7 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
       const { error: uploadError } = await supabase.storage
         .from("media")
         .upload(path, file, {
-          cacheControl: "3600",
+          cacheControl: "31536000",
           upsert: true,
         });
 

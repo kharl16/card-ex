@@ -358,7 +358,7 @@ export default function CarouselImageUploader({
 
         const { error: uploadError } = await supabase.storage
           .from("cardex-products")
-          .upload(filePath, blob, { cacheControl: "3600", upsert: false });
+          .upload(filePath, blob, { cacheControl: "31536000", upsert: false });
 
         if (uploadError) throw uploadError;
 
