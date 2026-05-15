@@ -299,6 +299,7 @@ export default function CardEditor() {
         ad_banner: (card as any).ad_banner,
         image_carousels: (card as any).image_carousels,
         show_daily_quote: (card as any).show_daily_quote,
+        show_referral_earnings: (card as any).show_referral_earnings,
       })
       .eq("id", card.id);
 

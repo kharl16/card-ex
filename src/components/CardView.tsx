@@ -528,7 +528,7 @@ export default function CardView({
         })()}
 
         {/* Referral Earnings Badge — public proof of successful referrals */}
-        {card?.id && <ReferralEarningsBadge cardId={card.id} variant="card" />}
+        {card?.id && (card as any).show_referral_earnings && <ReferralEarningsBadge cardId={card.id} variant="card" />}
 
         {/* Carousel Sections */}
         {(() => {
