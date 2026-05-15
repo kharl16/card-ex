@@ -53,10 +53,26 @@ export default function KenBurnsRotator({
 
   useEffect(() => {
     if (safeItems.length <= 1 || autoPlayMs <= 0) return;
-    const id = window.setInterval(() => {
-      setActive((prev) => (prev + 1) % safeItems.length);
-    }, autoPlayMs);
-    return () => window.clearInterval(id);
+    let id: number | undefined;
+    const start = () => {
+      if (id !== undefined) return;
+      id = window.setInterval(() => {
+        setActive((prev) => (prev + 1) % safeItems.length);
+      }, autoPlayMs);
+    };
+    const stop = () => {
+      if (id !== undefined) {
+        window.clearInterval(id);
+        id = undefined;
+      }
+    };
+    if (typeof document === "undefined" || document.visibilityState === "visible") start();
+    const onVis = () => (document.visibilityState === "visible" ? start() : stop());
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [safeItems.length, autoPlayMs]);
 
   // Reset index if items array shrinks
