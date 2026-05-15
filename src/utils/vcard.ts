@@ -132,7 +132,7 @@ export async function ensureVCardUrl(card: CardData, additionalContacts?: Additi
   const { error: uploadError } = await supabase.storage
     .from("vcards") // 🔹 change "vcards" if your bucket name is different
     .upload(filePath, vcardContent, {
-      cacheControl: "3600",
+      cacheControl: "31536000",
       upsert: true,
       contentType: "text/vcard;charset=utf-8",
     });

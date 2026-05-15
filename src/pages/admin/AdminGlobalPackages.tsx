@@ -61,7 +61,7 @@ export default function AdminGlobalPackages() {
     }
     const path = `global-packages/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
     const { error } = await supabase.storage.from("media").upload(path, file, {
-      cacheControl: "3600",
+      cacheControl: "31536000",
       upsert: false,
     });
     if (error) {

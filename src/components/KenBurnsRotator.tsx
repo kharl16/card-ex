@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { cdnImage } from "@/lib/cdnImage";
 
 export interface KenBurnsItem {
   url: string;
@@ -21,6 +22,9 @@ interface KenBurnsRotatorProps {
   staticMotion?: boolean;
   /** Optional alt fallback used when item.alt is missing. */
   altFallback?: string;
+  /** Optional CDN-resize hint in CSS pixels. The helper requests a slightly
+   *  larger image to look crisp on retina screens. */
+  cdnWidth?: number;
 }
 
 /**
@@ -39,6 +43,7 @@ export default function KenBurnsRotator({
   background,
   staticMotion = false,
   altFallback,
+  cdnWidth,
 }: KenBurnsRotatorProps) {
   const safeItems = useMemo(
     () => items.filter((it) => it && typeof it.url === "string" && it.url),
@@ -48,10 +53,26 @@ export default function KenBurnsRotator({
 
   useEffect(() => {
     if (safeItems.length <= 1 || autoPlayMs <= 0) return;
-    const id = window.setInterval(() => {
-      setActive((prev) => (prev + 1) % safeItems.length);
-    }, autoPlayMs);
-    return () => window.clearInterval(id);
+    let id: number | undefined;
+    const start = () => {
+      if (id !== undefined) return;
+      id = window.setInterval(() => {
+        setActive((prev) => (prev + 1) % safeItems.length);
+      }, autoPlayMs);
+    };
+    const stop = () => {
+      if (id !== undefined) {
+        window.clearInterval(id);
+        id = undefined;
+      }
+    };
+    if (typeof document === "undefined" || document.visibilityState === "visible") start();
+    const onVis = () => (document.visibilityState === "visible" ? start() : stop());
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, [safeItems.length, autoPlayMs]);
 
   // Reset index if items array shrinks
@@ -96,8 +117,9 @@ export default function KenBurnsRotator({
         return (
           <img
             key={`${item.url}-${idx}`}
-            src={item.url}
+            src={cdnWidth ? cdnImage(item.url, { width: Math.round(cdnWidth * 2), quality: 80 }) : item.url}
             alt={item.alt || altFallback || `Image ${idx + 1}`}
+            decoding="async"
             loading={idx === 0 ? "eager" : "lazy"}
             draggable={false}
             className={imgClassName}

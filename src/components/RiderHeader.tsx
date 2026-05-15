@@ -85,6 +85,7 @@ export default function RiderHeader({
             objectFit="cover"
             className="absolute inset-0 h-full w-full"
             altFallback={`${name || "Profile"} cover photo`}
+            cdnWidth={800}
           />
         )}
 
@@ -133,6 +134,7 @@ export default function RiderHeader({
                   objectFit={avatarDisplayMode === "contain" ? "contain" : "cover"}
                   className="h-full w-full"
                   altFallback={name || "Profile"}
+                  cdnWidth={160}
                 />
               )}
             </div>
@@ -158,6 +160,7 @@ export default function RiderHeader({
               objectFit={logoDisplayMode === "contain" ? "contain" : "cover"}
               className="h-full w-full"
               altFallback={`${name || "Card"} company logo`}
+              cdnWidth={160}
             />
           </div>
         )}

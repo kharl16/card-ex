@@ -93,7 +93,7 @@ export default function ProductImageUploader({
 
           // Upload to storage
           const { error: uploadError } = await supabase.storage.from("cardex-products").upload(filePath, fileToUpload, {
-            cacheControl: "3600",
+            cacheControl: "31536000",
             upsert: false,
           });
 

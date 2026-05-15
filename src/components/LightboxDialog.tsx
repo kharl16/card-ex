@@ -5,6 +5,7 @@ import { ZoomIn, ZoomOut, X, Download, Share2, ChevronLeft, ChevronRight } from 
 import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
 import type { LightboxImage } from "@/hooks/useLightbox";
+import { cdnImage } from "@/lib/cdnImage";
 
 export interface LightboxDialogProps {
   open: boolean;
@@ -253,7 +254,7 @@ export default function LightboxDialog({
               <div className="flex-1 flex items-center justify-center w-full p-8 min-h-0">
                 {currentImage && (
                   <img
-                    src={currentImage.url}
+                    src={cdnImage(currentImage.url, { width: 1600, quality: 85 })}
                     alt={currentImage.alt ?? ""}
                     className="max-w-full max-h-full object-contain"
                     style={{

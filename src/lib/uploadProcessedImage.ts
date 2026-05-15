@@ -41,7 +41,7 @@ export async function uploadProcessedImage(
   const { data, error } = await supabase.storage
     .from(bucket)
     .upload(path, file, {
-      cacheControl: "3600",
+      cacheControl: "31536000",
       upsert: true,
       contentType: "image/webp",
     });

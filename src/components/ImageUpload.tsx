@@ -96,7 +96,7 @@ export function ImageUpload({
       const fileName = `${basePath}/${timestamp}.jpg`;
 
       const { data, error } = await supabase.storage.from(bucket).upload(fileName, blob, {
-        cacheControl: "3600",
+        cacheControl: "31536000",
         upsert: false,
         contentType: "image/jpeg",
       });
