@@ -349,6 +349,26 @@ export function BasicInformationSection({
           onCheckedChange={(checked) => onCardChange({ show_daily_quote: checked } as any)}
         />
       </div>
+
+      {/* Referral earnings badge toggle */}
+      <div className="flex items-start justify-between gap-4 rounded-xl border border-primary/15 bg-primary/[0.03] p-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+          <div className="min-w-0">
+            <Label htmlFor="show_referral_earnings" className="text-sm font-semibold cursor-pointer">
+              Show referral earnings
+            </Label>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+              Display your referral earnings badge on the public card and preview.
+            </p>
+          </div>
+        </div>
+        <Switch
+          id="show_referral_earnings"
+          checked={!!(card as any).show_referral_earnings}
+          onCheckedChange={(checked) => onCardChange({ show_referral_earnings: checked } as any)}
+        />
+      </div>
     </div>
   );
 }
