@@ -178,6 +178,7 @@ export function buildCardSnapshot(
     avatar_url: card.avatar_url || null,
     image_carousels: card.image_carousels || null,
     show_daily_quote: (card as any).show_daily_quote ?? false,
+    show_referral_earnings: (card as any).show_referral_earnings ?? false,
     
     // Identity
     full_name: card.full_name || null,
