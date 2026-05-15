@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import type { CarouselKind } from "@/lib/share";
+import { cdnImage } from "@/lib/cdnImage";
 
 // Types
 export type CardExCarouselMode = "roulette" | "ring3d" | "flat";
@@ -248,10 +249,12 @@ function RouletteMode({
                       aria-label={img.alt || `View image ${logicalIndex + 1}`}
                     >
                       <img
-                        src={img.url}
+                        src={cdnImage(img.url, { width: 800, quality: 80 })}
                         alt={img.alt ?? ""}
                         className="h-full w-full object-contain"
                         draggable={false}
+                        loading={Math.abs(logicalIndex - activeIndex) > 1 ? "lazy" : "eager"}
+                        decoding="async"
                       />
                       {img.badge && (
                         <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
@@ -464,10 +467,12 @@ function FlatMode({
                     aria-label={item.alt || `View image ${index + 1}`}
                   >
                     <img
-                      src={item.url}
+                      src={cdnImage(item.url, { width: 480, quality: 80 })}
                       alt={item.alt ?? ""}
                       className="h-full w-full object-contain"
                       draggable={false}
+                      loading="lazy"
+                      decoding="async"
                     />
                     {item.badge && (
                       <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
