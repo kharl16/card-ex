@@ -253,7 +253,7 @@ function RouletteMode({
                         alt={img.alt ?? ""}
                         className="h-full w-full object-contain"
                         draggable={false}
-                        loading={Math.abs(logicalIndex - activeIndex) > 1 ? "lazy" : "eager"}
+                        loading={Math.abs(logicalIndex - Math.round(logicalCenter)) > 1 ? "lazy" : "eager"}
                         decoding="async"
                       />
                       {img.badge && (
