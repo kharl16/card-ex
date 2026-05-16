@@ -169,6 +169,8 @@ export default function RiderHeader({
               className="h-full w-full"
               altFallback={`${name || "Card"} company logo`}
               cdnWidth={160}
+              lazyStart
+              preloadAhead={1}
             />
           </div>
         )}
