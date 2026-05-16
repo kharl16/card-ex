@@ -80,13 +80,16 @@ export default function RiderHeader({
         }}
       >
         {cover.items.length > 0 && (
-          <KenBurnsRotator
-            items={cover.items}
-            autoPlayMs={cover.autoPlayMs}
-            objectFit="cover"
+          <img
+            src={cdnImage(cover.items[0].url, { width: 1600, quality: 80 })}
+            alt={cover.items[0].alt || `${name || "Profile"} cover photo`}
+            loading="eager"
+            decoding="async"
+            // @ts-ignore - fetchpriority is valid HTML
+            fetchpriority="high"
+            draggable={false}
             className="absolute inset-0 h-full w-full"
-            altFallback={`${name || "Profile"} cover photo`}
-            cdnWidth={800}
+            style={{ objectFit: "cover", userSelect: "none" }}
           />
         )}
 
