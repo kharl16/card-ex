@@ -127,11 +127,14 @@ export default function RiderHeader({
   const logo = resolveSlot(carousels, "logo", companyLogoUrl);
 
   return (
-    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-x-clip overflow-y-visible z-30">
-      {/* Cover image (rotating Ken Burns when multiple) */}
+    <div className="relative mt-0 mb-4 w-full max-w-full overflow-x-clip overflow-y-visible z-30">
+      {/* Cover image: exact frame, no carousel/zoom */}
       <div
-        className="relative h-48 sm:h-56 w-full overflow-hidden"
+        className="relative block w-full max-w-full overflow-hidden p-0"
         style={{
+          aspectRatio: "16 / 6.55",
+          height: "auto",
+          minHeight: 0,
           backgroundImage:
             cover.items.length === 0 && primaryColor
               ? `linear-gradient(to bottom right, ${primaryColor}33, ${primaryColor}0D)`
@@ -147,8 +150,8 @@ export default function RiderHeader({
             decoding="async"
             loading="eager"
             draggable={false}
-            className="absolute inset-0 h-full w-full"
-            style={{ objectFit: "fill" }}
+            className="absolute inset-0 block h-full w-full max-w-none"
+            style={{ objectFit: IMAGE_FIT_NO_CROP, objectPosition: "center" }}
           />
         )}
 
@@ -167,9 +170,9 @@ export default function RiderHeader({
       />
 
       {/* Avatar & Logo row */}
-      <div className="absolute left-0 right-0 top-48 sm:top-56 -translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
+      <div className="absolute left-0 right-0 top-[calc(100%-5.5rem)] -translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
         {/* Avatar with animated rotating ring */}
-        <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-luxury transition-all duration-500 hover:scale-105 group/avatar pointer-events-auto">
+        <div className="relative size-24 sm:size-28 shrink-0 rounded-full shadow-luxury transition-all duration-500 hover:scale-105 group/avatar pointer-events-auto">
           {/* Rotating conic-gradient ring */}
           <div
             className="absolute inset-0 rounded-full animate-ring-rotate"
@@ -188,8 +191,8 @@ export default function RiderHeader({
           />
 
           {/* Inner black circle + avatar */}
-          <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
-            <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
+          <div className="absolute inset-[3px] rounded-full bg-black p-0 overflow-hidden">
+            <div className="absolute inset-0 rounded-full overflow-hidden bg-black p-0">
               {avatar.items.length > 0 && (
                 <img
                   src={cdnImage(avatar.items[0].url, { width: 320, quality: 80 })}
@@ -197,8 +200,8 @@ export default function RiderHeader({
                   decoding="async"
                   loading="eager"
                   draggable={false}
-                  className="h-full w-full"
-                  style={{ objectFit: "cover" }}
+                  className="block h-full w-full max-w-none"
+                  style={{ objectFit: IMAGE_FIT_NO_CROP, objectPosition: "center" }}
                 />
               )}
             </div>
@@ -208,7 +211,7 @@ export default function RiderHeader({
         {/* Company logo – glassmorphic square */}
         {logo.items.length > 0 && (
           <div
-            className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden shadow-luxury flex items-center justify-center hover:scale-105 transition-all duration-500 pointer-events-auto glass-shimmer"
+            className="size-24 sm:size-28 shrink-0 rounded-2xl overflow-hidden shadow-luxury p-0 hover:scale-105 transition-all duration-500 pointer-events-auto glass-shimmer"
             style={{
               background: "var(--glass-bg)",
               backdropFilter: "blur(var(--glass-blur))",
