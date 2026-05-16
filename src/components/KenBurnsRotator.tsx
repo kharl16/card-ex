@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { cdnImage } from "@/lib/cdnImage";
 
 export interface KenBurnsItem {
@@ -25,12 +25,6 @@ interface KenBurnsRotatorProps {
   /** Optional CDN-resize hint in CSS pixels. The helper requests a slightly
    *  larger image to look crisp on retina screens. */
   cdnWidth?: number;
-  /** When true, defer starting the auto-rotation until the component has been
-   *  visible in the viewport for a short delay. Also pauses when offscreen. */
-  lazyStart?: boolean;
-  /** Number of upcoming slides to keep mounted alongside the active one.
-   *  Other slides render as a placeholder until they're about to be shown. */
-  preloadAhead?: number;
 }
 
 /**
@@ -50,51 +44,15 @@ export default function KenBurnsRotator({
   staticMotion = false,
   altFallback,
   cdnWidth,
-  lazyStart = false,
-  preloadAhead = Infinity,
 }: KenBurnsRotatorProps) {
   const safeItems = useMemo(
     () => items.filter((it) => it && typeof it.url === "string" && it.url),
     [items]
   );
   const [active, setActive] = useState(0);
-  const [canStart, setCanStart] = useState(!lazyStart);
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [inView, setInView] = useState(!lazyStart);
-
-  // Lazy start: wait until the element is intersecting the viewport for ~5s
-  useEffect(() => {
-    if (!lazyStart) return;
-    const el = containerRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
-      setCanStart(true);
-      setInView(true);
-      return;
-    }
-    let delayId: number | undefined;
-    const io = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.some((e) => e.isIntersecting);
-        setInView(visible);
-        if (visible && delayId === undefined) {
-          delayId = window.setTimeout(() => setCanStart(true), 5000);
-        } else if (!visible && delayId !== undefined) {
-          window.clearTimeout(delayId);
-          delayId = undefined;
-        }
-      },
-      { threshold: 0.25 }
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      if (delayId !== undefined) window.clearTimeout(delayId);
-    };
-  }, [lazyStart]);
 
   useEffect(() => {
     if (safeItems.length <= 1 || autoPlayMs <= 0) return;
-    if (!canStart || !inView) return;
     let id: number | undefined;
     const start = () => {
       if (id !== undefined) return;
@@ -115,7 +73,7 @@ export default function KenBurnsRotator({
       stop();
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [safeItems.length, autoPlayMs, canStart, inView]);
+  }, [safeItems.length, autoPlayMs]);
 
   // Reset index if items array shrinks
   useEffect(() => {
@@ -124,11 +82,12 @@ export default function KenBurnsRotator({
 
   if (safeItems.length === 0) return null;
 
+  // Each cycle: total duration ≈ autoPlayMs + fadeMs so motion finishes around
+  // crossfade time. We stagger animation-delay per slot using nth-child semantics.
   const motionDuration = Math.max(autoPlayMs + fadeMs, 4000);
 
   return (
     <div
-      ref={containerRef}
       className={className}
       style={{
         position: "relative",
@@ -136,6 +95,7 @@ export default function KenBurnsRotator({
         background,
       }}
     >
+      {/* Inline keyframes so we don't depend on global config */}
       <style>{`
         @keyframes kenburns-a {
           0%   { transform: scale(1.0)  translate(0%, 0%); }
@@ -154,10 +114,6 @@ export default function KenBurnsRotator({
       {safeItems.map((item, idx) => {
         const isActive = idx === active;
         const motionName = ["kenburns-a", "kenburns-b", "kenburns-c"][idx % 3];
-        // Only mount the active slide and the next `preloadAhead` slides (circular)
-        const distance = (idx - active + safeItems.length) % safeItems.length;
-        const shouldMount = distance <= preloadAhead;
-        if (!shouldMount) return null;
         return (
           <img
             key={`${item.url}-${idx}`}

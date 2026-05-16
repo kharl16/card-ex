@@ -1,6 +1,5 @@
 import React from "react";
 import KenBurnsRotator from "@/components/KenBurnsRotator";
-import { cdnImage } from "@/lib/cdnImage";
 import {
   parseImageCarousels,
   resolveSlot,
@@ -80,16 +79,13 @@ export default function RiderHeader({
         }}
       >
         {cover.items.length > 0 && (
-          <img
-            src={cdnImage(cover.items[0].url, { width: 1600, quality: 80 })}
-            alt={cover.items[0].alt || `${name || "Profile"} cover photo`}
-            loading="eager"
-            decoding="async"
-            // @ts-ignore - fetchpriority is valid HTML
-            fetchpriority="high"
-            draggable={false}
+          <KenBurnsRotator
+            items={cover.items}
+            autoPlayMs={cover.autoPlayMs}
+            objectFit="cover"
             className="absolute inset-0 h-full w-full"
-            style={{ objectFit: "cover", userSelect: "none" }}
+            altFallback={`${name || "Profile"} cover photo`}
+            cdnWidth={800}
           />
         )}
 
@@ -132,17 +128,13 @@ export default function RiderHeader({
           <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
             <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
               {avatar.items.length > 0 && (
-                <img
-                  src={cdnImage(avatar.items[0].url, { width: 240, quality: 80 })}
-                  alt={avatar.items[0].alt || name || "Profile"}
-                  loading="eager"
-                  decoding="async"
-                  draggable={false}
+                <KenBurnsRotator
+                  items={avatar.items}
+                  autoPlayMs={avatar.autoPlayMs}
+                  objectFit={avatarDisplayMode === "contain" ? "contain" : "cover"}
                   className="h-full w-full"
-                  style={{
-                    objectFit: avatarDisplayMode === "contain" ? "contain" : "cover",
-                    userSelect: "none",
-                  }}
+                  altFallback={name || "Profile"}
+                  cdnWidth={160}
                 />
               )}
             </div>
@@ -169,8 +161,6 @@ export default function RiderHeader({
               className="h-full w-full"
               altFallback={`${name || "Card"} company logo`}
               cdnWidth={160}
-              lazyStart
-              preloadAhead={1}
             />
           </div>
         )}
