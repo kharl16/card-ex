@@ -7,6 +7,10 @@ import {
 } from "@/lib/imageCarousels";
 
 const IMAGE_FIT_NO_CROP = "fill" as const;
+const COVER_ASPECT_RATIO = "2.43 / 1";
+const COVER_RENDER_WIDTH = 1600;
+const COVER_RENDER_HEIGHT = Math.round(COVER_RENDER_WIDTH / 2.43);
+const SQUARE_RENDER_SIZE = 320;
 
 /**
  * Crossfade-only rotator for the company logo: opacity transition between
@@ -50,7 +54,12 @@ function LogoCrossfade({
       {safe.map((item, idx) => (
         <img
           key={`${item.url}-${idx}`}
-          src={cdnImage(item.url, { width: 320, quality: 80 })}
+          src={cdnImage(item.url, {
+            width: SQUARE_RENDER_SIZE,
+            height: SQUARE_RENDER_SIZE,
+            resize: IMAGE_FIT_NO_CROP,
+            quality: 80,
+          })}
           alt={item.alt || alt}
           decoding="async"
           loading={idx === 0 ? "eager" : "lazy"}
@@ -59,6 +68,8 @@ function LogoCrossfade({
           style={{
             objectFit: IMAGE_FIT_NO_CROP,
             objectPosition: "center",
+            width: "100%",
+            height: "100%",
             opacity: idx === active ? 1 : 0,
             transition: "opacity 1000ms ease-in-out",
           }}
