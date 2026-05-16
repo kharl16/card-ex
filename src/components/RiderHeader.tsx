@@ -156,13 +156,10 @@ export default function RiderHeader({
               boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
             }}
           >
-            <KenBurnsRotator
+            <LogoCrossfade
               items={logo.items}
               autoPlayMs={logo.autoPlayMs}
-              objectFit={logoDisplayMode === "contain" ? "contain" : "cover"}
-              className="h-full w-full"
-              altFallback={`${name || "Card"} company logo`}
-              cdnWidth={160}
+              alt={`${name || "Card"} company logo`}
             />
           </div>
         )}
