@@ -141,57 +141,61 @@ export default function RiderHeader({
     <div className="relative mt-0 mb-4 w-full max-w-full overflow-x-clip overflow-y-visible z-30">
       {/* Cover image: exact frame, no carousel/zoom */}
       <div
-        className="relative block w-full max-w-full overflow-hidden p-0"
+        className="relative block w-full max-w-full overflow-visible p-0"
         style={{
           aspectRatio: COVER_ASPECT_RATIO,
           height: "auto",
           minHeight: 0,
-          backgroundImage:
-            cover.items.length === 0 && primaryColor
-              ? `linear-gradient(to bottom right, ${primaryColor}33, ${primaryColor}0D)`
-              : undefined,
-          backgroundColor:
-            cover.items.length === 0 && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
         }}
       >
-        {cover.items.length > 0 && (
-          <img
-            src={cdnImage(cover.items[0].url, {
-              width: COVER_RENDER_WIDTH,
-              height: COVER_RENDER_HEIGHT,
-              resize: IMAGE_FIT_NO_CROP,
-              quality: 80,
-            })}
-            alt={cover.items[0].alt || `${name || "Profile"} cover photo`}
-            decoding="async"
-            loading="eager"
-            draggable={false}
-            className="absolute inset-0 block h-full w-full max-w-none"
-            style={{
-              objectFit: IMAGE_FIT_NO_CROP,
-              objectPosition: "center",
-              width: "100%",
-              height: "100%",
-            }}
-          />
-        )}
+        <div
+          className="absolute inset-0 overflow-hidden p-0"
+          style={{
+            backgroundImage:
+              cover.items.length === 0 && primaryColor
+                ? `linear-gradient(to bottom right, ${primaryColor}33, ${primaryColor}0D)`
+                : undefined,
+            backgroundColor:
+              cover.items.length === 0 && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
+          }}
+        >
+          {cover.items.length > 0 && (
+            <img
+              src={cdnImage(cover.items[0].url, {
+                width: COVER_RENDER_WIDTH,
+                height: COVER_RENDER_HEIGHT,
+                resize: IMAGE_FIT_NO_CROP,
+                quality: 80,
+              })}
+              alt={cover.items[0].alt || `${name || "Profile"} cover photo`}
+              decoding="async"
+              loading="eager"
+              draggable={false}
+              className="absolute inset-0 block h-full w-full max-w-none"
+              style={{
+                objectFit: IMAGE_FIT_NO_CROP,
+                objectPosition: "center",
+                width: "100%",
+                height: "100%",
+              }}
+            />
+          )}
 
-        {/* Luxury gradient overlay */}
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
-      </div>
+          {/* Luxury gradient overlay */}
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
+        </div>
 
-      {/* Gold accent line under cover */}
-      <div
-        className="absolute left-0 right-0 h-[3px] animate-gold-pulse"
-        style={{
-          top: "calc(100% - 5.5rem)",
-          background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${lighterPrimary} 50%, ${basePrimary}80 70%, transparent 100%)`,
-          boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30`,
-        }}
-      />
+        {/* Gold accent line under cover */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-[3px] animate-gold-pulse"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${lighterPrimary} 50%, ${basePrimary}80 70%, transparent 100%)`,
+            boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30`,
+          }}
+        />
 
-      {/* Avatar & Logo row */}
-      <div className="absolute left-0 right-0 top-[calc(100%-5.5rem)] -translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
+        {/* Avatar & Logo row */}
+        <div className="absolute left-0 right-0 bottom-0 translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
         {/* Avatar with animated rotating ring */}
         <div className="relative size-24 sm:size-28 shrink-0 rounded-full shadow-luxury transition-all duration-500 hover:scale-105 group/avatar pointer-events-auto">
           {/* Rotating conic-gradient ring */}
@@ -259,6 +263,7 @@ export default function RiderHeader({
             />
           </div>
         )}
+        </div>
       </div>
 
       {/* Spacer */}
