@@ -1,5 +1,6 @@
 import React from "react";
 import KenBurnsRotator from "@/components/KenBurnsRotator";
+import { cdnImage } from "@/lib/cdnImage";
 import {
   parseImageCarousels,
   resolveSlot,
