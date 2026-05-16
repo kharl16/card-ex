@@ -145,7 +145,7 @@ export default function RiderHeader({
             loading="eager"
             draggable={false}
             className="absolute inset-0 h-full w-full"
-            style={{ objectFit: "contain", background: "#000" }}
+            style={{ objectFit: "fill" }}
           />
         )}
 
