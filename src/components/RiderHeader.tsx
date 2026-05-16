@@ -130,13 +130,14 @@ export default function RiderHeader({
           <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
             <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
               {avatar.items.length > 0 && (
-                <KenBurnsRotator
-                  items={avatar.items}
-                  autoPlayMs={avatar.autoPlayMs}
-                  objectFit={avatarDisplayMode === "contain" ? "contain" : "cover"}
+                <img
+                  src={cdnImage(avatar.items[0].url, { width: 320, quality: 80 })}
+                  alt={avatar.items[0].alt || name || "Profile"}
+                  decoding="async"
+                  loading="eager"
+                  draggable={false}
                   className="h-full w-full"
-                  altFallback={name || "Profile"}
-                  cdnWidth={160}
+                  style={{ objectFit: avatarDisplayMode === "contain" ? "contain" : "cover" }}
                 />
               )}
             </div>
