@@ -205,7 +205,7 @@ export default function RiderHeader({
         {/* Company logo – glassmorphic square */}
         {logo.items.length > 0 && (
           <div
-            className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden shadow-luxury flex items-center justify-center p-2 hover:scale-105 transition-all duration-500 pointer-events-auto glass-shimmer"
+            className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden shadow-luxury flex items-center justify-center hover:scale-105 transition-all duration-500 pointer-events-auto glass-shimmer"
             style={{
               background: "var(--glass-bg)",
               backdropFilter: "blur(var(--glass-blur))",
