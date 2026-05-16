@@ -1,5 +1,4 @@
-import React from "react";
-import KenBurnsRotator from "@/components/KenBurnsRotator";
+import React, { useEffect, useState } from "react";
 import { cdnImage } from "@/lib/cdnImage";
 import {
   parseImageCarousels,
