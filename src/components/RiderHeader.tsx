@@ -136,7 +136,7 @@ export default function RiderHeader({
                   loading="eager"
                   draggable={false}
                   className="h-full w-full"
-                  style={{ objectFit: avatarDisplayMode === "contain" ? "contain" : "cover" }}
+                  style={{ objectFit: "contain" }}
                 />
               )}
             </div>
