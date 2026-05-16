@@ -6,9 +6,11 @@ import {
   type ImageCarouselsData,
 } from "@/lib/imageCarousels";
 
+const IMAGE_FIT_NO_CROP = "fill" as const;
+
 /**
  * Crossfade-only rotator for the company logo: opacity transition between
- * images, no zoom/pan, always object-fit: contain so the full mark is visible.
+ * images, no zoom/pan, stretched to the exact placeholder box without cropping.
  */
 function LogoCrossfade({
   items,
@@ -44,7 +46,7 @@ function LogoCrossfade({
   }, [safe.length, autoPlayMs]);
   if (safe.length === 0) return null;
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full overflow-hidden p-0">
       {safe.map((item, idx) => (
         <img
           key={`${item.url}-${idx}`}
@@ -53,9 +55,10 @@ function LogoCrossfade({
           decoding="async"
           loading={idx === 0 ? "eager" : "lazy"}
           draggable={false}
-          className="absolute inset-0 h-full w-full"
+          className="absolute inset-0 block h-full w-full max-w-none"
           style={{
-            objectFit: "cover",
+            objectFit: IMAGE_FIT_NO_CROP,
+            objectPosition: "center",
             opacity: idx === active ? 1 : 0,
             transition: "opacity 1000ms ease-in-out",
           }}
