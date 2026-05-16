@@ -143,7 +143,7 @@ export default function RiderHeader({
       <div
         className="relative block w-full max-w-full overflow-hidden p-0"
         style={{
-          aspectRatio: "16 / 6.55",
+          aspectRatio: COVER_ASPECT_RATIO,
           height: "auto",
           minHeight: 0,
           backgroundImage:
@@ -156,13 +156,23 @@ export default function RiderHeader({
       >
         {cover.items.length > 0 && (
           <img
-            src={cdnImage(cover.items[0].url, { width: 1600, quality: 80 })}
+            src={cdnImage(cover.items[0].url, {
+              width: COVER_RENDER_WIDTH,
+              height: COVER_RENDER_HEIGHT,
+              resize: IMAGE_FIT_NO_CROP,
+              quality: 80,
+            })}
             alt={cover.items[0].alt || `${name || "Profile"} cover photo`}
             decoding="async"
             loading="eager"
             draggable={false}
             className="absolute inset-0 block h-full w-full max-w-none"
-            style={{ objectFit: IMAGE_FIT_NO_CROP, objectPosition: "center" }}
+            style={{
+              objectFit: IMAGE_FIT_NO_CROP,
+              objectPosition: "center",
+              width: "100%",
+              height: "100%",
+            }}
           />
         )}
 
@@ -206,13 +216,23 @@ export default function RiderHeader({
             <div className="absolute inset-0 rounded-full overflow-hidden bg-black p-0">
               {avatar.items.length > 0 && (
                 <img
-                  src={cdnImage(avatar.items[0].url, { width: 320, quality: 80 })}
+                  src={cdnImage(avatar.items[0].url, {
+                    width: SQUARE_RENDER_SIZE,
+                    height: SQUARE_RENDER_SIZE,
+                    resize: IMAGE_FIT_NO_CROP,
+                    quality: 80,
+                  })}
                   alt={avatar.items[0].alt || name || "Profile"}
                   decoding="async"
                   loading="eager"
                   draggable={false}
                   className="block h-full w-full max-w-none"
-                  style={{ objectFit: IMAGE_FIT_NO_CROP, objectPosition: "center" }}
+                  style={{
+                    objectFit: IMAGE_FIT_NO_CROP,
+                    objectPosition: "center",
+                    width: "100%",
+                    height: "100%",
+                  }}
                 />
               )}
             </div>
