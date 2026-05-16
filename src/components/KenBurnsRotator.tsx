@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { cdnImage } from "@/lib/cdnImage";
 
 export interface KenBurnsItem {
