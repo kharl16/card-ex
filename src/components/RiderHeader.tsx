@@ -1,11 +1,69 @@
-import React from "react";
-import KenBurnsRotator from "@/components/KenBurnsRotator";
+import React, { useEffect, useState } from "react";
 import { cdnImage } from "@/lib/cdnImage";
 import {
   parseImageCarousels,
   resolveSlot,
   type ImageCarouselsData,
 } from "@/lib/imageCarousels";
+
+/**
+ * Crossfade-only rotator for the company logo: opacity transition between
+ * images, no zoom/pan, always object-fit: contain so the full mark is visible.
+ */
+function LogoCrossfade({
+  items,
+  autoPlayMs = 5000,
+  alt,
+}: {
+  items: { url: string; alt?: string }[];
+  autoPlayMs?: number;
+  alt: string;
+}) {
+  const safe = items.filter((it) => it && typeof it.url === "string" && it.url);
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    if (safe.length <= 1 || autoPlayMs <= 0) return;
+    let id: number | undefined;
+    const start = () => {
+      if (id !== undefined) return;
+      id = window.setInterval(() => setActive((p) => (p + 1) % safe.length), autoPlayMs);
+    };
+    const stop = () => {
+      if (id !== undefined) {
+        window.clearInterval(id);
+        id = undefined;
+      }
+    };
+    if (typeof document === "undefined" || document.visibilityState === "visible") start();
+    const onVis = () => (document.visibilityState === "visible" ? start() : stop());
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, [safe.length, autoPlayMs]);
+  if (safe.length === 0) return null;
+  return (
+    <div className="relative h-full w-full">
+      {safe.map((item, idx) => (
+        <img
+          key={`${item.url}-${idx}`}
+          src={cdnImage(item.url, { width: 320, quality: 80 })}
+          alt={item.alt || alt}
+          decoding="async"
+          loading={idx === 0 ? "eager" : "lazy"}
+          draggable={false}
+          className="absolute inset-0 h-full w-full"
+          style={{
+            objectFit: "contain",
+            opacity: idx === active ? 1 : 0,
+            transition: "opacity 1000ms ease-in-out",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 interface RiderHeaderProps {
   coverUrl?: string | null;
@@ -137,7 +195,7 @@ export default function RiderHeader({
                   loading="eager"
                   draggable={false}
                   className="h-full w-full"
-                  style={{ objectFit: avatarDisplayMode === "contain" ? "contain" : "cover" }}
+                  style={{ objectFit: "contain" }}
                 />
               )}
             </div>
@@ -157,13 +215,10 @@ export default function RiderHeader({
               boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
             }}
           >
-            <KenBurnsRotator
+            <LogoCrossfade
               items={logo.items}
               autoPlayMs={logo.autoPlayMs}
-              objectFit={logoDisplayMode === "contain" ? "contain" : "cover"}
-              className="h-full w-full"
-              altFallback={`${name || "Card"} company logo`}
-              cdnWidth={160}
+              alt={`${name || "Card"} company logo`}
             />
           </div>
         )}

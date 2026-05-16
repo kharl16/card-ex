@@ -1,87 +1,39 @@
-# Why your cached egress is high
+## Goal
 
-"Cached egress" on Supabase = total bytes the Storage CDN serves to browsers (cache hits + misses). Three things in this project are amplifying it:
+Make the cover photo, profile picture, and company logo render exactly like attachment #2 — the full image fits inside its placeholder with no cropping and no zoom — on every card (existing and new).
 
-## Findings from your project
+## Diagnosis
 
-**1. Stored files are much larger than they need to be**
-Top offenders in `cardex-products` (141 MB total, 276 files):
-- Several **4.5–4.8 MB PNG** testimony/product images
-- A pile of identical **877 KB PNG** product images repeated across many cards (looks like the same global product photo re-uploaded per card)
-- `qrcodes` bucket: **127 MB across 1,220 PNGs**, up to 268 KB each — QR codes should be ~5–15 KB
+Attachment #1 (zoomed) vs attachment #2 (perfect fit) differ for two reasons:
 
-**2. Cache lifetime is only 1 hour**
-Every upload in the codebase sets `cacheControl: "3600"` (1h):
-```
-src/lib/uploadProcessedImage.ts
-src/components/ImageUpload.tsx
-src/components/ProductImageUploader.tsx
-src/components/carousel/CarouselImageUploader.tsx
-src/components/admin/BulkCoverReplaceTool.tsx
-src/pages/admin/AdminGlobalProducts.tsx
-src/pages/admin/AdminGlobalPackages.tsx
-src/components/tools/admin/AdminDirectoryDialog.tsx
-src/utils/vcard.ts
-```
-After 1h the CDN edge evicts the object and the next viewer re-downloads the full file from origin, then it's served again — so the same image gets counted toward egress repeatedly.
+1. **Logo still animates with Ken Burns zoom.** `RiderHeader.tsx` renders the company logo via `KenBurnsRotator`, which applies a `scale(1.0 → 1.22)` transform every cycle. Mid-animation the logo looks cropped (you only see the "N" instead of the full IAM mark).
+2. **Cover/avatar respect a per-card display mode that can be `"cover"`.** `RiderHeader` already uses `objectFit: "contain"` for cover, and `avatarDisplayMode === "contain" ? "contain" : "cover"` for the avatar. But `theme.avatarDisplayMode` / `theme.logoDisplayMode` are stored per card and many existing cards were saved as `"cover"`, so they still crop/zoom on render.
 
-**3. Full-resolution originals are served everywhere**
-`CardExCarousel`, `LightboxDialog`, gallery thumbs, dashboard previews and OG/share renders all load the original `getPublicUrl(...)` URL. A 200 px carousel thumb on a phone is currently downloading the same 4.8 MB PNG as the lightbox. Supabase Storage's image transformation API (`?width=…&quality=…&format=origin`) is not used anywhere.
+## Plan
 
-**4. Auto-rotating carousels + popular public cards multiply views**
-Each card view loads N product photos + N package photos + cover + avatar + QR. With short cache and oversize files, every public card view is multi-MB.
+### 1. `src/components/RiderHeader.tsx`
+- **Cover:** already a static `<img>` with `objectFit: "contain"` — leave as-is.
+- **Avatar:** hard-code `objectFit: "contain"` (drop the `avatarDisplayMode` ternary) so the full face always shows inside the circle.
+- **Logo:** replace `KenBurnsRotator` with a static `<img>` using `objectFit: "contain"`, exactly like cover/avatar. No zoom, no pan.
+  - If the logo slot has multiple images, keep a simple opacity crossfade between them (no transform/scale) so rotation still works but the logo is never cropped. If you'd rather drop rotation entirely on the logo too, say so and I'll render only the first image.
 
----
+### 2. `src/components/KenBurnsRotator.tsx`
+- No longer used by `RiderHeader` after step 1. Leave the file in place (other surfaces may import it) but it stops affecting the card header.
 
-# Plan to minimize cached egress
+### 3. Data migration (one-off)
+- New SQL migration that updates all existing cards so any stored `theme.avatarDisplayMode` and `theme.logoDisplayMode` are set to `"contain"`. This makes the editor toggle reflect the new default and prevents any other surface that still reads those flags from re-cropping.
+- Also refresh `card_snapshot.theme` for the same fields so published/shared views (which read from the snapshot) match.
 
-### A. Shrink what's stored (biggest immediate win)
-1. Replace upload paths to enforce **WebP + max-width 1600 px + quality 80** before upload (you already have `imageCompression.ts` and `uploadProcessedImage` does WebP — extend it to all uploaders, especially `ProductImageUploader`, `CarouselImageUploader`, `AdminGlobalProducts/Packages`, testimonies, directory).
-2. One-off backfill: an admin script/edge function that downloads each object > 300 KB in `cardex-products` and `media`, re-encodes to WebP ≤ 1600 px q80, and overwrites it. Expected reduction: 141 MB → ~25–35 MB for products.
-3. QR codes: regenerate as **SVG** (or 256 px PNG) instead of large PNG — drops `qrcodes` bucket from 127 MB to a few MB. SVGs also gzip to <2 KB on the wire.
-4. De-duplicate the 877 KB product PNG that's stored once per card. Point those cards at the single global image row instead of re-uploading.
+### 4. Editor defaults (`ImagesSection.tsx`)
+- Defaults are already `"contain"`. No change needed unless we decide to remove the Contain/Cover toggle entirely. Recommend keeping the toggle but defaulting (and migrating) to Contain.
 
-### B. Serve responsive sizes via Storage transforms
-Wrap `getPublicUrl` in a helper `getCdnImage(url, { w, q })` that appends `?width=…&quality=…&format=origin` (Supabase image transformation). Use it in:
-- `CardExCarousel` slides → `width=800`
-- Carousel thumbs / dashboard tiles → `width=320`
-- Avatars → `width=160`
-- Lightbox → `width=1600`
-- OG image fetches in `og-image` edge function → `width=1200`
+## Open question
 
-This lets the CDN cache a small variant per size, so phones don't pull desktop-sized files.
+- For the logo slot when a user uploads **multiple** logos: do you want them to (a) crossfade between each other every few seconds with no zoom, or (b) just show the first logo and ignore the rest? Attachment #2 has a single static logo, so either works — let me know which you prefer before I implement.
 
-### C. Lengthen cache TTL on uploads
-Change `cacheControl: "3600"` → `cacheControl: "31536000"` (1 year, immutable) everywhere. Filenames are already UUID/timestamped so they're effectively immutable — long TTL is safe and dramatically cuts repeat-view egress.
+## Files touched
 
-A single search-replace across the 9 files listed above covers new uploads. Existing objects keep their old header until re-uploaded; the backfill in step A.2 will refresh them.
+- `src/components/RiderHeader.tsx` — static `<img contain>` for avatar + logo
+- `supabase/migrations/<timestamp>_force_contain_display_modes.sql` — backfill `theme.avatarDisplayMode` / `logoDisplayMode` + matching `card_snapshot.theme` keys to `"contain"`
 
-### D. Stop loading invisible images
-- Add `loading="lazy"` and `decoding="async"` to non-hero `<img>`s in `CardView`, `CardExCarousel` (offscreen slides), `GalleryManager`, `ResourcesHub`, dashboard previews.
-- In `CardExCarousel` Roulette mode, only mount the active ±2 slides instead of all N.
-- Pause carousel auto-rotate when the tab is hidden (`document.visibilityState`) — currently it keeps cycling and pre-fetching.
-
-### E. Cache the meta/OG edge functions harder
-- `card-meta`: bump `Cache-Control` from `max-age=300` to `max-age=3600, s-maxage=86400, stale-while-revalidate=604800`.
-- `og-image` is already 1 day — fine. Make sure it actually returns 304 on conditional requests (add ETag based on card `updated_at`).
-
-### F. Monitor
-After deploying A–D, watch the **Storage → Egress** chart in the Supabase dashboard for ~1 week. Expected drop: 60–85% in cached egress, mostly from steps A.1 + A.3 + B + C combined.
-
----
-
-## Technical details
-
-| Step | Files / where |
-|---|---|
-| Long cache TTL | 9 files listed above, `cacheControl: "31536000"` |
-| `getCdnImage` helper | new `src/lib/cdnImage.ts`, used in carousels, gallery, lightbox, avatars, OG |
-| Compression on upload | extend `src/lib/imageCompression.ts` usage to `ProductImageUploader.tsx`, `CarouselImageUploader.tsx`, `AdminGlobalProducts.tsx`, `AdminGlobalPackages.tsx`, testimony uploads |
-| Backfill script | new edge function `optimize-storage-objects` (admin-only, batched, uses `sharp`-equivalent via `@img/sharp` or imagescript in Deno) |
-| QR regen | switch `QRCodeCustomizer.tsx` / `QRCodeDisplay.tsx` save path to SVG; backfill `qrcodes` bucket |
-| Lazy/visibility | `CardExCarousel.tsx`, `GalleryManager.tsx`, `CardView.tsx` |
-| Edge cache headers | `supabase/functions/card-meta/index.ts` |
-
-No DB schema changes are required. RLS policies on storage buckets stay as-is.
-
-If you want, I can implement this in stages — I'd suggest starting with **C (long cache) + B (responsive transforms) + D (lazy loading)** since those are pure code changes with no backfill, then doing the backfill (A) once you're happy.
+No business logic, routing, or unrelated UI is changed.
