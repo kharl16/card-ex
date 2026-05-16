@@ -55,7 +55,7 @@ function LogoCrossfade({
           draggable={false}
           className="absolute inset-0 h-full w-full"
           style={{
-            objectFit: "contain",
+            objectFit: "cover",
             opacity: idx === active ? 1 : 0,
             transition: "opacity 1000ms ease-in-out",
           }}
