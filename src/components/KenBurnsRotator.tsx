@@ -25,6 +25,12 @@ interface KenBurnsRotatorProps {
   /** Optional CDN-resize hint in CSS pixels. The helper requests a slightly
    *  larger image to look crisp on retina screens. */
   cdnWidth?: number;
+  /** When true, defer starting the auto-rotation until the component has been
+   *  visible in the viewport for a short delay. Also pauses when offscreen. */
+  lazyStart?: boolean;
+  /** Number of upcoming slides to keep mounted alongside the active one.
+   *  Other slides render as a placeholder until they're about to be shown. */
+  preloadAhead?: number;
 }
 
 /**
