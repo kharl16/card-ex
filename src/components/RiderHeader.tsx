@@ -7,6 +7,10 @@ import {
 } from "@/lib/imageCarousels";
 
 const IMAGE_FIT_NO_CROP = "fill" as const;
+const COVER_ASPECT_RATIO = "2.43 / 1";
+const COVER_RENDER_WIDTH = 1600;
+const COVER_RENDER_HEIGHT = Math.round(COVER_RENDER_WIDTH / 2.43);
+const SQUARE_RENDER_SIZE = 320;
 
 /**
  * Crossfade-only rotator for the company logo: opacity transition between
@@ -50,7 +54,12 @@ function LogoCrossfade({
       {safe.map((item, idx) => (
         <img
           key={`${item.url}-${idx}`}
-          src={cdnImage(item.url, { width: 320, quality: 80 })}
+          src={cdnImage(item.url, {
+            width: SQUARE_RENDER_SIZE,
+            height: SQUARE_RENDER_SIZE,
+            resize: IMAGE_FIT_NO_CROP,
+            quality: 80,
+          })}
           alt={item.alt || alt}
           decoding="async"
           loading={idx === 0 ? "eager" : "lazy"}
@@ -59,6 +68,8 @@ function LogoCrossfade({
           style={{
             objectFit: IMAGE_FIT_NO_CROP,
             objectPosition: "center",
+            width: "100%",
+            height: "100%",
             opacity: idx === active ? 1 : 0,
             transition: "opacity 1000ms ease-in-out",
           }}
@@ -127,49 +138,66 @@ export default function RiderHeader({
   const logo = resolveSlot(carousels, "logo", companyLogoUrl);
 
   return (
-    <div className="relative -mx-6 -mt-2 sm:-mt-3 mb-4 overflow-x-clip overflow-y-visible z-30">
-      {/* Cover image (rotating Ken Burns when multiple) */}
+    <div className="relative mt-0 mb-4 w-full max-w-full overflow-x-clip overflow-y-visible z-30">
+      {/* Cover image: exact frame, no carousel/zoom */}
       <div
-        className="relative h-48 sm:h-56 w-full overflow-hidden"
+        className="relative block w-full max-w-full overflow-visible p-0"
         style={{
-          backgroundImage:
-            cover.items.length === 0 && primaryColor
-              ? `linear-gradient(to bottom right, ${primaryColor}33, ${primaryColor}0D)`
-              : undefined,
-          backgroundColor:
-            cover.items.length === 0 && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
+          aspectRatio: COVER_ASPECT_RATIO,
+          height: "auto",
+          minHeight: 0,
         }}
       >
-        {cover.items.length > 0 && (
-          <img
-            src={cdnImage(cover.items[0].url, { width: 1600, quality: 80 })}
-            alt={cover.items[0].alt || `${name || "Profile"} cover photo`}
-            decoding="async"
-            loading="eager"
-            draggable={false}
-            className="absolute inset-0 h-full w-full"
-            style={{ objectFit: "fill" }}
-          />
-        )}
+        <div
+          className="absolute inset-0 overflow-hidden p-0"
+          style={{
+            backgroundImage:
+              cover.items.length === 0 && primaryColor
+                ? `linear-gradient(to bottom right, ${primaryColor}33, ${primaryColor}0D)`
+                : undefined,
+            backgroundColor:
+              cover.items.length === 0 && !primaryColor ? "hsl(var(--primary) / 0.2)" : undefined,
+          }}
+        >
+          {cover.items.length > 0 && (
+            <img
+              src={cdnImage(cover.items[0].url, {
+                width: COVER_RENDER_WIDTH,
+                height: COVER_RENDER_HEIGHT,
+                resize: IMAGE_FIT_NO_CROP,
+                quality: 80,
+              })}
+              alt={cover.items[0].alt || `${name || "Profile"} cover photo`}
+              decoding="async"
+              loading="eager"
+              draggable={false}
+              className="absolute inset-0 block h-full w-full max-w-none"
+              style={{
+                objectFit: IMAGE_FIT_NO_CROP,
+                objectPosition: "center",
+                width: "100%",
+                height: "100%",
+              }}
+            />
+          )}
 
-        {/* Luxury gradient overlay */}
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
-      </div>
+          {/* Luxury gradient overlay */}
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
+        </div>
 
-      {/* Gold accent line under cover */}
-      <div
-        className="absolute left-0 right-0 h-[3px] animate-gold-pulse"
-        style={{
-          top: "calc(100% - 5.5rem)",
-          background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${lighterPrimary} 50%, ${basePrimary}80 70%, transparent 100%)`,
-          boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30`,
-        }}
-      />
+        {/* Gold accent line under cover */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-[3px] animate-gold-pulse"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${lighterPrimary} 50%, ${basePrimary}80 70%, transparent 100%)`,
+            boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30`,
+          }}
+        />
 
-      {/* Avatar & Logo row */}
-      <div className="absolute left-0 right-0 top-48 sm:top-56 -translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
+        {/* Avatar & Logo row */}
+        <div className="absolute left-0 right-0 bottom-0 translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
         {/* Avatar with animated rotating ring */}
-        <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-full shadow-luxury transition-all duration-500 hover:scale-105 group/avatar pointer-events-auto">
+        <div className="relative size-24 sm:size-28 shrink-0 rounded-full shadow-luxury transition-all duration-500 hover:scale-105 group/avatar pointer-events-auto">
           {/* Rotating conic-gradient ring */}
           <div
             className="absolute inset-0 rounded-full animate-ring-rotate"
@@ -188,17 +216,27 @@ export default function RiderHeader({
           />
 
           {/* Inner black circle + avatar */}
-          <div className="absolute inset-[3px] rounded-full bg-black flex items-center justify-center">
-            <div className="h-[92%] w-[92%] rounded-full overflow-hidden bg-black flex items-center justify-center">
+          <div className="absolute inset-[3px] rounded-full bg-black p-0 overflow-hidden">
+            <div className="absolute inset-0 rounded-full overflow-hidden bg-black p-0">
               {avatar.items.length > 0 && (
                 <img
-                  src={cdnImage(avatar.items[0].url, { width: 320, quality: 80 })}
+                  src={cdnImage(avatar.items[0].url, {
+                    width: SQUARE_RENDER_SIZE,
+                    height: SQUARE_RENDER_SIZE,
+                    resize: IMAGE_FIT_NO_CROP,
+                    quality: 80,
+                  })}
                   alt={avatar.items[0].alt || name || "Profile"}
                   decoding="async"
                   loading="eager"
                   draggable={false}
-                  className="h-full w-full"
-                  style={{ objectFit: "cover" }}
+                  className="block h-full w-full max-w-none"
+                  style={{
+                    objectFit: IMAGE_FIT_NO_CROP,
+                    objectPosition: "center",
+                    width: "100%",
+                    height: "100%",
+                  }}
                 />
               )}
             </div>
@@ -208,7 +246,7 @@ export default function RiderHeader({
         {/* Company logo – glassmorphic square */}
         {logo.items.length > 0 && (
           <div
-            className="h-24 w-24 sm:h-28 sm:w-28 rounded-2xl overflow-hidden shadow-luxury flex items-center justify-center hover:scale-105 transition-all duration-500 pointer-events-auto glass-shimmer"
+            className="size-24 sm:size-28 shrink-0 rounded-2xl overflow-hidden shadow-luxury p-0 hover:scale-105 transition-all duration-500 pointer-events-auto glass-shimmer"
             style={{
               background: "var(--glass-bg)",
               backdropFilter: "blur(var(--glass-blur))",
@@ -225,6 +263,7 @@ export default function RiderHeader({
             />
           </div>
         )}
+        </div>
       </div>
 
       {/* Spacer */}
