@@ -376,6 +376,7 @@ interface FlatModeProps {
   onEvent?: (event: CardExCarouselEvent) => void;
   spotlightEnabled: boolean;
   shareUrl?: string;
+  carouselKind?: CarouselKind;
 }
 
 function FlatMode({
@@ -385,7 +386,9 @@ function FlatMode({
   onEvent,
   spotlightEnabled,
   shareUrl,
+  carouselKind = "products",
 }: FlatModeProps) {
+  const slideAspectClass = carouselKind === "packages" ? "aspect-[3/4]" : "aspect-square";
   const reducedMotion = prefersReducedMotion();
   const [api, setApi] = useState<CarouselApi>();
   const [selectedIndex, setSelectedIndex] = useState(0);
