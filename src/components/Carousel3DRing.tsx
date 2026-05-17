@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 type Props = {
   images: string[];
   height?: number;       // px height of the ring container
+  aspectRatio?: string;  // width / height for each image card
   radius?: number;       // px Z‑distance of items from center; defaults to height*1.45
   gapDeg?: number;       // degrees between items (wider = more spacing)
   activeScale?: number;  // scale factor for the center/active card
@@ -19,6 +20,7 @@ const prefersReducedMotion = () =>
 export default function Carousel3DRing({
   images: rawImages,
   height = 380,
+  aspectRatio = "1 / 1",
   radius,
   gapDeg = 52,
   activeScale = 1.26,
@@ -168,7 +170,7 @@ export default function Carousel3DRing({
                   className="relative overflow-hidden rounded-2xl ring-1 ring-emerald-400/20 bg-black/40"
                   style={{
                     width: size,
-                    height: size,
+                    aspectRatio,
                     transform: `rotateY(${-rotation}deg) rotateX(${rx}deg) rotateY(${ry}deg) scale(${scale})`,
                     transition: "transform 280ms ease, filter 280ms ease, opacity 280ms ease",
                     opacity,
