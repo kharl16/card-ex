@@ -99,6 +99,16 @@ const imageSizeConfig = {
   lg: { height: "h-[260px] sm:h-[300px]" },
 };
 
+const getCarouselSlideAspectRatio = (carouselKind: CarouselKind) =>
+  carouselKind === "packages" ? "4 / 3" : "1 / 1";
+
+const getCarouselImageTransform = (carouselKind: CarouselKind, width: number) => ({
+  width,
+  height: carouselKind === "packages" ? Math.round(width * 0.75) : width,
+  resize: "contain" as const,
+  quality: 80,
+});
+
 // ============== ROULETTE MODE ==============
 interface RouletteModeProps {
   items: CardExCarouselItem[];
@@ -129,10 +139,8 @@ function RouletteMode({
   shareUrl,
   carouselKind = "products",
 }: RouletteModeProps) {
-  // Slide aspect ratio per carousel kind:
-  // - products & testimonies: 1:1 square
-  // - packages: portrait rectangle so full leaflets show without cropping
-  const slideAspectRatio = carouselKind === "packages" ? "3 / 4" : "1 / 1";
+  // Products/testimonies stay square; packages use a landscape rectangular stage.
+  const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
   const loopImages = [...items, ...items]; // Duplicate for seamless looping
@@ -154,8 +162,6 @@ function RouletteMode({
     prefersReducedMotion: reducedMotion,
     direction,
   });
-
-  const sizeClasses = imageSizeConfig[imageSize] || imageSizeConfig.md;
 
   const lightboxImages: LightboxImage[] = useMemo(
     () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description, srp: item.srp })),
@@ -230,13 +236,9 @@ function RouletteMode({
                 return (
                   <div
                     key={`${img.id}-${i}`}
-                    className={cn(
-                      "relative flex-shrink-0 transform-gpu",
-                      slideClass
-                    )}
+                    className={cn("relative flex-shrink-0 transform-gpu", slideClass)}
                     style={{
                       width: `${slideWidthPercent}%`,
-                      aspectRatio: slideAspectRatio,
                       paddingLeft: `${imageGap / 2}px`,
                       paddingRight: `${imageGap / 2}px`,
                       transformStyle: "preserve-3d",
@@ -250,12 +252,13 @@ function RouletteMode({
                   >
                     <button
                       type="button"
-                      className="h-full w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
+                      className="relative w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
+                      style={{ aspectRatio: slideAspectRatio }}
                       onClick={() => handleImageClick(logicalIndex)}
                       aria-label={img.alt || `View image ${logicalIndex + 1}`}
                     >
                       <img
-                        src={cdnImage(img.url, { width: 800, quality: 80 })}
+                        src={cdnImage(img.url, getCarouselImageTransform(carouselKind, 800))}
                         alt={img.alt ?? ""}
                         className="h-full w-full object-contain"
                         draggable={false}
@@ -328,6 +331,7 @@ interface Ring3DModeProps {
   depth: CarouselDepth;
   spotlightEnabled: boolean;
   showLightbox: boolean;
+  carouselKind?: CarouselKind;
 }
 
 function Ring3DMode({
@@ -337,6 +341,7 @@ function Ring3DMode({
   depth,
   spotlightEnabled,
   showLightbox,
+  carouselKind = "products",
 }: Ring3DModeProps) {
   const reducedMotion = prefersReducedMotion();
   const imageUrls = items.map((item) => item.url);
@@ -360,6 +365,7 @@ function Ring3DMode({
       <Carousel3DRing
         images={imageUrls}
         height={380}
+        aspectRatio={getCarouselSlideAspectRatio(carouselKind)}
         speedDeg={reducedMotion ? 0 : baseSpeed}
         autoplay={!reducedMotion && autoPlayMs !== null}
         activeScale={depthConfig[depth].scale}
@@ -388,7 +394,7 @@ function FlatMode({
   shareUrl,
   carouselKind = "products",
 }: FlatModeProps) {
-  const slideAspectClass = carouselKind === "packages" ? "aspect-[3/4]" : "aspect-square";
+  const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
   const reducedMotion = prefersReducedMotion();
   const [api, setApi] = useState<CarouselApi>();
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -471,15 +477,13 @@ function FlatMode({
                 >
                   <button
                     type="button"
-                    className={cn(
-                      "relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
-                      slideAspectClass
-                    )}
+                    className="relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    style={{ aspectRatio: slideAspectRatio }}
                     onClick={() => handleImageClick(index)}
                     aria-label={item.alt || `View image ${index + 1}`}
                   >
                     <img
-                      src={cdnImage(item.url, { width: 480, quality: 80 })}
+                      src={cdnImage(item.url, getCarouselImageTransform(carouselKind, 480))}
                       alt={item.alt ?? ""}
                       className="h-full w-full object-contain"
                       draggable={false}
