@@ -627,6 +627,7 @@ export default function CardExCarousel({
           onEvent={onEvent}
           spotlightEnabled={spotlightEnabled}
           shareUrl={shareUrl}
+          carouselKind={carouselKind}
         />
       )}
       {hasMore && (
