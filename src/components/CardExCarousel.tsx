@@ -333,6 +333,7 @@ interface Ring3DModeProps {
   depth: CarouselDepth;
   spotlightEnabled: boolean;
   showLightbox: boolean;
+  carouselKind?: CarouselKind;
 }
 
 function Ring3DMode({
@@ -342,6 +343,7 @@ function Ring3DMode({
   depth,
   spotlightEnabled,
   showLightbox,
+  carouselKind = "products",
 }: Ring3DModeProps) {
   const reducedMotion = prefersReducedMotion();
   const imageUrls = items.map((item) => item.url);
@@ -365,6 +367,7 @@ function Ring3DMode({
       <Carousel3DRing
         images={imageUrls}
         height={380}
+        aspectRatio={getCarouselSlideAspectRatio(carouselKind)}
         speedDeg={reducedMotion ? 0 : baseSpeed}
         autoplay={!reducedMotion && autoPlayMs !== null}
         activeScale={depthConfig[depth].scale}
@@ -393,7 +396,7 @@ function FlatMode({
   shareUrl,
   carouselKind = "products",
 }: FlatModeProps) {
-  const slideAspectClass = carouselKind === "packages" ? "aspect-[3/4]" : "aspect-square";
+  const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
   const reducedMotion = prefersReducedMotion();
   const [api, setApi] = useState<CarouselApi>();
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -476,15 +479,13 @@ function FlatMode({
                 >
                   <button
                     type="button"
-                    className={cn(
-                      "relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
-                      slideAspectClass
-                    )}
+                    className="relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    style={{ aspectRatio: slideAspectRatio }}
                     onClick={() => handleImageClick(index)}
                     aria-label={item.alt || `View image ${index + 1}`}
                   >
                     <img
-                      src={cdnImage(item.url, { width: 480, quality: 80 })}
+                      src={cdnImage(item.url, getCarouselImageTransform(carouselKind, 480))}
                       alt={item.alt ?? ""}
                       className="h-full w-full object-contain"
                       draggable={false}
