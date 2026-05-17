@@ -293,6 +293,7 @@ export default function CarouselSectionRenderer({
             direction={direction}
             imageSize={imageSize}
             imageGap={imageGap}
+            carouselKind={carouselKind}
             shareUrl={shareUrl}
           />
         </div>
