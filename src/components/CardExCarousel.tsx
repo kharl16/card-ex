@@ -99,6 +99,9 @@ const imageSizeConfig = {
   lg: { height: "h-[260px] sm:h-[300px]" },
 };
 
+const getCarouselSlideAspectRatio = (carouselKind: CarouselKind) =>
+  carouselKind === "packages" ? "4 / 3" : "1 / 1";
+
 // ============== ROULETTE MODE ==============
 interface RouletteModeProps {
   items: CardExCarouselItem[];
@@ -129,10 +132,8 @@ function RouletteMode({
   shareUrl,
   carouselKind = "products",
 }: RouletteModeProps) {
-  // Slide aspect ratio per carousel kind:
-  // - products & testimonies: 1:1 square
-  // - packages: portrait rectangle so full leaflets show without cropping
-  const slideAspectRatio = carouselKind === "packages" ? "3 / 4" : "1 / 1";
+  // Products/testimonies stay square; packages use a landscape rectangular stage.
+  const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
   const loopImages = [...items, ...items]; // Duplicate for seamless looping
@@ -230,13 +231,9 @@ function RouletteMode({
                 return (
                   <div
                     key={`${img.id}-${i}`}
-                    className={cn(
-                      "relative flex-shrink-0 transform-gpu",
-                      slideClass
-                    )}
+                    className={cn("relative flex-shrink-0 transform-gpu", slideClass)}
                     style={{
                       width: `${slideWidthPercent}%`,
-                      aspectRatio: slideAspectRatio,
                       paddingLeft: `${imageGap / 2}px`,
                       paddingRight: `${imageGap / 2}px`,
                       transformStyle: "preserve-3d",
@@ -255,9 +252,10 @@ function RouletteMode({
                       aria-label={img.alt || `View image ${logicalIndex + 1}`}
                     >
                       <img
-                        src={cdnImage(img.url, { width: 800, quality: 80 })}
+                        src={cdnImage(img.url, { width: 800, height: 800, resize: "contain", quality: 80 })}
                         alt={img.alt ?? ""}
                         className="h-full w-full object-contain"
+                        style={{ aspectRatio: slideAspectRatio }}
                         draggable={false}
                         loading={Math.abs(logicalIndex - Math.round(logicalCenter)) > 1 ? "lazy" : "eager"}
                         decoding="async"
