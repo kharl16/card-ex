@@ -112,6 +112,7 @@ interface RouletteModeProps {
   imageSize: "sm" | "md" | "lg";
   imageGap?: number;
   shareUrl?: string;
+  carouselKind?: CarouselKind;
 }
 
 function RouletteMode({
@@ -126,7 +127,12 @@ function RouletteMode({
   imageSize,
   imageGap = 12,
   shareUrl,
+  carouselKind = "products",
 }: RouletteModeProps) {
+  // Slide aspect ratio per carousel kind:
+  // - products & testimonies: 1:1 square
+  // - packages: portrait rectangle so full leaflets show without cropping
+  const slideAspectRatio = carouselKind === "packages" ? "3 / 4" : "1 / 1";
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
   const loopImages = [...items, ...items]; // Duplicate for seamless looping
