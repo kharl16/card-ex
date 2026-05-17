@@ -102,6 +102,13 @@ const imageSizeConfig = {
 const getCarouselSlideAspectRatio = (carouselKind: CarouselKind) =>
   carouselKind === "packages" ? "4 / 3" : "1 / 1";
 
+const getCarouselImageTransform = (carouselKind: CarouselKind, width: number) => ({
+  width,
+  height: carouselKind === "packages" ? Math.round(width * 0.75) : width,
+  resize: "contain" as const,
+  quality: 80,
+});
+
 // ============== ROULETTE MODE ==============
 interface RouletteModeProps {
   items: CardExCarouselItem[];
@@ -247,15 +254,15 @@ function RouletteMode({
                   >
                     <button
                       type="button"
-                      className="h-full w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
+                      className="relative w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
+                      style={{ aspectRatio: slideAspectRatio }}
                       onClick={() => handleImageClick(logicalIndex)}
                       aria-label={img.alt || `View image ${logicalIndex + 1}`}
                     >
                       <img
-                        src={cdnImage(img.url, { width: 800, height: 800, resize: "contain", quality: 80 })}
+                        src={cdnImage(img.url, getCarouselImageTransform(carouselKind, 800))}
                         alt={img.alt ?? ""}
                         className="h-full w-full object-contain"
-                        style={{ aspectRatio: slideAspectRatio }}
                         draggable={false}
                         loading={Math.abs(logicalIndex - Math.round(logicalCenter)) > 1 ? "lazy" : "eager"}
                         decoding="async"
