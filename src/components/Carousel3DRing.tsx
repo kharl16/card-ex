@@ -180,7 +180,7 @@ export default function Carousel3DRing({
                   <img
                     src={src}
                     alt={`image ${i + 1}`}
-                    className="absolute inset-0 h-full w-full object-cover"
+                    className="absolute inset-0 h-full w-full object-contain"
                     draggable={false}
                   />
 
