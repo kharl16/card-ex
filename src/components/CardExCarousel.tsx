@@ -376,6 +376,7 @@ interface FlatModeProps {
   onEvent?: (event: CardExCarouselEvent) => void;
   spotlightEnabled: boolean;
   shareUrl?: string;
+  carouselKind?: CarouselKind;
 }
 
 function FlatMode({
@@ -385,7 +386,9 @@ function FlatMode({
   onEvent,
   spotlightEnabled,
   shareUrl,
+  carouselKind = "products",
 }: FlatModeProps) {
+  const slideAspectClass = carouselKind === "packages" ? "aspect-[3/4]" : "aspect-square";
   const reducedMotion = prefersReducedMotion();
   const [api, setApi] = useState<CarouselApi>();
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -468,7 +471,10 @@ function FlatMode({
                 >
                   <button
                     type="button"
-                    className="relative w-full aspect-square overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className={cn(
+                      "relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                      slideAspectClass
+                    )}
                     onClick={() => handleImageClick(index)}
                     aria-label={item.alt || `View image ${index + 1}`}
                   >
@@ -621,6 +627,7 @@ export default function CardExCarousel({
           onEvent={onEvent}
           spotlightEnabled={spotlightEnabled}
           shareUrl={shareUrl}
+          carouselKind={carouselKind}
         />
       )}
       {hasMore && (
