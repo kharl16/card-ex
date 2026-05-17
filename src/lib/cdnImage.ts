@@ -48,13 +48,16 @@ export function cdnImage(
     return url;
   }
 
-  const params = new URLSearchParams();
+  const [baseUrl, existingQuery = ""] = transformed.split("?");
+  const params = new URLSearchParams(existingQuery);
+  ["width", "height", "quality", "resize", "format"].forEach((key) => params.delete(key));
+
   if (opts.width) params.set("width", String(Math.round(opts.width)));
   if (opts.height) params.set("height", String(Math.round(opts.height)));
   if (opts.quality) params.set("quality", String(opts.quality));
   if (opts.resize) params.set("resize", opts.resize);
   params.set("format", opts.format ?? "origin");
 
-  const sep = transformed.includes("?") ? "&" : "?";
-  return `${transformed}${sep}${params.toString()}`;
+  const query = params.toString();
+  return query ? `${baseUrl}?${query}` : baseUrl;
 }
