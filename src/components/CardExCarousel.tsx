@@ -112,6 +112,7 @@ interface RouletteModeProps {
   imageSize: "sm" | "md" | "lg";
   imageGap?: number;
   shareUrl?: string;
+  carouselKind?: CarouselKind;
 }
 
 function RouletteMode({
@@ -126,7 +127,12 @@ function RouletteMode({
   imageSize,
   imageGap = 12,
   shareUrl,
+  carouselKind = "products",
 }: RouletteModeProps) {
+  // Slide aspect ratio per carousel kind:
+  // - products & testimonies: 1:1 square
+  // - packages: portrait rectangle so full leaflets show without cropping
+  const slideAspectRatio = carouselKind === "packages" ? "3 / 4" : "1 / 1";
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
   const loopImages = [...items, ...items]; // Duplicate for seamless looping
@@ -203,14 +209,13 @@ function RouletteMode({
         <div className="flex w-full justify-center">
           <div
             className={cn(
-              "relative w-full overflow-hidden rounded-2xl border border-primary/30 shadow-xl",
-              sizeClasses.height
+              "relative w-full overflow-hidden rounded-2xl border border-primary/30 shadow-xl"
             )}
             style={{ perspective: "1200px" }}
             {...bindTouchHandlers}
           >
             <div
-              className="flex h-full"
+              className="flex items-center"
               style={{ transform: `translateX(${translatePercent}%)` }}
             >
               {loopImages.map((img, i) => {
@@ -226,11 +231,12 @@ function RouletteMode({
                   <div
                     key={`${img.id}-${i}`}
                     className={cn(
-                      "relative h-full flex-shrink-0 transform-gpu",
+                      "relative flex-shrink-0 transform-gpu",
                       slideClass
                     )}
                     style={{
                       width: `${slideWidthPercent}%`,
+                      aspectRatio: slideAspectRatio,
                       paddingLeft: `${imageGap / 2}px`,
                       paddingRight: `${imageGap / 2}px`,
                       transformStyle: "preserve-3d",
@@ -594,6 +600,7 @@ export default function CardExCarousel({
           imageSize={imageSize}
           imageGap={imageGap}
           shareUrl={shareUrl}
+          carouselKind={carouselKind}
         />
       )}
       {mode === "ring3d" && (
