@@ -471,7 +471,10 @@ function FlatMode({
                 >
                   <button
                     type="button"
-                    className="relative w-full aspect-square overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className={cn(
+                      "relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                      slideAspectClass
+                    )}
                     onClick={() => handleImageClick(index)}
                     aria-label={item.alt || `View image ${index + 1}`}
                   >
