@@ -600,6 +600,7 @@ export default function CardExCarousel({
           imageSize={imageSize}
           imageGap={imageGap}
           shareUrl={shareUrl}
+          carouselKind={carouselKind}
         />
       )}
       {mode === "ring3d" && (
