@@ -674,6 +674,9 @@ export default function CardExCarousel({
           imageGap={imageGap}
           shareUrl={shareUrl}
           carouselKind={carouselKind}
+          searchQuery={searchQuery}
+          matchedIndices={matchedIndices}
+          activeMatchOrdinal={activeMatchOrdinal}
         />
       )}
       {mode === "ring3d" && (
@@ -695,6 +698,9 @@ export default function CardExCarousel({
           spotlightEnabled={spotlightEnabled}
           shareUrl={shareUrl}
           carouselKind={carouselKind}
+          searchQuery={searchQuery}
+          matchedIndices={matchedIndices}
+          activeMatchOrdinal={activeMatchOrdinal}
         />
       )}
       {hasMore && (
