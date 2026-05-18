@@ -51,6 +51,8 @@ export default function CarouselSectionRenderer({
   cardSlug,
 }: CarouselSectionRendererProps) {
   const [modalOpen, setModalOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeMatchOrdinal, setActiveMatchOrdinal] = useState(0); // 0-based index INTO matchedIndices
 
   // Safe access with defaults - handle missing/incomplete data gracefully
   // Use imagesProp if provided, otherwise fall back to section.images
