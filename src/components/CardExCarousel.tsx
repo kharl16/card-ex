@@ -77,6 +77,12 @@ export interface CardExCarouselProps {
   shareTitle?: string;
   /** URL to share (defaults to current page URL) */
   shareUrl?: string;
+  /** Current search query — empty string = no filtering */
+  searchQuery?: string;
+  /** Logical indices (into items) that match the current search query */
+  matchedIndices?: number[];
+  /** Ordinal (0-based) into matchedIndices indicating the active match */
+  activeMatchOrdinal?: number;
 }
 
 // Check for reduced motion preference
