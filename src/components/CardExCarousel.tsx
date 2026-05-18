@@ -156,6 +156,12 @@ function RouletteMode({
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
   const loopImages = [...items, ...items]; // Duplicate for seamless looping
+  const isSearching = searchQuery.trim().length > 0;
+  const matchedSet = useMemo(() => new Set(matchedIndices), [matchedIndices]);
+  const activeMatchIndex =
+    isSearching && matchedIndices.length > 0
+      ? matchedIndices[Math.min(activeMatchOrdinal, matchedIndices.length - 1)]
+      : -1;
 
   const {
     position,
@@ -169,11 +175,20 @@ function RouletteMode({
     prev,
   } = useRouletteCarousel({
     count,
-    autoPlayMs: reducedMotion ? null : autoPlayMs,
+    // Pause autoplay while the user is searching so the active match stays centered.
+    autoPlayMs: reducedMotion || isSearching ? null : autoPlayMs,
     visibleSlides,
     prefersReducedMotion: reducedMotion,
     direction,
   });
+
+  // Jump the carousel so the active match sits at the visual center.
+  useEffect(() => {
+    if (activeMatchIndex < 0 || count === 0) return;
+    const centerOffset = Math.floor(visibleSlides / 2);
+    const target = ((activeMatchIndex - centerOffset) % count + count) % count;
+    setPosition(target);
+  }, [activeMatchIndex, count, visibleSlides, setPosition]);
 
   const lightboxImages: LightboxImage[] = useMemo(
     () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description, srp: item.srp })),
