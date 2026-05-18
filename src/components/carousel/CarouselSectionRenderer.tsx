@@ -1,8 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselShareHeader from "@/components/carousel/CarouselShareHeader";
+import CarouselSearchBar from "@/components/carousel/CarouselSearchBar";
 import DescriptionTable from "@/components/carousel/DescriptionTable";
 import { cn } from "@/lib/utils";
 import {
