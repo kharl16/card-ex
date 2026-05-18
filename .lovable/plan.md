@@ -1,39 +1,55 @@
 ## Goal
+Add a Search field to every image carousel (Products, Packages, Testimonies). Typing filters/jumps to matching slides; clicking a match opens the lightbox while keeping the search active.
 
-Make the cover photo, profile picture, and company logo render exactly like attachment #2 — the full image fits inside its placeholder with no cropping and no zoom — on every card (existing and new).
+## UX
+- **Placement**: full-width row directly below the title + Share/Download row, inside `CarouselSectionRenderer`'s header area (before the carousel container). Search bar follows the dark-luxury glassmorphism style (subtle border, gold focus ring), with a leading magnifier icon and a clear (×) button.
+- **Match scope**: each item's `alt` + `description` + `srp` (case-insensitive substring).
+- **Behavior (Highlight + Jump)**:
+  - As the user types, compute the list of matching indices.
+  - Auto-scroll/rotate the carousel so the first match is centered (works for roulette, ring3D, and flat modes).
+  - Matching slides get a gold ring/glow + small "match N/M" badge; non-matches dim to ~40% opacity (no removal — layout stays stable).
+  - Prev/Next match arrows appear next to the input to jump between matches.
+  - Empty query = normal state.
+- **On click of a match**: opens the existing lightbox at that index; on close, the search query persists so the user can keep browsing matches.
 
-## Diagnosis
+## Architecture
 
-Attachment #1 (zoomed) vs attachment #2 (perfect fit) differ for two reasons:
+```text
+CarouselSectionRenderer
+ ├─ Header row (title + CarouselShareHeader)
+ ├─ NEW: <CarouselSearchBar query setQuery matchCount currentMatch onPrev onNext />
+ └─ CardExCarousel
+       ├─ receives: searchQuery, matchedIndices, activeMatchIndex
+       ├─ RouletteMode / FlatMode / Ring3DMode
+       │    └─ each slide: applies "matched" / "dimmed" classes + auto-focuses activeMatchIndex
+       └─ Lightbox (existing) — opened on slide click; search state lives in parent so it survives close
+```
 
-1. **Logo still animates with Ken Burns zoom.** `RiderHeader.tsx` renders the company logo via `KenBurnsRotator`, which applies a `scale(1.0 → 1.22)` transform every cycle. Mid-animation the logo looks cropped (you only see the "N" instead of the full IAM mark).
-2. **Cover/avatar respect a per-card display mode that can be `"cover"`.** `RiderHeader` already uses `objectFit: "contain"` for cover, and `avatarDisplayMode === "contain" ? "contain" : "cover"` for the avatar. But `theme.avatarDisplayMode` / `theme.logoDisplayMode` are stored per card and many existing cards were saved as `"cover"`, so they still crop/zoom on render.
+### New file
+- `src/components/carousel/CarouselSearchBar.tsx` — input + match counter + prev/next buttons, glassmorphism styling.
 
-## Plan
+### Edited files
+- `src/components/carousel/CarouselSectionRenderer.tsx`
+  - Add `searchQuery` state and `matchedIndices` memo from `carouselItems` (`alt|description|srp`).
+  - Track `activeMatchIndex` (0..matchedIndices.length-1) with Prev/Next handlers.
+  - Render `<CarouselSearchBar />` below the header.
+  - Pass `searchQuery`, `matchedIndices`, `activeMatchIndex` into `CardExCarousel`.
+- `src/components/CardExCarousel.tsx`
+  - Accept new props and forward to `RouletteMode` and `FlatMode`.
+  - When `activeMatchIndex` changes, programmatically scroll/center that slide (use existing scroll-into-view logic; for roulette pause auto-rotate while a query is active).
+  - Per-slide classes: `data-matched`, `data-dimmed` → Tailwind classes for ring + opacity.
+- `src/components/Carousel3DRing.tsx`
+  - Same prop wiring; rotate ring so the matched index is at the front; dim others.
 
-### 1. `src/components/RiderHeader.tsx`
-- **Cover:** already a static `<img>` with `objectFit: "contain"` — leave as-is.
-- **Avatar:** hard-code `objectFit: "contain"` (drop the `avatarDisplayMode` ternary) so the full face always shows inside the circle.
-- **Logo:** replace `KenBurnsRotator` with a static `<img>` using `objectFit: "contain"`, exactly like cover/avatar. No zoom, no pan.
-  - If the logo slot has multiple images, keep a simple opacity crossfade between them (no transform/scale) so rotation still works but the logo is never cropped. If you'd rather drop rotation entirely on the logo too, say so and I'll render only the first image.
+### State persistence on lightbox close
+- Search state lives in `CarouselSectionRenderer`, not inside the lightbox. Opening/closing the lightbox does not reset it. Lightbox `onClose` only resets zoom (existing behavior).
 
-### 2. `src/components/KenBurnsRotator.tsx`
-- No longer used by `RiderHeader` after step 1. Leave the file in place (other surfaces may import it) but it stops affecting the card header.
+## Out of scope
+- No backend changes, no new DB columns. Pure client-side filtering over already-loaded items.
+- No global cross-carousel search — each carousel has its own independent bar.
+- No fuzzy search/typo tolerance in v1 (plain `.toLowerCase().includes()`); easy to swap to Fuse.js later if needed.
 
-### 3. Data migration (one-off)
-- New SQL migration that updates all existing cards so any stored `theme.avatarDisplayMode` and `theme.logoDisplayMode` are set to `"contain"`. This makes the editor toggle reflect the new default and prevents any other surface that still reads those flags from re-cropping.
-- Also refresh `card_snapshot.theme` for the same fields so published/shared views (which read from the snapshot) match.
-
-### 4. Editor defaults (`ImagesSection.tsx`)
-- Defaults are already `"contain"`. No change needed unless we decide to remove the Contain/Cover toggle entirely. Recommend keeping the toggle but defaulting (and migrating) to Contain.
-
-## Open question
-
-- For the logo slot when a user uploads **multiple** logos: do you want them to (a) crossfade between each other every few seconds with no zoom, or (b) just show the first logo and ignore the rest? Attachment #2 has a single static logo, so either works — let me know which you prefer before I implement.
-
-## Files touched
-
-- `src/components/RiderHeader.tsx` — static `<img contain>` for avatar + logo
-- `supabase/migrations/<timestamp>_force_contain_display_modes.sql` — backfill `theme.avatarDisplayMode` / `logoDisplayMode` + matching `card_snapshot.theme` keys to `"contain"`
-
-No business logic, routing, or unrelated UI is changed.
+## Edge cases
+- Carousels with 0 items: search bar hidden (same condition as `shouldRender`).
+- No matches: input shows "0 / 0" and a subtle "No matches" hint; carousel returns to normal (no dimming) so the user isn't staring at a faded carousel.
+- Hidden images (`img.hidden`) remain excluded from search just as they are from display.
