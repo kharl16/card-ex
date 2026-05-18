@@ -116,10 +116,58 @@ export default function CarouselSectionRenderer({
     }
   }, [cta, contactInfo, isInteractive]);
 
+  // Build searchable item list once (same order used by the carousel below)
+  const searchableItems = useMemo(
+    () =>
+      visibleImages
+        .slice()
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .slice(0, settings.maxImages ?? 50),
+    [visibleImages, settings.maxImages]
+  );
+
+  // Compute matched indices for the current search query
+  const matchedIndices = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [] as number[];
+    const out: number[] = [];
+    searchableItems.forEach((img, idx) => {
+      const haystack = [
+        img.alt ?? "",
+        img.description ?? "",
+        (img as any).srp ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      if (haystack.includes(q)) out.push(idx);
+    });
+    return out;
+  }, [searchableItems, searchQuery]);
+
+  // Keep activeMatchOrdinal in valid range whenever matches change
+  useEffect(() => {
+    if (matchedIndices.length === 0) {
+      if (activeMatchOrdinal !== 0) setActiveMatchOrdinal(0);
+    } else if (activeMatchOrdinal >= matchedIndices.length) {
+      setActiveMatchOrdinal(0);
+    }
+  }, [matchedIndices, activeMatchOrdinal]);
+
+  const handleSearchPrev = useCallback(() => {
+    if (matchedIndices.length === 0) return;
+    setActiveMatchOrdinal((o) => (o - 1 + matchedIndices.length) % matchedIndices.length);
+  }, [matchedIndices.length]);
+
+  const handleSearchNext = useCallback(() => {
+    if (matchedIndices.length === 0) return;
+    setActiveMatchOrdinal((o) => (o + 1) % matchedIndices.length);
+  }, [matchedIndices.length]);
+
   // Don't render if no images or explicitly disabled - AFTER all hooks
   if (!shouldRender) {
     return null;
   }
+
 
   // Convert images to CardExCarousel format
   const carouselItems = visibleImages
