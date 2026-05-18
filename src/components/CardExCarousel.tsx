@@ -77,6 +77,12 @@ export interface CardExCarouselProps {
   shareTitle?: string;
   /** URL to share (defaults to current page URL) */
   shareUrl?: string;
+  /** Current search query — empty string = no filtering */
+  searchQuery?: string;
+  /** Logical indices (into items) that match the current search query */
+  matchedIndices?: number[];
+  /** Ordinal (0-based) into matchedIndices indicating the active match */
+  activeMatchOrdinal?: number;
 }
 
 // Check for reduced motion preference
@@ -123,6 +129,9 @@ interface RouletteModeProps {
   imageGap?: number;
   shareUrl?: string;
   carouselKind?: CarouselKind;
+  searchQuery?: string;
+  matchedIndices?: number[];
+  activeMatchOrdinal?: number;
 }
 
 function RouletteMode({
@@ -138,12 +147,21 @@ function RouletteMode({
   imageGap = 12,
   shareUrl,
   carouselKind = "products",
+  searchQuery = "",
+  matchedIndices = [],
+  activeMatchOrdinal = 0,
 }: RouletteModeProps) {
   // Products/testimonies stay square; packages use a landscape rectangular stage.
   const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
   const loopImages = [...items, ...items]; // Duplicate for seamless looping
+  const isSearching = searchQuery.trim().length > 0;
+  const matchedSet = useMemo(() => new Set(matchedIndices), [matchedIndices]);
+  const activeMatchIndex =
+    isSearching && matchedIndices.length > 0
+      ? matchedIndices[Math.min(activeMatchOrdinal, matchedIndices.length - 1)]
+      : -1;
 
   const {
     position,
@@ -157,11 +175,20 @@ function RouletteMode({
     prev,
   } = useRouletteCarousel({
     count,
-    autoPlayMs: reducedMotion ? null : autoPlayMs,
+    // Pause autoplay while the user is searching so the active match stays centered.
+    autoPlayMs: reducedMotion || isSearching ? null : autoPlayMs,
     visibleSlides,
     prefersReducedMotion: reducedMotion,
     direction,
   });
+
+  // Jump the carousel so the active match sits at the visual center.
+  useEffect(() => {
+    if (activeMatchIndex < 0 || count === 0) return;
+    const centerOffset = Math.floor(visibleSlides / 2);
+    const target = ((activeMatchIndex - centerOffset) % count + count) % count;
+    setPosition(target);
+  }, [activeMatchIndex, count, visibleSlides, setPosition]);
 
   const lightboxImages: LightboxImage[] = useMemo(
     () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description, srp: item.srp })),
@@ -229,6 +256,9 @@ function RouletteMode({
                 const { scale, translateZ, rotateY, opacity } = computeDepthStyles(logicalIndex);
                 const isActive = cyclicDistance(logicalIndex, Math.round(logicalCenter)) === 0;
                 const slideClass = getSlideActiveClass(logicalIndex, Math.round(logicalCenter), count, spotlightEnabled);
+                const isMatched = isSearching && matchedSet.has(logicalIndex);
+                const isDimmed = isSearching && !isMatched && matchedIndices.length > 0;
+                const isActiveMatch = isSearching && logicalIndex === activeMatchIndex;
 
                 // Clamp scale to prevent overlap - max 1.15 for center item
                 const clampedScale = Math.min(scale, 1.15);
@@ -243,7 +273,7 @@ function RouletteMode({
                       paddingRight: `${imageGap / 2}px`,
                       transformStyle: "preserve-3d",
                       transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${clampedScale})`,
-                      opacity,
+                      opacity: isDimmed ? opacity * 0.35 : opacity,
                       transition: reducedMotion ? "none" : "transform 220ms linear, opacity 220ms linear, filter 250ms ease",
                     }}
                     role="group"
@@ -252,7 +282,11 @@ function RouletteMode({
                   >
                     <button
                       type="button"
-                      className="relative w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
+                      className={cn(
+                        "relative w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2",
+                        isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
+                        isActiveMatch && "ring-4 ring-amber-300"
+                      )}
                       style={{ aspectRatio: slideAspectRatio }}
                       onClick={() => handleImageClick(logicalIndex)}
                       aria-label={img.alt || `View image ${logicalIndex + 1}`}
@@ -383,6 +417,9 @@ interface FlatModeProps {
   spotlightEnabled: boolean;
   shareUrl?: string;
   carouselKind?: CarouselKind;
+  searchQuery?: string;
+  matchedIndices?: number[];
+  activeMatchOrdinal?: number;
 }
 
 function FlatMode({
@@ -393,12 +430,27 @@ function FlatMode({
   spotlightEnabled,
   shareUrl,
   carouselKind = "products",
+  searchQuery = "",
+  matchedIndices = [],
+  activeMatchOrdinal = 0,
 }: FlatModeProps) {
   const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
   const reducedMotion = prefersReducedMotion();
   const [api, setApi] = useState<CarouselApi>();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const count = items.length;
+  const isSearching = searchQuery.trim().length > 0;
+  const matchedSet = useMemo(() => new Set(matchedIndices), [matchedIndices]);
+  const activeMatchIndex =
+    isSearching && matchedIndices.length > 0
+      ? matchedIndices[Math.min(activeMatchOrdinal, matchedIndices.length - 1)]
+      : -1;
+
+  // Jump to active match when it changes
+  useEffect(() => {
+    if (!api || activeMatchIndex < 0) return;
+    api.scrollTo(activeMatchIndex);
+  }, [api, activeMatchIndex]);
 
   const lightboxImages: LightboxImage[] = useMemo(
     () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description, srp: item.srp })),
@@ -429,16 +481,16 @@ function FlatMode({
     };
   }, [api]);
 
-  // Auto-play
+  // Auto-play (paused during active search so the matched slide stays in view)
   useEffect(() => {
-    if (!api || !autoPlayMs || reducedMotion) return;
+    if (!api || !autoPlayMs || reducedMotion || isSearching) return;
 
     const interval = setInterval(() => {
       api.scrollNext();
     }, autoPlayMs);
 
     return () => clearInterval(interval);
-  }, [api, autoPlayMs, reducedMotion]);
+  }, [api, autoPlayMs, reducedMotion, isSearching]);
 
   const handleImageClick = (index: number) => {
     if (showLightbox) {
@@ -466,18 +518,26 @@ function FlatMode({
           <CarouselContent className="-ml-2 md:-ml-4">
             {items.map((item, index) => {
               const slideClass = getSlideActiveClass(index, selectedIndex, count, spotlightEnabled);
+              const isMatched = isSearching && matchedSet.has(index);
+              const isDimmed = isSearching && !isMatched && matchedIndices.length > 0;
+              const isActiveMatch = isSearching && index === activeMatchIndex;
 
               return (
                 <CarouselItem
                   key={item.id}
                   className={cn(
-                    "pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4",
-                    slideClass
+                    "pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4 transition-opacity",
+                    slideClass,
+                    isDimmed && "opacity-40"
                   )}
                 >
                   <button
                     type="button"
-                    className="relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className={cn(
+                      "relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                      isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
+                      isActiveMatch && "ring-4 ring-amber-300"
+                    )}
                     style={{ aspectRatio: slideAspectRatio }}
                     onClick={() => handleImageClick(index)}
                     aria-label={item.alt || `View image ${index + 1}`}
@@ -550,6 +610,9 @@ export default function CardExCarousel({
   shareAllEnabled = true,
   shareTitle,
   shareUrl,
+  searchQuery = "",
+  matchedIndices = [],
+  activeMatchOrdinal = 0,
 }: CardExCarouselProps) {
   const allItems = items || [];
   const totalCount = allItems.length;
@@ -611,6 +674,9 @@ export default function CardExCarousel({
           imageGap={imageGap}
           shareUrl={shareUrl}
           carouselKind={carouselKind}
+          searchQuery={searchQuery}
+          matchedIndices={matchedIndices}
+          activeMatchOrdinal={activeMatchOrdinal}
         />
       )}
       {mode === "ring3d" && (
@@ -632,6 +698,9 @@ export default function CardExCarousel({
           spotlightEnabled={spotlightEnabled}
           shareUrl={shareUrl}
           carouselKind={carouselKind}
+          searchQuery={searchQuery}
+          matchedIndices={matchedIndices}
+          activeMatchOrdinal={activeMatchOrdinal}
         />
       )}
       {hasMore && (

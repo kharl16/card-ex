@@ -1,8 +1,9 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselShareHeader from "@/components/carousel/CarouselShareHeader";
+import CarouselSearchBar from "@/components/carousel/CarouselSearchBar";
 import DescriptionTable from "@/components/carousel/DescriptionTable";
 import { cn } from "@/lib/utils";
 import {
@@ -50,6 +51,8 @@ export default function CarouselSectionRenderer({
   cardSlug,
 }: CarouselSectionRendererProps) {
   const [modalOpen, setModalOpen] = React.useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeMatchOrdinal, setActiveMatchOrdinal] = useState(0); // 0-based index INTO matchedIndices
 
   // Safe access with defaults - handle missing/incomplete data gracefully
   // Use imagesProp if provided, otherwise fall back to section.images
@@ -113,10 +116,58 @@ export default function CarouselSectionRenderer({
     }
   }, [cta, contactInfo, isInteractive]);
 
+  // Build searchable item list once (same order used by the carousel below)
+  const searchableItems = useMemo(
+    () =>
+      visibleImages
+        .slice()
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .slice(0, settings.maxImages ?? 50),
+    [visibleImages, settings.maxImages]
+  );
+
+  // Compute matched indices for the current search query
+  const matchedIndices = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [] as number[];
+    const out: number[] = [];
+    searchableItems.forEach((img, idx) => {
+      const haystack = [
+        img.alt ?? "",
+        img.description ?? "",
+        (img as any).srp ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      if (haystack.includes(q)) out.push(idx);
+    });
+    return out;
+  }, [searchableItems, searchQuery]);
+
+  // Keep activeMatchOrdinal in valid range whenever matches change
+  useEffect(() => {
+    if (matchedIndices.length === 0) {
+      if (activeMatchOrdinal !== 0) setActiveMatchOrdinal(0);
+    } else if (activeMatchOrdinal >= matchedIndices.length) {
+      setActiveMatchOrdinal(0);
+    }
+  }, [matchedIndices, activeMatchOrdinal]);
+
+  const handleSearchPrev = useCallback(() => {
+    if (matchedIndices.length === 0) return;
+    setActiveMatchOrdinal((o) => (o - 1 + matchedIndices.length) % matchedIndices.length);
+  }, [matchedIndices.length]);
+
+  const handleSearchNext = useCallback(() => {
+    if (matchedIndices.length === 0) return;
+    setActiveMatchOrdinal((o) => (o + 1) % matchedIndices.length);
+  }, [matchedIndices.length]);
+
   // Don't render if no images or explicitly disabled - AFTER all hooks
   if (!shouldRender) {
     return null;
   }
+
 
   // Convert images to CardExCarousel format
   const carouselItems = visibleImages
@@ -259,7 +310,21 @@ export default function CarouselSectionRenderer({
             className="justify-start -ml-1"
           />
         )}
+        {/* Search bar (full-width row beneath title/share) */}
+        {isInteractive && carouselItems.length > 1 && (
+          <CarouselSearchBar
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            matchCount={matchedIndices.length}
+            currentMatch={matchedIndices.length === 0 ? 0 : activeMatchOrdinal + 1}
+            onPrev={handleSearchPrev}
+            onNext={handleSearchNext}
+            placeholder={`Search ${title.toLowerCase()}...`}
+            className="mt-1"
+          />
+        )}
       </div>
+
 
       {/* Carousel container with background */}
       <div className="relative w-full">
@@ -295,7 +360,11 @@ export default function CarouselSectionRenderer({
             imageGap={imageGap}
             carouselKind={carouselKind}
             shareUrl={shareUrl}
+            searchQuery={searchQuery}
+            matchedIndices={matchedIndices}
+            activeMatchOrdinal={activeMatchOrdinal}
           />
+
         </div>
 
         {/* Overlay CTA (outside overflow-hidden so glow isn't clipped) */}
