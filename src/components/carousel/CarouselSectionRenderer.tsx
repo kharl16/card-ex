@@ -310,7 +310,21 @@ export default function CarouselSectionRenderer({
             className="justify-start -ml-1"
           />
         )}
+        {/* Search bar (full-width row beneath title/share) */}
+        {isInteractive && carouselItems.length > 1 && (
+          <CarouselSearchBar
+            query={searchQuery}
+            onQueryChange={setSearchQuery}
+            matchCount={matchedIndices.length}
+            currentMatch={matchedIndices.length === 0 ? 0 : activeMatchOrdinal + 1}
+            onPrev={handleSearchPrev}
+            onNext={handleSearchNext}
+            placeholder={`Search ${title.toLowerCase()}...`}
+            className="mt-1"
+          />
+        )}
       </div>
+
 
       {/* Carousel container with background */}
       <div className="relative w-full">
