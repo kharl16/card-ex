@@ -610,6 +610,9 @@ export default function CardExCarousel({
   shareAllEnabled = true,
   shareTitle,
   shareUrl,
+  searchQuery = "",
+  matchedIndices = [],
+  activeMatchOrdinal = 0,
 }: CardExCarouselProps) {
   const allItems = items || [];
   const totalCount = allItems.length;
