@@ -481,16 +481,16 @@ function FlatMode({
     };
   }, [api]);
 
-  // Auto-play
+  // Auto-play (paused during active search so the matched slide stays in view)
   useEffect(() => {
-    if (!api || !autoPlayMs || reducedMotion) return;
+    if (!api || !autoPlayMs || reducedMotion || isSearching) return;
 
     const interval = setInterval(() => {
       api.scrollNext();
     }, autoPlayMs);
 
     return () => clearInterval(interval);
-  }, [api, autoPlayMs, reducedMotion]);
+  }, [api, autoPlayMs, reducedMotion, isSearching]);
 
   const handleImageClick = (index: number) => {
     if (showLightbox) {
