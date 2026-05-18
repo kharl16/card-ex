@@ -417,6 +417,9 @@ interface FlatModeProps {
   spotlightEnabled: boolean;
   shareUrl?: string;
   carouselKind?: CarouselKind;
+  searchQuery?: string;
+  matchedIndices?: number[];
+  activeMatchOrdinal?: number;
 }
 
 function FlatMode({
@@ -427,6 +430,9 @@ function FlatMode({
   spotlightEnabled,
   shareUrl,
   carouselKind = "products",
+  searchQuery = "",
+  matchedIndices = [],
+  activeMatchOrdinal = 0,
 }: FlatModeProps) {
   const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
   const reducedMotion = prefersReducedMotion();
