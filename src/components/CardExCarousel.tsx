@@ -518,18 +518,26 @@ function FlatMode({
           <CarouselContent className="-ml-2 md:-ml-4">
             {items.map((item, index) => {
               const slideClass = getSlideActiveClass(index, selectedIndex, count, spotlightEnabled);
+              const isMatched = isSearching && matchedSet.has(index);
+              const isDimmed = isSearching && !isMatched && matchedIndices.length > 0;
+              const isActiveMatch = isSearching && index === activeMatchIndex;
 
               return (
                 <CarouselItem
                   key={item.id}
                   className={cn(
-                    "pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4",
-                    slideClass
+                    "pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4 transition-opacity",
+                    slideClass,
+                    isDimmed && "opacity-40"
                   )}
                 >
                   <button
                     type="button"
-                    className="relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    className={cn(
+                      "relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                      isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
+                      isActiveMatch && "ring-4 ring-amber-300"
+                    )}
                     style={{ aspectRatio: slideAspectRatio }}
                     onClick={() => handleImageClick(index)}
                     aria-label={item.alt || `View image ${index + 1}`}
