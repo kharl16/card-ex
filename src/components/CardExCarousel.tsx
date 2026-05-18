@@ -439,6 +439,18 @@ function FlatMode({
   const [api, setApi] = useState<CarouselApi>();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const count = items.length;
+  const isSearching = searchQuery.trim().length > 0;
+  const matchedSet = useMemo(() => new Set(matchedIndices), [matchedIndices]);
+  const activeMatchIndex =
+    isSearching && matchedIndices.length > 0
+      ? matchedIndices[Math.min(activeMatchOrdinal, matchedIndices.length - 1)]
+      : -1;
+
+  // Jump to active match when it changes
+  useEffect(() => {
+    if (!api || activeMatchIndex < 0) return;
+    api.scrollTo(activeMatchIndex);
+  }, [api, activeMatchIndex]);
 
   const lightboxImages: LightboxImage[] = useMemo(
     () => items.map((item) => ({ url: item.url, alt: item.alt, shareText: item.shareText, description: item.description, srp: item.srp })),
