@@ -311,7 +311,7 @@ export default function CarouselSectionRenderer({
           />
         )}
         {/* Search bar (full-width row beneath title/share) */}
-        {isInteractive && carouselItems.length > 1 && (
+        {carouselItems.length > 1 && (
           <CarouselSearchBar
             query={searchQuery}
             onQueryChange={setSearchQuery}
