@@ -360,7 +360,11 @@ export default function CarouselSectionRenderer({
             imageGap={imageGap}
             carouselKind={carouselKind}
             shareUrl={shareUrl}
+            searchQuery={searchQuery}
+            matchedIndices={matchedIndices}
+            activeMatchOrdinal={activeMatchOrdinal}
           />
+
         </div>
 
         {/* Overlay CTA (outside overflow-hidden so glow isn't clipped) */}
