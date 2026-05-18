@@ -129,6 +129,9 @@ interface RouletteModeProps {
   imageGap?: number;
   shareUrl?: string;
   carouselKind?: CarouselKind;
+  searchQuery?: string;
+  matchedIndices?: number[];
+  activeMatchOrdinal?: number;
 }
 
 function RouletteMode({
@@ -144,6 +147,9 @@ function RouletteMode({
   imageGap = 12,
   shareUrl,
   carouselKind = "products",
+  searchQuery = "",
+  matchedIndices = [],
+  activeMatchOrdinal = 0,
 }: RouletteModeProps) {
   // Products/testimonies stay square; packages use a landscape rectangular stage.
   const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
