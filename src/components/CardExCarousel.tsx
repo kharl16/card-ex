@@ -256,6 +256,9 @@ function RouletteMode({
                 const { scale, translateZ, rotateY, opacity } = computeDepthStyles(logicalIndex);
                 const isActive = cyclicDistance(logicalIndex, Math.round(logicalCenter)) === 0;
                 const slideClass = getSlideActiveClass(logicalIndex, Math.round(logicalCenter), count, spotlightEnabled);
+                const isMatched = isSearching && matchedSet.has(logicalIndex);
+                const isDimmed = isSearching && !isMatched && matchedIndices.length > 0;
+                const isActiveMatch = isSearching && logicalIndex === activeMatchIndex;
 
                 // Clamp scale to prevent overlap - max 1.15 for center item
                 const clampedScale = Math.min(scale, 1.15);
@@ -270,7 +273,7 @@ function RouletteMode({
                       paddingRight: `${imageGap / 2}px`,
                       transformStyle: "preserve-3d",
                       transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${clampedScale})`,
-                      opacity,
+                      opacity: isDimmed ? opacity * 0.35 : opacity,
                       transition: reducedMotion ? "none" : "transform 220ms linear, opacity 220ms linear, filter 250ms ease",
                     }}
                     role="group"
@@ -279,7 +282,11 @@ function RouletteMode({
                   >
                     <button
                       type="button"
-                      className="relative w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2"
+                      className={cn(
+                        "relative w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2",
+                        isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
+                        isActiveMatch && "ring-4 ring-amber-300"
+                      )}
                       style={{ aspectRatio: slideAspectRatio }}
                       onClick={() => handleImageClick(logicalIndex)}
                       aria-label={img.alt || `View image ${logicalIndex + 1}`}
