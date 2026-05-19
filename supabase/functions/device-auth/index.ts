@@ -260,7 +260,7 @@ Deno.serve(async (req) => {
         status: "pending",
         request_id: requestId,
         is_first_device: isFirstDevice,
-        email_status: isFirstDevice ? metaOut.email_status : undefined,
+        email_status: metaOut.email_status,
         expires_at: reqMeta?.expires_at,
         send_count: Number(metaOut.email_otp_send_count || (isFirstDevice ? 1 : 0)),
         max_sends: 3,
