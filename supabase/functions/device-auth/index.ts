@@ -325,7 +325,7 @@ Deno.serve(async (req) => {
               subject: `Your Card-Ex device approval code: ${otp}`,
               html,
               text,
-              purpose: "transactional",
+              purpose: "auth",
               idempotency_key: `device-self-otp-${request_id}-${sendCount + 1}`,
             },
             { apiKey: LOVABLE_API_KEY },
