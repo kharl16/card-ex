@@ -204,6 +204,8 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     if (state.isFirstDevice) return;
     if (selfApproveMode) return;
     if (autoSentForRequest === state.requestId) return;
+    if (state.emailStatus === "sent" || state.emailStatus === "failed") return;
+    if (state.sendCount > 0) return;
     if (state.sendCount >= state.maxSends) return;
     setAutoSentForRequest(state.requestId);
     handleRequestEmailOtp();
