@@ -511,6 +511,12 @@ function AdminResourcesContent() {
           onSaved={refetch}
         />
       )}
+      <BulkUploadDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        folders={folders}
+        onSaved={refetch}
+      />
     </div>
   );
 }
