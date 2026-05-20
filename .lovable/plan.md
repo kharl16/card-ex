@@ -1,55 +1,104 @@
-## Goal
-Add a Search field to every image carousel (Products, Packages, Testimonies). Typing filters/jumps to matching slides; clicking a match opens the lightbox while keeping the search active.
+# Resources Hub Reorganization — Senior-Friendly + Breezy Uploads
 
-## UX
-- **Placement**: full-width row directly below the title + Share/Download row, inside `CarouselSectionRenderer`'s header area (before the carousel container). Search bar follows the dark-luxury glassmorphism style (subtle border, gold focus ring), with a leading magnifier icon and a clear (×) button.
-- **Match scope**: each item's `alt` + `description` + `srp` (case-insensitive substring).
-- **Behavior (Highlight + Jump)**:
-  - As the user types, compute the list of matching indices.
-  - Auto-scroll/rotate the carousel so the first match is centered (works for roulette, ring3D, and flat modes).
-  - Matching slides get a gold ring/glow + small "match N/M" badge; non-matches dim to ~40% opacity (no removal — layout stays stable).
-  - Prev/Next match arrows appear next to the input to jump between matches.
-  - Empty query = normal state.
-- **On click of a match**: opens the existing lightbox at that index; on close, the search query persists so the user can keep browsing matches.
+Scope: Files, Ambassadors, Quick Links, 13 Ways. **Directory is left as-is.**
 
-## Architecture
+## Goals
+- Public side: cut clicks, increase tap targets, surface most-used content first.
+- Admin side: turn "add 20 files with captions" from a 60-click chore into a single drag-and-drop screen.
 
-```text
-CarouselSectionRenderer
- ├─ Header row (title + CarouselShareHeader)
- ├─ NEW: <CarouselSearchBar query setQuery matchCount currentMatch onPrev onNext />
- └─ CardExCarousel
-       ├─ receives: searchQuery, matchedIndices, activeMatchIndex
-       ├─ RouletteMode / FlatMode / Ring3DMode
-       │    └─ each slide: applies "matched" / "dimmed" classes + auto-focuses activeMatchIndex
-       └─ Lightbox (existing) — opened on slide click; search state lives in parent so it survives close
+---
+
+## Part 1 — Public Resources Hub (senior-friendly browse)
+
+### New layout (`/resources`)
+```
+┌─────────────────────────────────────────┐
+│  Header: Logo · Title · Big Search box  │
+├─────────────────────────────────────────┤
+│  ⭐ FEATURED ROW (horizontal scroll)    │
+│  [Recent files + Favorites mixed]       │
+├─────────────────────────────────────────┤
+│  📁 FILES — by folder (big tiles)       │
+│  [Folder] [Folder] [Folder] [View all]  │
+├─────────────────────────────────────────┤
+│  🎬 AMBASSADOR CLIPS                    │
+│  [thumb] [thumb] [thumb]  [View all]    │
+├─────────────────────────────────────────┤
+│  🔗 QUICK LINKS                         │
+│  [big icon tiles]                       │
+├─────────────────────────────────────────┤
+│  📖 13 WAYS                             │
+│  [first 3 cards, View all]              │
+└─────────────────────────────────────────┘
 ```
 
-### New file
-- `src/components/carousel/CarouselSearchBar.tsx` — input + match counter + prev/next buttons, glassmorphism styling.
+### Senior-friendly rules applied
+- Section headers `text-2xl` with category icon — easy to scan.
+- All tiles minimum **96×96px** with text label visible at all times (no hover-only labels).
+- Every tappable card uses `min-h-[88px]`, `text-base`, captions truncated to 2 lines.
+- Single global Search at the top filters across **files, ambassadors, links, ways** at once (no scope toggle needed). Tapping a match opens the file/link directly.
+- Remove the "stat cards" row (4 counters) — replaces with a single "Featured" row that is actually useful.
+- Sticky bottom bar (mobile) — Home · Favorites · Recent — 56px tall, labeled icons.
 
-### Edited files
-- `src/components/carousel/CarouselSectionRenderer.tsx`
-  - Add `searchQuery` state and `matchedIndices` memo from `carouselItems` (`alt|description|srp`).
-  - Track `activeMatchIndex` (0..matchedIndices.length-1) with Prev/Next handlers.
-  - Render `<CarouselSearchBar />` below the header.
-  - Pass `searchQuery`, `matchedIndices`, `activeMatchIndex` into `CardExCarousel`.
-- `src/components/CardExCarousel.tsx`
-  - Accept new props and forward to `RouletteMode` and `FlatMode`.
-  - When `activeMatchIndex` changes, programmatically scroll/center that slide (use existing scroll-into-view logic; for roulette pause auto-rotate while a query is active).
-  - Per-slide classes: `data-matched`, `data-dimmed` → Tailwind classes for ring + opacity.
-- `src/components/Carousel3DRing.tsx`
-  - Same prop wiring; rotate ring so the matched index is at the front; dim others.
+### Inside `/resources/files`
+- Folder pills become **large folder tiles** at the top (image + name + count), tapping drills in.
+- File grid: same big-thumb layout but captions always visible underneath (not just on hover).
+- Search is the existing inline search + Alt/desc/SRP scope already wired.
 
-### State persistence on lightbox close
-- Search state lives in `CarouselSectionRenderer`, not inside the lightbox. Opening/closing the lightbox does not reset it. Lightbox `onClose` only resets zoom (existing behavior).
+---
+
+## Part 2 — Breezy Bulk Upload (admin side)
+
+Replace the current "open editor → upload one image → type caption → save → repeat" flow with a single **Bulk Upload** screen on `/admin/resources` (Files tab).
+
+### New "Bulk Upload" panel
+1. Big dropzone: "Drop files here (images, PDFs, videos) or click to browse"
+2. Each dropped file appears as a row:
+
+```
+┌──────┬──────────────────┬──────────────┬─────────┬────────┐
+│ 🖼️   │ File name        │ Caption ____ │ Folder ▾│ Active │
+│ thumb│ (editable)       │ (1-line text)│         │ switch │
+└──────┴──────────────────┴──────────────┴─────────┴────────┘
+```
+
+3. Top-of-list controls:
+   - "Apply folder to all"
+   - "Apply visibility to all"
+   - "Caption from filename" (auto-fills caption from cleaned filename)
+4. One "Upload All" button → uploads to `resources` storage bucket in parallel, inserts rows into `files_repository` with `caption`, `folder_name`, `visibility_level`, `is_active`, `images` (public URL), `file_name`.
+5. Progress bar per row + green check on success.
+
+### Existing single-item editor
+Kept for editing existing records and for non-file modules. The bulk uploader is a new component that lives **next to** the single editor — admins choose Add (one) vs Bulk Upload (many).
+
+### Same uploader reused for Ambassadors & Links
+The dropzone component is generic: pass `module` prop. For Ambassadors it captures endorser + caption + thumbnail; for Links it captures name + URL. (Skipping Directory per request.)
+
+---
+
+## Technical notes
+
+### New files
+- `src/components/admin/resources/BulkUploadDialog.tsx` — dropzone + rows table + parallel uploads.
+- `src/components/resources/FeaturedRow.tsx` — top row mixing recent + favorites.
+- `src/components/resources/SectionHeader.tsx` — large senior-friendly section title with icon + "View all".
+
+### Modified files
+- `src/pages/ResourcesHub.tsx` — replace stat cards with Featured row; add 13 Ways section; bigger headers; remove tiny text.
+- `src/pages/admin/AdminResources.tsx` — add "Bulk Upload" button next to "Add" on Files/Ambassadors/Links tabs.
+- `src/components/resources/ResourcesHeader.tsx` — bigger search input (`h-12 text-base`), single search across all modules.
+- `src/pages/resources/FilesPage.tsx` — large folder tiles row above the grid; captions always visible.
+
+### Database
+No schema change needed — `caption`, `folder_name`, `visibility_level`, `is_active`, `images` already exist on `files_repository` (verified). Same for `ambassadors_library` and `iam_links`.
+
+### Storage
+Uses existing `resources` bucket. Bulk upload writes to `files/<timestamp>-<random>.<ext>`.
+
+---
 
 ## Out of scope
-- No backend changes, no new DB columns. Pure client-side filtering over already-loaded items.
-- No global cross-carousel search — each carousel has its own independent bar.
-- No fuzzy search/typo tolerance in v1 (plain `.toLowerCase().includes()`); easy to swap to Fuse.js later if needed.
-
-## Edge cases
-- Carousels with 0 items: search bar hidden (same condition as `shouldRender`).
-- No matches: input shows "0 / 0" and a subtle "No matches" hint; carousel returns to normal (no dimming) so the user isn't staring at a faded carousel.
-- Hidden images (`img.hidden`) remain excluded from search just as they are from display.
+- Directory module (kept exactly as-is per request).
+- CSV import (kept as-is; bulk upload is the new preferred path).
+- Editing existing items in bulk (future enhancement).
