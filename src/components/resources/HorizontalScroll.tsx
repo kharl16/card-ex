@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface HorizontalScrollProps {
-  title: string;
+  title?: string;
   subtitle?: string;
   seeAllHref?: string;
   children: React.ReactNode;
