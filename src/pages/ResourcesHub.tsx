@@ -1,11 +1,10 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Users, Link2, MapPin, Sparkles, ArrowRight } from "lucide-react";
+import { FileText, Users, Link2, BookOpen, Sparkles, Heart, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { ResourcesProvider, useResources } from "@/contexts/ResourcesContext";
+import { ResourcesProvider } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
 import { ResourcesHeader } from "@/components/resources/ResourcesHeader";
 import { FolderGrid } from "@/components/resources/FolderGrid";
@@ -14,49 +13,73 @@ import { ResourceCard } from "@/components/resources/ResourceCard";
 import { AmbassadorCard } from "@/components/resources/AmbassadorCard";
 import { QuickLinksGrid } from "@/components/resources/QuickLinksGrid";
 import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
+import { SectionHeader } from "@/components/resources/SectionHeader";
 import type { FileResource } from "@/types/resources";
-
-const statItems = [
-  { key: "files", label: "Files", icon: FileText, href: "/resources/files", gradient: "from-blue-500/20 to-cyan-500/20", iconColor: "text-blue-400" },
-  { key: "ambassadors", label: "Ambassadors", icon: Users, href: "/resources/ambassadors", gradient: "from-purple-500/20 to-pink-500/20", iconColor: "text-purple-400" },
-  { key: "links", label: "Quick Links", icon: Link2, href: "/resources/links", gradient: "from-amber-500/20 to-orange-500/20", iconColor: "text-amber-400" },
-  { key: "directory", label: "Directory", icon: MapPin, href: "/resources/directory", gradient: "from-emerald-500/20 to-teal-500/20", iconColor: "text-emerald-400" },
-] as const;
 
 function ResourcesHubContent() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
-  const { isResourceAdmin } = useResources();
-  const { files, ambassadors, links, folders, loading, error, toggleFavorite, logEvent, isFavorite } = useResourceData();
+  const {
+    files,
+    ambassadors,
+    links,
+    ways,
+    folders,
+    loading,
+    error,
+    toggleFavorite,
+    logEvent,
+    isFavorite,
+  } = useResourceData();
 
-  const stats = useMemo(() => ({
-    files: files.length,
-    ambassadors: ambassadors.length,
-    links: links.length,
-    directory: "View",
-  }), [files, ambassadors, links]);
+  const term = searchTerm.trim().toLowerCase();
 
-  const displayedFiles = useMemo(() => {
-    if (selectedFolder) return files.filter((f: any) => f.folder_name === selectedFolder);
-    return files.slice(0, 8);
-  }, [files, selectedFolder]);
+  const filteredFiles = useMemo(() => {
+    if (!term) return files;
+    return files.filter(
+      (f) =>
+        f.file_name?.toLowerCase().includes(term) ||
+        f.description?.toLowerCase().includes(term) ||
+        f.folder_name?.toLowerCase().includes(term)
+    );
+  }, [files, term]);
 
-  const featuredAmbassadors = useMemo(() => ambassadors.slice(0, 10), [ambassadors]);
+  const filteredAmbassadors = useMemo(() => {
+    if (!term) return ambassadors;
+    return ambassadors.filter(
+      (a) =>
+        a.endorser?.toLowerCase().includes(term) ||
+        a.product_endorsed?.toLowerCase().includes(term)
+    );
+  }, [ambassadors, term]);
 
-  const linkFavorites = useMemo(() => new Set<string>(), []);
+  const filteredLinks = useMemo(() => {
+    if (!term) return links;
+    return links.filter((l) => l.name?.toLowerCase().includes(term));
+  }, [links, term]);
+
+  const filteredWays = useMemo(() => {
+    if (!term) return ways;
+    return ways.filter((w) => w.content?.toLowerCase().includes(term));
+  }, [ways, term]);
+
+  // Featured = favorites first, then most recent
+  const featured = useMemo(() => {
+    const favs = filteredFiles.filter((f) => isFavorite("file", String(f.id)));
+    const rest = filteredFiles.filter((f) => !isFavorite("file", String(f.id)));
+    const sortedRest = [...rest].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+    return [...favs, ...sortedRest].slice(0, 12);
+  }, [filteredFiles, isFavorite]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <ResourcesHeader searchTerm="" onSearchChange={() => {}} />
-        <main className="container mx-auto px-4 py-8 space-y-8">
+        <main className="container mx-auto px-4 py-6 space-y-8">
           <Skeleton className="h-32 rounded-2xl" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-24 rounded-xl" />
-            ))}
-          </div>
+          <Skeleton className="h-64 rounded-2xl" />
           <Skeleton className="h-64 rounded-2xl" />
         </main>
       </div>
@@ -70,7 +93,7 @@ function ResourcesHubContent() {
         <main className="container mx-auto px-4 py-8">
           <Card className="border-destructive">
             <CardContent className="p-8 text-center">
-              <p className="text-destructive mb-4">{error}</p>
+              <p className="text-destructive mb-4 text-base">{error}</p>
               <Button onClick={() => window.location.reload()}>Retry</Button>
             </CardContent>
           </Card>
@@ -79,168 +102,233 @@ function ResourcesHubContent() {
     );
   }
 
+  const isSearching = term.length > 0;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
       <ResourcesHeader searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
-      <main className="container mx-auto px-4 py-6 space-y-8">
-        {/* Hero banner */}
-        <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-background border border-primary/10 p-6 md:p-8">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-primary/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <span className="text-xs font-medium uppercase tracking-widest text-primary">Your Team Toolkit</span>
+      <main className="container mx-auto px-4 py-6 space-y-10">
+        {/* Hero */}
+        {!isSearching && (
+          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/15 via-primary/5 to-background border border-primary/10 p-6 md:p-10">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="relative z-10">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles className="h-5 w-5 text-primary" />
+                <span className="text-sm font-semibold uppercase tracking-widest text-primary">
+                  Your Team Toolkit
+                </span>
+              </div>
+              <h1 className="text-3xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
+                Resources Hub
+              </h1>
+              <p className="text-base md:text-lg text-muted-foreground max-w-2xl">
+                Everything in one place — files, ambassador clips, quick links, and 13 Ways.
+                Tap the big search above to find anything instantly.
+              </p>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
-              Resources Hub
-            </h1>
-            <p className="text-sm text-muted-foreground max-w-lg">
-              Access files, training materials, ambassador clips, and more — all in one place.
+          </section>
+        )}
+
+        {/* Search results summary */}
+        {isSearching && (
+          <div className="rounded-2xl border bg-card p-4">
+            <p className="text-base">
+              Showing results for{" "}
+              <span className="font-semibold text-primary">"{searchTerm}"</span> —{" "}
+              {filteredFiles.length + filteredAmbassadors.length + filteredLinks.length + filteredWays.length}{" "}
+              matches
             </p>
           </div>
-        </section>
+        )}
 
-        {/* Stat cards */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {statItems.map((item) => {
-            const Icon = item.icon;
-            const value = stats[item.key];
-            return (
-              <Link key={item.key} to={item.href}>
-                <Card className="group relative overflow-hidden border-border/50 hover:border-primary/30 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
-                  <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                  <CardContent className="relative p-4 flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl bg-gradient-to-br ${item.gradient} border border-white/5`}>
-                      <Icon className={`h-5 w-5 ${item.iconColor}`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xl font-bold leading-none mb-0.5">{value}</p>
-                      <p className="text-[11px] text-muted-foreground uppercase tracking-wider">{item.label}</p>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </section>
-
-        {/* Folders */}
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold">Browse by Folder</h2>
-              <p className="text-xs text-muted-foreground">Tap to filter files by category</p>
-            </div>
-            {selectedFolder && (
-              <Button variant="ghost" size="sm" className="text-xs" onClick={() => setSelectedFolder(null)}>
-                Clear filter
-              </Button>
-            )}
-          </div>
-          <FolderGrid
-            folders={folders}
-            selectedFolder={selectedFolder}
-            onSelectFolder={(name) => setSelectedFolder(prev => prev === name ? null : name)}
-          />
-        </section>
-
-        {/* Files */}
-        {displayedFiles.length > 0 && (
-          selectedFolder ? (
-            <section>
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="text-lg font-bold">{selectedFolder}</h2>
-                  <p className="text-xs text-muted-foreground">{displayedFiles.length} files</p>
-                </div>
-                <Link to={`/resources/files?folder=${encodeURIComponent(selectedFolder)}`}>
-                  <Button variant="ghost" size="sm" className="text-xs gap-1">
-                    View all <ArrowRight className="h-3 w-3" />
-                  </Button>
-                </Link>
-              </div>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
-                {displayedFiles.map((file) => (
-                  <ResourceCard
-                    key={file.id}
-                    resource={file}
-                    compact
-                    isFavorite={isFavorite("file", String(file.id))}
-                    onToggleFavorite={() => toggleFavorite("file", String(file.id))}
-                    onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
-                    onClick={() => { logEvent("file", String(file.id), "view"); setPreviewFile(file); }}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : (
-            <HorizontalScroll title="Featured Resources" subtitle="Popular files and materials" seeAllHref="/resources/files">
-              {displayedFiles.map((file) => (
-                <div key={file.id} className="min-w-[140px] w-[140px] flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+        {/* Featured Row */}
+        {featured.length > 0 && !isSearching && (
+          <section>
+            <SectionHeader
+              icon={Sparkles}
+              title="Featured & Recent"
+              subtitle="Your favorites and what's new"
+              viewAllHref="/resources/files"
+            />
+            <HorizontalScroll>
+              {featured.map((file) => (
+                <div
+                  key={file.id}
+                  className="min-w-[160px] w-[160px] flex-shrink-0"
+                  style={{ scrollSnapAlign: "start" }}
+                >
                   <ResourceCard
                     resource={file}
                     compact
                     isFavorite={isFavorite("file", String(file.id))}
                     onToggleFavorite={() => toggleFavorite("file", String(file.id))}
-                    onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
-                    onClick={() => { logEvent("file", String(file.id), "view"); setPreviewFile(file); }}
+                    onLogEvent={(e) => logEvent("file", String(file.id), e)}
+                    onClick={() => {
+                      logEvent("file", String(file.id), "view");
+                      setPreviewFile(file);
+                    }}
                   />
                 </div>
               ))}
             </HorizontalScroll>
-          )
+          </section>
+        )}
+
+        {/* Files / Folders */}
+        {folders.length > 0 && (
+          <section>
+            <SectionHeader
+              icon={FileText}
+              title="Files"
+              subtitle="Browse by folder"
+              viewAllHref="/resources/files"
+              count={filteredFiles.length}
+            />
+            <FolderGrid folders={folders} />
+          </section>
+        )}
+
+        {/* Search-only file matches */}
+        {isSearching && filteredFiles.length > 0 && (
+          <section>
+            <SectionHeader icon={FileText} title="Matching files" count={filteredFiles.length} />
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {filteredFiles.slice(0, 24).map((file) => (
+                <ResourceCard
+                  key={file.id}
+                  resource={file}
+                  compact
+                  isFavorite={isFavorite("file", String(file.id))}
+                  onToggleFavorite={() => toggleFavorite("file", String(file.id))}
+                  onLogEvent={(e) => logEvent("file", String(file.id), e)}
+                  onClick={() => {
+                    logEvent("file", String(file.id), "view");
+                    setPreviewFile(file);
+                  }}
+                />
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Ambassadors */}
-        {featuredAmbassadors.length > 0 && (
-          <HorizontalScroll title="Ambassador Clips" subtitle="Celebrity endorsements" seeAllHref="/resources/ambassadors">
-            {featuredAmbassadors.map((ambassador) => (
-              <AmbassadorCard
-                key={ambassador.id}
-                ambassador={ambassador}
-                isFavorite={isFavorite("ambassador", ambassador.id)}
-                onToggleFavorite={() => toggleFavorite("ambassador", ambassador.id)}
-                onLogEvent={(eventType) => logEvent("ambassador", ambassador.id, eventType)}
-              />
-            ))}
-          </HorizontalScroll>
+        {filteredAmbassadors.length > 0 && (
+          <section>
+            <SectionHeader
+              icon={Users}
+              title="Ambassador Clips"
+              subtitle="Celebrity endorsements"
+              viewAllHref="/resources/ambassadors"
+              count={filteredAmbassadors.length}
+            />
+            <HorizontalScroll>
+              {filteredAmbassadors.slice(0, 12).map((ambassador) => (
+                <AmbassadorCard
+                  key={ambassador.id}
+                  ambassador={ambassador}
+                  isFavorite={isFavorite("ambassador", ambassador.id)}
+                  onToggleFavorite={() => toggleFavorite("ambassador", ambassador.id)}
+                  onLogEvent={(e) => logEvent("ambassador", ambassador.id, e)}
+                />
+              ))}
+            </HorizontalScroll>
+          </section>
         )}
 
         {/* Quick Links */}
-        {links.length > 0 && (
+        {filteredLinks.length > 0 && (
           <section>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-bold">Quick Links</h2>
-                <p className="text-xs text-muted-foreground">Essential resources at your fingertips</p>
-              </div>
-              <Link to="/resources/links">
-                <Button variant="ghost" size="sm" className="text-xs gap-1">
-                  View all <ArrowRight className="h-3 w-3" />
-                </Button>
-              </Link>
-            </div>
+            <SectionHeader
+              icon={Link2}
+              title="Quick Links"
+              subtitle="Essential resources"
+              viewAllHref="/resources/links"
+              count={filteredLinks.length}
+            />
             <QuickLinksGrid
-              links={links}
-              favorites={linkFavorites}
+              links={filteredLinks.slice(0, 8)}
+              favorites={new Set()}
               onToggleFavorite={(id) => toggleFavorite("link", id)}
-              onLogEvent={(id, eventType) => logEvent("link", id, eventType)}
+              onLogEvent={(id, e) => logEvent("link", id, e)}
             />
           </section>
         )}
+
+        {/* 13 Ways */}
+        {filteredWays.length > 0 && (
+          <section>
+            <SectionHeader
+              icon={BookOpen}
+              title="13 Ways"
+              subtitle="Wisdom and best practices"
+              viewAllHref="/resources/ways"
+              count={filteredWays.length}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredWays.slice(0, 3).map((way) => (
+                <Link key={way.id} to="/resources/ways">
+                  <Card className="hover:border-primary/40 transition-colors h-full">
+                    <CardContent className="p-5">
+                      <p className="text-base leading-relaxed line-clamp-4">{way.content}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Empty search state */}
+        {isSearching &&
+          filteredFiles.length === 0 &&
+          filteredAmbassadors.length === 0 &&
+          filteredLinks.length === 0 &&
+          filteredWays.length === 0 && (
+            <div className="text-center py-16">
+              <p className="text-lg text-muted-foreground mb-3">
+                No matches for "{searchTerm}"
+              </p>
+              <Button size="lg" onClick={() => setSearchTerm("")}>
+                Clear search
+              </Button>
+            </div>
+          )}
       </main>
+
+      {/* Mobile bottom nav — senior-friendly */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-t safe-area-inset-bottom">
+        <div className="grid grid-cols-3 gap-1 p-2">
+          <Link to="/resources" className="flex flex-col items-center justify-center min-h-[56px] rounded-xl bg-primary/10 text-primary">
+            <Sparkles className="h-5 w-5" />
+            <span className="text-[11px] font-medium mt-1">Home</span>
+          </Link>
+          <Link to="/resources/favorites" className="flex flex-col items-center justify-center min-h-[56px] rounded-xl hover:bg-muted">
+            <Heart className="h-5 w-5" />
+            <span className="text-[11px] font-medium mt-1">Favorites</span>
+          </Link>
+          <Link to="/resources/recent" className="flex flex-col items-center justify-center min-h-[56px] rounded-xl hover:bg-muted">
+            <Clock className="h-5 w-5" />
+            <span className="text-[11px] font-medium mt-1">Recent</span>
+          </Link>
+        </div>
+      </nav>
 
       <FilePreviewDialog
         file={previewFile}
-        files={displayedFiles}
+        files={filteredFiles}
         open={!!previewFile}
-        onOpenChange={(open) => { if (!open) setPreviewFile(null); }}
+        onOpenChange={(open) => {
+          if (!open) setPreviewFile(null);
+        }}
         isFavorite={previewFile ? isFavorite("file", String(previewFile.id)) : false}
-        onToggleFavorite={() => { if (previewFile) toggleFavorite("file", String(previewFile.id)); }}
-        onLogEvent={(eventType) => { if (previewFile) logEvent("file", String(previewFile.id), eventType); }}
+        onToggleFavorite={() => {
+          if (previewFile) toggleFavorite("file", String(previewFile.id));
+        }}
+        onLogEvent={(e) => {
+          if (previewFile) logEvent("file", String(previewFile.id), e);
+        }}
         onNavigate={setPreviewFile}
       />
     </div>

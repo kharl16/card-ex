@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import { Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Upload, Plus, Trash2, Eye, EyeOff, FileText, Users, Link2, MapPin, BookOpen, FolderPlus, Pencil } from "lucide-react";
+import { ArrowLeft, Upload, Plus, Trash2, Eye, EyeOff, FileText, Users, Link2, MapPin, BookOpen, FolderPlus, Pencil, UploadCloud } from "lucide-react";
 import { ResourceFolderManager } from "@/components/admin/resources/ResourceFolderManager";
 import { ResourceItemEditor, type EditorModule } from "@/components/admin/resources/ResourceItemEditor";
+import { BulkUploadDialog } from "@/components/admin/resources/BulkUploadDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,6 +46,7 @@ function AdminResourcesContent() {
   const [folderManagerOpen, setFolderManagerOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Record<string, any> | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const openCreate = () => {
     setEditingItem(null);
@@ -387,10 +389,16 @@ function AdminResourcesContent() {
                 className="hidden"
               />
               {activeTab === "files" && (
-                <Button variant="outline" onClick={() => setFolderManagerOpen(true)}>
-                  <FolderPlus className="h-4 w-4 mr-2" />
-                  Manage Folders
-                </Button>
+                <>
+                  <Button variant="outline" onClick={() => setFolderManagerOpen(true)}>
+                    <FolderPlus className="h-4 w-4 mr-2" />
+                    Manage Folders
+                  </Button>
+                  <Button variant="default" onClick={() => setBulkOpen(true)} className="bg-gradient-to-r from-primary to-primary/80">
+                    <UploadCloud className="h-4 w-4 mr-2" />
+                    Bulk Upload
+                  </Button>
+                </>
               )}
               {activeTab !== "ways" && (
                 <Button onClick={openCreate}>
@@ -503,6 +511,12 @@ function AdminResourcesContent() {
           onSaved={refetch}
         />
       )}
+      <BulkUploadDialog
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        folders={folders}
+        onSaved={refetch}
+      />
     </div>
   );
 }
