@@ -140,7 +140,7 @@ export function BulkUploadDialog({ open, onOpenChange, folders, onSaved }: Props
       updateRow(row.id, { progress: 70, status: "saving" });
       const { data: pub } = supabase.storage.from("resources").getPublicUrl(path);
 
-      const insertPayload: Record<string, unknown> = {
+      const insertPayload = {
         file_name: row.fileName || row.file.name,
         caption: row.caption || null,
         description: row.caption || null,
@@ -150,7 +150,7 @@ export function BulkUploadDialog({ open, onOpenChange, folders, onSaved }: Props
         is_active: true,
       };
 
-      const { error: dbErr } = await supabase.from("files_repository").insert(insertPayload);
+      const { error: dbErr } = await supabase.from("files_repository").insert(insertPayload as never);
       if (dbErr) throw dbErr;
 
       updateRow(row.id, { status: "done", progress: 100 });
