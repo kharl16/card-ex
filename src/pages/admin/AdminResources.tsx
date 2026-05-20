@@ -389,10 +389,16 @@ function AdminResourcesContent() {
                 className="hidden"
               />
               {activeTab === "files" && (
-                <Button variant="outline" onClick={() => setFolderManagerOpen(true)}>
-                  <FolderPlus className="h-4 w-4 mr-2" />
-                  Manage Folders
-                </Button>
+                <>
+                  <Button variant="outline" onClick={() => setFolderManagerOpen(true)}>
+                    <FolderPlus className="h-4 w-4 mr-2" />
+                    Manage Folders
+                  </Button>
+                  <Button variant="default" onClick={() => setBulkOpen(true)} className="bg-gradient-to-r from-primary to-primary/80">
+                    <UploadCloud className="h-4 w-4 mr-2" />
+                    Bulk Upload
+                  </Button>
+                </>
               )}
               {activeTab !== "ways" && (
                 <Button onClick={openCreate}>
