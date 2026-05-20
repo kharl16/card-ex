@@ -46,6 +46,7 @@ function AdminResourcesContent() {
   const [folderManagerOpen, setFolderManagerOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Record<string, any> | null>(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   const openCreate = () => {
     setEditingItem(null);
