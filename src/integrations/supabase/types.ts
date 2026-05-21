@@ -1203,6 +1203,39 @@ export type Database = {
         }
         Relationships: []
       }
+      global_testimony_images: {
+        Row: {
+          caption: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          sort_index: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       "IAM Files": {
         Row: {
           "Check Match": string | null

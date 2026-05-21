@@ -37,6 +37,7 @@ import AdminResources from "./pages/admin/AdminResources";
 import AdminAITraining from "./pages/admin/AdminAITraining";
 import AdminGlobalProducts from "./pages/admin/AdminGlobalProducts";
 import AdminGlobalPackages from "./pages/admin/AdminGlobalPackages";
+import AdminGlobalTestimonies from "./pages/admin/AdminGlobalTestimonies";
 import AdminOtpAudit from "./pages/admin/AdminOtpAudit";
 import AdminDeviceApprovals from "./pages/admin/AdminDeviceApprovals";
 import AdminDailyQuotes from "./pages/admin/AdminDailyQuotes";
@@ -216,6 +217,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <AdminGlobalPackages />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/global-testimonies"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminGlobalTestimonies />
               </RequireAuth>
             </PageTransition>
           }
