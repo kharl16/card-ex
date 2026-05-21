@@ -19,6 +19,15 @@ function FilesPageContent() {
   const [showFilters, setShowFilters] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
 
+  // Read folder from URL query param on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const folder = params.get("folder");
+    if (folder) {
+      setSelectedFolder(folder);
+    }
+  }, []);
+
   const { files, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
   const folderNames = useMemo(() => {
