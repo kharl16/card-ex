@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Search, X, FileText, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
