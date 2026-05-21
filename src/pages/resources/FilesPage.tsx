@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Search, X, FileText, SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,15 @@ function FilesPageContent() {
   const [sortBy, setSortBy] = useState<"name" | "newest">("name");
   const [showFilters, setShowFilters] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
+
+  // Read folder from URL query param on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const folder = params.get("folder");
+    if (folder) {
+      setSelectedFolder(folder);
+    }
+  }, []);
 
   const { files, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
