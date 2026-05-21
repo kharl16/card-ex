@@ -832,6 +832,10 @@ export default function AdminCards() {
             <Globe className="h-4 w-4" />
             Global Package Photos
           </Button>
+          <Button onClick={() => navigate("/admin/global-testimonies")} variant="outline" className="gap-2">
+            <Globe className="h-4 w-4" />
+            Global Testimony Photos
+          </Button>
           <Button onClick={() => setShowCreateUserDialog(true)} variant="outline" className="gap-2">
             <UserPlus className="h-4 w-4" />
             Create New User
