@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Pencil, Copy, Trash2, Eye, ExternalLink } from "lucide-react";
+import { Share2, Pencil, Copy, Trash2, Eye, ExternalLink, Globe, EyeOff } from "lucide-react";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import type { Tables } from "@/integrations/supabase/types";
 import eagleImg from "@/assets/disc/eagle.jpg";
@@ -34,9 +34,10 @@ interface DashboardCardTileProps {
   onDuplicate: (card: CardData, e: React.MouseEvent) => void;
   onDelete: (card: CardData, e: React.MouseEvent) => void;
   onRename: (card: CardData, e: React.MouseEvent) => void;
+  onTogglePublish?: (card: CardData, e: React.MouseEvent) => void;
 }
 
-export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, onDelete, onRename }: DashboardCardTileProps) {
+export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, onDelete, onRename, onTogglePublish }: DashboardCardTileProps) {
   const navigate = useNavigate();
   const theme = card.theme as any;
   const primaryColor = theme?.primary || "#D4AF37";
@@ -122,7 +123,34 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <span className="font-medium">{analyticsViews != null ? analyticsViews : (card.views_count || 0)} views</span>
           </span>
 
+          {onTogglePublish && (
+            <Button
+              variant={card.is_published ? "outline" : "default"}
+              size="sm"
+              className={
+                card.is_published
+                  ? "h-8 gap-1.5 rounded-full border-emerald-500/60 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400"
+                  : "h-8 gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground shadow-md shadow-primary/30 hover:bg-primary/90 animate-pulse"
+              }
+              title={card.is_published ? "Click to unpublish" : "Click to publish your card"}
+              onClick={(e) => onTogglePublish(card, e)}
+            >
+              {card.is_published ? (
+                <>
+                  <Globe className="h-3.5 w-3.5" />
+                  Published
+                </>
+              ) : (
+                <>
+                  <EyeOff className="h-3.5 w-3.5" />
+                  Publish
+                </>
+              )}
+            </Button>
+          )}
+
           <div className="flex shrink-0 items-center gap-0.5">
+
             <Button
               variant="ghost"
               size="icon"
