@@ -265,6 +265,10 @@ function AdminCardRow({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate(`/dashboard?viewAs=${card.user_id}`)}>
+              <Eye className="mr-2 h-4 w-4" />
+              View Owner Dashboard
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onEdit}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Card
