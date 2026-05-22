@@ -101,20 +101,27 @@ export default function Dashboard() {
 
   const loadProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    const targetId = viewAsUserId || user?.id;
+    if (targetId) {
+      const { data } = await supabase.from("profiles").select("*").eq("id", targetId).single();
       setProfile(data);
+      if (viewAsUserId) {
+        setImpersonatedEmail((data as any)?.full_name || viewAsUserId.slice(0, 8));
+      } else {
+        setImpersonatedEmail(null);
+      }
     }
   };
 
   const loadCards = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
+    const targetId = viewAsUserId || user?.id;
+    if (targetId) {
       const { data, error } = await supabase
         .from("cards")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", targetId)
         .order("created_at", { ascending: false });
       if (error) {
         console.error(error);
