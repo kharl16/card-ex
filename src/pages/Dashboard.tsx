@@ -58,12 +58,15 @@ type CardData = Tables<"cards">;
 export default function Dashboard() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const [searchParams] = useSearchParams();
+  const viewAsUserId = isAdmin ? searchParams.get("viewAs") : null;
 
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [cardViewsMap, setCardViewsMap] = useState<Record<string, number>>({});
   const [referralsExpanded, setReferralsExpanded] = useState(false);
+  const [impersonatedEmail, setImpersonatedEmail] = useState<string | null>(null);
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -80,7 +83,8 @@ export default function Dashboard() {
   useEffect(() => {
     loadProfile();
     loadCards();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewAsUserId]);
 
   // Refresh cards when user returns to dashboard (e.g. after retaking DISC / Love Language test)
   useEffect(() => {
