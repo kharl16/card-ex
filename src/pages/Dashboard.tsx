@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -58,12 +58,15 @@ type CardData = Tables<"cards">;
 export default function Dashboard() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const [searchParams] = useSearchParams();
+  const viewAsUserId = isAdmin ? searchParams.get("viewAs") : null;
 
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [cardViewsMap, setCardViewsMap] = useState<Record<string, number>>({});
   const [referralsExpanded, setReferralsExpanded] = useState(false);
+  const [impersonatedEmail, setImpersonatedEmail] = useState<string | null>(null);
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
@@ -80,7 +83,8 @@ export default function Dashboard() {
   useEffect(() => {
     loadProfile();
     loadCards();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewAsUserId]);
 
   // Refresh cards when user returns to dashboard (e.g. after retaking DISC / Love Language test)
   useEffect(() => {
@@ -97,20 +101,27 @@ export default function Dashboard() {
 
   const loadProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+    const targetId = viewAsUserId || user?.id;
+    if (targetId) {
+      const { data } = await supabase.from("profiles").select("*").eq("id", targetId).single();
       setProfile(data);
+      if (viewAsUserId) {
+        setImpersonatedEmail((data as any)?.full_name || viewAsUserId.slice(0, 8));
+      } else {
+        setImpersonatedEmail(null);
+      }
     }
   };
 
   const loadCards = async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
+    const targetId = viewAsUserId || user?.id;
+    if (targetId) {
       const { data, error } = await supabase
         .from("cards")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", targetId)
         .order("created_at", { ascending: false });
       if (error) {
         console.error(error);
@@ -256,6 +267,21 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw] pb-20 sm:pb-0">
+      {viewAsUserId && (
+        <div className="sticky top-0 z-50 bg-amber-500 text-black px-4 py-2 text-sm font-medium flex items-center justify-between gap-3">
+          <span className="truncate">
+            👁️ Viewing dashboard as <strong>{impersonatedEmail || viewAsUserId}</strong> (Super Admin impersonation — read-only context, your actions still apply to this account)
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-black text-amber-400 border-black hover:bg-black/90"
+            onClick={() => navigate("/admin/cards")}
+          >
+            Exit
+          </Button>
+        </div>
+      )}
       {/* Header - minimal */}
       <header className="sticky top-0 z-40 border-b border-border/20 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">

@@ -32,6 +32,7 @@ import {
   Wand2,
   Settings,
   ShieldCheck,
+  Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -264,6 +265,10 @@ function AdminCardRow({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => navigate(`/dashboard?viewAs=${card.user_id}`)}>
+              <Eye className="mr-2 h-4 w-4" />
+              View Owner Dashboard
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={onEdit}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Card
@@ -1059,6 +1064,16 @@ export default function AdminCards() {
                                 >
                                   <Edit className="h-4 w-4" />
                                   Edit
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-2 border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                                  onClick={() => navigate(`/dashboard?viewAs=${user.id}`)}
+                                  title="View this user's dashboard as Super Admin"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  View
                                 </Button>
                                 <Button
                                   variant="outline"
