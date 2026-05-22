@@ -167,6 +167,34 @@ export default function Dashboard() {
     setRenameDialogOpen(true);
   };
 
+  const handleTogglePublish = async (card: CardData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const willPublish = !card.is_published;
+
+    if (willPublish && !isAdmin) {
+      const otherPublished = cards.find((c) => c.id !== card.id && c.is_published);
+      if (otherPublished) {
+        toast.error("You can only publish one card. Unpublish your other card first.");
+        return;
+      }
+    }
+
+    try {
+      const { error } = await supabase
+        .from("cards")
+        .update({ is_published: willPublish })
+        .eq("id", card.id);
+      if (error) {
+        toast.error(willPublish ? "Failed to publish card" : "Failed to unpublish card");
+        return;
+      }
+      toast.success(willPublish ? "Card published 🎉" : "Card unpublished");
+      setCards((prev) => prev.map((c) => (c.id === card.id ? { ...c, is_published: willPublish } : c)));
+    } catch {
+      toast.error("Something went wrong");
+    }
+  };
+
   const handleRenameSave = async () => {
     if (!renameTargetCard) return;
     const trimmedName = renameValue.trim();
