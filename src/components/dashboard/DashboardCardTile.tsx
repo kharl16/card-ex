@@ -123,7 +123,34 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <span className="font-medium">{analyticsViews != null ? analyticsViews : (card.views_count || 0)} views</span>
           </span>
 
+          {onTogglePublish && (
+            <Button
+              variant={card.is_published ? "outline" : "default"}
+              size="sm"
+              className={
+                card.is_published
+                  ? "h-8 gap-1.5 rounded-full border-emerald-500/60 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400"
+                  : "h-8 gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground shadow-md shadow-primary/30 hover:bg-primary/90 animate-pulse"
+              }
+              title={card.is_published ? "Click to unpublish" : "Click to publish your card"}
+              onClick={(e) => onTogglePublish(card, e)}
+            >
+              {card.is_published ? (
+                <>
+                  <Globe className="h-3.5 w-3.5" />
+                  Published
+                </>
+              ) : (
+                <>
+                  <EyeOff className="h-3.5 w-3.5" />
+                  Publish
+                </>
+              )}
+            </Button>
+          )}
+
           <div className="flex shrink-0 items-center gap-0.5">
+
             <Button
               variant="ghost"
               size="icon"
