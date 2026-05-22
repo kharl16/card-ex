@@ -445,6 +445,7 @@ export default function Dashboard() {
                     onDuplicate={openDuplicateDialog}
                     onDelete={handleDeleteCard}
                     onRename={openRenameDialog}
+                    onTogglePublish={handleTogglePublish}
                   />
                 ))}
               </div>
