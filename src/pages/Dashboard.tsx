@@ -267,6 +267,21 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw] pb-20 sm:pb-0">
+      {viewAsUserId && (
+        <div className="sticky top-0 z-50 bg-amber-500 text-black px-4 py-2 text-sm font-medium flex items-center justify-between gap-3">
+          <span className="truncate">
+            👁️ Viewing dashboard as <strong>{impersonatedEmail || viewAsUserId}</strong> (Super Admin impersonation — read-only context, your actions still apply to this account)
+          </span>
+          <Button
+            size="sm"
+            variant="outline"
+            className="bg-black text-amber-400 border-black hover:bg-black/90"
+            onClick={() => navigate("/admin/cards")}
+          >
+            Exit
+          </Button>
+        </div>
+      )}
       {/* Header - minimal */}
       <header className="sticky top-0 z-40 border-b border-border/20 bg-background/80 backdrop-blur-xl">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
