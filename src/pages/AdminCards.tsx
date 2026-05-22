@@ -1063,6 +1063,16 @@ export default function AdminCards() {
                                 <Button
                                   variant="outline"
                                   size="sm"
+                                  className="gap-2 border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                                  onClick={() => navigate(`/dashboard?viewAs=${user.id}`)}
+                                  title="View this user's dashboard as Super Admin"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  View
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
                                   className="gap-2"
                                   onClick={() => openCreateCardForUser(user)}
                                 >
