@@ -34,9 +34,10 @@ interface DashboardCardTileProps {
   onDuplicate: (card: CardData, e: React.MouseEvent) => void;
   onDelete: (card: CardData, e: React.MouseEvent) => void;
   onRename: (card: CardData, e: React.MouseEvent) => void;
+  onTogglePublish?: (card: CardData, e: React.MouseEvent) => void;
 }
 
-export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, onDelete, onRename }: DashboardCardTileProps) {
+export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, onDelete, onRename, onTogglePublish }: DashboardCardTileProps) {
   const navigate = useNavigate();
   const theme = card.theme as any;
   const primaryColor = theme?.primary || "#D4AF37";
