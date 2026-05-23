@@ -33,6 +33,7 @@ import CardExCarousel from "@/components/CardExCarousel";
 import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRenderer";
 import { useGlobalProductImages } from "@/hooks/useGlobalProductImages";
 import { useGlobalPackageImages } from "@/hooks/useGlobalPackageImages";
+import { useGlobalTestimonyImages } from "@/hooks/useGlobalTestimonyImages";
 import VideoSectionRenderer from "@/components/video/VideoSectionRenderer";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
@@ -250,6 +251,7 @@ export default function CardView({
   const { visibleGlobals } = useGlobalProductImages(card?.id);
   // Global package photos shared across all cards (with this card's hide overrides applied)
   const { visibleGlobals: visibleGlobalPackages } = useGlobalPackageImages(card?.id);
+  const { visibleGlobals: visibleGlobalTestimonies } = useGlobalTestimonyImages(card?.id);
 
   // Bio expand/collapse (desktop only — mobile always shows full text)
   const [bioExpanded, setBioExpanded] = useState(false);
@@ -572,7 +574,16 @@ export default function CardView({
             srp: (g as any).srp ?? undefined,
           }));
           const packageImagesData = [...ownPackageImages, ...globalPackagesAsCarousel];
-          const testimonyImagesData = normalizeCarouselImages((card as any).testimony_images);
+          const ownTestimonyImages = normalizeCarouselImages((card as any).testimony_images);
+          const globalTestimoniesAsCarousel = visibleGlobalTestimonies.map((g, idx) => ({
+            url: g.url,
+            alt: g.caption ?? undefined,
+            order: ownTestimonyImages.length + idx,
+            description: undefined,
+            shareText: g.caption ?? undefined,
+            srp: undefined,
+          }));
+          const testimonyImagesData = [...ownTestimonyImages, ...globalTestimoniesAsCarousel];
           const videoItems = Array.isArray((card as any).video_items) ? (card as any).video_items : [];
           const cardSlug = card.slug;
           
