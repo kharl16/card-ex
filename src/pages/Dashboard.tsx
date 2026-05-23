@@ -183,6 +183,13 @@ export default function Dashboard() {
     const willPublish = !card.is_published;
 
     if (willPublish && !isAdmin) {
+      if (!(card as any).is_paid) {
+        toast.info("Activate this card to publish it.", {
+          description: "You'll be redirected to choose a plan and pay.",
+        });
+        navigate(`/billing?cardId=${card.id}`);
+        return;
+      }
       const otherPublished = cards.find((c) => c.id !== card.id && c.is_published);
       if (otherPublished) {
         toast.error("You can only publish one card. Unpublish your other card first.");
