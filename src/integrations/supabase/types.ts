@@ -494,6 +494,49 @@ export type Database = {
           },
         ]
       }
+      card_global_testimony_overrides: {
+        Row: {
+          card_id: string
+          created_at: string
+          global_testimony_image_id: string
+          id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          global_testimony_image_id: string
+          id?: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          global_testimony_image_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_global_testimony_overrides_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_global_testimony_overrides_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_global_testimony_overrides_global_testimony_image_id_fkey"
+            columns: ["global_testimony_image_id"]
+            isOneToOne: false
+            referencedRelation: "global_testimony_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_images: {
         Row: {
           card_id: string
