@@ -85,7 +85,7 @@ function parseBanner(raw: unknown): AdBanner {
 
 export function AdBannerSection({ card, onCardChange }: AdBannerSectionProps) {
   const banner = useMemo(() => parseBanner((card as any).ad_banner), [card]);
-  const [activeType, setActiveType] = useState<"image" | "video">(banner?.type ?? "image");
+  
 
   const update = (next: AdBanner) => {
     onCardChange({ ad_banner: next as any });
