@@ -214,24 +214,11 @@ export default function RiderHeader({
           <div className="absolute inset-[3px] rounded-full bg-black p-0 overflow-hidden">
             <div className="absolute inset-0 rounded-full overflow-hidden bg-black p-0">
               {avatar.items.length > 0 && (
-                <img
-                  src={cdnImage(avatar.items[0].url, {
-                    width: SQUARE_RENDER_SIZE,
-                    height: SQUARE_RENDER_SIZE,
-                    resize: IMAGE_FIT_NO_CROP,
-                    quality: 80,
-                  })}
-                  alt={avatar.items[0].alt || name || "Profile"}
-                  decoding="async"
-                  loading="eager"
-                  draggable={false}
-                  className="block h-full w-full max-w-none"
-                  style={{
-                    objectFit: IMAGE_FIT_NO_CROP,
-                    objectPosition: "center",
-                    width: "100%",
-                    height: "100%",
-                  }}
+                <LogoCrossfade
+                  items={avatar.items}
+                  autoPlayMs={avatar.autoPlayMs}
+                  alt={name || "Profile"}
+                  eager
                 />
               )}
             </div>
