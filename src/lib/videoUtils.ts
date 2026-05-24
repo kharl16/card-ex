@@ -1,9 +1,9 @@
 /**
- * Video utilities for parsing YouTube/Google Drive URLs
+ * Video utilities for parsing YouTube / Google Drive / Facebook URLs
  * and generating embed/thumbnail/download URLs.
  */
 
-export type VideoSource = "youtube" | "gdrive" | "unknown";
+export type VideoSource = "youtube" | "gdrive" | "facebook" | "unknown";
 
 export interface VideoItem {
   url: string;
@@ -42,10 +42,24 @@ export function extractGDriveId(url: string): string | null {
   return null;
 }
 
+/** Detect whether a URL looks like a Facebook video / reel / watch / fb.watch link */
+export function isFacebookVideoUrl(url: string): boolean {
+  const patterns = [
+    /facebook\.com\/.+\/videos\/\d+/i,
+    /facebook\.com\/watch\/?\?v=\d+/i,
+    /facebook\.com\/reel\/\d+/i,
+    /facebook\.com\/share\/v\/[A-Za-z0-9_-]+/i,
+    /facebook\.com\/video\.php\?v=\d+/i,
+    /fb\.watch\/[A-Za-z0-9_-]+/i,
+  ];
+  return patterns.some((p) => p.test(url));
+}
+
 /** Detect the video source from a URL */
 export function detectVideoSource(url: string): VideoSource {
   if (extractYouTubeId(url)) return "youtube";
   if (extractGDriveId(url)) return "gdrive";
+  if (isFacebookVideoUrl(url)) return "facebook";
   return "unknown";
 }
 
@@ -69,6 +83,20 @@ export function getEmbedUrl(url: string, autoplay = false): string | null {
     return `https://drive.google.com/file/d/${gdriveId}/preview`;
   }
 
+  if (isFacebookVideoUrl(url)) {
+    const params = new URLSearchParams({
+      href: url,
+      show_text: "false",
+      width: "560",
+      t: "0",
+    });
+    if (autoplay) {
+      params.set("autoplay", "true");
+      params.set("mute", "1");
+    }
+    return `https://www.facebook.com/plugins/video.php?${params.toString()}`;
+  }
+
   return null;
 }
 
@@ -79,7 +107,7 @@ export function getThumbnailUrl(url: string): string | null {
     return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
   }
 
-  // Google Drive doesn't have a reliable public thumbnail API
+  // Google Drive and Facebook don't expose reliable public thumbnail APIs
   // Return null - we'll show a placeholder
   return null;
 }
@@ -101,7 +129,7 @@ export function getDownloadUrl(url: string): string | null {
   if (gdriveId) {
     return `https://drive.google.com/uc?export=download&id=${gdriveId}`;
   }
-  // YouTube doesn't support direct download
+  // YouTube and Facebook don't support direct download
   return null;
 }
 
