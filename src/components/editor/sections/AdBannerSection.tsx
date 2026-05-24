@@ -3,7 +3,6 @@ import { ImageUpload } from "@/components/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -12,8 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Image as ImageIcon,
-  Video,
   Trash2,
   ArrowUp,
   ArrowDown,
