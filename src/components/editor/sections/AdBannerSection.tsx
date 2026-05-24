@@ -323,10 +323,10 @@ export function AdBannerSection({ card, onCardChange }: AdBannerSectionProps) {
         </TabsContent>
 
         <TabsContent value="video" className="mt-4 space-y-3">
-          <Label htmlFor="ad-banner-video-url">Video URL (YouTube, Vimeo, or .mp4)</Label>
+          <Label htmlFor="ad-banner-video-url">Video URL (YouTube, Vimeo, Facebook, or .mp4)</Label>
           <Input
             id="ad-banner-video-url"
-            placeholder="https://www.youtube.com/watch?v=... or https://example.com/video.mp4"
+            placeholder="https://www.youtube.com/watch?v=... , https://www.facebook.com/watch/?v=... , or https://example.com/video.mp4"
             value={banner?.type === "video" ? banner.url : ""}
             onChange={(e) => {
               const url = e.target.value.trim();
@@ -342,7 +342,7 @@ export function AdBannerSection({ card, onCardChange }: AdBannerSectionProps) {
             }}
           />
           <p className="text-xs text-muted-foreground">
-            Supports YouTube, Vimeo, or any direct .mp4/.webm URL.
+            Supports YouTube, Vimeo, Facebook (watch / reels / fb.watch), or any direct .mp4/.webm URL.
           </p>
 
           {banner?.type === "video" && (
