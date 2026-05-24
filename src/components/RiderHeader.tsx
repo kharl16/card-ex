@@ -166,24 +166,13 @@ export default function RiderHeader({
           }}
         >
           {cover.items.length > 0 && (
-            <img
-              src={cdnImage(cover.items[0].url, {
-                width: COVER_RENDER_WIDTH,
-                height: COVER_RENDER_HEIGHT,
-                resize: IMAGE_FIT_NO_CROP,
-                quality: 80,
-              })}
-              alt={cover.items[0].alt || `${name || "Profile"} cover photo`}
-              decoding="async"
-              loading="eager"
-              draggable={false}
-              className="absolute inset-0 block h-full w-full max-w-none"
-              style={{
-                objectFit: IMAGE_FIT_NO_CROP,
-                objectPosition: "center",
-                width: "100%",
-                height: "100%",
-              }}
+            <LogoCrossfade
+              items={cover.items}
+              autoPlayMs={cover.autoPlayMs}
+              alt={`${name || "Profile"} cover photo`}
+              width={COVER_RENDER_WIDTH}
+              height={COVER_RENDER_HEIGHT}
+              eager
             />
           )}
 
