@@ -159,208 +159,149 @@ export function AdBannerSection({ card, onCardChange }: AdBannerSectionProps) {
         <h3 className="text-base font-semibold">Ad Banner (Featured Media)</h3>
         <p className="text-sm text-muted-foreground">
           Acts like a second cover/logo on your card. Add up to {MAX_IMAGES} images and they'll
-          rotate as a swipeable carousel above the Products section. Or use a single video.
+          rotate as a swipeable carousel above the Products section.
         </p>
       </div>
 
-      <Tabs
-        value={activeType}
-        onValueChange={(v) => setActiveType(v as "image" | "video")}
-      >
-        <TabsList className="grid grid-cols-2 w-full">
-          <TabsTrigger value="image" className="gap-2">
-            <ImageIcon className="h-4 w-4" /> Images
-          </TabsTrigger>
-          <TabsTrigger value="video" className="gap-2">
-            <Video className="h-4 w-4" /> Video
-          </TabsTrigger>
-        </TabsList>
+      <div className="space-y-4">
+        {/* Uploader for new image */}
+        {imageBanner.items.length < MAX_IMAGES && (
+          <ImageUpload
+            value={null}
+            onChange={addImage}
+            label={`Add Banner Image (${imageBanner.items.length}/${MAX_IMAGES})`}
+            aspectRatio="aspect-video"
+            maxSize={5}
+            imageType="cover"
+            folderPrefix="ad-banners"
+          />
+        )}
 
-        <TabsContent value="image" className="mt-4 space-y-4">
-          {/* Uploader for new image */}
-          {imageBanner.items.length < MAX_IMAGES && (
-            <ImageUpload
-              value={null}
-              onChange={addImage}
-              label={`Add Banner Image (${imageBanner.items.length}/${MAX_IMAGES})`}
-              aspectRatio="aspect-video"
-              maxSize={5}
-              imageType="cover"
-              folderPrefix="ad-banners"
-            />
-          )}
-
-          {/* Existing items list */}
-          {imageBanner.items.length > 0 && (
-            <div className="space-y-3">
-              <Label>Banner Images ({imageBanner.items.length})</Label>
-              <div className="space-y-2">
-                {imageBanner.items.map((item, idx) => (
-                  <div
-                    key={`${item.url}-${idx}`}
-                    className="flex gap-3 rounded-lg border p-2"
-                  >
-                    <img
-                      src={item.url}
-                      alt={`Banner ${idx + 1}`}
-                      className="h-16 w-28 flex-shrink-0 rounded object-cover bg-muted"
+        {/* Existing items list */}
+        {imageBanner.items.length > 0 && (
+          <div className="space-y-3">
+            <Label>Banner Images ({imageBanner.items.length})</Label>
+            <div className="space-y-2">
+              {imageBanner.items.map((item, idx) => (
+                <div
+                  key={`${item.url}-${idx}`}
+                  className="flex gap-3 rounded-lg border p-2"
+                >
+                  <img
+                    src={item.url}
+                    alt={`Banner ${idx + 1}`}
+                    className="h-16 w-28 flex-shrink-0 rounded object-cover bg-muted"
+                  />
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <Input
+                      placeholder="Optional click-through link"
+                      value={item.link || ""}
+                      onChange={(e) =>
+                        updateItem(idx, { link: e.target.value.trim() || undefined })
+                      }
+                      className="h-8 text-xs"
                     />
-                    <div className="flex-1 min-w-0 space-y-1.5">
-                      <Input
-                        placeholder="Optional click-through link"
-                        value={item.link || ""}
-                        onChange={(e) =>
-                          updateItem(idx, { link: e.target.value.trim() || undefined })
-                        }
-                        className="h-8 text-xs"
-                      />
-                      <div className="flex items-center gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          disabled={idx === 0}
-                          onClick={() => moveItem(idx, -1)}
-                          title="Move up"
-                        >
-                          <ArrowUp className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          disabled={idx === imageBanner.items.length - 1}
-                          onClick={() => moveItem(idx, 1)}
-                          title="Move down"
-                        >
-                          <ArrowDown className="h-3.5 w-3.5" />
-                        </Button>
-                        <span className="ml-1 text-xs text-muted-foreground">
-                          #{idx + 1}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 ml-auto text-destructive hover:text-destructive"
-                          onClick={() => removeItem(idx)}
-                          title="Remove"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        disabled={idx === 0}
+                        onClick={() => moveItem(idx, -1)}
+                        title="Move up"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        disabled={idx === imageBanner.items.length - 1}
+                        onClick={() => moveItem(idx, 1)}
+                        title="Move down"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </Button>
+                      <span className="ml-1 text-xs text-muted-foreground">
+                        #{idx + 1}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 ml-auto text-destructive hover:text-destructive"
+                        onClick={() => removeItem(idx)}
+                        title="Remove"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Settings */}
-          {imageBanner.items.length > 0 && (
-            <div className="space-y-3 rounded-lg border p-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="ad-banner-autoplay">Auto-play interval</Label>
-                <Select
-                  value={String(imageBanner.autoPlayMs ?? 4000)}
-                  onValueChange={(v) =>
-                    setImageBanner({
-                      items: imageBanner.items,
-                      autoPlayMs: Number(v),
-                      link: imageBanner.link,
-                    })
-                  }
-                >
-                  <SelectTrigger id="ad-banner-autoplay">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Off</SelectItem>
-                    <SelectItem value="3000">3 seconds</SelectItem>
-                    <SelectItem value="4000">4 seconds (default)</SelectItem>
-                    <SelectItem value="6000">6 seconds</SelectItem>
-                    <SelectItem value="8000">8 seconds</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="ad-banner-link">
-                  Default click-through link (optional)
-                </Label>
-                <Input
-                  id="ad-banner-link"
-                  placeholder="https://your-promo-page.com"
-                  value={imageBanner.link || ""}
-                  onChange={(e) =>
-                    setImageBanner({
-                      items: imageBanner.items,
-                      autoPlayMs: imageBanner.autoPlayMs,
-                      link: e.target.value.trim() || undefined,
-                    })
-                  }
-                />
-                <p className="text-xs text-muted-foreground">
-                  Used for slides without their own link. Slides with no link will open
-                  full-screen with zoom instead.
-                </p>
-              </div>
-
-              <Button variant="outline" size="sm" onClick={clear} className="gap-2">
-                <Trash2 className="h-4 w-4" />
-                Remove all images
-              </Button>
+        {/* Settings */}
+        {imageBanner.items.length > 0 && (
+          <div className="space-y-3 rounded-lg border p-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="ad-banner-autoplay">Auto-play interval</Label>
+              <Select
+                value={String(imageBanner.autoPlayMs ?? 4000)}
+                onValueChange={(v) =>
+                  setImageBanner({
+                    items: imageBanner.items,
+                    autoPlayMs: Number(v),
+                    link: imageBanner.link,
+                  })
+                }
+              >
+                <SelectTrigger id="ad-banner-autoplay">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Off</SelectItem>
+                  <SelectItem value="3000">3 seconds</SelectItem>
+                  <SelectItem value="4000">4 seconds (default)</SelectItem>
+                  <SelectItem value="6000">6 seconds</SelectItem>
+                  <SelectItem value="8000">8 seconds</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
-        </TabsContent>
 
-        <TabsContent value="video" className="mt-4 space-y-3">
-          <Label htmlFor="ad-banner-video-url">Video URL (YouTube, Vimeo, Facebook, or .mp4)</Label>
-          <Input
-            id="ad-banner-video-url"
-            placeholder="https://www.youtube.com/watch?v=... , https://www.facebook.com/watch/?v=... , or https://example.com/video.mp4"
-            value={banner?.type === "video" ? banner.url : ""}
-            onChange={(e) => {
-              const url = e.target.value.trim();
-              update(
-                url
-                  ? {
-                      type: "video",
-                      url,
-                      link: banner?.type === "video" ? banner.link : undefined,
-                    }
-                  : null
-              );
-            }}
-          />
-          <p className="text-xs text-muted-foreground">
-            Supports YouTube, Vimeo, Facebook (watch / reels / fb.watch), or any direct .mp4/.webm URL.
-          </p>
-
-          {banner?.type === "video" && (
-            <div className="space-y-3 rounded-lg border p-3">
-              <div>
-                <Label htmlFor="ad-banner-video-link">Click-through Link (optional)</Label>
-                <Input
-                  id="ad-banner-video-link"
-                  placeholder="https://your-promo-page.com"
-                  value={banner.link || ""}
-                  onChange={(e) => {
-                    const link = e.target.value.trim();
-                    update({ ...banner, link: link || undefined });
-                  }}
-                />
-              </div>
-              <Button variant="outline" size="sm" onClick={clear} className="gap-2">
-                <Trash2 className="h-4 w-4" />
-                Remove video
-              </Button>
+            <div className="space-y-1.5">
+              <Label htmlFor="ad-banner-link">
+                Default click-through link (optional)
+              </Label>
+              <Input
+                id="ad-banner-link"
+                placeholder="https://your-promo-page.com"
+                value={imageBanner.link || ""}
+                onChange={(e) =>
+                  setImageBanner({
+                    items: imageBanner.items,
+                    autoPlayMs: imageBanner.autoPlayMs,
+                    link: e.target.value.trim() || undefined,
+                  })
+                }
+              />
+              <p className="text-xs text-muted-foreground">
+                Used for slides without their own link. Slides with no link will open
+                full-screen with zoom instead.
+              </p>
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
+
+            <Button variant="outline" size="sm" onClick={clear} className="gap-2">
+              <Trash2 className="h-4 w-4" />
+              Remove all images
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
