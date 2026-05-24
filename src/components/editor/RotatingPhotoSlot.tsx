@@ -207,52 +207,54 @@ function ExtraThumb({
   onDown: () => void;
 }) {
   return (
-    <div className="relative group rounded-lg overflow-hidden border border-border/60 bg-background aspect-square">
-      <img
-        src={item.url}
-        alt={`Photo ${idx + 2}`}
-        className="h-full w-full object-cover"
-        draggable={false}
-      />
-      {/* Photo number badge */}
-      <span className="absolute top-1.5 left-1.5 rounded-md bg-black/70 px-1.5 py-0.5 text-[11px] font-medium text-white">
-        #{idx + 2}
-      </span>
+    <div className="flex items-center gap-2 rounded-lg border border-border/60 bg-background p-2">
+      {/* Thumbnail */}
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-md bg-muted">
+        <img
+          src={item.url}
+          alt={`Photo ${idx + 2}`}
+          className="h-full w-full object-cover"
+          draggable={false}
+        />
+        <span className="absolute bottom-0 left-0 rounded-tr-md bg-black/70 px-1 py-0.5 text-[10px] font-medium text-white">
+          #{idx + 2}
+        </span>
+      </div>
 
-      {/* Remove button — large senior-friendly touch target */}
-      <button
-        type="button"
-        className="absolute top-1 right-1 flex h-11 w-11 items-center justify-center rounded-lg bg-destructive/90 text-white shadow-lg hover:bg-destructive active:scale-95 transition-all"
-        onClick={onRemove}
-        title="Remove photo"
-        aria-label="Remove photo"
-      >
-        <X className="h-5 w-5" />
-      </button>
-
-      {/* Reorder controls — senior-friendly touch targets */}
-      <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/70 px-1 py-1">
+      {/* Reorder controls */}
+      <div className="flex flex-1 items-center gap-1">
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-md text-white hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-foreground hover:bg-muted disabled:opacity-30 transition-colors"
           disabled={isFirst}
           onClick={onUp}
           title="Move earlier"
           aria-label="Move earlier"
         >
-          <ArrowUp className="h-5 w-5" />
+          <ArrowUp className="h-4 w-4" />
         </button>
         <button
           type="button"
-          className="flex h-11 w-11 items-center justify-center rounded-md text-white hover:bg-white/20 disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-md border border-border/60 text-foreground hover:bg-muted disabled:opacity-30 transition-colors"
           disabled={isLast}
           onClick={onDown}
           title="Move later"
           aria-label="Move later"
         >
-          <ArrowDown className="h-5 w-5" />
+          <ArrowDown className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Remove button beside the thumbnail */}
+      <button
+        type="button"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-destructive/90 text-white shadow hover:bg-destructive active:scale-95 transition-all"
+        onClick={onRemove}
+        title="Remove photo"
+        aria-label="Remove photo"
+      >
+        <X className="h-4 w-4" />
+      </button>
     </div>
   );
 }
