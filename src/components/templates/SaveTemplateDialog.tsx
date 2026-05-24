@@ -188,7 +188,7 @@ export function SaveTemplateDialog({
           </Button>
           <Button onClick={handleSave} disabled={!name.trim() || saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {hasPersonalTemplate && visibility === 'private' ? "Overwrite Template" : "Save Template"}
+            Save Template
           </Button>
         </DialogFooter>
       </DialogContent>
