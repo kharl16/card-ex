@@ -61,14 +61,14 @@ function LogoCrossfade({
         <img
           key={`${item.url}-${idx}`}
           src={cdnImage(item.url, {
-            width: SQUARE_RENDER_SIZE,
-            height: SQUARE_RENDER_SIZE,
+            width,
+            height,
             resize: IMAGE_FIT_NO_CROP,
             quality: 80,
           })}
           alt={item.alt || alt}
           decoding="async"
-          loading={idx === 0 ? "eager" : "lazy"}
+          loading={eager && idx === 0 ? "eager" : "lazy"}
           draggable={false}
           className="absolute inset-0 block h-full w-full max-w-none"
           style={{
