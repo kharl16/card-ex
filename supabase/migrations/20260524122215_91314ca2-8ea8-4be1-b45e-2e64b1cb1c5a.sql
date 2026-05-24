@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS public.unique_personal_template_per_user;

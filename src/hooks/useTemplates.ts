@@ -134,44 +134,38 @@ export function useTemplates() {
     try {
       const layoutData = extractLayoutData(card, cardLinks);
 
-      if (userTemplate && visibility === 'private') {
-        // Update existing personal template
-        const { error } = await supabase
-          .from("card_templates")
-          .update({
-            name,
-            description: description || null,
-            layout_data: layoutData as any,
-            visibility,
-          })
-          .eq("id", userTemplate.id);
-
-        if (error) throw error;
-        toast.success("Your template has been updated!");
-      } else {
-        // Create new template
+      // Always create a new template — users can save unlimited templates.
+      // If the name collides with an existing one, auto-suffix it.
+      let finalName = name;
+      let attempt = 0;
+      let lastError: any = null;
+      while (attempt < 5) {
         const { error } = await supabase.from("card_templates").insert([{
           owner_id: user.id,
-          name,
+          name: finalName,
           description: description || null,
           layout_data: layoutData as any,
           is_global: visibility === 'global',
           visibility,
         }]);
 
-        if (error) throw error;
-        toast.success("Template saved successfully!");
+        if (!error) {
+          toast.success("Template saved successfully!");
+          await loadTemplates();
+          return true;
+        }
+        lastError = error;
+        if (error.code === "23505") {
+          attempt += 1;
+          finalName = `${name} (${attempt + 1})`;
+          continue;
+        }
+        throw error;
       }
-
-      await loadTemplates();
-      return true;
+      throw lastError ?? new Error("Failed to save template");
     } catch (error: any) {
       console.error("Error saving template:", error);
-      if (error.code === "23505") {
-        toast.error("You already have a personal template. Update it instead.");
-      } else {
-        toast.error("Failed to save template");
-      }
+      toast.error("Failed to save template");
       return false;
     }
   };

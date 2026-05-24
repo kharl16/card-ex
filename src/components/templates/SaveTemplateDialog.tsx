@@ -111,9 +111,7 @@ export function SaveTemplateDialog({
             Save as Template
           </DialogTitle>
           <DialogDescription>
-            {hasPersonalTemplate && !isAdmin
-              ? "You already have a personal template. This will overwrite it."
-              : "Save this card as a reusable template with all content included."}
+            Save this card as a reusable template with all content included. You can save as many templates as you like.
           </DialogDescription>
         </DialogHeader>
 
@@ -182,16 +180,6 @@ export function SaveTemplateDialog({
             </RadioGroup>
           </div>
 
-          {hasPersonalTemplate && userTemplate && visibility === 'private' && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
-              <p className="font-medium text-amber-600 dark:text-amber-400">
-                Overwriting existing template
-              </p>
-              <p className="text-muted-foreground">
-                Your current template "{userTemplate.name}" will be replaced.
-              </p>
-            </div>
-          )}
         </div>
 
         <DialogFooter>
@@ -200,7 +188,7 @@ export function SaveTemplateDialog({
           </Button>
           <Button onClick={handleSave} disabled={!name.trim() || saving}>
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {hasPersonalTemplate && visibility === 'private' ? "Overwrite Template" : "Save Template"}
+            Save Template
           </Button>
         </DialogFooter>
       </DialogContent>
