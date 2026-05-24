@@ -180,16 +180,6 @@ export function SaveTemplateDialog({
             </RadioGroup>
           </div>
 
-          {hasPersonalTemplate && userTemplate && visibility === 'private' && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
-              <p className="font-medium text-amber-600 dark:text-amber-400">
-                Overwriting existing template
-              </p>
-              <p className="text-muted-foreground">
-                Your current template "{userTemplate.name}" will be replaced.
-              </p>
-            </div>
-          )}
         </div>
 
         <DialogFooter>
