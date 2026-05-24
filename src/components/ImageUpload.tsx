@@ -308,10 +308,11 @@ export function ImageUpload({
               </>
             ) : (
               <>
-                <Upload className="h-8 w-8 text-muted-foreground" />
-                <p className="text-sm font-medium">Click to upload or drag and drop</p>
-                <p className="text-xs text-muted-foreground">PNG, JPG, WEBP (max {maxSize}MB)</p>
+                <Upload className="h-8 w-8 text-muted-foreground shrink-0" />
+                <p className="text-sm font-medium leading-tight break-words max-w-full">Click to upload or drag and drop</p>
+                <p className="text-xs text-muted-foreground leading-tight break-words max-w-full">PNG, JPG, WEBP (max {maxSize}MB)</p>
               </>
+
             )}
           </button>
         )}
