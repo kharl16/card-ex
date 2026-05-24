@@ -86,6 +86,26 @@ function getVideoEmbed(url: string): { kind: "iframe" | "video"; src: string } {
   if (vimeoMatch) {
     return { kind: "iframe", src: `https://player.vimeo.com/video/${vimeoMatch[1]}` };
   }
+  // Facebook videos (watch, reels, /videos/, fb.watch short links, share/v/)
+  const fbPatterns = [
+    /facebook\.com\/.+\/videos\/\d+/i,
+    /facebook\.com\/watch\/?\?v=\d+/i,
+    /facebook\.com\/reel\/\d+/i,
+    /facebook\.com\/share\/v\/[A-Za-z0-9_-]+/i,
+    /facebook\.com\/video\.php\?v=\d+/i,
+    /fb\.watch\/[A-Za-z0-9_-]+/i,
+  ];
+  if (fbPatterns.some((p) => p.test(url))) {
+    const params = new URLSearchParams({
+      href: url,
+      show_text: "false",
+      width: "560",
+    });
+    return {
+      kind: "iframe",
+      src: `https://www.facebook.com/plugins/video.php?${params.toString()}`,
+    };
+  }
   return { kind: "video", src: url };
 }
 
