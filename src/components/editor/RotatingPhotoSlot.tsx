@@ -146,9 +146,9 @@ export function RotatingPhotoSlot({
           )}
         </div>
 
-        {/* Thumbnails of extra items */}
+        {/* Thumbnails of extra items — one per row */}
         {set.items.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div className="space-y-2">
             {set.items.map((item, idx) => (
               <ExtraThumb
                 key={`${item.url}-${idx}`}
@@ -182,12 +182,6 @@ export function RotatingPhotoSlot({
         ) : (
           <p className="text-[11px] text-muted-foreground text-center">
             Maximum {IMAGE_CAROUSEL_MAX_ITEMS} photos reached.
-          </p>
-        )}
-
-        {totalImages < 2 && (
-          <p className="text-[11px] text-muted-foreground leading-snug">
-            Add at least 2 photos to enable the Ken Burns rotation effect.
           </p>
         )}
       </div>
