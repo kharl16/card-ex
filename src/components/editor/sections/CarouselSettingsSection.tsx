@@ -54,7 +54,7 @@ const CAROUSEL_DESCRIPTIONS: Record<CarouselKey, string> = {
   products: "Showcase your products (max 50 images, scrolls right→left)",
   packages: "Display packages or services (max 50 images, scrolls left→right)",
   testimonies: "Show customer testimonials (max 200 images, scrolls right→left)",
-  videos: "Share video content from YouTube or Google Drive (max 25 videos)",
+  videos: "Share video content from YouTube, Facebook, or Google Drive (max 25 videos)",
 };
 
 export function CarouselSettingsSection({ card, onCardChange }: CarouselSettingsSectionProps) {
@@ -909,7 +909,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                     Videos ({((card as any).video_items || []).length} / {MAX_IMAGES.videos})
                   </CardTitle>
                   <CardDescription>
-                    Add YouTube or Google Drive video URLs.
+                    Add YouTube, Facebook, or Google Drive video URLs.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1066,7 +1066,7 @@ function VideoUrlManager({
         <Input
           value={newUrl}
           onChange={(e) => setNewUrl(e.target.value)}
-          placeholder="Paste YouTube or Google Drive URL..."
+          placeholder="Paste YouTube, Facebook, or Google Drive URL..."
           onKeyDown={(e) => e.key === "Enter" && handleAdd()}
           className="flex-1"
         />
@@ -1080,7 +1080,7 @@ function VideoUrlManager({
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Supports YouTube and Google Drive video links
+        Supports YouTube, Facebook (watch / reels / fb.watch), and Google Drive video links
       </p>
 
       {/* Video list */}
