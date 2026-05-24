@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,7 +88,7 @@ function parseBanner(raw: unknown): AdBanner {
 
 export function AdBannerSection({ card, onCardChange }: AdBannerSectionProps) {
   const banner = useMemo(() => parseBanner((card as any).ad_banner), [card]);
-  const activeType: "image" | "video" = banner?.type ?? "image";
+  const [activeType, setActiveType] = useState<"image" | "video">(banner?.type ?? "image");
 
   const update = (next: AdBanner) => {
     onCardChange({ ad_banner: next as any });
@@ -168,10 +168,7 @@ export function AdBannerSection({ card, onCardChange }: AdBannerSectionProps) {
 
       <Tabs
         value={activeType}
-        onValueChange={(v) => {
-          if (v === "image") update(banner?.type === "image" ? banner : null);
-          else update(banner?.type === "video" ? banner : null);
-        }}
+        onValueChange={(v) => setActiveType(v as "image" | "video")}
       >
         <TabsList className="grid grid-cols-2 w-full">
           <TabsTrigger value="image" className="gap-2">
