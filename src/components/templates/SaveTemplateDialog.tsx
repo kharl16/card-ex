@@ -111,9 +111,7 @@ export function SaveTemplateDialog({
             Save as Template
           </DialogTitle>
           <DialogDescription>
-            {hasPersonalTemplate && !isAdmin
-              ? "You already have a personal template. This will overwrite it."
-              : "Save this card as a reusable template with all content included."}
+            Save this card as a reusable template with all content included. You can save as many templates as you like.
           </DialogDescription>
         </DialogHeader>
 
