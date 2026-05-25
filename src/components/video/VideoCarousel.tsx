@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -160,10 +160,18 @@ export default function VideoCarousel({
                           title={video.title || `Video ${index + 1}`}
                         />
                       ) : (
-                        <button
-                          type="button"
-                          className="w-full h-full flex items-center justify-center cursor-pointer group"
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          draggable={false}
+                          className="w-full h-full flex items-center justify-center cursor-pointer group select-none"
                           onClick={() => openFullscreen(originalIndex)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              openFullscreen(originalIndex);
+                            }
+                          }}
                         >
                           {thumbnail ? (
                             <img
@@ -182,7 +190,7 @@ export default function VideoCarousel({
                               <Play className="h-7 w-7 text-foreground ml-1" />
                             </div>
                           </div>
-                        </button>
+                        </div>
                       )}
 
                       {/* Overlay controls for active slide */}
