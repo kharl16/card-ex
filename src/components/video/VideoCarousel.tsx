@@ -164,8 +164,18 @@ export default function VideoCarousel({
                           role="button"
                           tabIndex={0}
                           draggable={false}
+                          style={{ touchAction: "pan-y", WebkitUserSelect: "none", WebkitTouchCallout: "none" }}
                           className="w-full h-full flex items-center justify-center cursor-pointer group select-none"
-                          onClick={() => openFullscreen(originalIndex)}
+                          onPointerDown={(e) => {
+                            (e.currentTarget as any).__startX = e.clientX;
+                            (e.currentTarget as any).__startY = e.clientY;
+                          }}
+                          onPointerUp={(e) => {
+                            const el = e.currentTarget as any;
+                            const dx = Math.abs(e.clientX - (el.__startX ?? e.clientX));
+                            const dy = Math.abs(e.clientY - (el.__startY ?? e.clientY));
+                            if (dx < 8 && dy < 8) openFullscreen(originalIndex);
+                          }}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" || e.key === " ") {
                               e.preventDefault();
