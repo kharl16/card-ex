@@ -1,0 +1,1 @@
+UPDATE public.cards SET testimony_images = '[]'::jsonb WHERE testimony_images IS NOT NULL AND jsonb_typeof(testimony_images) = 'array' AND jsonb_array_length(testimony_images) > 0;
