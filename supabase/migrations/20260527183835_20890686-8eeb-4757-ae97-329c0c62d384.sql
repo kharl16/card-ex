@@ -1,0 +1,1 @@
+DELETE FROM global_testimony_images WHERE url LIKE '%cardex-products%' AND is_active = true;
