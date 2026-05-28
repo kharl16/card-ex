@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Trash2, Eye, EyeOff, Sparkles, Loader2 } from "lucide-react";
 
 type Row = {
   id: string;
@@ -25,6 +25,8 @@ export default function AdminGlobalTestimonies() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [extractingId, setExtractingId] = useState<string | null>(null);
+  const [bulkExtracting, setBulkExtracting] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [captionInput, setCaptionInput] = useState("");
 
@@ -136,6 +138,59 @@ export default function AdminGlobalTestimonies() {
     else await load();
   }
 
+  async function extractCaption(row: Row, opts: { silent?: boolean; overwrite?: boolean } = {}): Promise<string | null> {
+    if (!opts.overwrite && row.caption && row.caption.trim()) return row.caption;
+    try {
+      const { data, error } = await supabase.functions.invoke("extract-testimony-caption", {
+        body: { imageUrl: row.url },
+      });
+      if (error) throw error;
+      const caption = (data?.caption ?? "").trim();
+      if (!caption) {
+        if (!opts.silent) toast.warning("No condition text detected in image");
+        return null;
+      }
+      const { error: upErr } = await supabase
+        .from("global_testimony_images")
+        .update({ caption })
+        .eq("id", row.id);
+      if (upErr) throw upErr;
+      if (!opts.silent) toast.success(`Caption set: ${caption}`);
+      return caption;
+    } catch (e: any) {
+      if (!opts.silent) toast.error(`Extract failed: ${e.message ?? e}`);
+      return null;
+    }
+  }
+
+  async function onExtractOne(row: Row) {
+    setExtractingId(row.id);
+    await extractCaption(row, { overwrite: true });
+    setExtractingId(null);
+    await load();
+  }
+
+  async function onExtractAllMissing() {
+    const targets = rows.filter((r) => !r.caption || !r.caption.trim());
+    if (targets.length === 0) {
+      toast.info("All rows already have captions");
+      return;
+    }
+    if (!confirm(`Auto-caption ${targets.length} image(s) with no caption? This calls AI vision for each.`)) return;
+    setBulkExtracting(true);
+    let ok = 0;
+    let miss = 0;
+    for (const r of targets) {
+      setExtractingId(r.id);
+      const result = await extractCaption(r, { silent: true });
+      if (result) ok++;
+      else miss++;
+    }
+    setExtractingId(null);
+    setBulkExtracting(false);
+    toast.success(`Done: ${ok} captioned, ${miss} skipped/failed`);
+    await load();
+  }
 
   async function move(row: Row, dir: -1 | 1) {
     const idx = rows.findIndex((r) => r.id === row.id);
@@ -156,12 +211,18 @@ export default function AdminGlobalTestimonies() {
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
       </Button>
 
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Global Testimony Photos</h1>
-        <p className="text-sm text-muted-foreground">
-          Upload package photos here once and they appear on every card automatically. Card owners can choose to hide
-          specific packages on their own card.
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold">Global Testimony Photos</h1>
+          <p className="text-sm text-muted-foreground">
+            Upload package photos here once and they appear on every card automatically. Card owners can choose to hide
+            specific packages on their own card.
+          </p>
+        </div>
+        <Button onClick={onExtractAllMissing} disabled={bulkExtracting || loading} variant="outline">
+          {bulkExtracting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+          Auto-caption missing
+        </Button>
       </div>
 
       <div className="mb-8 rounded-xl border border-border bg-card p-4 space-y-4">
@@ -226,6 +287,19 @@ export default function AdminGlobalTestimonies() {
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => toggleActive(r)}>
                   {r.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onExtractOne(r)}
+                  disabled={extractingId === r.id || bulkExtracting}
+                  title="Auto-caption from image (AI vision)"
+                >
+                  {extractingId === r.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => remove(r)} className="ml-auto">
                   <Trash2 className="h-4 w-4" />
