@@ -365,6 +365,8 @@ export default function AdminCards() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>({});
+  const { data: cardPlans } = useCardPlans();
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
