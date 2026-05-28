@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Trash2, Eye, EyeOff, Sparkles, Loader2 } from "lucide-react";
 
 type Row = {
   id: string;
@@ -25,6 +25,8 @@ export default function AdminGlobalTestimonies() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [extractingId, setExtractingId] = useState<string | null>(null);
+  const [bulkExtracting, setBulkExtracting] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [captionInput, setCaptionInput] = useState("");
 
