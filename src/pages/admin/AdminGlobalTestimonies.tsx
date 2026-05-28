@@ -138,8 +138,60 @@ export default function AdminGlobalTestimonies() {
     else await load();
   }
 
+  async function extractCaption(row: Row, opts: { silent?: boolean; overwrite?: boolean } = {}): Promise<string | null> {
+    if (!opts.overwrite && row.caption && row.caption.trim()) return row.caption;
+    try {
+      const { data, error } = await supabase.functions.invoke("extract-testimony-caption", {
+        body: { imageUrl: row.url },
+      });
+      if (error) throw error;
+      const caption = (data?.caption ?? "").trim();
+      if (!caption) {
+        if (!opts.silent) toast.warning("No condition text detected in image");
+        return null;
+      }
+      const { error: upErr } = await supabase
+        .from("global_testimony_images")
+        .update({ caption })
+        .eq("id", row.id);
+      if (upErr) throw upErr;
+      if (!opts.silent) toast.success(`Caption set: ${caption}`);
+      return caption;
+    } catch (e: any) {
+      if (!opts.silent) toast.error(`Extract failed: ${e.message ?? e}`);
+      return null;
+    }
+  }
 
-  async function move(row: Row, dir: -1 | 1) {
+  async function onExtractOne(row: Row) {
+    setExtractingId(row.id);
+    await extractCaption(row, { overwrite: true });
+    setExtractingId(null);
+    await load();
+  }
+
+  async function onExtractAllMissing() {
+    const targets = rows.filter((r) => !r.caption || !r.caption.trim());
+    if (targets.length === 0) {
+      toast.info("All rows already have captions");
+      return;
+    }
+    if (!confirm(`Auto-caption ${targets.length} image(s) with no caption? This calls AI vision for each.`)) return;
+    setBulkExtracting(true);
+    let ok = 0;
+    let miss = 0;
+    for (const r of targets) {
+      setExtractingId(r.id);
+      const result = await extractCaption(r, { silent: true });
+      if (result) ok++;
+      else miss++;
+    }
+    setExtractingId(null);
+    setBulkExtracting(false);
+    toast.success(`Done: ${ok} captioned, ${miss} skipped/failed`);
+    await load();
+  }
+
     const idx = rows.findIndex((r) => r.id === row.id);
     const swap = rows[idx + dir];
     if (!swap) return;
