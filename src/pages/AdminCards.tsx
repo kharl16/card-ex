@@ -1014,14 +1014,15 @@ export default function AdminCards() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Owner</TableHead>
-                          <TableHead>Company</TableHead>
-                          <TableHead>Plan</TableHead>
-                          <TableHead>Paid</TableHead>
-                          <TableHead>Published</TableHead>
-                          <TableHead>Referral</TableHead>
-                          <TableHead>Referred By</TableHead>
+                          {(["Name", "Owner", "Company", "Plan", "Paid", "Published", "Referral", "Referred By"] as const).map((col) => (
+                            <FilterableHead
+                              key={col}
+                              label={col}
+                              options={columnOptions[col] || []}
+                              selected={columnFilters[col] || []}
+                              onChange={setColFilter(col)}
+                            />
+                          ))}
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
