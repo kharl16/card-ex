@@ -839,17 +839,62 @@ export default function AdminCards() {
     }
   };
 
+  // Per-card derived values used for column filtering
+  const getCardColumnValues = (card: CardData) => {
+    const planName = cardPlans?.find((p) => p.id === card.plan_id)?.name || "No plan";
+    const referralStatus =
+      card.is_paid && card.is_published && (card as any).owner_referral_code
+        ? "Active"
+        : userReferrals[card.user_id]?.has_referral_access && userReferrals[card.user_id]?.referral_code
+        ? "Has Code"
+        : "No Access";
+    return {
+      Name: card.full_name || "—",
+      Owner: (card as any).owner_name || "—",
+      Company: card.company || "—",
+      Plan: planName,
+      Paid: card.is_paid ? "Paid" : "Unpaid",
+      Published: card.is_published ? "Published" : "Unpublished",
+      Referral: referralStatus,
+      "Referred By": (card as any).referred_by_name || "—",
+    } as Record<string, string>;
+  };
+
   const filteredCards = cards.filter((card) => {
     const q = searchTerm.toLowerCase();
-
-    return (
+    const matchesSearch =
+      !q ||
       card.full_name?.toLowerCase().includes(q) ||
       card.slug?.toLowerCase().includes(q) ||
       card.company?.toLowerCase().includes(q) ||
-      // owner_name is a new column; cast to any until Supabase types are regenerated
-      (card as any).owner_name?.toLowerCase().includes(q)
-    );
+      (card as any).owner_name?.toLowerCase().includes(q);
+    if (!matchesSearch) return false;
+
+    const vals = getCardColumnValues(card);
+    for (const [col, selected] of Object.entries(columnFilters)) {
+      if (!selected || selected.length === 0) continue;
+      if (!selected.includes(vals[col])) return false;
+    }
+    return true;
   });
+
+  const columnOptions = useMemo(() => {
+    const cols = ["Name", "Owner", "Company", "Plan", "Paid", "Published", "Referral", "Referred By"];
+    const map: Record<string, string[]> = {};
+    for (const c of cols) map[c] = [];
+    const seen: Record<string, Set<string>> = {};
+    for (const c of cols) seen[c] = new Set();
+    cards.forEach((card) => {
+      const vals = getCardColumnValues(card);
+      for (const c of cols) seen[c].add(vals[c]);
+    });
+    for (const c of cols) map[c] = Array.from(seen[c]).sort((a, b) => a.localeCompare(b));
+    return map;
+  }, [cards, cardPlans, userReferrals]);
+
+  const setColFilter = (col: string) => (next: string[]) =>
+    setColumnFilters((prev) => ({ ...prev, [col]: next }));
+
 
   const filteredUsers = users.filter(
     (user) =>
