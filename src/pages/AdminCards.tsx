@@ -295,6 +295,67 @@ function AdminCardRow({
   );
 }
 
+interface FilterableHeadProps {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (next: string[]) => void;
+  className?: string;
+}
+
+function FilterableHead({ label, options, selected, onChange, className }: FilterableHeadProps) {
+  const active = selected.length > 0;
+  const toggle = (v: string) => {
+    if (selected.includes(v)) onChange(selected.filter((x) => x !== v));
+    else onChange([...selected, v]);
+  };
+  return (
+    <TableHead className={className}>
+      <div className="flex items-center gap-1">
+        <span>{label}</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-6 w-6 ${active ? "text-primary" : "text-muted-foreground"}`}
+              aria-label={`Filter ${label}`}
+            >
+              <Filter className="h-3.5 w-3.5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 p-2 z-50 bg-popover">
+            <div className="flex items-center justify-between px-1 pb-2">
+              <span className="text-xs font-semibold">Filter {label}</span>
+              {active && (
+                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => onChange([])}>
+                  Clear
+                </Button>
+              )}
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {options.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2 py-1">No values</p>
+              ) : (
+                options.map((opt) => (
+                  <label
+                    key={opt}
+                    className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted cursor-pointer text-sm"
+                  >
+                    <Checkbox checked={selected.includes(opt)} onCheckedChange={() => toggle(opt)} />
+                    <span className="truncate">{opt || "—"}</span>
+                  </label>
+                ))
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </TableHead>
+  );
+}
+
+
 export default function AdminCards() {
   const navigate = useNavigate();
   const { isAdmin, loading: authLoading, session } = useAuth();
