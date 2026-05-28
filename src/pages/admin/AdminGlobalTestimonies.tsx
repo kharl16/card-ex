@@ -192,6 +192,7 @@ export default function AdminGlobalTestimonies() {
     await load();
   }
 
+  async function move(row: Row, dir: -1 | 1) {
     const idx = rows.findIndex((r) => r.id === row.id);
     const swap = rows[idx + dir];
     if (!swap) return;
