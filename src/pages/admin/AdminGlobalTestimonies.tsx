@@ -211,12 +211,18 @@ export default function AdminGlobalTestimonies() {
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
       </Button>
 
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Global Testimony Photos</h1>
-        <p className="text-sm text-muted-foreground">
-          Upload package photos here once and they appear on every card automatically. Card owners can choose to hide
-          specific packages on their own card.
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold">Global Testimony Photos</h1>
+          <p className="text-sm text-muted-foreground">
+            Upload package photos here once and they appear on every card automatically. Card owners can choose to hide
+            specific packages on their own card.
+          </p>
+        </div>
+        <Button onClick={onExtractAllMissing} disabled={bulkExtracting || loading} variant="outline">
+          {bulkExtracting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+          Auto-caption missing
+        </Button>
       </div>
 
       <div className="mb-8 rounded-xl border border-border bg-card p-4 space-y-4">
@@ -281,6 +287,19 @@ export default function AdminGlobalTestimonies() {
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => toggleActive(r)}>
                   {r.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onExtractOne(r)}
+                  disabled={extractingId === r.id || bulkExtracting}
+                  title="Auto-caption from image (AI vision)"
+                >
+                  {extractingId === r.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => remove(r)} className="ml-auto">
                   <Trash2 className="h-4 w-4" />
