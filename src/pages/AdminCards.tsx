@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -33,6 +33,7 @@ import {
   Settings,
   ShieldCheck,
   Eye,
+  Filter,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -64,6 +65,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { AdminCreateCardDialog } from "@/components/admin/AdminCreateCardDialog";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
@@ -293,6 +295,67 @@ function AdminCardRow({
   );
 }
 
+interface FilterableHeadProps {
+  label: string;
+  options: string[];
+  selected: string[];
+  onChange: (next: string[]) => void;
+  className?: string;
+}
+
+function FilterableHead({ label, options, selected, onChange, className }: FilterableHeadProps) {
+  const active = selected.length > 0;
+  const toggle = (v: string) => {
+    if (selected.includes(v)) onChange(selected.filter((x) => x !== v));
+    else onChange([...selected, v]);
+  };
+  return (
+    <TableHead className={className}>
+      <div className="flex items-center gap-1">
+        <span>{label}</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-6 w-6 ${active ? "text-primary" : "text-muted-foreground"}`}
+              aria-label={`Filter ${label}`}
+            >
+              <Filter className="h-3.5 w-3.5" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 p-2 z-50 bg-popover">
+            <div className="flex items-center justify-between px-1 pb-2">
+              <span className="text-xs font-semibold">Filter {label}</span>
+              {active && (
+                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => onChange([])}>
+                  Clear
+                </Button>
+              )}
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {options.length === 0 ? (
+                <p className="text-xs text-muted-foreground px-2 py-1">No values</p>
+              ) : (
+                options.map((opt) => (
+                  <label
+                    key={opt}
+                    className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted cursor-pointer text-sm"
+                  >
+                    <Checkbox checked={selected.includes(opt)} onCheckedChange={() => toggle(opt)} />
+                    <span className="truncate">{opt || "—"}</span>
+                  </label>
+                ))
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </TableHead>
+  );
+}
+
+
 export default function AdminCards() {
   const navigate = useNavigate();
   const { isAdmin, loading: authLoading, session } = useAuth();
@@ -302,6 +365,8 @@ export default function AdminCards() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [userSearchTerm, setUserSearchTerm] = useState("");
+  const [columnFilters, setColumnFilters] = useState<Record<string, string[]>>({});
+  const { data: cardPlans } = useCardPlans();
   const [deleteCardId, setDeleteCardId] = useState<string | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
   const [deletingUser, setDeletingUser] = useState(false);
@@ -774,17 +839,62 @@ export default function AdminCards() {
     }
   };
 
+  // Per-card derived values used for column filtering
+  const getCardColumnValues = (card: CardData) => {
+    const planName = cardPlans?.find((p) => p.id === card.plan_id)?.name || "No plan";
+    const referralStatus =
+      card.is_paid && card.is_published && (card as any).owner_referral_code
+        ? "Active"
+        : userReferrals[card.user_id]?.has_referral_access && userReferrals[card.user_id]?.referral_code
+        ? "Has Code"
+        : "No Access";
+    return {
+      Name: card.full_name || "—",
+      Owner: (card as any).owner_name || "—",
+      Company: card.company || "—",
+      Plan: planName,
+      Paid: card.is_paid ? "Paid" : "Unpaid",
+      Published: card.is_published ? "Published" : "Unpublished",
+      Referral: referralStatus,
+      "Referred By": (card as any).referred_by_name || "—",
+    } as Record<string, string>;
+  };
+
   const filteredCards = cards.filter((card) => {
     const q = searchTerm.toLowerCase();
-
-    return (
+    const matchesSearch =
+      !q ||
       card.full_name?.toLowerCase().includes(q) ||
       card.slug?.toLowerCase().includes(q) ||
       card.company?.toLowerCase().includes(q) ||
-      // owner_name is a new column; cast to any until Supabase types are regenerated
-      (card as any).owner_name?.toLowerCase().includes(q)
-    );
+      (card as any).owner_name?.toLowerCase().includes(q);
+    if (!matchesSearch) return false;
+
+    const vals = getCardColumnValues(card);
+    for (const [col, selected] of Object.entries(columnFilters)) {
+      if (!selected || selected.length === 0) continue;
+      if (!selected.includes(vals[col])) return false;
+    }
+    return true;
   });
+
+  const columnOptions = useMemo(() => {
+    const cols = ["Name", "Owner", "Company", "Plan", "Paid", "Published", "Referral", "Referred By"];
+    const map: Record<string, string[]> = {};
+    for (const c of cols) map[c] = [];
+    const seen: Record<string, Set<string>> = {};
+    for (const c of cols) seen[c] = new Set();
+    cards.forEach((card) => {
+      const vals = getCardColumnValues(card);
+      for (const c of cols) seen[c].add(vals[c]);
+    });
+    for (const c of cols) map[c] = Array.from(seen[c]).sort((a, b) => a.localeCompare(b));
+    return map;
+  }, [cards, cardPlans, userReferrals]);
+
+  const setColFilter = (col: string) => (next: string[]) =>
+    setColumnFilters((prev) => ({ ...prev, [col]: next }));
+
 
   const filteredUsers = users.filter(
     (user) =>
@@ -904,14 +1014,15 @@ export default function AdminCards() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Name</TableHead>
-                          <TableHead>Owner</TableHead>
-                          <TableHead>Company</TableHead>
-                          <TableHead>Plan</TableHead>
-                          <TableHead>Paid</TableHead>
-                          <TableHead>Published</TableHead>
-                          <TableHead>Referral</TableHead>
-                          <TableHead>Referred By</TableHead>
+                          {(["Name", "Owner", "Company", "Plan", "Paid", "Published", "Referral", "Referred By"] as const).map((col) => (
+                            <FilterableHead
+                              key={col}
+                              label={col}
+                              options={columnOptions[col] || []}
+                              selected={columnFilters[col] || []}
+                              onChange={setColFilter(col)}
+                            />
+                          ))}
                           <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
