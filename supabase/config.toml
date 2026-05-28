@@ -51,6 +51,9 @@ verify_jwt = false
 [functions.paymongo-webhook]
 verify_jwt = false
 
+[functions.extract-testimony-caption]
+verify_jwt = true
+
 [auth]
 enabled = true
 
