@@ -6,7 +6,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2, Eye, EyeOff, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Trash2, Eye, EyeOff, Sparkles, Loader2, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type Row = {
   id: string;
@@ -111,31 +128,41 @@ export default function AdminGlobalTestimonies() {
   }
 
   async function toggleActive(row: Row) {
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, is_active: !r.is_active } : r)));
     const { error } = await supabase
       .from("global_testimony_images")
       .update({ is_active: !row.is_active })
       .eq("id", row.id);
-    if (error) toast.error(error.message);
-    else await load();
+    if (error) {
+      toast.error(error.message);
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, is_active: row.is_active } : r)));
+    }
   }
 
   async function remove(row: Row) {
     if (!confirm("Remove this package from ALL cards? This cannot be undone.")) return;
+    const prev = rows;
+    setRows((p) => p.filter((r) => r.id !== row.id));
     const { error } = await supabase.from("global_testimony_images").delete().eq("id", row.id);
-    if (error) toast.error(error.message);
-    else {
+    if (error) {
+      toast.error(error.message);
+      setRows(prev);
+    } else {
       toast.success("Removed");
-      await load();
     }
   }
 
   async function updateCaption(row: Row, caption: string) {
+    const newCaption = caption.trim() || null;
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, caption: newCaption } : r)));
     const { error } = await supabase
       .from("global_testimony_images")
-      .update({ caption: caption.trim() || null })
+      .update({ caption: newCaption })
       .eq("id", row.id);
-    if (error) toast.error(error.message);
-    else await load();
+    if (error) {
+      toast.error(error.message);
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, caption: row.caption } : r)));
+    }
   }
 
   async function extractCaption(row: Row, opts: { silent?: boolean; overwrite?: boolean } = {}): Promise<string | null> {
@@ -155,6 +182,7 @@ export default function AdminGlobalTestimonies() {
         .update({ caption })
         .eq("id", row.id);
       if (upErr) throw upErr;
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, caption } : r)));
       if (!opts.silent) toast.success(`Caption set: ${caption}`);
       return caption;
     } catch (e: any) {
@@ -167,7 +195,6 @@ export default function AdminGlobalTestimonies() {
     setExtractingId(row.id);
     await extractCaption(row, { overwrite: true });
     setExtractingId(null);
-    await load();
   }
 
   async function onExtractAllMissing() {
@@ -189,18 +216,52 @@ export default function AdminGlobalTestimonies() {
     setExtractingId(null);
     setBulkExtracting(false);
     toast.success(`Done: ${ok} captioned, ${miss} skipped/failed`);
-    await load();
   }
 
-  async function move(row: Row, dir: -1 | 1) {
+  async function persistOrder(ordered: Row[]) {
+    // Reassign sort_index sequentially and persist any that changed.
+    const updates = ordered
+      .map((r, idx) => ({ r, idx }))
+      .filter(({ r, idx }) => r.sort_index !== idx);
+    if (updates.length === 0) return;
+    const results = await Promise.all(
+      updates.map(({ r, idx }) =>
+        supabase.from("global_testimony_images").update({ sort_index: idx }).eq("id", r.id)
+      )
+    );
+    const firstErr = results.find((res) => res.error)?.error;
+    if (firstErr) {
+      toast.error(`Reorder failed: ${firstErr.message}`);
+      await load();
+    } else {
+      setRows(ordered.map((r, idx) => ({ ...r, sort_index: idx })));
+    }
+  }
+
+  function reorder(fromIdx: number, toIdx: number) {
+    if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || toIdx >= rows.length) return;
+    const next = arrayMove(rows, fromIdx, toIdx);
+    setRows(next);
+    void persistOrder(next);
+  }
+
+  function move(row: Row, dir: -1 | 1) {
     const idx = rows.findIndex((r) => r.id === row.id);
-    const swap = rows[idx + dir];
-    if (!swap) return;
-    await Promise.all([
-      supabase.from("global_testimony_images").update({ sort_index: swap.sort_index }).eq("id", row.id),
-      supabase.from("global_testimony_images").update({ sort_index: row.sort_index }).eq("id", swap.id),
-    ]);
-    await load();
+    if (idx < 0) return;
+    reorder(idx, idx + dir);
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  function handleDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const from = rows.findIndex((r) => r.id === active.id);
+    const to = rows.findIndex((r) => r.id === over.id);
+    reorder(from, to);
   }
 
   if (authLoading) return <div className="p-8 text-muted-foreground">Loading…</div>;
@@ -260,55 +321,124 @@ export default function AdminGlobalTestimonies() {
           No global testimonys yet. Upload one above and it will appear on every card.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map((r, i) => (
-            <div key={r.id} className="rounded-xl border border-border bg-card p-3 space-y-2">
-              <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
-                <img src={r.url} alt={r.caption ?? ""} className="h-full w-full object-cover" />
-                {!r.is_active && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs font-medium text-white">
-                    HIDDEN GLOBALLY
-                  </div>
-                )}
-              </div>
-              <Input
-                defaultValue={r.caption ?? ""}
-                placeholder="Caption"
-                onBlur={(e) => {
-                  if (e.target.value !== (r.caption ?? "")) updateCaption(r, e.target.value);
-                }}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={() => move(r, -1)} disabled={i === 0}>
-                  ↑
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => move(r, 1)} disabled={i === rows.length - 1}>
-                  ↓
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => toggleActive(r)}>
-                  {r.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onExtractOne(r)}
-                  disabled={extractingId === r.id || bulkExtracting}
-                  title="Auto-caption from image (AI vision)"
-                >
-                  {extractingId === r.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button size="sm" variant="destructive" onClick={() => remove(r)} className="ml-auto">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={rows.map((r) => r.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {rows.map((r, i) => (
+                <SortableCard
+                  key={r.id}
+                  row={r}
+                  index={i}
+                  total={rows.length}
+                  extractingId={extractingId}
+                  bulkExtracting={bulkExtracting}
+                  onMove={move}
+                  onToggleActive={toggleActive}
+                  onExtractOne={onExtractOne}
+                  onRemove={remove}
+                  onUpdateCaption={updateCaption}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       )}
     </div>
   );
 }
+
+interface SortableCardProps {
+  row: Row;
+  index: number;
+  total: number;
+  extractingId: string | null;
+  bulkExtracting: boolean;
+  onMove: (row: Row, dir: -1 | 1) => void;
+  onToggleActive: (row: Row) => void;
+  onExtractOne: (row: Row) => void;
+  onRemove: (row: Row) => void;
+  onUpdateCaption: (row: Row, caption: string) => void;
+}
+
+function SortableCard({
+  row: r,
+  index: i,
+  total,
+  extractingId,
+  bulkExtracting,
+  onMove,
+  onToggleActive,
+  onExtractOne,
+  onRemove,
+  onUpdateCaption,
+}: SortableCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: r.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="rounded-xl border border-border bg-card p-3 space-y-2"
+    >
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+        <img src={r.url} alt={r.caption ?? ""} className="h-full w-full object-cover" />
+        {!r.is_active && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs font-medium text-white">
+            HIDDEN GLOBALLY
+          </div>
+        )}
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder"
+          title="Drag to reorder"
+          className="absolute left-1.5 top-1.5 inline-flex h-8 w-8 cursor-grab items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur-sm transition hover:bg-background active:cursor-grabbing touch-none"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      </div>
+      <Input
+        defaultValue={r.caption ?? ""}
+        placeholder="Caption"
+        onBlur={(e) => {
+          if (e.target.value !== (r.caption ?? "")) onUpdateCaption(r, e.target.value);
+        }}
+      />
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" onClick={() => onMove(r, -1)} disabled={i === 0}>
+          ↑
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => onMove(r, 1)} disabled={i === total - 1}>
+          ↓
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => onToggleActive(r)}>
+          {r.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onExtractOne(r)}
+          disabled={extractingId === r.id || bulkExtracting}
+          title="Auto-caption from image (AI vision)"
+        >
+          {extractingId === r.id ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
+        </Button>
+        <Button size="sm" variant="destructive" onClick={() => onRemove(r)} className="ml-auto">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
