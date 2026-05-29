@@ -182,6 +182,7 @@ export default function AdminGlobalTestimonies() {
         .update({ caption })
         .eq("id", row.id);
       if (upErr) throw upErr;
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, caption } : r)));
       if (!opts.silent) toast.success(`Caption set: ${caption}`);
       return caption;
     } catch (e: any) {
@@ -194,7 +195,6 @@ export default function AdminGlobalTestimonies() {
     setExtractingId(row.id);
     await extractCaption(row, { overwrite: true });
     setExtractingId(null);
-    await load();
   }
 
   async function onExtractAllMissing() {
@@ -216,18 +216,52 @@ export default function AdminGlobalTestimonies() {
     setExtractingId(null);
     setBulkExtracting(false);
     toast.success(`Done: ${ok} captioned, ${miss} skipped/failed`);
-    await load();
   }
 
-  async function move(row: Row, dir: -1 | 1) {
+  async function persistOrder(ordered: Row[]) {
+    // Reassign sort_index sequentially and persist any that changed.
+    const updates = ordered
+      .map((r, idx) => ({ r, idx }))
+      .filter(({ r, idx }) => r.sort_index !== idx);
+    if (updates.length === 0) return;
+    const results = await Promise.all(
+      updates.map(({ r, idx }) =>
+        supabase.from("global_testimony_images").update({ sort_index: idx }).eq("id", r.id)
+      )
+    );
+    const firstErr = results.find((res) => res.error)?.error;
+    if (firstErr) {
+      toast.error(`Reorder failed: ${firstErr.message}`);
+      await load();
+    } else {
+      setRows(ordered.map((r, idx) => ({ ...r, sort_index: idx })));
+    }
+  }
+
+  function reorder(fromIdx: number, toIdx: number) {
+    if (fromIdx === toIdx || fromIdx < 0 || toIdx < 0 || toIdx >= rows.length) return;
+    const next = arrayMove(rows, fromIdx, toIdx);
+    setRows(next);
+    void persistOrder(next);
+  }
+
+  function move(row: Row, dir: -1 | 1) {
     const idx = rows.findIndex((r) => r.id === row.id);
-    const swap = rows[idx + dir];
-    if (!swap) return;
-    await Promise.all([
-      supabase.from("global_testimony_images").update({ sort_index: swap.sort_index }).eq("id", row.id),
-      supabase.from("global_testimony_images").update({ sort_index: row.sort_index }).eq("id", swap.id),
-    ]);
-    await load();
+    if (idx < 0) return;
+    reorder(idx, idx + dir);
+  }
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  function handleDragEnd(e: DragEndEvent) {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+    const from = rows.findIndex((r) => r.id === active.id);
+    const to = rows.findIndex((r) => r.id === over.id);
+    reorder(from, to);
   }
 
   if (authLoading) return <div className="p-8 text-muted-foreground">Loading…</div>;
