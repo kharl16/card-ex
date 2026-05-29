@@ -321,55 +321,126 @@ export default function AdminGlobalTestimonies() {
           No global testimonys yet. Upload one above and it will appear on every card.
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {rows.map((r, i) => (
-            <div key={r.id} className="rounded-xl border border-border bg-card p-3 space-y-2">
-              <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
-                <img src={r.url} alt={r.caption ?? ""} className="h-full w-full object-cover" />
-                {!r.is_active && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs font-medium text-white">
-                    HIDDEN GLOBALLY
-                  </div>
-                )}
-              </div>
-              <Input
-                defaultValue={r.caption ?? ""}
-                placeholder="Caption"
-                onBlur={(e) => {
-                  if (e.target.value !== (r.caption ?? "")) updateCaption(r, e.target.value);
-                }}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={() => move(r, -1)} disabled={i === 0}>
-                  ↑
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => move(r, 1)} disabled={i === rows.length - 1}>
-                  ↓
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => toggleActive(r)}>
-                  {r.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onExtractOne(r)}
-                  disabled={extractingId === r.id || bulkExtracting}
-                  title="Auto-caption from image (AI vision)"
-                >
-                  {extractingId === r.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                </Button>
-                <Button size="sm" variant="destructive" onClick={() => remove(r)} className="ml-auto">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={rows.map((r) => r.id)} strategy={rectSortingStrategy}>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {rows.map((r, i) => (
+                <SortableCard
+                  key={r.id}
+                  row={r}
+                  index={i}
+                  total={rows.length}
+                  extractingId={extractingId}
+                  bulkExtracting={bulkExtracting}
+                  onMove={move}
+                  onToggleActive={toggleActive}
+                  onExtractOne={onExtractOne}
+                  onRemove={remove}
+                  onUpdateCaption={updateCaption}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       )}
+    </div>
+  );
+}
+
+interface SortableCardProps {
+  row: Row;
+  index: number;
+  total: number;
+  extractingId: string | null;
+  bulkExtracting: boolean;
+  onMove: (row: Row, dir: -1 | 1) => void;
+  onToggleActive: (row: Row) => void;
+  onExtractOne: (row: Row) => void;
+  onRemove: (row: Row) => void;
+  onUpdateCaption: (row: Row, caption: string) => void;
+}
+
+function SortableCard({
+  row: r,
+  index: i,
+  total,
+  extractingId,
+  bulkExtracting,
+  onMove,
+  onToggleActive,
+  onExtractOne,
+  onRemove,
+  onUpdateCaption,
+}: SortableCardProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: r.id });
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="rounded-xl border border-border bg-card p-3 space-y-2"
+    >
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+        <img src={r.url} alt={r.caption ?? ""} className="h-full w-full object-cover" />
+        {!r.is_active && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs font-medium text-white">
+            HIDDEN GLOBALLY
+          </div>
+        )}
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder"
+          title="Drag to reorder"
+          className="absolute left-1.5 top-1.5 inline-flex h-8 w-8 cursor-grab items-center justify-center rounded-full bg-background/80 text-foreground shadow-md backdrop-blur-sm transition hover:bg-background active:cursor-grabbing touch-none"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+      </div>
+      <Input
+        defaultValue={r.caption ?? ""}
+        placeholder="Caption"
+        onBlur={(e) => {
+          if (e.target.value !== (r.caption ?? "")) onUpdateCaption(r, e.target.value);
+        }}
+      />
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" variant="outline" onClick={() => onMove(r, -1)} disabled={i === 0}>
+          ↑
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => onMove(r, 1)} disabled={i === total - 1}>
+          ↓
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => onToggleActive(r)}>
+          {r.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onExtractOne(r)}
+          disabled={extractingId === r.id || bulkExtracting}
+          title="Auto-caption from image (AI vision)"
+        >
+          {extractingId === r.id ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="h-4 w-4" />
+          )}
+        </Button>
+        <Button size="sm" variant="destructive" onClick={() => onRemove(r)} className="ml-auto">
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
     </div>
   );
 }
