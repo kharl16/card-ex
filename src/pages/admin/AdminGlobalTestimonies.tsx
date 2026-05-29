@@ -128,31 +128,41 @@ export default function AdminGlobalTestimonies() {
   }
 
   async function toggleActive(row: Row) {
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, is_active: !r.is_active } : r)));
     const { error } = await supabase
       .from("global_testimony_images")
       .update({ is_active: !row.is_active })
       .eq("id", row.id);
-    if (error) toast.error(error.message);
-    else await load();
+    if (error) {
+      toast.error(error.message);
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, is_active: row.is_active } : r)));
+    }
   }
 
   async function remove(row: Row) {
     if (!confirm("Remove this package from ALL cards? This cannot be undone.")) return;
+    const prev = rows;
+    setRows((p) => p.filter((r) => r.id !== row.id));
     const { error } = await supabase.from("global_testimony_images").delete().eq("id", row.id);
-    if (error) toast.error(error.message);
-    else {
+    if (error) {
+      toast.error(error.message);
+      setRows(prev);
+    } else {
       toast.success("Removed");
-      await load();
     }
   }
 
   async function updateCaption(row: Row, caption: string) {
+    const newCaption = caption.trim() || null;
+    setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, caption: newCaption } : r)));
     const { error } = await supabase
       .from("global_testimony_images")
-      .update({ caption: caption.trim() || null })
+      .update({ caption: newCaption })
       .eq("id", row.id);
-    if (error) toast.error(error.message);
-    else await load();
+    if (error) {
+      toast.error(error.message);
+      setRows((prev) => prev.map((r) => (r.id === row.id ? { ...r, caption: row.caption } : r)));
+    }
   }
 
   async function extractCaption(row: Row, opts: { silent?: boolean; overwrite?: boolean } = {}): Promise<string | null> {
