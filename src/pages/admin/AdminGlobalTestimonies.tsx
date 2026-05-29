@@ -441,6 +441,4 @@ function SortableCard({
     </div>
   );
 }
-    </div>
-  );
-}
+
