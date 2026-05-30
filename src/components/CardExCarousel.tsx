@@ -280,36 +280,40 @@ function RouletteMode({
                     aria-roledescription="slide"
                     aria-label={`Slide ${logicalIndex + 1} of ${count}`}
                   >
-                    <button
-                      type="button"
-                      className={cn(
-                        "relative w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2",
-                        isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
-                        isActiveMatch && "ring-4 ring-amber-300"
-                      )}
-                      style={{ aspectRatio: slideAspectRatio }}
-                      onClick={() => handleImageClick(logicalIndex)}
-                      aria-label={img.alt || `View image ${logicalIndex + 1}`}
-                    >
-                      <img
-                        src={cdnImage(img.url, getCarouselImageTransform(carouselKind, 800))}
-                        alt={img.alt ?? ""}
-                        className="h-full w-full object-contain"
-                        draggable={false}
-                        loading={Math.abs(logicalIndex - Math.round(logicalCenter)) > 1 ? "lazy" : "eager"}
-                        decoding="async"
-                      />
-                      {img.badge && (
-                        <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
-                          {img.badge}
-                        </Badge>
-                      )}
+                    <div className="flex w-full flex-col">
+                      <button
+                        type="button"
+                        className={cn(
+                          "relative w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-all hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2",
+                          isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
+                          isActiveMatch && "ring-4 ring-amber-300"
+                        )}
+                        style={{ aspectRatio: slideAspectRatio }}
+                        onClick={() => handleImageClick(logicalIndex)}
+                        aria-label={img.alt || `View image ${logicalIndex + 1}`}
+                      >
+                        <img
+                          src={cdnImage(img.url, getCarouselImageTransform(carouselKind, 800))}
+                          alt={img.alt ?? ""}
+                          className="h-full w-full object-contain"
+                          draggable={false}
+                          loading={Math.abs(logicalIndex - Math.round(logicalCenter)) > 1 ? "lazy" : "eager"}
+                          decoding="async"
+                        />
+                        {img.badge && (
+                          <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+                            {img.badge}
+                          </Badge>
+                        )}
+                      </button>
                       {img.srp && (
-                        <span className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
-                          SRP {img.srp}
-                        </span>
+                        <div className="mt-1.5 flex justify-center">
+                          <span className="whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
+                            SRP {img.srp}
+                          </span>
+                        </div>
                       )}
-                    </button>
+                    </div>
                   </div>
                 );
               })}
@@ -531,36 +535,40 @@ function FlatMode({
                     isDimmed && "opacity-40"
                   )}
                 >
-                  <button
-                    type="button"
-                    className={cn(
-                      "relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
-                      isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
-                      isActiveMatch && "ring-4 ring-amber-300"
-                    )}
-                    style={{ aspectRatio: slideAspectRatio }}
-                    onClick={() => handleImageClick(index)}
-                    aria-label={item.alt || `View image ${index + 1}`}
-                  >
-                    <img
-                      src={cdnImage(item.url, getCarouselImageTransform(carouselKind, 480))}
-                      alt={item.alt ?? ""}
-                      className="h-full w-full object-contain"
-                      draggable={false}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    {item.badge && (
-                      <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
-                        {item.badge}
-                      </Badge>
-                    )}
+                  <div className="flex w-full flex-col">
+                    <button
+                      type="button"
+                      className={cn(
+                        "relative w-full overflow-hidden rounded-xl bg-muted cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50",
+                        isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
+                        isActiveMatch && "ring-4 ring-amber-300"
+                      )}
+                      style={{ aspectRatio: slideAspectRatio }}
+                      onClick={() => handleImageClick(index)}
+                      aria-label={item.alt || `View image ${index + 1}`}
+                    >
+                      <img
+                        src={cdnImage(item.url, getCarouselImageTransform(carouselKind, 480))}
+                        alt={item.alt ?? ""}
+                        className="h-full w-full object-contain"
+                        draggable={false}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      {item.badge && (
+                        <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
+                          {item.badge}
+                        </Badge>
+                      )}
+                    </button>
                     {item.srp && (
-                      <span className="absolute bottom-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
-                        SRP {item.srp}
-                      </span>
+                      <div className="mt-1.5 flex justify-center">
+                        <span className="whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
+                          SRP {item.srp}
+                        </span>
+                      </div>
                     )}
-                  </button>
+                  </div>
                 </CarouselItem>
               );
             })}
