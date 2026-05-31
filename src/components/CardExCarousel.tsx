@@ -274,6 +274,7 @@ function RouletteMode({
                       transformStyle: "preserve-3d",
                       transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${clampedScale})`,
                       opacity: isDimmed ? opacity * 0.35 : opacity,
+                      zIndex: isActive ? 30 : Math.max(1, 20 - cyclicDistance(logicalIndex, Math.round(logicalCenter)) * 5),
                       transition: reducedMotion ? "none" : "transform 220ms linear, opacity 220ms linear, filter 250ms ease",
                     }}
                     role="group"
