@@ -10,7 +10,7 @@
   --card-h: 280px;
   --card-aspect: 3/4;
   --card-w: calc(var(--card-h) * var(--card-aspect));
-  --host-h: calc(var(--card-h) + 80px);
+  --host-h: calc(var(--card-h) + 160px);
 
   /* 3D ring geometry */
   --ring-radius: 560px;
