@@ -274,6 +274,7 @@ function RouletteMode({
                       transformStyle: "preserve-3d",
                       transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${clampedScale})`,
                       opacity: isDimmed ? opacity * 0.35 : opacity,
+                      zIndex: isActive ? 30 : Math.max(1, 20 - cyclicDistance(logicalIndex, Math.round(logicalCenter)) * 5),
                       transition: reducedMotion ? "none" : "transform 220ms linear, opacity 220ms linear, filter 250ms ease",
                     }}
                     role="group"
@@ -307,8 +308,15 @@ function RouletteMode({
                         )}
                       </button>
                       {img.srp && (
-                        <div className="mt-1.5 flex justify-center">
-                          <span className="whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
+                        <div className="mt-1.5 flex justify-center" style={{ position: "relative", zIndex: isActive ? 31 : 1 }}>
+                          <span
+                            className={cn(
+                              "whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold ring-1 backdrop-blur transition-all",
+                              isActive
+                                ? "bg-black text-amber-300 ring-amber-400/70 shadow-lg"
+                                : "bg-black/55 text-amber-300/70 ring-amber-400/30"
+                            )}
+                          >
                             SRP {img.srp}
                           </span>
                         </div>
@@ -526,6 +534,7 @@ function FlatMode({
               const isDimmed = isSearching && !isMatched && matchedIndices.length > 0;
               const isActiveMatch = isSearching && index === activeMatchIndex;
 
+              const isActive = index === selectedIndex;
               return (
                 <CarouselItem
                   key={item.id}
@@ -534,6 +543,7 @@ function FlatMode({
                     slideClass,
                     isDimmed && "opacity-40"
                   )}
+                  style={{ zIndex: isActive ? 30 : 10 - Math.min(5, Math.abs(index - selectedIndex)) }}
                 >
                   <div className="flex w-full flex-col">
                     <button
@@ -562,8 +572,15 @@ function FlatMode({
                       )}
                     </button>
                     {item.srp && (
-                      <div className="mt-1.5 flex justify-center">
-                        <span className="whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
+                      <div className="mt-1.5 flex justify-center" style={{ position: "relative", zIndex: isActive ? 31 : 1 }}>
+                        <span
+                          className={cn(
+                            "whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold ring-1 backdrop-blur transition-all",
+                            isActive
+                              ? "bg-black text-amber-300 ring-amber-400/70 shadow-lg"
+                              : "bg-black/55 text-amber-300/70 ring-amber-400/30"
+                          )}
+                        >
                           SRP {item.srp}
                         </span>
                       </div>
