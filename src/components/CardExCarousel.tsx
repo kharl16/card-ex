@@ -308,8 +308,15 @@ function RouletteMode({
                         )}
                       </button>
                       {img.srp && (
-                        <div className="mt-1.5 flex justify-center">
-                          <span className="whitespace-nowrap rounded-full bg-black/75 px-3 py-1 text-[11px] font-semibold text-amber-300 ring-1 ring-amber-400/50 backdrop-blur">
+                        <div className="mt-1.5 flex justify-center" style={{ position: "relative", zIndex: isActive ? 31 : 1 }}>
+                          <span
+                            className={cn(
+                              "whitespace-nowrap rounded-full px-3 py-1 text-[11px] font-semibold ring-1 backdrop-blur transition-all",
+                              isActive
+                                ? "bg-black text-amber-300 ring-amber-400/70 shadow-lg"
+                                : "bg-black/55 text-amber-300/70 ring-amber-400/30"
+                            )}
+                          >
                             SRP {img.srp}
                           </span>
                         </div>
