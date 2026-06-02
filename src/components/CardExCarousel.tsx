@@ -322,6 +322,16 @@ function RouletteMode({
                           </span>
                         </div>
                       )}
+                      {carouselKind === "testimonies" && isActive && (img.description || img.alt) && (
+                        <div
+                          className="mt-1.5 px-2 flex justify-center"
+                          style={{ position: "relative", zIndex: 31 }}
+                        >
+                          <span className="block max-w-full truncate text-center text-[11px] font-medium text-foreground/90">
+                            {img.description || img.alt}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
