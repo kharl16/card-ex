@@ -159,17 +159,8 @@ export function AdminCreateCardDialog({
       const fullName = `${parsed.data.firstName} ${parsed.data.lastName}`.trim();
       const slug = `${targetUserId.slice(0, 8)}-${Date.now()}`;
 
-      const productImages = [
-        {
-          id: crypto.randomUUID(),
-          url: "/cardex/placeholders/product-gold-2.svg",
-          caption: "Product 1",
-          link:
-            parsed.data.isIamMember && parsed.data.iamId
-              ? `https://iamworldwide.com/?ref=${parsed.data.iamId}`
-              : `https://iamworldwide.com/`,
-        },
-      ];
+      // Start new cards with an empty Products carousel (matches onboarding behavior).
+      const productImages: any[] = [];
 
       const iamId8 = parsed.data.isIamMember && parsed.data.iamId ? parsed.data.iamId : null;
       const substituteIamId = (url: string | undefined | null): string | undefined | null => {
