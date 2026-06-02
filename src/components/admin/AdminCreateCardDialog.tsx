@@ -159,17 +159,8 @@ export function AdminCreateCardDialog({
       const fullName = `${parsed.data.firstName} ${parsed.data.lastName}`.trim();
       const slug = `${targetUserId.slice(0, 8)}-${Date.now()}`;
 
-      const productImages = [
-        {
-          id: crypto.randomUUID(),
-          url: "/cardex/placeholders/product-gold-2.svg",
-          caption: "Product 1",
-          link:
-            parsed.data.isIamMember && parsed.data.iamId
-              ? `https://iamworldwide.com/?ref=${parsed.data.iamId}`
-              : `https://iamworldwide.com/`,
-        },
-      ];
+      // Start new cards with an empty Products carousel (matches onboarding behavior).
+      const productImages: any[] = [];
 
       const iamId8 = parsed.data.isIamMember && parsed.data.iamId ? parsed.data.iamId : null;
       const substituteIamId = (url: string | undefined | null): string | undefined | null => {
@@ -209,7 +200,8 @@ export function AdminCreateCardDialog({
         insertData.theme = { ...DEFAULT_THEME, ...(snapshot.theme || {}) };
 
         insertData.carousel_settings = substituteInCarouselSettings(insertData.carousel_settings);
-        insertData.product_images = substituteInItems(insertData.product_images);
+        // Always start with an empty Products carousel — never inherit template placeholder images.
+        insertData.product_images = [];
 
         insertData.full_name = fullName;
         insertData.owner_name = fullName;
@@ -228,9 +220,6 @@ export function AdminCreateCardDialog({
           { kind: "facebook", label: "Facebook", url: parsed.data.facebookUrl, value: parsed.data.facebookUrl },
         ];
 
-        if (!snapshot.product_images || snapshot.product_images.length === 0) {
-          insertData.product_images = productImages;
-        }
       } else {
         insertData = {
           user_id: targetUserId,
