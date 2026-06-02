@@ -220,9 +220,6 @@ export function AdminCreateCardDialog({
           { kind: "facebook", label: "Facebook", url: parsed.data.facebookUrl, value: parsed.data.facebookUrl },
         ];
 
-        if (!snapshot.product_images || snapshot.product_images.length === 0) {
-          insertData.product_images = productImages;
-        }
       } else {
         insertData = {
           user_id: targetUserId,
