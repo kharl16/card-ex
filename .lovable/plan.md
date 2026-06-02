@@ -1,27 +1,16 @@
-## Plan
+## Problem
 
-1. **Confirm the damage scope**
-   - The previous cleanup removed the IAM “Tag-Init aMAYzing” promo image correctly, but because many cards only had that global promo after it was auto-added, their `ad_banner` was set to empty/null.
-   - I found the uploaded Ad Banner files still exist in Supabase Storage, so they can be re-linked instead of re-uploaded.
+Every new card created through the **Admin → Create Card** dialog automatically gets a "Showcase Item" placeholder image (the orange gradient SVG) in its Products carousel. Source: `src/components/admin/AdminCreateCardDialog.tsx`, lines 162–172, which seeds `productImages` with `/cardex/placeholders/product-gold-2.svg`.
 
-2. **Create a safe restore migration**
-   - Restore Ad Banner JSON only for cards whose banner is currently empty/null and that have uploaded files under their owner’s `media/ad-banners/<user_id>/...` folder.
-   - Rebuild each restored banner as:
-     - `type: "image"`
-     - `autoPlayMs: 4000`
-     - `items: [...]` using the existing uploaded banner image URLs in upload order
-   - Explicitly exclude the IAM “Tag-Init aMAYzing” promo image URL/alt text so it does **not** come back.
-   - Do not touch cards that already have valid Ad Banner images.
+The standard onboarding flow (`src/lib/createCardFromOnboarding.ts`) already starts with an empty Products carousel — this issue only affects admin-created cards.
 
-3. **Handle owner/card ambiguity carefully**
-   - Some users have more than one card, so before applying the migration I’ll scope the restore to cards that were affected by the May 31 cleanup and have matching orphaned banner files.
-   - If one owner has multiple affected cards, I’ll avoid guessing unless the storage/card mapping is clear from the existing folder/user relationship.
+## Fix
 
-4. **Verify after migration approval**
-   - Re-count cards with banners before/after.
-   - Confirm the IAM promo image remains absent.
-   - Confirm restored cards have their prior banner images referenced again.
+1. In `src/components/admin/AdminCreateCardDialog.tsx`, replace the seeded `productImages` array with an empty array `[]` so new admin-created cards start with no Products items (matching the onboarding behavior).
+2. Remove the now-unused `substituteInItems` helper if it has no other callers in that file (will verify before deleting).
 
-## Technical detail
+No DB migration needed — existing cards aren't touched. Only newly created cards from this dialog will be affected.
 
-The restore will be a data migration against `public.cards.ad_banner`. It will not delete or move any storage objects, and it will not change Product, Package, Testimony, Video, or card profile images.
+## Optional follow-up (ask before doing)
+
+If you also want to scrub the "Showcase Item" placeholder out of cards that were previously created via this admin dialog, I can run a one-time SQL migration that removes any product item whose `url` equals `/cardex/placeholders/product-gold-2.svg`. Let me know if you want that included.
