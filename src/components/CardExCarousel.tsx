@@ -321,12 +321,17 @@ function RouletteMode({
                           </span>
                         </div>
                       )}
-                      {carouselKind === "testimonies" && isActive && (img.description || img.alt) && (
+                      {carouselKind === "testimonies" && (img.description || img.alt) && (
                         <div
                           className="mt-1.5 px-2 flex justify-center"
-                          style={{ position: "relative", zIndex: 31 }}
+                          style={{ position: "relative", zIndex: isActive ? 31 : 1 }}
                         >
-                          <span className="block max-w-full truncate text-center text-[11px] font-medium text-foreground/90">
+                          <span
+                            className={cn(
+                              "block max-w-full truncate text-center text-[11px] font-medium transition-all",
+                              isActive ? "text-foreground" : "text-foreground/60"
+                            )}
+                          >
                             {img.description || img.alt}
                           </span>
                         </div>
