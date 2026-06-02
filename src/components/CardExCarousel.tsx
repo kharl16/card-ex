@@ -242,8 +242,7 @@ function RouletteMode({
         <div className="flex w-full justify-center">
           <div
             className={cn(
-              "relative w-full overflow-hidden rounded-2xl border border-primary/30 shadow-xl",
-              carouselKind === "testimonies" && "pb-8"
+              "relative w-full overflow-hidden rounded-2xl border border-primary/30 shadow-xl"
             )}
             style={{ perspective: "1200px" }}
             {...bindTouchHandlers}
