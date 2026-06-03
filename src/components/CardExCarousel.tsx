@@ -272,10 +272,14 @@ function RouletteMode({
                       paddingLeft: `${imageGap / 2}px`,
                       paddingRight: `${imageGap / 2}px`,
                       transformStyle: "preserve-3d",
+                      transformOrigin: "center center",
                       transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${clampedScale})`,
                       opacity: isDimmed ? opacity * 0.35 : opacity,
                       zIndex: isActive ? 30 : Math.max(1, 20 - cyclicDistance(logicalIndex, Math.round(logicalCenter)) * 5),
-                      transition: reducedMotion ? "none" : "transform 220ms linear, opacity 220ms linear, filter 250ms ease",
+                      transition: reducedMotion
+                        ? "none"
+                        : "transform 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms cubic-bezier(0.22, 1, 0.36, 1), filter 300ms ease",
+                      willChange: "transform, opacity",
                     }}
                     role="group"
                     aria-roledescription="slide"
