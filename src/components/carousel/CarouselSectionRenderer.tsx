@@ -333,7 +333,7 @@ export default function CarouselSectionRenderer({
             "relative w-full rounded-xl overflow-hidden",
             carouselKey === "testimonies"
               ? "py-8 sm:py-10"
-              : "pt-12 pb-8 sm:pt-14 sm:pb-10",
+              : "pt-16 pb-8 sm:pt-20 sm:pb-10",
             background?.glassShimmer !== false && "glass-shimmer",
             hasBackground && "shadow-inner"
           )}
