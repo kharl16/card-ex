@@ -248,7 +248,7 @@ function RouletteMode({
             {...bindTouchHandlers}
           >
             <div
-              className="flex items-center"
+              className="flex items-center py-3 sm:py-4"
               style={{ transform: `translateX(${translatePercent}%)` }}
             >
               {loopImages.map((img, i) => {
