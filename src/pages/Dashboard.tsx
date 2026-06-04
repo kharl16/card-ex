@@ -52,6 +52,7 @@ import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
 import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
 import { ProgressTracker } from "@/components/dashboard/ProgressTracker";
 import { ReferralEarningsBadge } from "@/components/referral/ReferralEarningsBadge";
+import { PendingReferralCommissions } from "@/components/referral/PendingReferralCommissions";
 
 type CardData = Tables<"cards">;
 
