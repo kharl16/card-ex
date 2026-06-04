@@ -52,6 +52,7 @@ import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
 import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
 import { ProgressTracker } from "@/components/dashboard/ProgressTracker";
 import { ReferralEarningsBadge } from "@/components/referral/ReferralEarningsBadge";
+import { PendingReferralCommissions } from "@/components/referral/PendingReferralCommissions";
 
 type CardData = Tables<"cards">;
 
@@ -413,21 +414,24 @@ export default function Dashboard() {
         {/* Stats */}
         {!loading && <AnimatedStatsCards cards={cards} />}
 
-        {/* Total Referral Commission Earned (click to reveal Your Referrals) */}
+        {/* Referral Commissions Dashboard */}
         {!loading && profile?.id && (
           <div className="space-y-3">
-            <button
-              type="button"
-              onClick={() => setReferralsExpanded((v) => !v)}
-              className="w-full text-left transition-transform hover:scale-[1.005] active:scale-[0.995] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 rounded-2xl"
-              aria-expanded={referralsExpanded}
-              aria-controls="referrals-feed-panel"
-            >
-              <ReferralEarningsBadge userId={profile.id} variant="dashboard" />
-              <p className="mt-1 px-2 text-[11px] text-amber-200/60">
-                {referralsExpanded ? "Tap to hide referrals ▲" : "Tap to view your referrals ▼"}
-              </p>
-            </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <PendingReferralCommissions />
+              <button
+                type="button"
+                onClick={() => setReferralsExpanded((v) => !v)}
+                className="w-full text-left transition-transform hover:scale-[1.005] active:scale-[0.995] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 rounded-2xl"
+                aria-expanded={referralsExpanded}
+                aria-controls="referrals-feed-panel"
+              >
+                <ReferralEarningsBadge userId={profile.id} variant="dashboard" />
+              </button>
+            </div>
+            <p className="px-2 text-[11px] text-muted-foreground">
+              {referralsExpanded ? "Tap paid-out card to hide referrals ▲" : "Tap paid-out card to view your referrals ▼"}
+            </p>
             {referralsExpanded && (
               <div id="referrals-feed-panel">
                 <ReferralsFeed />
