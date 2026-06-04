@@ -495,10 +495,35 @@ export default function CardView({
                       </div>
                     ) : (
                       <>
-                        {/* Mobile: full text always */}
-                        <p className="sm:hidden text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty" style={{ wordBreak: "normal" }}>
-                          {card.bio}
-                        </p>
+                        {/* Mobile: clamp with Read full bio toggle */}
+                        <div className="sm:hidden">
+                          <p
+                            className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
+                            style={
+                              bioExpanded
+                                ? { wordBreak: "normal" }
+                                : {
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 4,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    wordBreak: "normal",
+                                  }
+                            }
+                          >
+                            {card.bio}
+                          </p>
+                          {card.bio.length > 160 && (
+                            <button
+                              type="button"
+                              onClick={() => setBioExpanded((v) => !v)}
+                              className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
+                              style={{ color: basePrimary }}
+                            >
+                              {bioExpanded ? "Show less" : "Read full bio"}
+                            </button>
+                          )}
+                        </div>
                         {/* Desktop: clamp to 4 lines with Read more toggle */}
                         <div className="hidden sm:block">
                           <p
