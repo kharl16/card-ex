@@ -412,19 +412,33 @@ export default function CardView({
                     hasBanner ? (
                       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                         {/* Mobile: fill available square height */}
-                        <div className="sm:hidden flex-1 min-h-0 flex">
+                        <div className="sm:hidden flex-1 min-h-0 flex flex-col">
                           <p
                             className="text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
-                            style={{
-                              display: "-webkit-box",
-                              WebkitLineClamp: 8,
-                              WebkitBoxOrient: "vertical",
-                              overflow: "hidden",
-                              wordBreak: "normal",
-                            }}
+                            style={
+                              bioExpanded
+                                ? { overflowY: "auto", wordBreak: "normal" }
+                                : {
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 8,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    wordBreak: "normal",
+                                  }
+                            }
                           >
                             {card.bio}
                           </p>
+                          {card.bio.length > 160 && (
+                            <button
+                              type="button"
+                              onClick={() => setBioExpanded((v) => !v)}
+                              className="mt-2 text-[11px] font-medium uppercase tracking-widest hover:opacity-80 transition-opacity flex-shrink-0 self-start"
+                              style={{ color: basePrimary }}
+                            >
+                              {bioExpanded ? "Show less" : "Read full bio"}
+                            </button>
+                          )}
                         </div>
                         {/* Desktop: clamp to 4 lines with Read more toggle */}
                         <div className="hidden sm:flex flex-col flex-1 min-h-0">
@@ -481,10 +495,35 @@ export default function CardView({
                       </div>
                     ) : (
                       <>
-                        {/* Mobile: full text always */}
-                        <p className="sm:hidden text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty" style={{ wordBreak: "normal" }}>
-                          {card.bio}
-                        </p>
+                        {/* Mobile: clamp with Read full bio toggle */}
+                        <div className="sm:hidden">
+                          <p
+                            className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
+                            style={
+                              bioExpanded
+                                ? { wordBreak: "normal" }
+                                : {
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 4,
+                                    WebkitBoxOrient: "vertical",
+                                    overflow: "hidden",
+                                    wordBreak: "normal",
+                                  }
+                            }
+                          >
+                            {card.bio}
+                          </p>
+                          {card.bio.length > 160 && (
+                            <button
+                              type="button"
+                              onClick={() => setBioExpanded((v) => !v)}
+                              className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
+                              style={{ color: basePrimary }}
+                            >
+                              {bioExpanded ? "Show less" : "Read full bio"}
+                            </button>
+                          )}
+                        </div>
                         {/* Desktop: clamp to 4 lines with Read more toggle */}
                         <div className="hidden sm:block">
                           <p
