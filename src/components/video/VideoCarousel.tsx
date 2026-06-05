@@ -11,6 +11,7 @@ import AutoScroll from "embla-carousel-auto-scroll";
 import { cn } from "@/lib/utils";
 import { Play, Share2, Download, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ExpandableText } from "@/components/ui/expandable-text";
 import VideoFullscreenDialog from "@/components/video/VideoFullscreenDialog";
 import {
   getEmbedUrl,
@@ -252,12 +253,12 @@ export default function VideoCarousel({
                     )}
                     {video.description && (
                       <div className="px-1">
-                        <p className={cn(
-                          "text-muted-foreground text-xs mt-1 text-center whitespace-pre-wrap",
-                          !expandedDescriptions[originalIndex] && "line-clamp-3"
-                        )}>
-                          {video.description}
-                        </p>
+                        <ExpandableText
+                          text={video.description}
+                          lines={3}
+                          expanded={!!expandedDescriptions[originalIndex]}
+                          className="text-muted-foreground text-xs mt-1 text-center"
+                        />
                         <button
                           type="button"
                           onClick={(e) => {
@@ -267,7 +268,7 @@ export default function VideoCarousel({
                               [originalIndex]: !prev[originalIndex],
                             }));
                           }}
-                          className="text-xs font-medium mt-0.5 w-full text-center"
+                          className="text-xs font-medium mt-0.5 w-full text-center transition-opacity hover:opacity-80"
                           style={{ color: "hsl(var(--primary))" }}
                         >
                           {expandedDescriptions[originalIndex] ? "Show less" : "Read more"}
