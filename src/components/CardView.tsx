@@ -414,22 +414,14 @@ export default function CardView({
                       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
                         {/* Mobile: fill available square height */}
                         <div className="sm:hidden flex-1 min-h-0 flex flex-col">
-                          <p
-                            className="text-xs text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
-                            style={
-                              bioExpanded
-                                ? { overflowY: "auto", wordBreak: "normal" }
-                                : {
-                                    display: "-webkit-box",
-                                    WebkitLineClamp: 8,
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                    wordBreak: "normal",
-                                  }
-                            }
-                          >
-                            {card.bio}
-                          </p>
+                          <ExpandableText
+                            text={card.bio}
+                            lines={8}
+                            expanded={bioExpanded}
+                            scrollWhenExpanded
+                            className="text-xs text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
+                            style={{ wordBreak: "normal" }}
+                          />
                           {card.bio.length > 160 && (
                             <button
                               type="button"
@@ -443,22 +435,14 @@ export default function CardView({
                         </div>
                         {/* Desktop: clamp to 4 lines with Read more toggle */}
                         <div className="hidden sm:flex flex-col flex-1 min-h-0">
-                          <p
-                            className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty flex-1 min-h-0"
-                            style={
-                              bioExpanded
-                                ? { overflowY: "auto", wordBreak: "normal" }
-                                : {
-                                    display: "-webkit-box",
-                                    WebkitLineClamp: 4,
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                    wordBreak: "normal",
-                                  }
-                            }
-                          >
-                            {card.bio}
-                          </p>
+                          <ExpandableText
+                            text={card.bio}
+                            lines={4}
+                            expanded={bioExpanded}
+                            scrollWhenExpanded
+                            className="text-sm text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
+                            style={{ wordBreak: "normal" }}
+                          />
                           {card.bio.length > 160 && (
                             <button
                               type="button"
@@ -498,22 +482,13 @@ export default function CardView({
                       <>
                         {/* Mobile: clamp with Read full bio toggle */}
                         <div className="sm:hidden">
-                          <p
-                            className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
-                            style={
-                              bioExpanded
-                                ? { wordBreak: "normal" }
-                                : {
-                                    display: "-webkit-box",
-                                    WebkitLineClamp: 4,
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                    wordBreak: "normal",
-                                  }
-                            }
-                          >
-                            {card.bio}
-                          </p>
+                          <ExpandableText
+                            text={card.bio}
+                            lines={4}
+                            expanded={bioExpanded}
+                            className="text-sm text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
+                            style={{ wordBreak: "normal" }}
+                          />
                           {card.bio.length > 160 && (
                             <button
                               type="button"
@@ -527,22 +502,13 @@ export default function CardView({
                         </div>
                         {/* Desktop: clamp to 4 lines with Read more toggle */}
                         <div className="hidden sm:block">
-                          <p
-                            className="text-sm text-foreground/70 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
-                            style={
-                              bioExpanded
-                                ? { wordBreak: "normal" }
-                                : {
-                                    display: "-webkit-box",
-                                    WebkitLineClamp: 4,
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                    wordBreak: "normal",
-                                  }
-                            }
-                          >
-                            {card.bio}
-                          </p>
+                          <ExpandableText
+                            text={card.bio}
+                            lines={4}
+                            expanded={bioExpanded}
+                            className="text-sm text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
+                            style={{ wordBreak: "normal" }}
+                          />
                           {card.bio.length > 160 && (
                             <button
                               type="button"
