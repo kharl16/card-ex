@@ -29,6 +29,7 @@ import {
 import { FaLinkedin } from "react-icons/fa";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ExpandableText } from "@/components/ui/expandable-text";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRenderer";
 import { useGlobalProductImages } from "@/hooks/useGlobalProductImages";
