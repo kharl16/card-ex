@@ -49,6 +49,7 @@ export default function VideoCarousel({
   const [activeSnap, setActiveSnap] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
 
   // Duplicate slides when only a few videos to allow Embla loop to work
   // (Embla disables loop when total slide width < container width × 2)
