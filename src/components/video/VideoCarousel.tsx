@@ -49,6 +49,7 @@ export default function VideoCarousel({
   const [activeSnap, setActiveSnap] = useState(0);
   const [fullscreenOpen, setFullscreenOpen] = useState(false);
   const [fullscreenIndex, setFullscreenIndex] = useState(0);
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({});
 
   // Duplicate slides when only a few videos to allow Embla loop to work
   // (Embla disables loop when total slide width < container width × 2)
@@ -250,9 +251,28 @@ export default function VideoCarousel({
                       </p>
                     )}
                     {video.description && (
-                      <p className="text-muted-foreground text-xs mt-1 px-1 line-clamp-3 text-center whitespace-pre-wrap">
-                        {video.description}
-                      </p>
+                      <div className="px-1">
+                        <p className={cn(
+                          "text-muted-foreground text-xs mt-1 text-center whitespace-pre-wrap",
+                          !expandedDescriptions[originalIndex] && "line-clamp-3"
+                        )}>
+                          {video.description}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedDescriptions((prev) => ({
+                              ...prev,
+                              [originalIndex]: !prev[originalIndex],
+                            }));
+                          }}
+                          className="text-xs font-medium mt-0.5 w-full text-center"
+                          style={{ color: "hsl(var(--primary))" }}
+                        >
+                          {expandedDescriptions[originalIndex] ? "Show less" : "Read more"}
+                        </button>
+                      </div>
                     )}
                   </div>
                 </CarouselItem>
