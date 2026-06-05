@@ -249,6 +249,11 @@ export default function VideoCarousel({
                         {video.title}
                       </p>
                     )}
+                    {video.description && (
+                      <p className="text-muted-foreground text-xs mt-1 px-1 line-clamp-3 text-center whitespace-pre-wrap">
+                        {video.description}
+                      </p>
+                    )}
                   </div>
                 </CarouselItem>
               );
