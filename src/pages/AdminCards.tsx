@@ -107,6 +107,7 @@ function generateReferralCode(): string {
 function AdminCardRow({
   card,
   referralData,
+  ownerEmail,
   onEdit,
   onDuplicate,
   onSaveAsTemplate,
@@ -116,6 +117,7 @@ function AdminCardRow({
 }: {
   card: CardData;
   referralData?: UserReferralData;
+  ownerEmail?: string;
   onEdit: () => void;
   onDuplicate: () => void;
   onSaveAsTemplate: () => void;
