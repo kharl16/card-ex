@@ -523,6 +523,7 @@ export default function Dashboard() {
       )}
       <NewCardDialog open={newCardDialogOpen} onOpenChange={setNewCardDialogOpen} profileName={profile?.full_name} />
       <AdminTemplateManager open={templateManagerOpen} onOpenChange={setTemplateManagerOpen} />
+      <MyTemplatesManager open={myTemplatesOpen} onOpenChange={setMyTemplatesOpen} />
       {selectedCardForDuplicate && (
         <DuplicateCardDialog
           card={selectedCardForDuplicate}
