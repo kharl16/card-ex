@@ -292,6 +292,10 @@ function AdminCardRow({
               <LayoutTemplate className="mr-2 h-4 w-4" />
               Save as Template
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLoginInfoOpen(true)}>
+              <Key className="mr-2 h-4 w-4" />
+              Show Login Info
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
@@ -299,6 +303,40 @@ function AdminCardRow({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Dialog open={loginInfoOpen} onOpenChange={setLoginInfoOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Login Info — {card.full_name || "Card"}</DialogTitle>
+              <DialogDescription>
+                Share these credentials with the card owner. They can change their password after signing in.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <pre className="whitespace-pre-wrap rounded-md border bg-muted/40 p-3 text-xs font-mono text-foreground">
+{loginInfoText}
+              </pre>
+              {!ownerEmail && (
+                <p className="text-xs text-destructive">
+                  Owner email not loaded yet — open the Users tab once, then retry.
+                </p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  navigator.clipboard.writeText(loginInfoText);
+                  toast.success("Login info copied to clipboard");
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy
+              </Button>
+              <Button onClick={() => setLoginInfoOpen(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </TableCell>
     </TableRow>
   );
