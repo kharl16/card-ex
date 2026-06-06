@@ -384,8 +384,12 @@ export default function Dashboard() {
                 </Popover>
               ) : null;
             })()}
-            {isAdmin && (
-              <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="icon" className="h-8 w-8">
+            {isAdmin ? (
+              <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="icon" className="h-8 w-8" title="Manage Templates" aria-label="Manage Templates">
+                <Palette className="h-3.5 w-3.5" />
+              </Button>
+            ) : (
+              <Button onClick={() => setMyTemplatesOpen(true)} variant="ghost" size="icon" className="h-8 w-8" title="My Templates" aria-label="My Templates">
                 <Palette className="h-3.5 w-3.5" />
               </Button>
             )}
