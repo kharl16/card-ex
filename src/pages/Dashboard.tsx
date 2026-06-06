@@ -75,6 +75,7 @@ export default function Dashboard() {
   const [selectedCardForDuplicate, setSelectedCardForDuplicate] = useState<CardData | null>(null);
   const [newCardDialogOpen, setNewCardDialogOpen] = useState(false);
   const [templateManagerOpen, setTemplateManagerOpen] = useState(false);
+  const [myTemplatesOpen, setMyTemplatesOpen] = useState(false);
 
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [renameTargetCard, setRenameTargetCard] = useState<CardData | null>(null);
