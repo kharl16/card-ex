@@ -107,6 +107,7 @@ function generateReferralCode(): string {
 function AdminCardRow({
   card,
   referralData,
+  ownerEmail,
   onEdit,
   onDuplicate,
   onSaveAsTemplate,
@@ -116,6 +117,7 @@ function AdminCardRow({
 }: {
   card: CardData;
   referralData?: UserReferralData;
+  ownerEmail?: string;
   onEdit: () => void;
   onDuplicate: () => void;
   onSaveAsTemplate: () => void;
@@ -127,6 +129,13 @@ function AdminCardRow({
   const adminOverride = useAdminOverridePayment();
   const { data: plans } = useCardPlans();
   const defaultPlan = plans?.find((p) => p.code === "ESSENTIAL") || plans?.[0];
+  const [loginInfoOpen, setLoginInfoOpen] = useState(false);
+
+  const cardSlug = card.custom_slug || card.slug || "";
+  const cardLink = card.custom_slug
+    ? `https://tagex.app/${card.custom_slug}`
+    : `https://tagex.app/c/${cardSlug}`;
+  const loginInfoText = `Card link: ${cardLink}\n\nWebsite: https://tagex.app\nUsername: ${ownerEmail || "—"}\nPassword: 123456`;
 
   const handlePaidChange = async (checked: boolean) => {
     const planId = card.plan_id || defaultPlan?.id;
@@ -283,6 +292,10 @@ function AdminCardRow({
               <LayoutTemplate className="mr-2 h-4 w-4" />
               Save as Template
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setLoginInfoOpen(true)}>
+              <Key className="mr-2 h-4 w-4" />
+              Show Login Info
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
@@ -290,6 +303,40 @@ function AdminCardRow({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        <Dialog open={loginInfoOpen} onOpenChange={setLoginInfoOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Login Info — {card.full_name || "Card"}</DialogTitle>
+              <DialogDescription>
+                Share these credentials with the card owner. They can change their password after signing in.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3">
+              <pre className="whitespace-pre-wrap rounded-md border bg-muted/40 p-3 text-xs font-mono text-foreground">
+{loginInfoText}
+              </pre>
+              {!ownerEmail && (
+                <p className="text-xs text-destructive">
+                  Owner email not loaded yet — open the Users tab once, then retry.
+                </p>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  navigator.clipboard.writeText(loginInfoText);
+                  toast.success("Login info copied to clipboard");
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy
+              </Button>
+              <Button onClick={() => setLoginInfoOpen(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </TableCell>
     </TableRow>
   );
@@ -1040,6 +1087,7 @@ export default function AdminCards() {
                               key={card.id}
                               card={card}
                               referralData={userReferrals[card.user_id]}
+                              ownerEmail={users.find((u) => u.id === card.user_id)?.email}
                               onEdit={() => navigate(`/cards/${card.id}/edit`)}
                               onDuplicate={() => openDuplicateCardFlow(card)}
                               onSaveAsTemplate={() => openSaveAsTemplateFlow(card)}
