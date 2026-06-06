@@ -36,6 +36,7 @@ import { loveLanguageResults } from "@/data/loveLanguageResults";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
+import { MyTemplatesManager } from "@/components/templates/MyTemplatesManager";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
@@ -74,6 +75,7 @@ export default function Dashboard() {
   const [selectedCardForDuplicate, setSelectedCardForDuplicate] = useState<CardData | null>(null);
   const [newCardDialogOpen, setNewCardDialogOpen] = useState(false);
   const [templateManagerOpen, setTemplateManagerOpen] = useState(false);
+  const [myTemplatesOpen, setMyTemplatesOpen] = useState(false);
 
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [renameTargetCard, setRenameTargetCard] = useState<CardData | null>(null);
@@ -382,8 +384,12 @@ export default function Dashboard() {
                 </Popover>
               ) : null;
             })()}
-            {isAdmin && (
-              <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="icon" className="h-8 w-8">
+            {isAdmin ? (
+              <Button onClick={() => setTemplateManagerOpen(true)} variant="ghost" size="icon" className="h-8 w-8" title="Manage Templates" aria-label="Manage Templates">
+                <Palette className="h-3.5 w-3.5" />
+              </Button>
+            ) : (
+              <Button onClick={() => setMyTemplatesOpen(true)} variant="ghost" size="icon" className="h-8 w-8" title="My Templates" aria-label="My Templates">
                 <Palette className="h-3.5 w-3.5" />
               </Button>
             )}
@@ -517,6 +523,7 @@ export default function Dashboard() {
       )}
       <NewCardDialog open={newCardDialogOpen} onOpenChange={setNewCardDialogOpen} profileName={profile?.full_name} />
       <AdminTemplateManager open={templateManagerOpen} onOpenChange={setTemplateManagerOpen} />
+      <MyTemplatesManager open={myTemplatesOpen} onOpenChange={setMyTemplatesOpen} />
       {selectedCardForDuplicate && (
         <DuplicateCardDialog
           card={selectedCardForDuplicate}
