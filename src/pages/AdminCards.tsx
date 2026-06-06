@@ -1087,6 +1087,7 @@ export default function AdminCards() {
                               key={card.id}
                               card={card}
                               referralData={userReferrals[card.user_id]}
+                              ownerEmail={users.find((u) => u.id === card.user_id)?.email}
                               onEdit={() => navigate(`/cards/${card.id}/edit`)}
                               onDuplicate={() => openDuplicateCardFlow(card)}
                               onSaveAsTemplate={() => openSaveAsTemplateFlow(card)}
