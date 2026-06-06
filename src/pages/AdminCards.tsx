@@ -129,6 +129,13 @@ function AdminCardRow({
   const adminOverride = useAdminOverridePayment();
   const { data: plans } = useCardPlans();
   const defaultPlan = plans?.find((p) => p.code === "ESSENTIAL") || plans?.[0];
+  const [loginInfoOpen, setLoginInfoOpen] = useState(false);
+
+  const cardSlug = card.custom_slug || card.slug || "";
+  const cardLink = card.custom_slug
+    ? `https://tagex.app/${card.custom_slug}`
+    : `https://tagex.app/c/${cardSlug}`;
+  const loginInfoText = `Card link: ${cardLink}\n\nWebsite: https://tagex.app\nUsername: ${ownerEmail || "—"}\nPassword: 123456`;
 
   const handlePaidChange = async (checked: boolean) => {
     const planId = card.plan_id || defaultPlan?.id;
