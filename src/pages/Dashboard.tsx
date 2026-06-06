@@ -36,6 +36,7 @@ import { loveLanguageResults } from "@/data/loveLanguageResults";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import { NewCardDialog } from "@/components/templates/NewCardDialog";
 import { AdminTemplateManager } from "@/components/templates/AdminTemplateManager";
+import { MyTemplatesManager } from "@/components/templates/MyTemplatesManager";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
