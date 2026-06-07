@@ -233,7 +233,7 @@ export function buildCardSnapshot(
     card_links: formattedCardLinks,
     
     // Carousel settings (full object)
-    carousel_settings: card.carousel_settings || null,
+    carousel_settings: carouselSettings,
     
     // Carousel images
     product_images: productImages,
