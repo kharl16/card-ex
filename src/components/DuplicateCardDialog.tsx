@@ -85,6 +85,30 @@ export function DuplicateCardDialog({
       // Build unified snapshot from source card (JSON columns are the source-of-truth)
       const snapshot = buildCardSnapshot(sourceCard as Record<string, any>, cardLinks || []);
 
+      const countHidden = (arr: unknown) =>
+        Array.isArray(arr) ? arr.filter((i: any) => i?.hidden === true).length : 0;
+      console.log("[DuplicateCardDialog] Duplicate snapshot built — hidden items stripped:", {
+        sourceCardId: card.id,
+        targetUserId: effectiveUserId,
+        source: {
+          product_images: Array.isArray((sourceCard as any).product_images) ? (sourceCard as any).product_images.length : 0,
+          package_images: Array.isArray((sourceCard as any).package_images) ? (sourceCard as any).package_images.length : 0,
+          testimony_images: Array.isArray((sourceCard as any).testimony_images) ? (sourceCard as any).testimony_images.length : 0,
+          hidden_products: countHidden((sourceCard as any).product_images),
+          hidden_packages: countHidden((sourceCard as any).package_images),
+          hidden_testimonies: countHidden((sourceCard as any).testimony_images),
+        },
+        snapshot: {
+          product_images: snapshot.product_images.length,
+          package_images: snapshot.package_images.length,
+          testimony_images: snapshot.testimony_images.length,
+          remaining_hidden:
+            countHidden(snapshot.product_images) +
+            countHidden(snapshot.package_images) +
+            countHidden(snapshot.testimony_images),
+        },
+      });
+
       // Generate new unique slug
       const slug = `${effectiveUserId.slice(0, 8)}-${Date.now()}`;
 
