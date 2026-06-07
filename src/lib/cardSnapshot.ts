@@ -119,24 +119,37 @@ export function buildCardSnapshot(
   /**
    * Normalize any carousel image array to unified {url, alt, order} shape
    * Supports legacy shapes: {image_url, alt_text, sort_order} and {url, alt, order}
+   * Logs which items are stripped because they were marked hidden.
    */
-  const normalizeCarouselImages = (raw: unknown): CarouselImage[] => {
+  const normalizeCarouselImages = (raw: unknown, sectionLabel: string): CarouselImage[] => {
     if (!raw || !Array.isArray(raw)) return [];
-    
+
     const result: CarouselImage[] = [];
-    
+    const hiddenStripped: Array<{ index: number; url: string | null; alt: string | null }> = [];
+    const noUrlSkipped: number[] = [];
+
     raw.forEach((img: any, idx: number) => {
-      const imageUrl = 
-        (typeof img?.url === "string" && img.url) || 
-        (typeof img?.image_url === "string" && img.image_url) || 
+      const imageUrl =
+        (typeof img?.url === "string" && img.url) ||
+        (typeof img?.image_url === "string" && img.image_url) ||
         null;
-      
-      if (!imageUrl) return;
-      
+
+      if (!imageUrl) {
+        noUrlSkipped.push(idx);
+        return;
+      }
+
       // Skip items explicitly hidden by the owner — they should not propagate
       // to templates or duplicated cards.
-      if (img?.hidden === true) return;
-      
+      if (img?.hidden === true) {
+        hiddenStripped.push({
+          index: idx,
+          url: imageUrl,
+          alt: (img?.alt ?? img?.alt_text ?? null) as string | null,
+        });
+        return;
+      }
+
       result.push({
         url: imageUrl,
         alt: (img?.alt ?? img?.alt_text ?? null) as string | null,
@@ -146,14 +159,23 @@ export function buildCardSnapshot(
         srp: (img?.srp ?? img?.SRP ?? img?.price_srp ?? null) as string | null,
       });
     });
-    
+
+    console.log(
+      `[cardSnapshot] ${sectionLabel}: input=${raw.length}, kept=${result.length}, hiddenStripped=${hiddenStripped.length}, noUrlSkipped=${noUrlSkipped.length}`,
+      { hiddenStripped, noUrlSkipped }
+    );
+
     return result;
   };
 
+  console.groupCollapsed(
+    `[cardSnapshot] Building snapshot for card ${card.id ?? "(new)"} — stripping hidden carousel items`
+  );
+
   // Extract all carousel images using unified normalizer (hidden items excluded)
-  const productImages = normalizeCarouselImages(card.product_images);
-  const packageImages = normalizeCarouselImages(card.package_images);
-  const testimonyImages = normalizeCarouselImages(card.testimony_images);
+  const productImages = normalizeCarouselImages(card.product_images, "product_images");
+  const packageImages = normalizeCarouselImages(card.package_images, "package_images");
+  const testimonyImages = normalizeCarouselImages(card.testimony_images, "testimony_images");
 
   // Deep-copy carousel_settings and strip hidden images from any embedded image
   // arrays so per-section settings (CTA, background, table, etc.) carry over
@@ -165,13 +187,30 @@ export function buildCardSnapshot(
       for (const key of ["products", "packages", "testimonies", "videos"]) {
         const section = carouselSettings?.[key];
         if (section && Array.isArray(section.images)) {
+          const before = section.images.length;
+          const hiddenInSettings = section.images
+            .map((img: any, i: number) => ({ i, img }))
+            .filter(({ img }: any) => img?.hidden === true)
+            .map(({ i, img }: any) => ({
+              index: i,
+              url: img?.url ?? img?.image_url ?? null,
+            }));
           section.images = section.images.filter((img: any) => img?.hidden !== true);
+          console.log(
+            `[cardSnapshot] carousel_settings.${key}.images: before=${before}, after=${section.images.length}, hiddenStripped=${hiddenInSettings.length}`,
+            { hiddenInSettings }
+          );
         }
       }
-    } catch {
+    } catch (err) {
+      console.warn("[cardSnapshot] Failed to deep-copy carousel_settings, using as-is", err);
       carouselSettings = card.carousel_settings;
     }
   }
+
+  console.groupEnd();
+
+
 
   
   // Extract social links from JSONB
