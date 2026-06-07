@@ -545,7 +545,7 @@ export default function CardView({
           );
           const contactInfo = { phone: card.phone, email: card.email, website: card.website };
 
-          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number; description?: string; shareText?: string; srp?: string }[] => {
+          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number; description?: string; shareText?: string; srp?: string; hidden?: boolean }[] => {
             if (!raw || !Array.isArray(raw)) return [];
 
             return raw
@@ -556,6 +556,7 @@ export default function CardView({
                 description: (img?.description ?? img?.desc) as string | undefined,
                 shareText: (img?.shareText ?? img?.share_text ?? img?.caption) as string | undefined,
                 srp: (img?.srp ?? img?.SRP ?? img?.price_srp) as string | undefined,
+                hidden: img?.hidden === true,
               }))
               .filter((img) => !!img.url);
           };

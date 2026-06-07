@@ -34,6 +34,10 @@ export interface CarouselImage {
   url: string;
   alt?: string | null;
   order?: number;
+  description?: string | null;
+  shareText?: string | null;
+  srp?: string | null;
+  hidden?: boolean;
 }
 
 /**
@@ -122,7 +126,6 @@ export function buildCardSnapshot(
     const result: CarouselImage[] = [];
     
     raw.forEach((img: any, idx: number) => {
-      // Support both {url} and {image_url} shapes
       const imageUrl = 
         (typeof img?.url === "string" && img.url) || 
         (typeof img?.image_url === "string" && img.image_url) || 
@@ -130,20 +133,46 @@ export function buildCardSnapshot(
       
       if (!imageUrl) return;
       
+      // Skip items explicitly hidden by the owner — they should not propagate
+      // to templates or duplicated cards.
+      if (img?.hidden === true) return;
+      
       result.push({
         url: imageUrl,
         alt: (img?.alt ?? img?.alt_text ?? null) as string | null,
         order: (img?.order ?? img?.sort_order ?? idx) as number,
+        description: (img?.description ?? img?.desc ?? null) as string | null,
+        shareText: (img?.shareText ?? img?.share_text ?? img?.caption ?? null) as string | null,
+        srp: (img?.srp ?? img?.SRP ?? img?.price_srp ?? null) as string | null,
       });
     });
     
     return result;
   };
 
-  // Extract all carousel images using unified normalizer
+  // Extract all carousel images using unified normalizer (hidden items excluded)
   const productImages = normalizeCarouselImages(card.product_images);
   const packageImages = normalizeCarouselImages(card.package_images);
   const testimonyImages = normalizeCarouselImages(card.testimony_images);
+
+  // Deep-copy carousel_settings and strip hidden images from any embedded image
+  // arrays so per-section settings (CTA, background, table, etc.) carry over
+  // correctly without leaking hidden items.
+  let carouselSettings: any = null;
+  if (card.carousel_settings) {
+    try {
+      carouselSettings = JSON.parse(JSON.stringify(card.carousel_settings));
+      for (const key of ["products", "packages", "testimonies", "videos"]) {
+        const section = carouselSettings?.[key];
+        if (section && Array.isArray(section.images)) {
+          section.images = section.images.filter((img: any) => img?.hidden !== true);
+        }
+      }
+    } catch {
+      carouselSettings = card.carousel_settings;
+    }
+  }
+
   
   // Extract social links from JSONB
   let socialLinks: SocialLink[] | null = null;
@@ -204,7 +233,7 @@ export function buildCardSnapshot(
     card_links: formattedCardLinks,
     
     // Carousel settings (full object)
-    carousel_settings: card.carousel_settings || null,
+    carousel_settings: carouselSettings,
     
     // Carousel images
     product_images: productImages,
