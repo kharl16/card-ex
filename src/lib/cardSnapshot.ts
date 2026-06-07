@@ -34,6 +34,10 @@ export interface CarouselImage {
   url: string;
   alt?: string | null;
   order?: number;
+  description?: string | null;
+  shareText?: string | null;
+  srp?: string | null;
+  hidden?: boolean;
 }
 
 /**
