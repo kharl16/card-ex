@@ -78,7 +78,30 @@ export function useTemplates() {
     card: Record<string, any>,
     cardLinks?: CardLink[]
   ): LayoutData => {
-    return buildCardSnapshot(card, cardLinks);
+    const snapshot = buildCardSnapshot(card, cardLinks);
+    const countHidden = (arr: unknown) =>
+      Array.isArray(arr) ? arr.filter((i: any) => i?.hidden === true).length : 0;
+    console.log("[useTemplates] Template snapshot built — hidden items stripped:", {
+      sourceCardId: card.id,
+      source: {
+        product_images: Array.isArray(card.product_images) ? card.product_images.length : 0,
+        package_images: Array.isArray(card.package_images) ? card.package_images.length : 0,
+        testimony_images: Array.isArray(card.testimony_images) ? card.testimony_images.length : 0,
+        hidden_products: countHidden(card.product_images),
+        hidden_packages: countHidden(card.package_images),
+        hidden_testimonies: countHidden(card.testimony_images),
+      },
+      snapshot: {
+        product_images: snapshot.product_images.length,
+        package_images: snapshot.package_images.length,
+        testimony_images: snapshot.testimony_images.length,
+        remaining_hidden:
+          countHidden(snapshot.product_images) +
+          countHidden(snapshot.package_images) +
+          countHidden(snapshot.testimony_images),
+      },
+    });
+    return snapshot;
   };
 
   const saveAsGlobalTemplate = async (
