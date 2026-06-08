@@ -141,7 +141,15 @@ export function MyTemplatesManager({ open, onOpenChange }: MyTemplatesManagerPro
                             </div>
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(template)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setPreviewTemplate(template)}
+                              title="View template"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(template)} title="Edit template">
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
