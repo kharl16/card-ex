@@ -38,6 +38,7 @@ import QRCode from "qrcode";
 import ProductImageManager from "@/components/ProductImageManager";
 import CardView, { SocialLink, ProductImage } from "@/components/CardView";
 import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
+import { ChangeTemplateDialog } from "@/components/templates/ChangeTemplateDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublishLimit } from "@/hooks/usePublishLimit";
 import { getPublicCardUrl } from "@/lib/cardUrl";
@@ -130,6 +131,7 @@ export default function CardEditor() {
   const [regeneratingQR, setRegeneratingQR] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
+  const [changeTemplateDialogOpen, setChangeTemplateDialogOpen] = useState(false);
   const [bookingEnabled, setBookingEnabled] = useState(false);
   
   // Layout mode: "accordion" or "wizard"
@@ -999,6 +1001,16 @@ export default function CardEditor() {
                 <FileDown className="h-4 w-4" />
                 <span className="hidden md:inline">Save Template</span>
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setChangeTemplateDialogOpen(true)} className="gap-1 px-2 sm:px-3">
+                <Palette className="h-4 w-4" />
+                <span className="hidden md:inline">Change Template</span>
+              </Button>
+              <ChangeTemplateDialog
+                card={card}
+                open={changeTemplateDialogOpen}
+                onOpenChange={setChangeTemplateDialogOpen}
+                onApplied={loadCard}
+              />
               <Button variant="outline" size="sm" onClick={() => navigate(`/cards/${card.id}/analytics`)} className="gap-1 px-2 sm:px-3">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden md:inline">Analytics</span>

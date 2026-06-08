@@ -30,7 +30,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Pencil, Trash2, Users, Lock, Palette } from "lucide-react";
+import { Loader2, Pencil, Trash2, Users, Lock, Palette, Eye } from "lucide-react";
+import { TemplatePreviewDialog } from "./TemplatePreviewDialog";
 import { useTemplates, CardTemplate, TemplateVisibility } from "@/hooks/useTemplates";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -45,6 +46,7 @@ export function MyTemplatesManager({ open, onOpenChange }: MyTemplatesManagerPro
   const { templates, loading, updateTemplate, deleteTemplate } = useTemplates();
   const [editingTemplate, setEditingTemplate] = useState<CardTemplate | null>(null);
   const [deletingTemplate, setDeletingTemplate] = useState<CardTemplate | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<CardTemplate | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editVisibility, setEditVisibility] = useState<TemplateVisibility>("private");
@@ -139,7 +141,15 @@ export function MyTemplatesManager({ open, onOpenChange }: MyTemplatesManagerPro
                             </div>
                           </div>
                           <div className="flex shrink-0 items-center gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(template)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setPreviewTemplate(template)}
+                              title="View template"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(template)} title="Edit template">
                               <Pencil className="h-4 w-4" />
                             </Button>
                             <Button
@@ -252,6 +262,13 @@ export function MyTemplatesManager({ open, onOpenChange }: MyTemplatesManagerPro
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <TemplatePreviewDialog
+        template={previewTemplate}
+        open={!!previewTemplate}
+        onOpenChange={(o) => !o && setPreviewTemplate(null)}
+        onSelect={() => setPreviewTemplate(null)}
+      />
     </>
   );
 }

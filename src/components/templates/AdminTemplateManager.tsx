@@ -30,7 +30,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Pencil, Trash2, Globe, Users, Lock, Palette } from "lucide-react";
+import { Loader2, Pencil, Trash2, Globe, Users, Lock, Palette, Eye } from "lucide-react";
+import { TemplatePreviewDialog } from "./TemplatePreviewDialog";
 import { useTemplates, CardTemplate, TemplateVisibility } from "@/hooks/useTemplates";
 import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
@@ -53,6 +54,7 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
   const [loading, setLoading] = useState(true);
   const [editingTemplate, setEditingTemplate] = useState<CardTemplate | null>(null);
   const [deletingTemplate, setDeletingTemplate] = useState<CardTemplate | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<CardTemplate | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editVisibility, setEditVisibility] = useState<TemplateVisibility>("private");
@@ -169,7 +171,16 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
                           <Button
                             variant="ghost"
                             size="icon"
+                            onClick={() => setPreviewTemplate(template)}
+                            title="View template"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleEdit(template)}
+                            title="Edit template"
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -292,6 +303,14 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Preview Dialog */}
+      <TemplatePreviewDialog
+        template={previewTemplate}
+        open={!!previewTemplate}
+        onOpenChange={(o) => !o && setPreviewTemplate(null)}
+        onSelect={() => setPreviewTemplate(null)}
+      />
     </>
   );
 }
