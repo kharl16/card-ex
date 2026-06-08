@@ -38,6 +38,7 @@ import QRCode from "qrcode";
 import ProductImageManager from "@/components/ProductImageManager";
 import CardView, { SocialLink, ProductImage } from "@/components/CardView";
 import { SaveTemplateDialog } from "@/components/templates/SaveTemplateDialog";
+import { ChangeTemplateDialog } from "@/components/templates/ChangeTemplateDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublishLimit } from "@/hooks/usePublishLimit";
 import { getPublicCardUrl } from "@/lib/cardUrl";
