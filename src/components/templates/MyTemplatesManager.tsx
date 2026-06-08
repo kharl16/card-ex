@@ -262,6 +262,13 @@ export function MyTemplatesManager({ open, onOpenChange }: MyTemplatesManagerPro
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <TemplatePreviewDialog
+        template={previewTemplate}
+        open={!!previewTemplate}
+        onOpenChange={(o) => !o && setPreviewTemplate(null)}
+        onSelect={() => setPreviewTemplate(null)}
+      />
     </>
   );
 }
