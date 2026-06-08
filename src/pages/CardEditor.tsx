@@ -1001,6 +1001,16 @@ export default function CardEditor() {
                 <FileDown className="h-4 w-4" />
                 <span className="hidden md:inline">Save Template</span>
               </Button>
+              <Button variant="outline" size="sm" onClick={() => setChangeTemplateDialogOpen(true)} className="gap-1 px-2 sm:px-3">
+                <Palette className="h-4 w-4" />
+                <span className="hidden md:inline">Change Template</span>
+              </Button>
+              <ChangeTemplateDialog
+                card={card}
+                open={changeTemplateDialogOpen}
+                onOpenChange={setChangeTemplateDialogOpen}
+                onApplied={loadCard}
+              />
               <Button variant="outline" size="sm" onClick={() => navigate(`/cards/${card.id}/analytics`)} className="gap-1 px-2 sm:px-3">
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden md:inline">Analytics</span>
