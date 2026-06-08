@@ -171,7 +171,16 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
                           <Button
                             variant="ghost"
                             size="icon"
+                            onClick={() => setPreviewTemplate(template)}
+                            title="View template"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleEdit(template)}
+                            title="Edit template"
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
