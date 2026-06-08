@@ -54,6 +54,7 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
   const [loading, setLoading] = useState(true);
   const [editingTemplate, setEditingTemplate] = useState<CardTemplate | null>(null);
   const [deletingTemplate, setDeletingTemplate] = useState<CardTemplate | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<CardTemplate | null>(null);
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editVisibility, setEditVisibility] = useState<TemplateVisibility>("private");
