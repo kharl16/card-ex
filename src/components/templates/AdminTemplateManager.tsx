@@ -303,6 +303,14 @@ export function AdminTemplateManager({ open, onOpenChange }: AdminTemplateManage
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Preview Dialog */}
+      <TemplatePreviewDialog
+        template={previewTemplate}
+        open={!!previewTemplate}
+        onOpenChange={(o) => !o && setPreviewTemplate(null)}
+        onSelect={() => setPreviewTemplate(null)}
+      />
     </>
   );
 }
