@@ -68,7 +68,7 @@ const cardSchema = z.object({
   suffix: z.string().trim().max(20, "Suffix must be 20 characters or less").optional().or(z.literal("")),
   title: z.string().trim().max(100, "Title must be 100 characters or less").optional().or(z.literal("")),
   company: z.string().trim().max(100, "Company must be 100 characters or less").optional().or(z.literal("")),
-  bio: z.string().trim().max(500, "Bio must be 500 characters or less").optional().or(z.literal("")),
+  bio: z.string().trim().max(1000, "Bio must be 1000 characters or less").optional().or(z.literal("")),
   email: z
     .string()
     .trim()

@@ -319,14 +319,14 @@ export function BasicInformationSection({
           value={card.bio || ""}
           onChange={(e) => onCardChange({ bio: e.target.value })}
           rows={4}
-          maxLength={500}
+          maxLength={1000}
           className={validationErrors.bio ? "border-destructive" : ""}
         />
         {validationErrors.bio && (
           <p className="text-sm text-destructive">{validationErrors.bio}</p>
         )}
         <p className="text-xs text-muted-foreground">
-          {(card.bio?.length || 0)}/500 characters
+          {(card.bio?.length || 0)}/1000 characters
         </p>
       </div>
 
