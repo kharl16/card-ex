@@ -1,10 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Check, X, Mail, Phone, Globe, MapPin, Image as ImageIcon, Package, Quote, Video, Link as LinkIcon } from "lucide-react";
+import { Check, X } from "lucide-react";
+import CardView from "@/components/CardView";
 import type { CardTemplate, LayoutData } from "@/hooks/useTemplates";
+import type { Tables, Json } from "@/integrations/supabase/types";
 
 interface TemplatePreviewDialogProps {
   template: CardTemplate | null;
@@ -14,9 +13,10 @@ interface TemplatePreviewDialogProps {
 }
 
 /**
- * Lightweight, self-contained template preview that renders directly from the
- * snapshot (layout_data) — does NOT use CardView (which depends on a real
- * card.id, supabase hooks, RiderHeader, etc., and rendered blank in this dialog).
+ * Renders a real CardView from the template snapshot so the preview matches
+ * the actual card view exactly — including product/package/testimony carousels.
+ * Hidden carousel items are already stripped from the snapshot during
+ * template save, so they will not appear here.
  */
 export function TemplatePreviewDialog({
   template,
@@ -26,195 +26,124 @@ export function TemplatePreviewDialog({
 }: TemplatePreviewDialogProps) {
   if (!template) return null;
 
-  const data = template.layout_data as LayoutData;
-  const theme = (data.theme || {}) as Record<string, any>;
-  const primary = theme.primary || "#D4AF37";
-  const background = theme.background || "#0B0B0C";
-  const textColor = theme.text || "#F8F8F8";
+  const layoutData = template.layout_data as LayoutData;
 
-  const fullName =
-    data.full_name ||
-    [data.prefix, data.first_name, data.middle_name, data.last_name]
-      .filter(Boolean)
-      .join(" ") ||
-    "Card Owner";
+  // Build a card-shaped object from the snapshot. We use a synthetic id prefixed
+  // with "tpl-preview-" so any hooks that filter by card_id simply return empty
+  // (no overrides exist for this id) without erroring.
+  const mockCard: Tables<"cards"> = {
+    id: `tpl-preview-${template.id}`,
+    user_id: template.owner_id,
+    slug: "preview",
+    ad_banner: null,
+    image_carousels: (layoutData.image_carousels as unknown as Json) ?? null,
+    show_daily_quote: layoutData.show_daily_quote ?? false,
+    show_referral_earnings: layoutData.show_referral_earnings ?? false,
+    full_name:
+      layoutData.full_name ||
+      [layoutData.prefix, layoutData.first_name, layoutData.middle_name, layoutData.last_name]
+        .filter(Boolean)
+        .join(" ") ||
+      "Card Owner",
+    first_name: layoutData.first_name || null,
+    middle_name: layoutData.middle_name || null,
+    last_name: layoutData.last_name || null,
+    prefix: layoutData.prefix || null,
+    suffix: layoutData.suffix || null,
+    title: layoutData.title || null,
+    company: layoutData.company || null,
+    bio: layoutData.bio || null,
+    email: layoutData.email || null,
+    phone: layoutData.phone || null,
+    website: layoutData.website || null,
+    location: layoutData.location || null,
+    avatar_url: layoutData.avatar_url || null,
+    cover_url: layoutData.cover_url || null,
+    logo_url: layoutData.logo_url || null,
+    carousel_enabled: layoutData.carousel_enabled ?? true,
+    carousel_settings: (layoutData.carousel_settings || {}) as Json,
+    theme: (layoutData.theme || null) as Json,
+    is_published: false,
+    is_paid: false,
+    mindset_result: null,
+    paid_at: null,
+    paid_overridden_by_admin: false,
+    plan_id: null,
+    public_url: null,
+    share_url: null,
+    qr_code_url: null,
+    vcard_url: null,
+    wallet_pass_url: null,
+    custom_slug: null,
+    organization_id: null,
+    owner_name: null,
+    card_type: null,
+    views_count: null,
+    unique_views: null,
+    published_at: null,
+    is_template: false,
+    social_links: (layoutData.social_links as unknown as Json) || null,
+    product_images: (layoutData.product_images as unknown as Json) || [],
+    package_images: (layoutData.package_images as unknown as Json) || [],
+    testimony_images: (layoutData.testimony_images as unknown as Json) || [],
+    owner_referral_code: null,
+    referred_by_code: null,
+    referred_by_name: null,
+    referred_by_user_id: null,
+    design_version: 1,
+    last_design_patch_id: null,
+    video_items: (layoutData.video_items as unknown as Json) || [],
+    disc_result: null,
+    love_language_result: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
 
-  const countVisible = (arr: any) =>
-    Array.isArray(arr) ? arr.filter((i: any) => i?.hidden !== true && (i?.url || i?.image_url)).length : 0;
+  // Build social links list for CardView from card_links (snapshot)
+  const socialLinks = (layoutData.card_links || [])
+    .filter((link) => link?.kind && link?.value)
+    .map((link, index) => ({
+      id: `link-${index}`,
+      kind: link.kind,
+      label: link.label,
+      value: link.value,
+      icon: link.icon || "Globe",
+    }));
 
-  const productCount = countVisible(data.product_images);
-  const packageCount = countVisible(data.package_images);
-  const testimonyCount = countVisible(data.testimony_images);
-  const videoCount = Array.isArray(data.video_items)
-    ? data.video_items.filter((v: any) => v?.hidden !== true).length
-    : 0;
-  const socialCount = Array.isArray(data.card_links)
-    ? data.card_links.filter((l: any) => l?.kind && l?.value).length
-    : Array.isArray(data.social_links)
-    ? data.social_links.length
-    : 0;
+  // CardView expects ProductImage[] in legacy shape for the prop, but the real
+  // products carousel reads from card.product_images (JSONB) inside CardView,
+  // so we can pass an empty array here.
+  const productImages: never[] = [];
 
   const handleSelect = () => {
     onSelect(template);
     onOpenChange(false);
   };
 
-  const previewImages = (Array.isArray(data.product_images) ? data.product_images : [])
-    .filter((i: any) => i?.hidden !== true)
-    .map((i: any) => i?.url || i?.image_url)
-    .filter(Boolean)
-    .slice(0, 6);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] p-0 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-2">
+      <DialogContent className="max-w-xl max-h-[92vh] p-0 overflow-hidden flex flex-col">
+        <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             Preview: {template.name}
           </DialogTitle>
-          {template.description && (
-            <p className="text-sm text-muted-foreground">{template.description}</p>
-          )}
         </DialogHeader>
 
-        <ScrollArea className="max-h-[calc(90vh-180px)]">
-          <div className="px-4 pb-6">
-            <div
-              className="rounded-2xl overflow-hidden border shadow-lg"
-              style={{ backgroundColor: background, color: textColor }}
-            >
-              {/* Cover */}
-              <div
-                className="relative h-32 w-full"
-                style={{
-                  background: data.cover_url
-                    ? `url(${data.cover_url}) center/cover`
-                    : `linear-gradient(135deg, ${primary}40, ${primary}10)`,
-                }}
-              >
-                <div
-                  className="absolute inset-x-0 bottom-0 h-1"
-                  style={{ background: `linear-gradient(90deg, transparent, ${primary}, transparent)` }}
-                />
-              </div>
+        {/* Native scroll container — Radix ScrollArea was hiding the inner
+            CardView. A plain overflow-y-auto div renders CardView exactly as
+            it appears on the actual card page. */}
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 pb-4">
+          <CardView
+            card={mockCard}
+            socialLinks={socialLinks}
+            productImages={productImages}
+            isInteractive={false}
+            showQRCode={false}
+            showVCardButtons={false}
+          />
+        </div>
 
-              {/* Identity */}
-              <div className="px-5 -mt-10 pb-4 flex items-end gap-3">
-                <Avatar className="h-20 w-20 ring-4" style={{ boxShadow: `0 0 0 3px ${primary}` }}>
-                  {data.avatar_url ? <AvatarImage src={data.avatar_url} alt={fullName} /> : null}
-                  <AvatarFallback style={{ backgroundColor: primary, color: background }}>
-                    {fullName
-                      .split(" ")
-                      .map((s) => s[0])
-                      .slice(0, 2)
-                      .join("")
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                {data.logo_url && (
-                  <img
-                    src={data.logo_url}
-                    alt="Logo"
-                    className="h-10 w-10 rounded-md object-contain bg-white/10 p-1 ml-auto"
-                  />
-                )}
-              </div>
-
-              <div className="px-5 pb-4">
-                <h3 className="text-lg font-bold leading-tight">{fullName}</h3>
-                {data.title && (
-                  <p className="text-sm opacity-80">{data.title}</p>
-                )}
-                {data.company && (
-                  <p
-                    className="text-[11px] uppercase tracking-wider mt-1 font-semibold"
-                    style={{ color: primary }}
-                  >
-                    {data.company}
-                  </p>
-                )}
-                {data.bio && (
-                  <p className="text-xs opacity-70 mt-2 leading-relaxed line-clamp-4">
-                    {data.bio}
-                  </p>
-                )}
-              </div>
-
-              {/* Contact strip */}
-              {(data.email || data.phone || data.website || data.location) && (
-                <div className="px-5 pb-4 flex flex-wrap gap-2 text-[11px] opacity-80">
-                  {data.email && (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-1 bg-white/5">
-                      <Mail className="h-3 w-3" /> {data.email}
-                    </span>
-                  )}
-                  {data.phone && (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-1 bg-white/5">
-                      <Phone className="h-3 w-3" /> {data.phone}
-                    </span>
-                  )}
-                  {data.website && (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-1 bg-white/5">
-                      <Globe className="h-3 w-3" /> {data.website}
-                    </span>
-                  )}
-                  {data.location && (
-                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-1 bg-white/5">
-                      <MapPin className="h-3 w-3" /> {data.location}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Product image strip */}
-              {previewImages.length > 0 && (
-                <div className="px-5 pb-4">
-                  <p
-                    className="text-[10px] uppercase tracking-[0.2em] mb-2 font-semibold"
-                    style={{ color: primary }}
-                  >
-                    Products
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {previewImages.map((url, i) => (
-                      <div
-                        key={i}
-                        className="aspect-square rounded-md overflow-hidden bg-white/5"
-                        style={{ backgroundImage: `url(${url})`, backgroundSize: "cover", backgroundPosition: "center" }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Content summary chips */}
-              <div className="px-5 pb-5 flex flex-wrap gap-2">
-                <Badge variant="secondary" className="gap-1">
-                  <ImageIcon className="h-3 w-3" /> {productCount} Products
-                </Badge>
-                <Badge variant="secondary" className="gap-1">
-                  <Package className="h-3 w-3" /> {packageCount} Packages
-                </Badge>
-                <Badge variant="secondary" className="gap-1">
-                  <Quote className="h-3 w-3" /> {testimonyCount} Testimonies
-                </Badge>
-                <Badge variant="secondary" className="gap-1">
-                  <Video className="h-3 w-3" /> {videoCount} Videos
-                </Badge>
-                <Badge variant="secondary" className="gap-1">
-                  <LinkIcon className="h-3 w-3" /> {socialCount} Links
-                </Badge>
-              </div>
-            </div>
-
-            <p className="text-[11px] text-muted-foreground text-center mt-3 px-4">
-              This is a quick snapshot preview. Applying the template keeps your personal
-              details and replaces only the design + carousel content.
-            </p>
-          </div>
-        </ScrollArea>
-
-        <div className="flex gap-3 px-6 py-4 border-t bg-background">
+        <div className="flex gap-3 px-6 py-4 border-t bg-background flex-shrink-0">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
