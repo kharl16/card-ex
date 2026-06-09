@@ -441,6 +441,7 @@ export default function AdminCards() {
   const [duplicateSourceCard, setDuplicateSourceCard] = useState<CardData | null>(null);
   const [showSelectUserForDuplicateDialog, setShowSelectUserForDuplicateDialog] = useState(false);
   const [selectedUserForDuplicate, setSelectedUserForDuplicate] = useState<string>("");
+  const [duplicateUserSearch, setDuplicateUserSearch] = useState<string>("");
 
   // Save as Template Dialog state
   const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
@@ -1557,23 +1558,56 @@ export default function AdminCards() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
+              <Label htmlFor="duplicate-user-search">Search User</Label>
+              <Input
+                id="duplicate-user-search"
+                placeholder="Type a name or email..."
+                value={duplicateUserSearch}
+                onChange={(e) => setDuplicateUserSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="duplicate-target-user">Select User</Label>
-              <Select value={selectedUserForDuplicate} onValueChange={setSelectedUserForDuplicate}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a user..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4" />
-                        <span>{user.full_name || "Unnamed User"}</span>
-                        <span className="text-xs text-muted-foreground">({user.email})</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {(() => {
+                const q = duplicateUserSearch.trim().toLowerCase();
+                const filtered = q
+                  ? users.filter(
+                      (u) =>
+                        (u.full_name || "").toLowerCase().includes(q) ||
+                        (u.email || "").toLowerCase().includes(q)
+                    )
+                  : users;
+                return (
+                  <>
+                    <Select value={selectedUserForDuplicate} onValueChange={setSelectedUserForDuplicate}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a user..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filtered.length === 0 ? (
+                          <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                            No users match "{duplicateUserSearch}"
+                          </div>
+                        ) : (
+                          filtered.map((user) => (
+                            <SelectItem key={user.id} value={user.id}>
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4" />
+                                <span>{user.full_name || "Unnamed User"}</span>
+                                <span className="text-xs text-muted-foreground">({user.email})</span>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {filtered.length} of {users.length} users
+                    </p>
+                  </>
+                );
+              })()}
             </div>
           </div>
           <DialogFooter>
