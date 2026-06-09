@@ -441,6 +441,7 @@ export default function AdminCards() {
   const [duplicateSourceCard, setDuplicateSourceCard] = useState<CardData | null>(null);
   const [showSelectUserForDuplicateDialog, setShowSelectUserForDuplicateDialog] = useState(false);
   const [selectedUserForDuplicate, setSelectedUserForDuplicate] = useState<string>("");
+  const [duplicateUserSearch, setDuplicateUserSearch] = useState<string>("");
 
   // Save as Template Dialog state
   const [showSaveTemplateDialog, setShowSaveTemplateDialog] = useState(false);
