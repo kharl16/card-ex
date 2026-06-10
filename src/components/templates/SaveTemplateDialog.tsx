@@ -93,7 +93,7 @@ export function SaveTemplateDialog({
           : await savePersonalTemplate(card, name.trim(), description.trim(), cardLinks, visibility);
 
       if (!result.success) {
-        setSaveError(result.error);
+        setSaveError((result as { success: false; error: FriendlyTemplateError }).error);
       } else {
         setName("");
         setDescription("");
