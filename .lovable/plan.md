@@ -1,25 +1,40 @@
-## Diagnosis
 
-Card users are likely failing to save templates because the `card_templates` table currently has no Data API grants for `anon`, `authenticated`, or `service_role`. Even with RLS policies present, Supabase/PostgREST still requires explicit table privileges. The live database query showed an empty grant list for `card_templates`, so browser inserts can be rejected before the existing “Users can create templates” policy is useful.
+## Goal
+When saving a template fails, the user currently sees a generic toast. Replace this with a clear, actionable error UI that shows the real Supabase error and tells the user what to do next.
 
-There is also a second possible issue: the current insert policy is assigned to `public` instead of explicitly to `authenticated`. It may work in some cases, but making it explicit is safer and matches the current Supabase guidance.
+## Changes
 
-## Plan
+### 1. `src/hooks/useTemplates.ts`
+- In `saveAsGlobalTemplate`, `savePersonalTemplate`, and the shared save path, instead of only `toast.error(msg)`:
+  - Return a structured result `{ success: boolean, error?: { message, code, hint, details } }` from save functions (or attach the last error to the hook state).
+  - Keep the toast as a fallback, but include the Postgres `code` (e.g. `42501`, `23505`) so it's identifiable.
+- Map common Supabase error codes to friendly explanations + next steps:
+  - `42501` / "permission denied" → "Your account doesn't have permission to save templates yet. Please sign out and sign back in, or contact an admin."
+  - `23505` (unique violation) → "A template with this name already exists. Try a different name."
+  - `PGRST301` / JWT issues → "Your session expired. Please sign in again."
+  - Network/`Failed to fetch` → "Couldn't reach the server. Check your internet connection and retry."
+  - Unknown → show raw message + code.
 
-1. **Add missing database grants for `card_templates`**
-   - Allow logged-in users to view, create, update, and delete templates through the app.
-   - Allow service-role access for admin/backend operations.
-   - Do not grant anonymous write access.
+### 2. `src/components/templates/SaveTemplateDialog.tsx`
+- Add local `saveError` state (`{ title, message, hint, code, raw } | null`).
+- On failed save, instead of just closing/keeping the dialog open with a toast, render an inline error panel inside the dialog:
+  - Red `Alert` (shadcn) at the top of the dialog body with:
+    - Bold title (friendly summary based on error code).
+    - Plain-language explanation.
+    - "Next steps" bullet list (1-3 concrete actions: sign out/in, rename, retry, contact admin).
+    - Collapsible "Technical details" showing the raw Supabase `message`, `code`, `hint`, `details` — with a "Copy details" button so the user can send it to support.
+  - A "Try again" primary button and "Cancel" secondary button.
+- Clear `saveError` when the user edits the name/description or closes the dialog.
+- Keep the existing success path unchanged.
 
-2. **Tighten template RLS policies**
-   - Replace the broad/public create policy with an explicit authenticated-only policy.
-   - Keep users limited to templates where `owner_id = auth.uid()`.
-   - Preserve admin access through `is_super_admin(auth.uid())`.
+### 3. (Optional, small) `src/components/templates/AdminTemplateManager.tsx`
+- Apply the same error-display pattern to the edit/delete flows so admins get the same clarity. Low priority — include only if trivial.
 
-3. **Improve the frontend error message**
-   - Update template save error handling so it shows the real Supabase error in the console and a clearer toast for the user instead of only “Failed to save template”.
-   - Keep the UI behavior and template visibility choices unchanged.
+## Out of scope
+- No DB/migration changes (grants were fixed in the prior migration).
+- No changes to template save business logic; only error surfacing/UX.
 
-4. **Verify after approval**
-   - Re-check the live grants and RLS policies.
-   - Confirm the save flow is no longer blocked by table permissions.
+## Verification
+- Temporarily force a failure (e.g. invalid name length / simulate by revoking grants in a scratch test) and confirm the dialog shows the friendly message + raw details + Copy button.
+- Confirm successful saves still close the dialog and toast success.
+- TypeScript build passes.
