@@ -3,8 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { buildCardSnapshot, type CardSnapshot, type CardLink } from "@/lib/cardSnapshot";
+import { toFriendlyTemplateError, type FriendlyTemplateError } from "@/lib/templateErrors";
 
 export type TemplateVisibility = 'global' | 'team' | 'private';
+
+export type SaveTemplateResult =
+  | { success: true }
+  | { success: false; error: FriendlyTemplateError };
 
 export interface CardTemplate {
   id: string;
