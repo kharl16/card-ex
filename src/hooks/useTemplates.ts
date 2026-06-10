@@ -188,7 +188,8 @@ export function useTemplates() {
       throw lastError ?? new Error("Failed to save template");
     } catch (error: any) {
       console.error("Error saving template:", error);
-      toast.error("Failed to save template");
+      const msg = error?.message || error?.hint || error?.details || "Failed to save template";
+      toast.error(msg);
       return false;
     }
   };
