@@ -135,9 +135,10 @@ export function useTemplates() {
       toast.success("Template saved successfully!");
       await loadTemplates();
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving template:", error);
-      toast.error("Failed to save template");
+      const msg = error?.message || error?.hint || error?.details || "Failed to save template";
+      toast.error(msg);
       return false;
     }
   };
