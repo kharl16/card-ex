@@ -116,10 +116,15 @@ export function useTemplates() {
     thumbnailUrl?: string,
     cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>,
     visibility: TemplateVisibility = 'global'
-  ): Promise<boolean> => {
+  ): Promise<SaveTemplateResult> => {
     if (!user || (!isAdmin && visibility === 'global')) {
-      toast.error("Only admins can create global templates");
-      return false;
+      const friendly: FriendlyTemplateError = {
+        title: "Only admins can create global templates",
+        message: "Your account isn't authorized to publish global templates.",
+        nextSteps: ["Save this as a Team or Private template instead.", "Ask an admin to publish it globally for you."],
+      };
+      toast.error(friendly.title);
+      return { success: false, error: friendly };
     }
 
     try {
@@ -139,12 +144,12 @@ export function useTemplates() {
 
       toast.success("Template saved successfully!");
       await loadTemplates();
-      return true;
+      return { success: true };
     } catch (error: any) {
       console.error("Error saving template:", error);
-      const msg = error?.message || error?.hint || error?.details || "Failed to save template";
-      toast.error(msg);
-      return false;
+      const friendly = toFriendlyTemplateError(error);
+      toast.error(friendly.title);
+      return { success: false, error: friendly };
     }
   };
 
@@ -154,10 +159,15 @@ export function useTemplates() {
     description?: string,
     cardLinks?: Array<{ kind: string; label: string; value: string; icon?: string | null; sort_index?: number | null }>,
     visibility: TemplateVisibility = 'private'
-  ): Promise<boolean> => {
+  ): Promise<SaveTemplateResult> => {
     if (!user) {
-      toast.error("You must be logged in to save a template");
-      return false;
+      const friendly: FriendlyTemplateError = {
+        title: "You must be signed in to save a template",
+        message: "We couldn't find an active session.",
+        nextSteps: ["Sign in, then try saving again."],
+      };
+      toast.error(friendly.title);
+      return { success: false, error: friendly };
     }
 
     try {
@@ -181,7 +191,7 @@ export function useTemplates() {
         if (!error) {
           toast.success("Template saved successfully!");
           await loadTemplates();
-          return true;
+          return { success: true };
         }
         lastError = error;
         if (error.code === "23505") {
@@ -194,9 +204,9 @@ export function useTemplates() {
       throw lastError ?? new Error("Failed to save template");
     } catch (error: any) {
       console.error("Error saving template:", error);
-      const msg = error?.message || error?.hint || error?.details || "Failed to save template";
-      toast.error(msg);
-      return false;
+      const friendly = toFriendlyTemplateError(error);
+      toast.error(friendly.title);
+      return { success: false, error: friendly };
     }
   };
 
