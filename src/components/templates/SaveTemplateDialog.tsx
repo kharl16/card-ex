@@ -92,15 +92,15 @@ export function SaveTemplateDialog({
           ? await saveAsGlobalTemplate(card, name.trim(), description.trim(), undefined, cardLinks, visibility)
           : await savePersonalTemplate(card, name.trim(), description.trim(), cardLinks, visibility);
 
-      if (result.success) {
+      if (!result.success) {
+        setSaveError(result.error);
+      } else {
         setName("");
         setDescription("");
         setVisibility(isAdmin ? 'global' : 'private');
         setCardLinks([]);
         onOpenChange(false);
         onSaved?.();
-      } else {
-        setSaveError(result.error);
       }
     } finally {
       setSaving(false);
