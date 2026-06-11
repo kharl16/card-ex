@@ -156,6 +156,16 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
+        <Route
+          path="/dashboard/videos"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DashboardVideos />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
         <Route path="/c/:slug" element={<PageTransition><PublicCard /></PageTransition>} />
         <Route path="/c/:slug/share/:carouselKind" element={<PageTransition><CarouselSharePage /></PageTransition>} />
         <Route path="/s/:code" element={<PageTransition><SharedCard /></PageTransition>} />
