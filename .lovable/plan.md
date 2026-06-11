@@ -1,40 +1,62 @@
+# Add "Videos" to the Dashboard Orb
 
 ## Goal
-When saving a template fails, the user currently sees a generic toast. Replace this with a clear, actionable error UI that shows the real Supabase error and tells the user what to do next.
+Surface the **global Videos library** (the same content shown by the *Videos* button inside the in-card Tools Orb — sourced from `training_folders` + `training_items`) directly from the Dashboard floating orb, so users don't need to open a card to watch.
 
-## Changes
+## Where it goes
+Promote **Videos** to a first-class slot on the Dashboard Orb (the 8-button radial menu shown in the screenshot).
 
-### 1. `src/hooks/useTemplates.ts`
-- In `saveAsGlobalTemplate`, `savePersonalTemplate`, and the shared save path, instead of only `toast.error(msg)`:
-  - Return a structured result `{ success: boolean, error?: { message, code, hint, details } }` from save functions (or attach the last error to the hook state).
-  - Keep the toast as a fallback, but include the Postgres `code` (e.g. `42501`, `23505`) so it's identifiable.
-- Map common Supabase error codes to friendly explanations + next steps:
-  - `42501` / "permission denied" → "Your account doesn't have permission to save templates yet. Please sign out and sign back in, or contact an admin."
-  - `23505` (unique violation) → "A template with this name already exists. Try a different name."
-  - `PGRST301` / JWT issues → "Your session expired. Please sign in again."
-  - Network/`Failed to fetch` → "Couldn't reach the server. Check your internet connection and retry."
-  - Unknown → show raw message + code.
+The orb's 8-slot symmetry is locked by design (per the Tools Orb Floating UI memory). To make room without breaking radial symmetry, we **merge Locator into Resources**:
+- *Locator* is a niche destination already reachable from Resources / direct route `/locator`.
+- Freed slot becomes **Videos** with a play-circle icon.
 
-### 2. `src/components/templates/SaveTemplateDialog.tsx`
-- Add local `saveError` state (`{ title, message, hint, code, raw } | null`).
-- On failed save, instead of just closing/keeping the dialog open with a toast, render an inline error panel inside the dialog:
-  - Red `Alert` (shadcn) at the top of the dialog body with:
-    - Bold title (friendly summary based on error code).
-    - Plain-language explanation.
-    - "Next steps" bullet list (1-3 concrete actions: sign out/in, rename, retry, contact admin).
-    - Collapsible "Technical details" showing the raw Supabase `message`, `code`, `hint`, `details` — with a "Copy details" button so the user can send it to support.
-  - A "Try again" primary button and "Cancel" secondary button.
-- Clear `saveError` when the user edits the name/description or closes the dialog.
-- Keep the existing success path unchanged.
+Final 8 slots:
 
-### 3. (Optional, small) `src/components/templates/AdminTemplateManager.tsx`
-- Apply the same error-display pattern to the edit/delete flows so admins get the same clarity. Low priority — include only if trivial.
+```text
+Tools     Leads     Prospects   Videos
+Resources Appts     Analytics   Referrals
+```
 
-## Out of scope
-- No DB/migration changes (grants were fixed in the prior migration).
-- No changes to template save business logic; only error surfacing/UX.
+If the user prefers to keep Locator on the orb, alternative is to retire *Appts* (also reachable from the in-card Tools Orb and from `/appointments`).
 
-## Verification
-- Temporarily force a failure (e.g. invalid name length / simulate by revoking grants in a scratch test) and confirm the dialog shows the friendly message + raw details + Copy button.
-- Confirm successful saves still close the dialog and toast success.
-- TypeScript build passes.
+## Behavior
+- Tapping **Videos** opens a full-screen drawer/sheet on the dashboard (no navigation away).
+- Drawer renders the existing `TrainingsSection` (folders → videos grid) — exactly the same component the in-card Tools Orb uses, so content stays 1:1 with the card experience and updates in real time when admins add videos.
+- Fullscreen video playback reuses `VideoFullscreenDialog`.
+- No card context required (content is global), matching the Dashboard Context Resolution rule.
+
+## Files to touch (frontend only)
+
+1. **`src/components/dashboard/DashboardOrb.tsx`**
+   - Replace the *Locator* entry with a **Videos** entry (label, `PlayCircle` icon from lucide-react, gold accent consistent with luxury theme).
+   - Add `onVideosClick` prop; wire it to open a new drawer.
+
+2. **`src/pages/Dashboard.tsx`**
+   - Add `videosOpen` state.
+   - Render a new `<DashboardVideosDrawer open={videosOpen} onOpenChange={setVideosOpen} />`.
+   - Pass `onVideosClick={() => setVideosOpen(true)}` to `DashboardOrb`.
+   - Ensure Locator stays reachable via Resources tile / `/locator` route (no route changes).
+
+3. **`src/components/dashboard/DashboardVideosDrawer.tsx` (new)**
+   - Thin wrapper: shadcn `Sheet` (side="bottom", full height on mobile) with the brand glassmorphism styling.
+   - Renders `<TrainingsSection />` inside a scrollable container.
+   - Header: "Videos" + close button (44px target, senior-friendly).
+   - No business logic — purely presentational shell that delegates to the existing global videos component.
+
+4. **(Optional) `src/components/dashboard/MobileBottomNav.tsx`**
+   - No change. Keeps senior-friendly target count intact.
+
+## Non-goals / out of scope
+- No DB schema changes (videos already global in `training_folders` / `training_items`).
+- No edits to `TrainingsSection` itself — reused as-is so any admin update flows to both card and dashboard automatically.
+- No change to per-card Tools Orb behavior or content.
+- No backend / edge function changes.
+
+## Validation
+- Confirm the orb still renders 8 symmetric slots on mobile (390px viewport).
+- Tap Videos → drawer opens → folders render → tap folder → videos render → tap video → fullscreen plays.
+- Confirm Locator remains accessible via Resources tile and `/locator` direct URL.
+- Verify zero horizontal overflow on mobile (per Core rule).
+
+## Memory update after build
+Add a short memory note under `mem://ux/dashboard-orb-slot-allocation` recording: *Dashboard Orb slots: Tools, Leads, Prospects, Videos, Resources, Appts, Analytics, Referrals. Locator merged into Resources tile to free a slot for global Videos.*
