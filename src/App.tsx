@@ -49,6 +49,7 @@ import RequireOnboarding from "./components/auth/RequireOnboarding";
 import Onboarding from "./pages/Onboarding";
 import Appointments from "./pages/Appointments";
 import Leads from "./pages/Leads";
+import DashboardVideos from "./pages/DashboardVideos";
 import ProspectList from "./pages/ProspectList";
 import Referrals from "./pages/Referrals";
 import Security from "./pages/Security";
@@ -152,6 +153,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <Leads />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/videos"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DashboardVideos />
               </RequireAuth>
             </PageTransition>
           }
