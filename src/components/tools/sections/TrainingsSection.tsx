@@ -12,6 +12,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import AdminTrainingDialog from "../admin/AdminTrainingDialog";
 import AdminVideoFolderDialog from "../admin/AdminVideoFolderDialog";
 import AdminAmbassadorClipDialog from "../admin/AdminAmbassadorClipDialog";
+import YouTubeProgressPlayer from "@/components/video/YouTubeProgressPlayer";
+import { extractYouTubeId, getProgress, recordProgress } from "@/lib/videoProgress";
 
 interface TrainingItem {
   id: string;
