@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, CreditCard, Users, Wrench, MoreHorizontal, BookOpen, CalendarDays, MapPin, BarChart3 } from "lucide-react";
+import { LayoutDashboard, CreditCard, Users, Wrench, MoreHorizontal, BookOpen, CalendarDays, MapPin, BarChart3, PlayCircle } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
@@ -10,15 +10,16 @@ import {
 
 const mainTabs = [
   { icon: LayoutDashboard, label: "Home", path: "/dashboard" },
-  { icon: Users, label: "Leads", path: "/dashboard/leads" },
-  { icon: CalendarDays, label: "Appts", path: "/dashboard/appointments" },
+  { icon: MapPin, label: "Locator", path: "/locator" },
+  { icon: PlayCircle, label: "Videos", path: "/dashboard/videos" },
   { icon: BookOpen, label: "Resources", path: "/resources" },
   { icon: MoreHorizontal, label: "More", path: "__more__" },
 ];
 
 const moreTabs = [
   { icon: Wrench, label: "Tools", path: "/tools" },
-  { icon: MapPin, label: "Locator", path: "/locator" },
+  { icon: Users, label: "Leads", path: "/dashboard/leads" },
+  { icon: CalendarDays, label: "Appts", path: "/dashboard/appointments" },
   { icon: BarChart3, label: "Gallery", path: "/gallery" },
 ];
 
