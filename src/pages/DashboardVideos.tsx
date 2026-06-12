@@ -39,6 +39,8 @@ export default function DashboardVideos() {
           />
         </div>
 
+        <ContinueWatching />
+
         <TrainingsSection searchQuery={searchQuery} />
       </main>
     </div>
