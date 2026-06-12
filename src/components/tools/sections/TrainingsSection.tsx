@@ -12,6 +12,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import AdminTrainingDialog from "../admin/AdminTrainingDialog";
 import AdminVideoFolderDialog from "../admin/AdminVideoFolderDialog";
 import AdminAmbassadorClipDialog from "../admin/AdminAmbassadorClipDialog";
+import YouTubeProgressPlayer from "@/components/video/YouTubeProgressPlayer";
+import { extractYouTubeId, getProgress, recordProgress } from "@/lib/videoProgress";
 
 interface TrainingItem {
   id: string;
@@ -210,15 +212,39 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
             <DialogHeader className="p-4 border-b">
               <DialogTitle>{selectedVideo?.title}</DialogTitle>
             </DialogHeader>
-            <div className="aspect-video">
-              {selectedVideo?.video_url && (
-                <iframe
-                  src={getYouTubeEmbedUrl(selectedVideo.video_url) || selectedVideo.video_url}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              )}
+            <div className="aspect-video bg-black">
+              {selectedVideo?.video_url && (() => {
+                const ytId = extractYouTubeId(selectedVideo.video_url);
+                if (ytId) {
+                  const saved = getProgress(selectedVideo.id);
+                  return (
+                    <YouTubeProgressPlayer
+                      videoId={ytId}
+                      startSeconds={saved?.currentTime ?? 0}
+                      onProgress={(ct, dur, ended) => {
+                        recordProgress(selectedVideo.id, {
+                          title: selectedVideo.title,
+                          thumbnail: selectedVideo.thumbnail_url,
+                          videoUrl: selectedVideo.video_url,
+                          sourceType: selectedVideo.source_type,
+                          category: selectedVideo.category,
+                          currentTime: ct,
+                          duration: dur,
+                          completed: ended || undefined,
+                        });
+                      }}
+                    />
+                  );
+                }
+                return (
+                  <iframe
+                    src={selectedVideo.video_url}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                );
+              })()}
             </div>
           </DialogContent>
         </Dialog>
