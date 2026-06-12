@@ -26,19 +26,24 @@ export function ResourcesHeader({
       <div className="container mx-auto px-4">
         {/* Top bar */}
         <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             {showBackButton ? (
-              <Button variant="ghost" size="icon" asChild>
-                <Link to="/resources">
+              <Button variant="ghost" size="icon" asChild className="h-11 w-11">
+                <Link to="/resources" aria-label="Back to Resources Hub">
                   <ArrowLeft className="h-5 w-5" />
                 </Link>
               </Button>
             ) : (
-              <Link to="/dashboard" className="flex items-center gap-2">
-                <img src={CardExLogo} alt="Card-Ex" className="h-8 w-8" />
-                <span className="font-bold text-xl hidden sm:inline">Card-Ex</span>
-              </Link>
+              <Button variant="ghost" size="icon" asChild className="h-11 w-11">
+                <Link to="/dashboard" aria-label="Back to dashboard">
+                  <ArrowLeft className="h-5 w-5" />
+                </Link>
+              </Button>
             )}
+            <Link to="/dashboard" className="hidden sm:flex items-center gap-2">
+              <img src={CardExLogo} alt="Card-Ex" className="h-8 w-8" />
+              <span className="font-bold text-xl">Card-Ex</span>
+            </Link>
             <h1 className="text-xl font-bold">{title}</h1>
           </div>
 
