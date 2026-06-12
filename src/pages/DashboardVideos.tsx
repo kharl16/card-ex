@@ -4,6 +4,7 @@ import { ArrowLeft, Search, PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import TrainingsSection from "@/components/tools/sections/TrainingsSection";
+import ContinueWatching from "@/components/dashboard/ContinueWatching";
 
 export default function DashboardVideos() {
   const navigate = useNavigate();
