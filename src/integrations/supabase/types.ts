@@ -119,6 +119,7 @@ export type Database = {
         Row: {
           allowed_sites: string[] | null
           caption: string | null
+          company_id: string | null
           created_at: string
           custom_fields: Json
           drive_link: string | null
@@ -136,6 +137,7 @@ export type Database = {
         Insert: {
           allowed_sites?: string[] | null
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           custom_fields?: Json
           drive_link?: string | null
@@ -153,6 +155,7 @@ export type Database = {
         Update: {
           allowed_sites?: string[] | null
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           custom_fields?: Json
           drive_link?: string | null
@@ -167,7 +170,15 @@ export type Database = {
           video_file_url?: string | null
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ambassadors_library_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       analytics_daily: {
         Row: {
@@ -717,6 +728,7 @@ export type Database = {
           carousel_enabled: boolean
           carousel_settings: Json | null
           company: string | null
+          company_id: string | null
           cover_url: string | null
           created_at: string
           custom_slug: string | null
@@ -779,6 +791,7 @@ export type Database = {
           carousel_enabled?: boolean
           carousel_settings?: Json | null
           company?: string | null
+          company_id?: string | null
           cover_url?: string | null
           created_at?: string
           custom_slug?: string | null
@@ -841,6 +854,7 @@ export type Database = {
           carousel_enabled?: boolean
           carousel_settings?: Json | null
           company?: string | null
+          company_id?: string | null
           cover_url?: string | null
           created_at?: string
           custom_slug?: string | null
@@ -897,6 +911,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "cards_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cards_last_design_patch_id_fkey"
             columns: ["last_design_patch_id"]
             isOneToOne: false
@@ -926,9 +947,46 @@ export type Database = {
           },
         ]
       }
+      companies: {
+        Row: {
+          brand_color: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          logo_url: string | null
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          brand_color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          logo_url?: string | null
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          brand_color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          logo_url?: string | null
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_quotes: {
         Row: {
           author: string
+          company_id: string | null
           created_at: string
           id: string
           is_active: boolean
@@ -939,6 +997,7 @@ export type Database = {
         }
         Insert: {
           author?: string
+          company_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -949,6 +1008,7 @@ export type Database = {
         }
         Update: {
           author?: string
+          company_id?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -957,7 +1017,15 @@ export type Database = {
           text?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "daily_quotes_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       device_approval_requests: {
         Row: {
@@ -1020,6 +1088,7 @@ export type Database = {
           address: string | null
           allowed_sites: string[] | null
           caption: string | null
+          company_id: string | null
           created_at: string
           custom_fields: Json
           facebook_page: string | null
@@ -1043,6 +1112,7 @@ export type Database = {
           address?: string | null
           allowed_sites?: string[] | null
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           custom_fields?: Json
           facebook_page?: string | null
@@ -1066,6 +1136,7 @@ export type Database = {
           address?: string | null
           allowed_sites?: string[] | null
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           custom_fields?: Json
           facebook_page?: string | null
@@ -1085,13 +1156,22 @@ export type Database = {
           updated_at?: string
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "directory_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       files_repository: {
         Row: {
           allowed_sites: string[] | null
           caption: string | null
           check_match: string | null
+          company_id: string | null
           created_at: string
           custom_fields: Json
           description: string | null
@@ -1120,6 +1200,7 @@ export type Database = {
           allowed_sites?: string[] | null
           caption?: string | null
           check_match?: string | null
+          company_id?: string | null
           created_at?: string
           custom_fields?: Json
           description?: string | null
@@ -1148,6 +1229,7 @@ export type Database = {
           allowed_sites?: string[] | null
           caption?: string | null
           check_match?: string | null
+          company_id?: string | null
           created_at?: string
           custom_fields?: Json
           description?: string | null
@@ -1172,11 +1254,20 @@ export type Database = {
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
           wholesale_package_commission?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "files_repository_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       global_package_images: {
         Row: {
           caption: string | null
+          company_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -1188,6 +1279,7 @@ export type Database = {
         }
         Insert: {
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1199,6 +1291,7 @@ export type Database = {
         }
         Update: {
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1208,11 +1301,20 @@ export type Database = {
           updated_at?: string
           url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "global_package_images_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       global_product_images: {
         Row: {
           caption: string | null
+          company_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -1224,6 +1326,7 @@ export type Database = {
         }
         Insert: {
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1235,6 +1338,7 @@ export type Database = {
         }
         Update: {
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1244,11 +1348,20 @@ export type Database = {
           updated_at?: string
           url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "global_product_images_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       global_testimony_images: {
         Row: {
           caption: string | null
+          company_id: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -1259,6 +1372,7 @@ export type Database = {
         }
         Insert: {
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1269,6 +1383,7 @@ export type Database = {
         }
         Update: {
           caption?: string | null
+          company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -1277,11 +1392,20 @@ export type Database = {
           updated_at?: string
           url?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "global_testimony_images_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       "IAM Files": {
         Row: {
           "Check Match": string | null
+          company_id: string | null
           Description: string | null
           details_heading: string | null
           details_rows: Json
@@ -1304,6 +1428,7 @@ export type Database = {
         }
         Insert: {
           "Check Match"?: string | null
+          company_id?: string | null
           Description?: string | null
           details_heading?: string | null
           details_rows?: Json
@@ -1326,6 +1451,7 @@ export type Database = {
         }
         Update: {
           "Check Match"?: string | null
+          company_id?: string | null
           Description?: string | null
           details_heading?: string | null
           details_rows?: Json
@@ -1346,13 +1472,22 @@ export type Database = {
           "View Video URL"?: string | null
           "Wholesale Package Commission"?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "IAM Files_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       iam_links: {
         Row: {
           allowed_sites: string[] | null
           caption: string | null
           category: string | null
+          company_id: string | null
           created_at: string
           custom_fields: Json
           icon_url: string | null
@@ -1368,6 +1503,7 @@ export type Database = {
           allowed_sites?: string[] | null
           caption?: string | null
           category?: string | null
+          company_id?: string | null
           created_at?: string
           custom_fields?: Json
           icon_url?: string | null
@@ -1383,6 +1519,7 @@ export type Database = {
           allowed_sites?: string[] | null
           caption?: string | null
           category?: string | null
+          company_id?: string | null
           created_at?: string
           custom_fields?: Json
           icon_url?: string | null
@@ -1394,7 +1531,15 @@ export type Database = {
           updated_at?: string
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "iam_links_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       leads: {
         Row: {
@@ -1764,6 +1909,7 @@ export type Database = {
       presentations: {
         Row: {
           category: string | null
+          company_id: string | null
           created_at: string
           description: string | null
           download_url: string | null
@@ -1778,6 +1924,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          company_id?: string | null
           created_at?: string
           description?: string | null
           download_url?: string | null
@@ -1792,6 +1939,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          company_id?: string | null
           created_at?: string
           description?: string | null
           download_url?: string | null
@@ -1804,11 +1952,20 @@ export type Database = {
           updated_at?: string
           visibility_level?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "presentations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
           avatar_url: string | null
+          company_id: string | null
           created_at: string
           facebook_url: string | null
           full_name: string | null
@@ -1830,6 +1987,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          company_id?: string | null
           created_at?: string
           facebook_url?: string | null
           full_name?: string | null
@@ -1851,6 +2009,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          company_id?: string | null
           created_at?: string
           facebook_url?: string | null
           full_name?: string | null
@@ -1871,6 +2030,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_referred_by_user_id_fkey"
             columns: ["referred_by_user_id"]
@@ -2501,6 +2667,7 @@ export type Database = {
       tools: {
         Row: {
           category: string
+          company_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -2512,6 +2679,7 @@ export type Database = {
         }
         Insert: {
           category?: string
+          company_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2523,6 +2691,7 @@ export type Database = {
         }
         Update: {
           category?: string
+          company_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2532,10 +2701,19 @@ export type Database = {
           updated_at?: string
           visibility?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tools_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tools_orb_settings: {
         Row: {
+          company_id: string | null
           enabled: boolean
           id: string
           items: Json
@@ -2544,6 +2722,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          company_id?: string | null
           enabled?: boolean
           id?: string
           items?: Json
@@ -2552,6 +2731,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          company_id?: string | null
           enabled?: boolean
           id?: string
           items?: Json
@@ -2559,10 +2739,19 @@ export type Database = {
           orb_label?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tools_orb_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       training_folders: {
         Row: {
+          company_id: string | null
           created_at: string
           folder_name: string
           id: string
@@ -2572,6 +2761,7 @@ export type Database = {
           visibility_level: Database["public"]["Enums"]["visibility_level"]
         }
         Insert: {
+          company_id?: string | null
           created_at?: string
           folder_name: string
           id?: string
@@ -2581,6 +2771,7 @@ export type Database = {
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
         Update: {
+          company_id?: string | null
           created_at?: string
           folder_name?: string
           id?: string
@@ -2589,11 +2780,20 @@ export type Database = {
           updated_at?: string
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "training_folders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       training_items: {
         Row: {
           category: string | null
+          company_id: string | null
           created_at: string
           description: string | null
           id: string
@@ -2608,6 +2808,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          company_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2622,6 +2823,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          company_id?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -2634,7 +2836,15 @@ export type Database = {
           video_url?: string | null
           visibility_level?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "training_items_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trusted_devices: {
         Row: {
@@ -2735,6 +2945,7 @@ export type Database = {
       Videos: {
         Row: {
           Author: string | null
+          company_id: string | null
           Description: string | null
           "Drive Link": string | null
           "Drive Link Share": string | null
@@ -2747,6 +2958,7 @@ export type Database = {
         }
         Insert: {
           Author?: string | null
+          company_id?: string | null
           Description?: string | null
           "Drive Link"?: string | null
           "Drive Link Share"?: string | null
@@ -2759,6 +2971,7 @@ export type Database = {
         }
         Update: {
           Author?: string | null
+          company_id?: string | null
           Description?: string | null
           "Drive Link"?: string | null
           "Drive Link Share"?: string | null
@@ -2769,11 +2982,20 @@ export type Database = {
           Title?: string | null
           "Video File URL"?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "Videos_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ways_13: {
         Row: {
           allowed_sites: string[] | null
+          company_id: string | null
           content: string
           created_at: string
           id: string
@@ -2783,6 +3005,7 @@ export type Database = {
         }
         Insert: {
           allowed_sites?: string[] | null
+          company_id?: string | null
           content: string
           created_at?: string
           id?: string
@@ -2792,6 +3015,7 @@ export type Database = {
         }
         Update: {
           allowed_sites?: string[] | null
+          company_id?: string | null
           content?: string
           created_at?: string
           id?: string
@@ -2799,7 +3023,15 @@ export type Database = {
           updated_at?: string
           visibility_level?: Database["public"]["Enums"]["visibility_level"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ways_13_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -3027,6 +3259,8 @@ export type Database = {
           total_amount: number
         }[]
       }
+      current_user_company_id: { Args: never; Returns: string }
+      default_company_id: { Args: never; Returns: string }
       ensure_user_referral_code: {
         Args: { p_user_id: string }
         Returns: string
