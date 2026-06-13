@@ -34,6 +34,7 @@ export function TemplatePreviewDialog({
   const mockCard: Tables<"cards"> = {
     id: `tpl-preview-${template.id}`,
     user_id: template.owner_id,
+    company_id: null,
     slug: "preview",
     ad_banner: null,
     image_carousels: (layoutData.image_carousels as unknown as Json) ?? null,
