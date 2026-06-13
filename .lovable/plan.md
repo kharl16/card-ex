@@ -1,62 +1,66 @@
-# Add "Videos" to the Dashboard Orb
+# Multi-Company Support Plan
 
-## Goal
-Surface the **global Videos library** (the same content shown by the *Videos* button inside the in-card Tools Orb — sourced from `training_folders` + `training_items`) directly from the Dashboard floating orb, so users don't need to open a card to watch.
+Today every library (Videos, Tools, Files, Presentations, Directory, Ambassadors, Daily Quotes, Products/Packages, Links) is shared by all users — effectively a single "IAM Worldwide" tenant. We'll introduce a **Company** layer so the super admin can spin up additional companies (e.g. Acme, Forever Living) and curate their own content, while each user is tied to one company and only sees that company's libraries.
 
-## Where it goes
-Promote **Videos** to a first-class slot on the Dashboard Orb (the 8-button radial menu shown in the screenshot).
+---
 
-The orb's 8-slot symmetry is locked by design (per the Tools Orb Floating UI memory). To make room without breaking radial symmetry, we **merge Locator into Resources**:
-- *Locator* is a niche destination already reachable from Resources / direct route `/locator`.
-- Freed slot becomes **Videos** with a play-circle icon.
+## 1. Data model
 
-Final 8 slots:
+New table:
 
-```text
-Tools     Leads     Prospects   Videos
-Resources Appts     Analytics   Referrals
-```
+- `companies` — `id`, `slug`, `name`, `logo_url`, `brand_color`, `is_active`, `is_default`, timestamps.
+  - Seed row: `IAM Worldwide` (marked default).
 
-If the user prefers to keep Locator on the orb, alternative is to retire *Appts* (also reachable from the in-card Tools Orb and from `/appointments`).
+Add `company_id uuid` (nullable → backfilled → set NOT NULL) to every company-scoped table:
 
-## Behavior
-- Tapping **Videos** opens a full-screen drawer/sheet on the dashboard (no navigation away).
-- Drawer renders the existing `TrainingsSection` (folders → videos grid) — exactly the same component the in-card Tools Orb uses, so content stays 1:1 with the card experience and updates in real time when admins add videos.
-- Fullscreen video playback reuses `VideoFullscreenDialog`.
-- No card context required (content is global), matching the Dashboard Context Resolution rule.
+- Videos: `training_items`, `training_folders`, `Videos`, `ambassadors_library`
+- Tools/Links: `tools`, `iam_links`
+- Files/Products: `IAM Files`, `files_repository`, `global_product_images`, `global_package_images`, `global_testimony_images`
+- Other libraries: `presentations`, `directory_entries`, `daily_quotes`, `ways_13`
+- Orb defaults: `tools_orb_settings` (one row per company)
 
-## Files to touch (frontend only)
+Add `company_id` to `profiles` (user → company). Optional same column on `cards` mirrored from the owner profile for fast public-page lookups.
 
-1. **`src/components/dashboard/DashboardOrb.tsx`**
-   - Replace the *Locator* entry with a **Videos** entry (label, `PlayCircle` icon from lucide-react, gold accent consistent with luxury theme).
-   - Add `onVideosClick` prop; wire it to open a new drawer.
+Backfill: set `company_id = <IAM id>` on every existing row in those tables and every existing profile/card.
 
-2. **`src/pages/Dashboard.tsx`**
-   - Add `videosOpen` state.
-   - Render a new `<DashboardVideosDrawer open={videosOpen} onOpenChange={setVideosOpen} />`.
-   - Pass `onVideosClick={() => setVideosOpen(true)}` to `DashboardOrb`.
-   - Ensure Locator stays reachable via Resources tile / `/locator` route (no route changes).
+## 2. Access rules
 
-3. **`src/components/dashboard/DashboardVideosDrawer.tsx` (new)**
-   - Thin wrapper: shadcn `Sheet` (side="bottom", full height on mobile) with the brand glassmorphism styling.
-   - Renders `<TrainingsSection />` inside a scrollable container.
-   - Header: "Videos" + close button (44px target, senior-friendly).
-   - No business logic — purely presentational shell that delegates to the existing global videos component.
+- Security-definer helper `current_user_company_id()` reads `profiles.company_id` for `auth.uid()`.
+- Helper `is_super_admin(auth.uid())` already exists.
+- Update RLS on every scoped table:
+  - **Read**: `company_id = current_user_company_id() OR is_super_admin(auth.uid())`.
+  - **Write**: super admin only (matches current admin-managed pattern).
+- Public card pages keep working: `PublicCard` reads `cards.company_id` directly (no auth) and queries libraries filtered by that id via a SECURITY DEFINER RPC, so visitors still see the right brand's content.
 
-4. **(Optional) `src/components/dashboard/MobileBottomNav.tsx`**
-   - No change. Keeps senior-friendly target count intact.
+## 3. Super-admin UI
 
-## Non-goals / out of scope
-- No DB schema changes (videos already global in `training_folders` / `training_items`).
-- No edits to `TrainingsSection` itself — reused as-is so any admin update flows to both card and dashboard automatically.
-- No change to per-card Tools Orb behavior or content.
-- No backend / edge function changes.
+New **Companies** page under Super Admin Console (`/superadmin/companies`):
 
-## Validation
-- Confirm the orb still renders 8 symmetric slots on mobile (390px viewport).
-- Tap Videos → drawer opens → folders render → tap folder → videos render → tap video → fullscreen plays.
-- Confirm Locator remains accessible via Resources tile and `/locator` direct URL.
-- Verify zero horizontal overflow on mobile (per Core rule).
+- List companies (logo, name, slug, user count, active toggle).
+- "Add company" dialog (name, slug, logo, brand color).
+- Selecting a company sets an active-company context (persisted in localStorage).
+- A **Company Switcher** chip appears at the top of every existing admin manager (Videos, Tools, Files, Presentations, Directory, Ambassadors, Daily Quotes, Products/Packages, Orb Settings). Inserts/updates from those managers automatically stamp the active `company_id`.
 
-## Memory update after build
-Add a short memory note under `mem://ux/dashboard-orb-slot-allocation` recording: *Dashboard Orb slots: Tools, Leads, Prospects, Videos, Resources, Appts, Analytics, Referrals. Locator merged into Resources tile to free a slot for global Videos.*
+End-user UI is unchanged — their company is resolved from their profile.
+
+## 4. User assignment
+
+- `profiles.company_id` defaults to the IAM company on signup (via `handle_new_user`).
+- Super admin can change a user's company from the existing Users admin page (add a Company dropdown column).
+- Optional later: company-scoped signup links (`/signup?company=acme`) that pre-fill the company.
+
+## 5. Rollout order
+
+1. Migration: create `companies`, seed IAM row, add `company_id` columns, backfill, enable NOT NULL, add indexes.
+2. Migration: helper function + new RLS policies on every scoped table (replacing the current "everyone reads" ones).
+3. Update `handle_new_user` to assign IAM by default.
+4. Frontend: shared `useActiveCompany` hook + Company Switcher chip.
+5. Update every admin manager query/insert to use the active company id.
+6. Update every public/end-user query (Videos page, Tools orb, Files, Presentations, etc.) to filter by `current_user_company_id()` (RLS handles this automatically once policies are in place — code mostly just stops assuming a single shared set).
+7. Add `/superadmin/companies` page + user-admin company dropdown.
+
+## 6. Out of scope (can come later)
+
+- Per-company custom domains / theming on public cards.
+- Cross-company content sharing.
+- Self-service company onboarding (only super admin creates companies for now).
