@@ -1,5 +1,5 @@
 import { Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Users, Shield, Settings, Activity, Brain, ShieldAlert, Quote } from "lucide-react";
+import { ArrowLeft, Users, Shield, Settings, Activity, Brain, ShieldAlert, Quote, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,6 +28,13 @@ function SuperAdminConsoleContent() {
   }
 
   const consoleLinks = [
+    {
+      title: "Companies",
+      description: "Manage tenants (e.g. IAM Worldwide). Each company has its own videos, tools, files, and content.",
+      icon: <Building2 className="h-8 w-8" />,
+      href: "/superadmin/companies",
+      color: "bg-primary/10 text-primary",
+    },
     {
       title: "User Role Management",
       description: "Manage user roles, promote/demote users, and assign sites",

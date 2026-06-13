@@ -44,6 +44,7 @@ import AdminDailyQuotes from "./pages/admin/AdminDailyQuotes";
 import SuperAdminConsole from "./pages/superadmin/SuperAdminConsole";
 import UserRolesPage from "./pages/superadmin/UserRolesPage";
 import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
+import CompaniesPage from "./pages/superadmin/CompaniesPage";
 import RequireAuth from "./components/auth/RequireAuth";
 import RequireOnboarding from "./components/auth/RequireOnboarding";
 import Onboarding from "./pages/Onboarding";
@@ -418,6 +419,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <VisibilityPoliciesPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/superadmin/companies"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <CompaniesPage />
               </RequireAuth>
             </PageTransition>
           }
