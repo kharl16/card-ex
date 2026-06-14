@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 interface TrainingItem {
   id?: string;
@@ -40,6 +41,7 @@ const emptyItem: TrainingItem = {
 };
 
 export default function AdminTrainingDialog({ open, onOpenChange, item, defaultCategory, onSaved }: AdminTrainingDialogProps) {
+  const { activeCompanyId } = useActiveCompany();
   const [formData, setFormData] = useState<TrainingItem>(emptyItem);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -90,6 +92,7 @@ export default function AdminTrainingDialog({ open, onOpenChange, item, defaultC
           source_type: formData.source_type,
           category: formData.category,
           is_active: formData.is_active,
+          company_id: activeCompanyId,
         });
 
         if (error) throw error;

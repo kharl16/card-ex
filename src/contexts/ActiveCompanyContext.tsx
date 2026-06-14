@@ -32,18 +32,33 @@ export function ActiveCompanyProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchCompanies = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("companies")
-      .select("*")
-      .order("is_default", { ascending: false })
-      .order("name");
+    const [{ data: companyData, error }, { data: userData }] = await Promise.all([
+      supabase
+        .from("companies")
+        .select("*")
+        .order("is_default", { ascending: false })
+        .order("name"),
+      supabase.auth.getUser(),
+    ]);
 
-    if (!error && data) {
-      setCompanies(data as Company[]);
+    let profileCompanyId: string | null = null;
+    if (userData?.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("company_id")
+        .eq("id", userData.user.id)
+        .maybeSingle();
+      profileCompanyId = profile?.company_id ?? null;
+    }
+
+    if (!error && companyData) {
+      setCompanies(companyData as Company[]);
       setActiveCompanyIdState((current) => {
-        if (current && data.some((c) => c.id === current)) return current;
-        const defaultCo = data.find((c) => c.is_default) ?? data[0];
-        const fallback = defaultCo?.id ?? null;
+        if (current && companyData.some((c) => c.id === current)) return current;
+        const fallback =
+          profileCompanyId && companyData.some((c) => c.id === profileCompanyId)
+            ? profileCompanyId
+            : (companyData.find((c) => c.is_default) ?? companyData[0])?.id ?? null;
         if (fallback) localStorage.setItem(STORAGE_KEY, fallback);
         return fallback;
       });

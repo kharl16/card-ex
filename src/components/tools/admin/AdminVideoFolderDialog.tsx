@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 interface VideoFolder {
   id?: string;
@@ -30,6 +31,7 @@ const emptyFolder: VideoFolder = {
 };
 
 export default function AdminVideoFolderDialog({ open, onOpenChange, folder, onSaved }: AdminVideoFolderDialogProps) {
+  const { activeCompanyId } = useActiveCompany();
   const [formData, setFormData] = useState<VideoFolder>(emptyFolder);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -64,6 +66,7 @@ export default function AdminVideoFolderDialog({ open, onOpenChange, folder, onS
           folder_name: formData.folder_name,
           images: formData.images,
           is_active: formData.is_active,
+          company_id: activeCompanyId,
         });
         if (error) throw error;
         toast.success("Folder created");
