@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 interface AmbassadorClip {
   id?: string;
@@ -47,6 +48,7 @@ export default function AdminAmbassadorClipDialog({
   defaultFolderName,
   onSaved,
 }: AdminAmbassadorClipDialogProps) {
+  const { activeCompanyId } = useActiveCompany();
   const [formData, setFormData] = useState<AmbassadorClip>(emptyItem);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -88,7 +90,7 @@ export default function AdminAmbassadorClipDialog({
         if (error) throw error;
         toast.success("Clip updated successfully");
       } else {
-        const { error } = await supabase.from("ambassadors_library").insert(payload);
+        const { error } = await supabase.from("ambassadors_library").insert({ ...payload, company_id: activeCompanyId });
         if (error) throw error;
         toast.success("Clip created successfully");
       }

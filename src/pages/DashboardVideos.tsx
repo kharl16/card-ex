@@ -5,9 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import TrainingsSection from "@/components/tools/sections/TrainingsSection";
 import ContinueWatching from "@/components/dashboard/ContinueWatching";
+import { CompanySwitcher } from "@/components/admin/CompanySwitcher";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardVideos() {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
@@ -25,6 +28,11 @@ export default function DashboardVideos() {
           </Button>
           <PlayCircle className="h-5 w-5 text-primary" />
           <h1 className="text-lg font-bold tracking-tight">Videos</h1>
+          {isAdmin && (
+            <div className="ml-auto">
+              <CompanySwitcher />
+            </div>
+          )}
         </div>
       </header>
 
