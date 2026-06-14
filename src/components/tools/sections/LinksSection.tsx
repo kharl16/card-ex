@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import AdminLinkDialog from "../admin/AdminLinkDialog";
 import DiscTestSection from "./DiscTestSection";
 import LoveLanguagesSection from "./LoveLanguagesSection";
@@ -35,6 +36,7 @@ interface LinksSectionProps {
 
 export default function LinksSection({ searchQuery, showDiscTest, initialTool, deepLinkActive }: LinksSectionProps) {
   const { isAdmin } = useAuth();
+  const { activeCompanyId } = useActiveCompany();
   const [items, setItems] = useState<IAMLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -49,8 +51,8 @@ export default function LinksSection({ searchQuery, showDiscTest, initialTool, d
   const [showingMindset, setShowingMindset] = useState(initialTool === "mindset");
 
   useEffect(() => {
-    fetchItems();
-  }, []);
+    if (activeCompanyId) fetchItems();
+  }, [activeCompanyId]);
 
   // React to deep-link tool changes after mount
   useEffect(() => {
@@ -68,6 +70,7 @@ export default function LinksSection({ searchQuery, showDiscTest, initialTool, d
         .from("iam_links")
         .select("*")
         .eq("is_active", true)
+        .eq("company_id", activeCompanyId!)
         .order("name", { ascending: true });
 
       if (error) throw error;

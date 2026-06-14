@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 interface IAMLink {
   id?: string;
@@ -34,6 +35,7 @@ const emptyItem: IAMLink = {
 };
 
 export default function AdminLinkDialog({ open, onOpenChange, item, onSaved }: AdminLinkDialogProps) {
+  const { activeCompanyId } = useActiveCompany();
   const [formData, setFormData] = useState<IAMLink>(emptyItem);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -82,6 +84,7 @@ export default function AdminLinkDialog({ open, onOpenChange, item, onSaved }: A
           category: formData.category,
           icon_url: formData.icon_url,
           is_active: formData.is_active,
+          company_id: activeCompanyId,
         });
 
         if (error) throw error;
