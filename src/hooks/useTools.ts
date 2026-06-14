@@ -102,16 +102,6 @@ export function useTools(): UseToolsReturn {
     }
   }, [fetchTools, activeCompanyId]);
 
-      toast.success("Tool created successfully");
-      await fetchTools();
-      return true;
-    } catch (err: any) {
-      console.error("Error creating tool:", err);
-      toast.error(err.message || "Failed to create tool");
-      return false;
-    }
-  }, [fetchTools]);
-
   const updateTool = useCallback(async (id: string, data: ToolInput): Promise<boolean> => {
     try {
       const { error: updateError } = await supabase
