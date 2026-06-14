@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import AdminTrainingDialog from "../admin/AdminTrainingDialog";
 import AdminVideoFolderDialog from "../admin/AdminVideoFolderDialog";
 import AdminAmbassadorClipDialog from "../admin/AdminAmbassadorClipDialog";
@@ -53,6 +54,7 @@ const AMBASSADOR_FOLDER = "Ambassador Clips";
 
 export default function TrainingsSection({ searchQuery }: TrainingsSectionProps) {
   const { isAdmin } = useAuth();
+  const { activeCompanyId } = useActiveCompany();
   const [folders, setFolders] = useState<VideoFolder[]>([]);
   const [items, setItems] = useState<TrainingItem[]>([]);
   const [ambassadorClips, setAmbassadorClips] = useState<AmbassadorClip[]>([]);
@@ -71,18 +73,18 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
   const isAmbassadorFolder = activeFolder?.folder_name === AMBASSADOR_FOLDER;
 
   useEffect(() => {
-    fetchFolders();
-  }, []);
+    if (activeCompanyId) fetchFolders();
+  }, [activeCompanyId]);
 
   useEffect(() => {
-    if (activeFolder) {
+    if (activeFolder && activeCompanyId) {
       if (activeFolder.folder_name === AMBASSADOR_FOLDER) {
         fetchAmbassadorClips();
       } else {
         fetchItems(activeFolder.folder_name);
       }
     }
-  }, [activeFolder]);
+  }, [activeFolder, activeCompanyId]);
 
   const fetchFolders = async () => {
     try {
@@ -90,6 +92,7 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
         .from("training_folders")
         .select("*")
         .eq("is_active", true)
+        .eq("company_id", activeCompanyId!)
         .order("folder_name", { ascending: true });
       if (error) throw error;
       setFolders(data || []);
@@ -107,6 +110,7 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
         .select("*")
         .eq("is_active", true)
         .eq("category", folderName)
+        .eq("company_id", activeCompanyId!)
         .order("sort_order", { ascending: true })
         .order("title", { ascending: true });
       if (error) throw error;
@@ -122,6 +126,7 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
         .from("ambassadors_library")
         .select("*")
         .eq("is_active", true)
+        .eq("company_id", activeCompanyId!)
         .order("endorser", { ascending: true });
       if (error) throw error;
       setAmbassadorClips(data || []);

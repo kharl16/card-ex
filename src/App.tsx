@@ -60,6 +60,7 @@ import NotFound from "./pages/NotFound";
 import TableOfContents from "./pages/TableOfContents";
 import PageTransition from "./components/PageTransition";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ActiveCompanyProvider } from "./contexts/ActiveCompanyContext";
 
 const queryClient = new QueryClient();
 
@@ -488,7 +489,9 @@ const App = () => (
     <Sonner />
     <BrowserRouter>
       <AuthProvider>
-        <AnimatedRoutes />
+        <ActiveCompanyProvider>
+          <AnimatedRoutes />
+        </ActiveCompanyProvider>
       </AuthProvider>
     </BrowserRouter>
   </QueryClientProvider>
