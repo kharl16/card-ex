@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import type {
   FileResource,
   Ambassador,
@@ -33,6 +34,7 @@ interface UseResourceDataReturn {
 
 export function useResourceData(): UseResourceDataReturn {
   const { user } = useAuth();
+  const { activeCompanyId } = useActiveCompany();
   const [files, setFiles] = useState<FileResource[]>([]);
   const [ambassadors, setAmbassadors] = useState<Ambassador[]>([]);
   const [links, setLinks] = useState<IAMLink[]>([]);
@@ -45,7 +47,7 @@ export function useResourceData(): UseResourceDataReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (!user) {
+    if (!user || !activeCompanyId) {
       setLoading(false);
       return;
     }
@@ -64,13 +66,13 @@ export function useResourceData(): UseResourceDataReturn {
         trainingRes,
         favoritesRes,
       ] = await Promise.all([
-        supabase.from("files_repository").select("*").order("folder_name").order("file_name"),
-        supabase.from("ambassadors_library").select("*").order("endorser"),
-        supabase.from("iam_links").select("*").order("name"),
-        supabase.from("ways_13").select("*"),
-        supabase.from("directory_entries").select("*").order("location"),
+        supabase.from("files_repository").select("*").eq("company_id", activeCompanyId).order("folder_name").order("file_name"),
+        supabase.from("ambassadors_library").select("*").eq("company_id", activeCompanyId).order("endorser"),
+        supabase.from("iam_links").select("*").eq("company_id", activeCompanyId).order("name"),
+        supabase.from("ways_13").select("*").eq("company_id", activeCompanyId),
+        supabase.from("directory_entries").select("*").eq("company_id", activeCompanyId).order("location"),
         supabase.from("resource_folders").select("*").order("folder_name"),
-        supabase.from("training_folders").select("*").order("folder_name"),
+        supabase.from("training_folders").select("*").eq("company_id", activeCompanyId).order("folder_name"),
         supabase.from("resource_favorites").select("*").eq("user_id", user.id),
       ]);
 
@@ -97,7 +99,7 @@ export function useResourceData(): UseResourceDataReturn {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, activeCompanyId]);
 
   useEffect(() => {
     fetchData();

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 export interface Tool {
   id: string;
@@ -35,21 +36,22 @@ interface UseToolsReturn {
 }
 
 export function useTools(): UseToolsReturn {
+  const { activeCompanyId } = useActiveCompany();
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchTools = useCallback(async () => {
+    if (!activeCompanyId) return;
     setLoading(true);
     setError(null);
 
     try {
-      // Fetch only active tools, ordered by category then title
-      // Future: Add role-based visibility filtering here
       const { data, error: fetchError } = await supabase
         .from("tools")
         .select("*")
         .eq("is_active", true)
+        .eq("company_id", activeCompanyId)
         .order("category", { ascending: true })
         .order("title", { ascending: true });
 
@@ -64,7 +66,7 @@ export function useTools(): UseToolsReturn {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeCompanyId]);
 
   useEffect(() => {
     fetchTools();
@@ -85,6 +87,7 @@ export function useTools(): UseToolsReturn {
         tool_url: data.tool_url,
         visibility: data.visibility || "all_members",
         is_active: data.is_active ?? true,
+        company_id: activeCompanyId,
       });
 
       if (insertError) throw insertError;
@@ -97,7 +100,7 @@ export function useTools(): UseToolsReturn {
       toast.error(err.message || "Failed to create tool");
       return false;
     }
-  }, [fetchTools]);
+  }, [fetchTools, activeCompanyId]);
 
   const updateTool = useCallback(async (id: string, data: ToolInput): Promise<boolean> => {
     try {
