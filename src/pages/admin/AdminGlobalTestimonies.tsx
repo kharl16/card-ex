@@ -40,6 +40,7 @@ const ALLOWED = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 export default function AdminGlobalTestimonies() {
   const { user, isAdmin, loading: authLoading } = useAuth();
+  const { activeCompanyId } = useActiveCompany();
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,15 +51,17 @@ export default function AdminGlobalTestimonies() {
   const [captionInput, setCaptionInput] = useState("");
 
   const load = useCallback(async () => {
+    if (!activeCompanyId) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("global_testimony_images")
       .select("id,url,caption,sort_index,is_active")
+      .eq("company_id", activeCompanyId)
       .order("sort_index", { ascending: true });
     if (error) toast.error(error.message);
     setRows((data as Row[]) ?? []);
     setLoading(false);
-  }, []);
+  }, [activeCompanyId]);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -68,8 +71,8 @@ export default function AdminGlobalTestimonies() {
   }, [authLoading, isAdmin, navigate]);
 
   useEffect(() => {
-    if (isAdmin) load();
-  }, [isAdmin, load]);
+    if (isAdmin && activeCompanyId) load();
+  }, [isAdmin, activeCompanyId, load]);
 
   async function uploadFile(file: File): Promise<string | null> {
     if (!ALLOWED.includes(file.type)) {
@@ -93,7 +96,7 @@ export default function AdminGlobalTestimonies() {
   }
 
   async function addRow(url: string, caption: string) {
-    if (!user) return;
+    if (!user || !activeCompanyId) return;
     const nextSort = rows.length ? Math.max(...rows.map((r) => r.sort_index)) + 1 : 0;
     const { error } = await supabase.from("global_testimony_images").insert({
       url,
@@ -101,6 +104,7 @@ export default function AdminGlobalTestimonies() {
       sort_index: nextSort,
       is_active: true,
       created_by: user.id,
+      company_id: activeCompanyId,
     });
     if (error) {
       toast.error(error.message);
