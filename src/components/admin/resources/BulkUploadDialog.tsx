@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import type { ResourceFolder, VisibilityLevel } from "@/types/resources";
 
 interface Props {
@@ -74,6 +75,7 @@ function cleanName(filename: string): string {
 }
 
 export function BulkUploadDialog({ open, onOpenChange, folders, onSaved }: Props) {
+  const { activeCompanyId } = useActiveCompany();
   const [rows, setRows] = useState<Row[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [bulkFolder, setBulkFolder] = useState<string>("");
