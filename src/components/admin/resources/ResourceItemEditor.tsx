@@ -22,6 +22,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Plus, Trash2, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import type { ResourceFolder, VisibilityLevel } from "@/types/resources";
 
 export type EditorModule = "files" | "ambassadors" | "links" | "directory";
@@ -62,6 +63,7 @@ export function ResourceItemEditor({
   folders = [],
   onSaved,
 }: Props) {
+  const { activeCompanyId } = useActiveCompany();
   const [form, setForm] = useState<Record<string, any>>({});
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [saving, setSaving] = useState(false);
@@ -149,6 +151,7 @@ export function ResourceItemEditor({
       } else {
         // Strip id for inserts so DB default applies (esp. for serial files_repository.id)
         const { id, created_at, updated_at, ...insertable } = payload;
+        if (activeCompanyId) (insertable as Record<string, unknown>).company_id = activeCompanyId;
         res = await supabase.from(table as any).insert(insertable);
       }
       if (res.error) throw res.error;

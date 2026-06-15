@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ResourcesProvider, useResources } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
+import { CompanySwitcher } from "@/components/admin/CompanySwitcher";
 import type { VisibilityLevel } from "@/types/resources";
 
 type ModuleType = "files" | "ambassadors" | "links" | "directory" | "ways";
@@ -38,6 +40,7 @@ const visibilityOptions: { value: VisibilityLevel; label: string }[] = [
 
 function AdminResourcesContent() {
   const { isResourceAdmin, loading: roleLoading } = useResources();
+  const { activeCompanyId } = useActiveCompany();
   const { files, ambassadors, links, directory, ways, folders, loading: dataLoading, refetch } = useResourceData();
   const [activeTab, setActiveTab] = useState<ModuleType>("files");
   const [importing, setImporting] = useState(false);
@@ -217,9 +220,10 @@ function AdminResourcesContent() {
             row[dbColumn] = value;
           });
           
-          // Add default visibility and is_active
+          // Add default visibility, is_active, and stamp active company
           row.visibility_level = row.visibility_level || "public_members";
           row.is_active = row.is_active ?? true;
+          if (activeCompanyId) row.company_id = activeCompanyId;
           
           rows.push(row);
         } catch (rowErr) {
@@ -330,10 +334,11 @@ function AdminResourcesContent() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
             </Link>
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl font-bold">Admin Center</h1>
               <p className="text-sm text-muted-foreground">Manage resources and visibility</p>
             </div>
+            <CompanySwitcher />
           </div>
         </div>
       </header>

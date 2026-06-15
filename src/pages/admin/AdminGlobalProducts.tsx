@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
+import { CompanySwitcher } from "@/components/admin/CompanySwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +23,7 @@ const ALLOWED = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 export default function AdminGlobalProducts() {
   const { user, isAdmin, loading: authLoading } = useAuth();
+  const { activeCompanyId } = useActiveCompany();
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,15 +32,17 @@ export default function AdminGlobalProducts() {
   const [captionInput, setCaptionInput] = useState("");
 
   const load = useCallback(async () => {
+    if (!activeCompanyId) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("global_product_images")
       .select("id,url,caption,srp,sort_index,is_active")
+      .eq("company_id", activeCompanyId)
       .order("sort_index", { ascending: true });
     if (error) toast.error(error.message);
     setRows((data as Row[]) ?? []);
     setLoading(false);
-  }, []);
+  }, [activeCompanyId]);
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -47,8 +52,8 @@ export default function AdminGlobalProducts() {
   }, [authLoading, isAdmin, navigate]);
 
   useEffect(() => {
-    if (isAdmin) load();
-  }, [isAdmin, load]);
+    if (isAdmin && activeCompanyId) load();
+  }, [isAdmin, activeCompanyId, load]);
 
   async function uploadFile(file: File): Promise<string | null> {
     if (!ALLOWED.includes(file.type)) {
@@ -72,7 +77,7 @@ export default function AdminGlobalProducts() {
   }
 
   async function addRow(url: string, caption: string) {
-    if (!user) return;
+    if (!user || !activeCompanyId) return;
     const nextSort = rows.length ? Math.max(...rows.map((r) => r.sort_index)) + 1 : 0;
     const { error } = await supabase.from("global_product_images").insert({
       url,
@@ -80,6 +85,7 @@ export default function AdminGlobalProducts() {
       sort_index: nextSort,
       is_active: true,
       created_by: user.id,
+      company_id: activeCompanyId,
     });
     if (error) {
       toast.error(error.message);
@@ -164,12 +170,15 @@ export default function AdminGlobalProducts() {
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
       </Button>
 
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">Global Product Photos</h1>
-        <p className="text-sm text-muted-foreground">
-          Upload product photos here once and they appear on every card automatically. Card owners can choose to hide
-          specific photos on their own card.
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-3xl font-bold">Global Product Photos</h1>
+          <p className="text-sm text-muted-foreground">
+            Upload product photos here once and they appear on every card automatically. Card owners can choose to hide
+            specific photos on their own card.
+          </p>
+        </div>
+        <CompanySwitcher />
       </div>
 
       <div className="mb-8 rounded-xl border border-border bg-card p-4 space-y-4">

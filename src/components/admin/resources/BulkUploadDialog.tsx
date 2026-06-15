@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import type { ResourceFolder, VisibilityLevel } from "@/types/resources";
 
 interface Props {
@@ -74,6 +75,7 @@ function cleanName(filename: string): string {
 }
 
 export function BulkUploadDialog({ open, onOpenChange, folders, onSaved }: Props) {
+  const { activeCompanyId } = useActiveCompany();
   const [rows, setRows] = useState<Row[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [bulkFolder, setBulkFolder] = useState<string>("");
@@ -140,7 +142,7 @@ export function BulkUploadDialog({ open, onOpenChange, folders, onSaved }: Props
       updateRow(row.id, { progress: 70, status: "saving" });
       const { data: pub } = supabase.storage.from("resources").getPublicUrl(path);
 
-      const insertPayload = {
+      const insertPayload: Record<string, unknown> = {
         file_name: row.fileName || row.file.name,
         caption: row.caption || null,
         description: row.caption || null,
@@ -149,6 +151,7 @@ export function BulkUploadDialog({ open, onOpenChange, folders, onSaved }: Props
         visibility_level: row.visibility,
         is_active: true,
       };
+      if (activeCompanyId) insertPayload.company_id = activeCompanyId;
 
       const { error: dbErr } = await supabase.from("files_repository").insert(insertPayload as never);
       if (dbErr) throw dbErr;
