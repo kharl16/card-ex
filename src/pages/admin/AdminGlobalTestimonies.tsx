@@ -286,10 +286,13 @@ export default function AdminGlobalTestimonies() {
             specific packages on their own card.
           </p>
         </div>
-        <Button onClick={onExtractAllMissing} disabled={bulkExtracting || loading} variant="outline">
-          {bulkExtracting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-          Auto-caption missing
-        </Button>
+        <div className="flex items-center gap-2">
+          <CompanySwitcher />
+          <Button onClick={onExtractAllMissing} disabled={bulkExtracting || loading} variant="outline">
+            {bulkExtracting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+            Auto-caption missing
+          </Button>
+        </div>
       </div>
 
       <div className="mb-8 rounded-xl border border-border bg-card p-4 space-y-4">
