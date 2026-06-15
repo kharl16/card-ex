@@ -22,12 +22,31 @@ export function useGlobalProductImages(cardId: string | null | undefined) {
 
   const load = useCallback(async () => {
     setLoading(true);
+
+    // Resolve the company that scopes the globals: prefer card's company.
+    let companyId: string | null = null;
+    if (cardId) {
+      const { data: cardRow } = await supabase
+        .from("cards")
+        .select("company_id")
+        .eq("id", cardId)
+        .maybeSingle();
+      companyId = (cardRow as { company_id: string | null } | null)?.company_id ?? null;
+    }
+    if (!companyId) {
+      const { data: def } = await supabase.rpc("default_company_id");
+      companyId = (def as string | null) ?? null;
+    }
+
+    let globalsQuery = supabase
+      .from("global_product_images")
+      .select("id,url,caption,srp,sort_index,is_active")
+      .eq("is_active", true)
+      .order("sort_index", { ascending: true });
+    if (companyId) globalsQuery = globalsQuery.eq("company_id", companyId);
+
     const [{ data: globals }, overridesResult] = await Promise.all([
-      supabase
-        .from("global_product_images")
-        .select("id,url,caption,srp,sort_index,is_active")
-        .eq("is_active", true)
-        .order("sort_index", { ascending: true }),
+      globalsQuery,
       cardId
         ? supabase
             .from("card_global_image_overrides")
