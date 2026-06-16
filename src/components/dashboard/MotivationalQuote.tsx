@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Sparkles, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 interface Quote {
   text: string;
@@ -35,10 +36,10 @@ const FALLBACK: Quote = {
 };
 
 export function MotivationalQuote() {
+  const { activeCompanyId } = useActiveCompany();
   const [now, setNow] = useState(() => new Date());
   const [quotes, setQuotes] = useState<Quote[]>([]);
 
-  // Re-pick when the slot changes (poll every minute; cheap and reliable across tab sleeps)
   useEffect(() => {
     const id = setInterval(() => {
       const next = new Date();
@@ -48,12 +49,14 @@ export function MotivationalQuote() {
   }, []);
 
   useEffect(() => {
+    if (!activeCompanyId) return;
     let cancelled = false;
     (async () => {
       const { data, error } = await supabase
         .from("daily_quotes")
         .select("text, author, source_url")
         .eq("is_active", true)
+        .eq("company_id", activeCompanyId)
         .order("sort_index", { ascending: true });
       if (!cancelled && !error && data && data.length > 0) {
         setQuotes(data as Quote[]);
@@ -62,7 +65,7 @@ export function MotivationalQuote() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeCompanyId]);
 
   const quote = useMemo<Quote>(() => {
     if (quotes.length === 0) return FALLBACK;

@@ -158,6 +158,7 @@ async function generateDirectoryVCard(entry: DirectoryEntry): Promise<string> {
 
 // ScrollArea removed - using native overflow for better mobile compatibility
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import AdminDirectoryDialog from "../admin/AdminDirectoryDialog";
 
 // Utility to highlight matching text
@@ -211,6 +212,7 @@ interface DirectorySectionProps {
 
 export default function DirectorySection({ searchQuery, onClearSearch }: DirectorySectionProps) {
   const { isAdmin } = useAuth();
+  const { activeCompanyId } = useActiveCompany();
   const [items, setItems] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -429,8 +431,8 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   }, [sortByNearest]);
 
   useEffect(() => {
-    fetchItems();
-  }, []);
+    if (activeCompanyId) fetchItems();
+  }, [activeCompanyId]);
 
   const fetchItems = async () => {
     try {
@@ -438,6 +440,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         .from("directory_entries")
         .select("*")
         .eq("is_active", true)
+        .eq("company_id", activeCompanyId!)
         .order("location", { ascending: true });
 
       if (error) throw error;

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 interface Quote {
   text: string;
@@ -44,6 +45,7 @@ interface CardDailyQuoteProps {
  * quote to the card owner.
  */
 export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
+  const { activeCompanyId } = useActiveCompany();
   const [now, setNow] = useState(() => new Date());
   const [quotes, setQuotes] = useState<Quote[]>([]);
 
@@ -56,12 +58,14 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
   }, []);
 
   useEffect(() => {
+    if (!activeCompanyId) return;
     let cancelled = false;
     (async () => {
       const { data, error } = await supabase
         .from("daily_quotes")
         .select("text, author, source_url")
         .eq("is_active", true)
+        .eq("company_id", activeCompanyId)
         .order("sort_index", { ascending: true });
       if (!cancelled && !error && data && data.length > 0) {
         setQuotes(data as Quote[]);
@@ -70,7 +74,7 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activeCompanyId]);
 
   const quote = useMemo<Quote>(() => {
     if (quotes.length === 0) return FALLBACK;

@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 const DirectoryMapView = lazy(() => import("@/components/tools/sections/DirectoryMapView"));
 
@@ -71,6 +72,7 @@ function formatDistance(dist: number): string {
 }
 
 export default function DistributorLocator() {
+  const { activeCompanyId } = useActiveCompany();
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,15 +84,16 @@ export default function DistributorLocator() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("directory_entries")
         .select("*")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
+        .eq("is_active", true);
+      if (activeCompanyId) q = q.eq("company_id", activeCompanyId);
+      const { data } = await q.order("sort_order", { ascending: true });
       setEntries((data as DirectoryEntry[]) || []);
       setLoading(false);
     })();
-  }, []);
+  }, [activeCompanyId]);
 
   const siteNames = useMemo(() => {
     const s = new Set<string>();

@@ -12,6 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
+import { CompanySwitcher } from "@/components/admin/CompanySwitcher";
 
 interface DailyQuote {
   id: string;
@@ -24,6 +26,7 @@ interface DailyQuote {
 
 export default function AdminDailyQuotes() {
   const { isAdmin, loading: authLoading } = useAuth();
+  const { activeCompanyId } = useActiveCompany();
   const [quotes, setQuotes] = useState<DailyQuote[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -45,10 +48,12 @@ export default function AdminDailyQuotes() {
   }, [activeQuotes, dayOfYear]);
 
   const load = async () => {
+    if (!activeCompanyId) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("daily_quotes")
       .select("id, text, author, source_url, sort_index, is_active")
+      .eq("company_id", activeCompanyId)
       .order("sort_index", { ascending: true });
     if (error) toast.error(error.message);
     else setQuotes((data ?? []) as DailyQuote[]);
@@ -57,7 +62,7 @@ export default function AdminDailyQuotes() {
 
   useEffect(() => {
     if (!authLoading && isAdmin) load();
-  }, [authLoading, isAdmin]);
+  }, [authLoading, isAdmin, activeCompanyId]);
 
   if (authLoading) {
     return (
@@ -83,6 +88,7 @@ export default function AdminDailyQuotes() {
       source_url: draft.source_url.trim() || null,
       sort_index: nextSort,
       is_active: true,
+      company_id: activeCompanyId,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -150,9 +156,9 @@ export default function AdminDailyQuotes() {
           const text = String(r.text ?? r.Text ?? r.quotation ?? r.Quotation ?? r.quote ?? r.Quote ?? "").trim();
           const author = String(r.author ?? r.Author ?? "Unknown").trim() || "Unknown";
           const source_url = String(r.source_url ?? r["Source URL"] ?? r.source ?? "").trim() || null;
-          return text ? { text, author, source_url, sort_index: startSort + i, is_active: true } : null;
+          return text ? { text, author, source_url, sort_index: startSort + i, is_active: true, company_id: activeCompanyId } : null;
         })
-        .filter(Boolean) as Array<{ text: string; author: string; source_url: string | null; sort_index: number; is_active: boolean }>;
+        .filter(Boolean) as Array<{ text: string; author: string; source_url: string | null; sort_index: number; is_active: boolean; company_id: string | null }>;
       if (payload.length === 0) {
         toast.error("No valid rows found. Need a 'text' column.");
         return;
@@ -178,7 +184,7 @@ export default function AdminDailyQuotes() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <Quote className="h-5 w-5 text-primary" />
             <div>
               <h1 className="text-2xl font-bold">Daily Quotes</h1>
@@ -187,6 +193,7 @@ export default function AdminDailyQuotes() {
               </p>
             </div>
           </div>
+          <CompanySwitcher />
         </div>
       </header>
 

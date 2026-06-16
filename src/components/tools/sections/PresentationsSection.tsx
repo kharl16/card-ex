@@ -7,6 +7,7 @@ import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { toast } from "sonner";
 import AdminPresentationDialog from "../admin/AdminPresentationDialog";
 import PresentationViewerDialog from "./PresentationViewerDialog";
@@ -29,6 +30,7 @@ interface PresentationsSectionProps {
 
 export default function PresentationsSection({ searchQuery }: PresentationsSectionProps) {
   const { isAdmin } = useAuth();
+  const { activeCompanyId } = useActiveCompany();
   const [items, setItems] = useState<PresentationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([]);
@@ -41,8 +43,8 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
   const [viewerItem, setViewerItem] = useState<PresentationItem | null>(null);
 
   useEffect(() => {
-    fetchItems();
-  }, []);
+    if (activeCompanyId) fetchItems();
+  }, [activeCompanyId]);
 
   const fetchItems = async () => {
     try {
@@ -50,6 +52,7 @@ export default function PresentationsSection({ searchQuery }: PresentationsSecti
         .from("presentations")
         .select("*")
         .eq("is_active", true)
+        .eq("company_id", activeCompanyId!)
         .order("category", { ascending: true })
         .order("title", { ascending: true });
 
