@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 const DirectoryMapView = lazy(() => import("@/components/tools/sections/DirectoryMapView"));
 
@@ -71,6 +72,7 @@ function formatDistance(dist: number): string {
 }
 
 export default function DistributorLocator() {
+  const { activeCompanyId } = useActiveCompany();
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
