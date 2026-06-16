@@ -82,15 +82,16 @@ export default function DistributorLocator() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase
+      let q = supabase
         .from("directory_entries")
         .select("*")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true });
+        .eq("is_active", true);
+      if (activeCompanyId) q = q.eq("company_id", activeCompanyId);
+      const { data } = await q.order("sort_order", { ascending: true });
       setEntries((data as DirectoryEntry[]) || []);
       setLoading(false);
     })();
-  }, []);
+  }, [activeCompanyId]);
 
   const siteNames = useMemo(() => {
     const s = new Set<string>();

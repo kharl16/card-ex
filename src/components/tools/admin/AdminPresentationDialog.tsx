@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Loader2, Save, Trash2 } from "lucide-react";
 import { ImageUpload } from "@/components/ImageUpload";
 import { detectPresentationSource } from "@/lib/presentationUtils";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 interface PresentationItem {
   id?: string;
@@ -40,6 +41,7 @@ const emptyItem: PresentationItem = {
 };
 
 export default function AdminPresentationDialog({ open, onOpenChange, item, onSaved }: AdminPresentationDialogProps) {
+  const { activeCompanyId } = useActiveCompany();
   const [formData, setFormData] = useState<PresentationItem>(emptyItem);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -88,6 +90,7 @@ export default function AdminPresentationDialog({ open, onOpenChange, item, onSa
           download_url: formData.download_url,
           category: formData.category,
           is_active: formData.is_active,
+          company_id: activeCompanyId,
         });
 
         if (error) throw error;

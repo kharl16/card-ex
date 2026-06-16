@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Save, Trash2, Upload, X, User, MapPin } from "lucide-react";
+import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 
 interface DirectoryEntry {
   id?: number;
@@ -50,6 +51,7 @@ const emptyItem: DirectoryEntry = {
 };
 
 export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved }: AdminDirectoryDialogProps) {
+  const { activeCompanyId } = useActiveCompany();
   const [formData, setFormData] = useState<DirectoryEntry>(emptyItem);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -188,6 +190,7 @@ export default function AdminDirectoryDialog({ open, onOpenChange, item, onSaved
           is_active: formData.is_active,
           owner_photo_url: formData.owner_photo_url,
           location_image_url: formData.location_image_url,
+          company_id: activeCompanyId,
         });
 
         if (error) throw error;
