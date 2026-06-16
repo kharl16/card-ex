@@ -184,7 +184,7 @@ export default function AdminDailyQuotes() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             <Quote className="h-5 w-5 text-primary" />
             <div>
               <h1 className="text-2xl font-bold">Daily Quotes</h1>
@@ -193,6 +193,7 @@ export default function AdminDailyQuotes() {
               </p>
             </div>
           </div>
+          <CompanySwitcher />
         </div>
       </header>
 
