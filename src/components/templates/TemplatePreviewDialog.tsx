@@ -35,6 +35,7 @@ export function TemplatePreviewDialog({
     id: `tpl-preview-${template.id}`,
     user_id: template.owner_id,
     company_id: null,
+    products_carousel_url: null,
     slug: "preview",
     ad_banner: null,
     image_carousels: (layoutData.image_carousels as unknown as Json) ?? null,
