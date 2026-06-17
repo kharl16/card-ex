@@ -36,6 +36,7 @@ export function TemplatePreviewDialog({
     user_id: template.owner_id,
     company_id: null,
     products_carousel_url: null,
+    products_carousel_url_digits: null,
     slug: "preview",
     ad_banner: null,
     image_carousels: (layoutData.image_carousels as unknown as Json) ?? null,
