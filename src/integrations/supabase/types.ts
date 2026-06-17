@@ -760,6 +760,7 @@ export type Database = {
           prefix: string | null
           product_images: Json | null
           products_carousel_url: string | null
+          products_carousel_url_digits: string | null
           public_url: string | null
           published_at: string | null
           qr_code_url: string | null
@@ -824,6 +825,7 @@ export type Database = {
           prefix?: string | null
           product_images?: Json | null
           products_carousel_url?: string | null
+          products_carousel_url_digits?: string | null
           public_url?: string | null
           published_at?: string | null
           qr_code_url?: string | null
@@ -888,6 +890,7 @@ export type Database = {
           prefix?: string | null
           product_images?: Json | null
           products_carousel_url?: string | null
+          products_carousel_url_digits?: string | null
           public_url?: string | null
           published_at?: string | null
           qr_code_url?: string | null
