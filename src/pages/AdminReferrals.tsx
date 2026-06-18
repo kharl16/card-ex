@@ -24,7 +24,13 @@ import {
   Download,
   CheckCheck,
   Trash2,
+  Filter,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -76,6 +82,37 @@ interface ReferrerStats {
   wholesale_share: number;
 }
 
+type SortKey = "date" | "referrer" | "referred" | "plan" | "commission" | "status";
+
+function SortableHead({
+  label,
+  sortKey,
+  sortBy,
+  sortDir,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  sortBy: SortKey;
+  sortDir: "asc" | "desc";
+  onSort: (key: SortKey) => void;
+}) {
+  const active = sortBy === sortKey;
+  const Icon = !active ? ArrowUpDown : sortDir === "asc" ? ArrowUp : ArrowDown;
+  return (
+    <TableHead>
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+      >
+        {label}
+        <Icon className={`h-3.5 w-3.5 ${active ? "text-foreground" : "text-muted-foreground/60"}`} />
+      </button>
+    </TableHead>
+  );
+}
+
 export default function AdminReferrals() {
   const navigate = useNavigate();
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -85,6 +122,8 @@ export default function AdminReferrals() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [plans, setPlans] = useState<{ id: string; name: string }[]>([]);
   const [planFilter, setPlanFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"date" | "referrer" | "referred" | "plan" | "commission" | "status">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
   useEffect(() => {
@@ -261,14 +300,41 @@ export default function AdminReferrals() {
   };
 
   // Filter referrals
-  const filteredReferrals = referrals.filter(r => {
-    const matchesSearch = 
-      r.referrer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.referred_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || r.status === statusFilter;
-    const matchesPlan = planFilter === "all" || r.plan_id === planFilter;
-    return matchesSearch && matchesStatus && matchesPlan;
-  });
+  const filteredReferrals = referrals
+    .filter(r => {
+      const matchesSearch =
+        r.referrer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.referred_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "all" || r.status === statusFilter;
+      const matchesPlan = planFilter === "all" || r.plan_id === planFilter;
+      return matchesSearch && matchesStatus && matchesPlan;
+    })
+    .sort((a, b) => {
+      const dir = sortDir === "asc" ? 1 : -1;
+      const cmp = (x: string | number | null, y: string | number | null) => {
+        if (x == null && y == null) return 0;
+        if (x == null) return 1;
+        if (y == null) return -1;
+        if (typeof x === "number" && typeof y === "number") return (x - y) * dir;
+        return String(x).localeCompare(String(y)) * dir;
+      };
+      switch (sortBy) {
+        case "date":
+          return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
+        case "referrer":
+          return cmp(a.referrer_name, b.referrer_name);
+        case "referred":
+          return cmp(a.referred_name, b.referred_name);
+        case "plan":
+          return cmp(a.plan_name, b.plan_name);
+        case "commission":
+          return cmp(a.plan_profit, b.plan_profit);
+        case "status":
+          return cmp(a.status, b.status);
+        default:
+          return 0;
+      }
+    });
 
   // Calculate totals
   const totals = {
@@ -668,13 +734,68 @@ export default function AdminReferrals() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Referrer</TableHead>
-                        <TableHead>Referred User</TableHead>
-                        <TableHead>Plan</TableHead>
-                        <TableHead>Commission</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <SortableHead label="Date" sortKey="date" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Referrer" sortKey="referrer" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Referred User" sortKey="referred" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Plan" sortKey="plan" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Commission" sortKey="commission" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Status" sortKey="status" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <TableHead>
+                          <div className="flex items-center justify-between gap-2">
+                            <span>Actions</span>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 relative"
+                                  aria-label="Filter referrals"
+                                >
+                                  <Filter className="h-4 w-4" />
+                                  {(statusFilter !== "all" || planFilter !== "all") && (
+                                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
+                                  )}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent align="end" className="w-64 space-y-3">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs">Status</Label>
+                                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="all">All Statuses</SelectItem>
+                                      <SelectItem value="pending">Pending</SelectItem>
+                                      <SelectItem value="qualified">Qualified</SelectItem>
+                                      <SelectItem value="paid_out">Paid Out</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs">Plan</Label>
+                                  <Select value={planFilter} onValueChange={setPlanFilter}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="all">All Plans</SelectItem>
+                                      {plans.map(plan => (
+                                        <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                {(statusFilter !== "all" || planFilter !== "all") && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full"
+                                    onClick={() => { setStatusFilter("all"); setPlanFilter("all"); }}
+                                  >
+                                    Clear filters
+                                  </Button>
+                                )}
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
