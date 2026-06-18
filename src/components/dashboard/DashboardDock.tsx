@@ -84,7 +84,36 @@ export function DashboardDock() {
               ))}
             </PopoverContent>
           </Popover>
+
+          {isAdmin && (
+            <Popover open={adminOpen} onOpenChange={setAdminOpen}>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors">
+                  <Shield className="h-4 w-4" />
+                  <span>Admin</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" align="start" className="w-56 p-2">
+                {adminTabs.map((a) => (
+                  <button
+                    key={a.path}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActive(a.path)
+                        ? "text-primary bg-primary/10"
+                        : "text-foreground hover:bg-accent"
+                    )}
+                    onClick={() => { setAdminOpen(false); navigate(a.path); }}
+                  >
+                    <a.icon className={cn("h-4 w-4", isActive(a.path) ? "text-primary" : "text-amber-500")} />
+                    {a.label}
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
+
       </div>
     </nav>
   );
