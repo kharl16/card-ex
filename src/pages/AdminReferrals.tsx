@@ -703,13 +703,68 @@ export default function AdminReferrals() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Referrer</TableHead>
-                        <TableHead>Referred User</TableHead>
-                        <TableHead>Plan</TableHead>
-                        <TableHead>Commission</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <SortableHead label="Date" sortKey="date" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Referrer" sortKey="referrer" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Referred User" sortKey="referred" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Plan" sortKey="plan" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Commission" sortKey="commission" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <SortableHead label="Status" sortKey="status" sortBy={sortBy} sortDir={sortDir} onSort={(k) => { setSortDir(sortBy === k ? (sortDir === "asc" ? "desc" : "asc") : "asc"); setSortBy(k); }} />
+                        <TableHead>
+                          <div className="flex items-center justify-between gap-2">
+                            <span>Actions</span>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 relative"
+                                  aria-label="Filter referrals"
+                                >
+                                  <Filter className="h-4 w-4" />
+                                  {(statusFilter !== "all" || planFilter !== "all") && (
+                                    <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary" />
+                                  )}
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent align="end" className="w-64 space-y-3">
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs">Status</Label>
+                                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="all">All Statuses</SelectItem>
+                                      <SelectItem value="pending">Pending</SelectItem>
+                                      <SelectItem value="qualified">Qualified</SelectItem>
+                                      <SelectItem value="paid_out">Paid Out</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-1.5">
+                                  <Label className="text-xs">Plan</Label>
+                                  <Select value={planFilter} onValueChange={setPlanFilter}>
+                                    <SelectTrigger><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="all">All Plans</SelectItem>
+                                      {plans.map(plan => (
+                                        <SelectItem key={plan.id} value={plan.id}>{plan.name}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                {(statusFilter !== "all" || planFilter !== "all") && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="w-full"
+                                    onClick={() => { setStatusFilter("all"); setPlanFilter("all"); }}
+                                  >
+                                    Clear filters
+                                  </Button>
+                                )}
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
