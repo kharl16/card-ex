@@ -269,14 +269,41 @@ export default function AdminReferrals() {
   };
 
   // Filter referrals
-  const filteredReferrals = referrals.filter(r => {
-    const matchesSearch = 
-      r.referrer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.referred_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || r.status === statusFilter;
-    const matchesPlan = planFilter === "all" || r.plan_id === planFilter;
-    return matchesSearch && matchesStatus && matchesPlan;
-  });
+  const filteredReferrals = referrals
+    .filter(r => {
+      const matchesSearch =
+        r.referrer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.referred_name?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter === "all" || r.status === statusFilter;
+      const matchesPlan = planFilter === "all" || r.plan_id === planFilter;
+      return matchesSearch && matchesStatus && matchesPlan;
+    })
+    .sort((a, b) => {
+      const dir = sortDir === "asc" ? 1 : -1;
+      const cmp = (x: string | number | null, y: string | number | null) => {
+        if (x == null && y == null) return 0;
+        if (x == null) return 1;
+        if (y == null) return -1;
+        if (typeof x === "number" && typeof y === "number") return (x - y) * dir;
+        return String(x).localeCompare(String(y)) * dir;
+      };
+      switch (sortBy) {
+        case "date":
+          return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * dir;
+        case "referrer":
+          return cmp(a.referrer_name, b.referrer_name);
+        case "referred":
+          return cmp(a.referred_name, b.referred_name);
+        case "plan":
+          return cmp(a.plan_name, b.plan_name);
+        case "commission":
+          return cmp(a.plan_profit, b.plan_profit);
+        case "status":
+          return cmp(a.status, b.status);
+        default:
+          return 0;
+      }
+    });
 
   // Calculate totals
   const totals = {
