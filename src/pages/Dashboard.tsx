@@ -411,6 +411,9 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* Desktop / Tablet dock nav */}
+      <DashboardDock />
+
       <main className="container mx-auto px-4 py-6 space-y-6 overflow-hidden">
         {/* Welcome + Quote */}
         <div className="space-y-4">
