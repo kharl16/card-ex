@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, MapPin, PlayCircle, BookOpen, Wrench, Users, CalendarDays, BarChart3 } from "lucide-react";
+import { LayoutDashboard, MapPin, PlayCircle, BookOpen, Wrench, Users, CalendarDays, BarChart3, Shield, ShieldAlert, CreditCard, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Popover,
@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const mainTabs = [
   { icon: LayoutDashboard, label: "Home", path: "/dashboard" },
@@ -22,10 +23,20 @@ const moreTabs = [
   { icon: BarChart3, label: "Gallery", path: "/gallery" },
 ];
 
+const adminTabs = [
+  { icon: Shield, label: "Admin Cards", path: "/admin/cards" },
+  { icon: CreditCard, label: "Admin Referrals", path: "/admin/referrals" },
+  { icon: FileText, label: "Admin Templates", path: "/admin/templates" },
+  { icon: ShieldAlert, label: "OTP Audit", path: "/admin/otp-audit" },
+];
+
 export function DashboardDock() {
   const navigate = useNavigate();
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const { isAdmin } = useAuth();
+
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -73,7 +84,36 @@ export function DashboardDock() {
               ))}
             </PopoverContent>
           </Popover>
+
+          {isAdmin && (
+            <Popover open={adminOpen} onOpenChange={setAdminOpen}>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors">
+                  <Shield className="h-4 w-4" />
+                  <span>Admin</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent side="bottom" align="start" className="w-56 p-2">
+                {adminTabs.map((a) => (
+                  <button
+                    key={a.path}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                      isActive(a.path)
+                        ? "text-primary bg-primary/10"
+                        : "text-foreground hover:bg-accent"
+                    )}
+                    onClick={() => { setAdminOpen(false); navigate(a.path); }}
+                  >
+                    <a.icon className={cn("h-4 w-4", isActive(a.path) ? "text-primary" : "text-amber-500")} />
+                    {a.label}
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
+
       </div>
     </nav>
   );
