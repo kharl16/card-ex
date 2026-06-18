@@ -82,6 +82,37 @@ interface ReferrerStats {
   wholesale_share: number;
 }
 
+type SortKey = "date" | "referrer" | "referred" | "plan" | "commission" | "status";
+
+function SortableHead({
+  label,
+  sortKey,
+  sortBy,
+  sortDir,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  sortBy: SortKey;
+  sortDir: "asc" | "desc";
+  onSort: (key: SortKey) => void;
+}) {
+  const active = sortBy === sortKey;
+  const Icon = !active ? ArrowUpDown : sortDir === "asc" ? ArrowUp : ArrowDown;
+  return (
+    <TableHead>
+      <button
+        type="button"
+        onClick={() => onSort(sortKey)}
+        className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors"
+      >
+        {label}
+        <Icon className={`h-3.5 w-3.5 ${active ? "text-foreground" : "text-muted-foreground/60"}`} />
+      </button>
+    </TableHead>
+  );
+}
+
 export default function AdminReferrals() {
   const navigate = useNavigate();
   const { user, isAdmin, loading: authLoading } = useAuth();
