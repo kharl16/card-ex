@@ -91,6 +91,8 @@ export default function AdminReferrals() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [plans, setPlans] = useState<{ id: string; name: string }[]>([]);
   const [planFilter, setPlanFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"date" | "referrer" | "referred" | "plan" | "commission" | "status">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [bulkProcessing, setBulkProcessing] = useState(false);
 
   useEffect(() => {
