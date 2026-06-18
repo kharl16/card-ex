@@ -45,6 +45,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
+import { DashboardDock } from "@/components/dashboard/DashboardDock";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { ReferralsFeed } from "@/components/dashboard/ReferralsFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
@@ -409,6 +410,9 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+
+      {/* Desktop / Tablet dock nav */}
+      <DashboardDock />
 
       <main className="container mx-auto px-4 py-6 space-y-6 overflow-hidden">
         {/* Welcome + Quote */}
