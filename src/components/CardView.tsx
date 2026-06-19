@@ -378,10 +378,10 @@ export default function CardView({
           const hasBanner = !!(card as any).ad_banner;
           return (
           <div className={`${bioBannerSectionPadding} transition-[padding,gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
-            <div className={`${hasBanner ? "grid grid-cols-2" : "block"} items-start ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
+            <div className={`flex flex-col ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
                 <div
-                  className={`w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer overflow-hidden flex flex-col ${hasBanner ? "aspect-square" : ""}`}
+                  className="w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer overflow-hidden flex flex-col"
                   lang="en"
                   style={{
                     background: "var(--glass-bg)",
@@ -410,53 +410,50 @@ export default function CardView({
                     />
                   )}
                   {card.bio && (
-                    hasBanner ? (
-                      <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
-                        {/* Mobile: fill available square height */}
-                        <div className="sm:hidden flex-1 min-h-0 flex flex-col">
-                          <ExpandableText
-                            text={card.bio}
-                            lines={8}
-                            expanded={bioExpanded}
-                            scrollWhenExpanded
-                            className="text-xs text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
-                            style={{ wordBreak: "normal" }}
-                          />
-                          {card.bio.length > 160 && (
-                            <button
-                              type="button"
-                              onClick={() => setBioExpanded((v) => !v)}
-                              className="mt-2 text-[11px] font-medium uppercase tracking-widest hover:opacity-80 transition-opacity flex-shrink-0 self-start"
-                              style={{ color: basePrimary }}
-                            >
-                              {bioExpanded ? "Show less" : "Read full bio"}
-                            </button>
-                          )}
-                        </div>
-                        {/* Desktop: clamp to 4 lines with Read more toggle */}
-                        <div className="hidden sm:flex flex-col flex-1 min-h-0">
-                          <ExpandableText
-                            text={card.bio}
-                            lines={4}
-                            expanded={bioExpanded}
-                            scrollWhenExpanded
-                            className="text-sm text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
-                            style={{ wordBreak: "normal" }}
-                          />
-                          {card.bio.length > 160 && (
-                            <button
-                              type="button"
-                              onClick={() => setBioExpanded((v) => !v)}
-                              className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity flex-shrink-0 self-start"
-                              style={{ color: basePrimary }}
-                            >
-                              {bioExpanded ? "Show less" : "Read full bio"}
-                            </button>
-                          )}
-                        </div>
-                        {/* Promo nudge pointing to the Ad Banner image */}
+                    <>
+                      {/* Mobile: clamp with Read full bio toggle */}
+                      <div className="sm:hidden">
+                        <ExpandableText
+                          text={card.bio}
+                          lines={4}
+                          expanded={bioExpanded}
+                          className="text-sm text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
+                          style={{ wordBreak: "normal" }}
+                        />
+                        {card.bio.length > 160 && (
+                          <button
+                            type="button"
+                            onClick={() => setBioExpanded((v) => !v)}
+                            className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
+                            style={{ color: basePrimary }}
+                          >
+                            {bioExpanded ? "Show less" : "Read full bio"}
+                          </button>
+                        )}
+                      </div>
+                      {/* Desktop: clamp to 4 lines with Read more toggle */}
+                      <div className="hidden sm:block">
+                        <ExpandableText
+                          text={card.bio}
+                          lines={4}
+                          expanded={bioExpanded}
+                          className="text-sm text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
+                          style={{ wordBreak: "normal" }}
+                        />
+                        {card.bio.length > 160 && (
+                          <button
+                            type="button"
+                            onClick={() => setBioExpanded((v) => !v)}
+                            className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
+                            style={{ color: basePrimary }}
+                          >
+                            {bioExpanded ? "Show less" : "Read full bio"}
+                          </button>
+                        )}
+                      </div>
+                      {hasBanner && (
                         <div
-                          className="mt-2 flex-shrink-0 flex items-center gap-1.5 self-start sm:self-end animate-pulse max-w-full"
+                          className="mt-3 flex-shrink-0 flex items-center gap-1.5 self-start animate-pulse max-w-full"
                           style={{ color: basePrimary }}
                           aria-hidden="true"
                         >
@@ -473,60 +470,17 @@ export default function CardView({
                             strokeLinejoin="round"
                             className="h-6 w-6 sm:h-7 sm:w-7"
                           >
-                            <path d="M5 12h14" />
-                            <path d="m13 6 6 6-6 6" />
+                            <path d="M12 5v14" />
+                            <path d="m6 13 6 6 6-6" />
                           </svg>
                         </div>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Mobile: clamp with Read full bio toggle */}
-                        <div className="sm:hidden">
-                          <ExpandableText
-                            text={card.bio}
-                            lines={4}
-                            expanded={bioExpanded}
-                            className="text-sm text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
-                            style={{ wordBreak: "normal" }}
-                          />
-                          {card.bio.length > 160 && (
-                            <button
-                              type="button"
-                              onClick={() => setBioExpanded((v) => !v)}
-                              className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
-                              style={{ color: basePrimary }}
-                            >
-                              {bioExpanded ? "Show less" : "Read full bio"}
-                            </button>
-                          )}
-                        </div>
-                        {/* Desktop: clamp to 4 lines with Read more toggle */}
-                        <div className="hidden sm:block">
-                          <ExpandableText
-                            text={card.bio}
-                            lines={4}
-                            expanded={bioExpanded}
-                            className="text-sm text-foreground/70 leading-relaxed break-words [overflow-wrap:break-word] hyphens-auto text-pretty"
-                            style={{ wordBreak: "normal" }}
-                          />
-                          {card.bio.length > 160 && (
-                            <button
-                              type="button"
-                              onClick={() => setBioExpanded((v) => !v)}
-                              className="mt-2 text-xs font-medium uppercase tracking-widest hover:opacity-80 transition-opacity"
-                              style={{ color: basePrimary }}
-                            >
-                              {bioExpanded ? "Show less" : "Read full bio"}
-                            </button>
-                          )}
-                        </div>
-                      </>
-                    )
+                      )}
+                    </>
                   )}
                 </div>
               )}
-              {(card as any).ad_banner && (
-                <div className="w-full min-w-0 self-start aspect-square overflow-hidden [&>*]:!h-full [&>*]:!w-full [&>a]:block [&_.aspect-video]:!aspect-square [&_.aspect-video]:!h-full [&_.aspect-video]:!w-full">
+              {hasBanner && (
+                <div className="w-full min-w-0">
                   <AdBanner banner={(card as any).ad_banner} accentColor={basePrimary} />
                 </div>
               )}
