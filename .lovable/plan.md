@@ -1,66 +1,42 @@
-# Multi-Company Support Plan
+## Goal
+Relocate the Ads Banner from a cramped side-by-side square column to a full-width row **below** the Bio section (Option A).
 
-Today every library (Videos, Tools, Files, Presentations, Directory, Ambassadors, Daily Quotes, Products/Packages, Links) is shared by all users — effectively a single "IAM Worldwide" tenant. We'll introduce a **Company** layer so the super admin can spin up additional companies (e.g. Acme, Forever Living) and curate their own content, while each user is tied to one company and only sees that company's libraries.
+## Current State
+In `CardView.tsx`, the Bio and Ad Banner sit in a 2-column grid (`grid-cols-2`) with both forced to `aspect-square`. This truncates long bios and distorts the banner.
 
----
+## Proposed Changes
 
-## 1. Data model
+### 1. `src/components/CardView.tsx` — Restack Bio + Banner vertically
+- **Bio block**: Remove `grid-cols-2` wrapper and `aspect-square` constraint. Render it full-width with natural height so long bios expand freely.
+- **Banner block**: Move it into a separate full-width row directly underneath the bio. Remove the `aspect-square` override so `AdBanner` keeps its native `aspect-video` shape.
+- **Promo nudge**: Keep the "Limited Time Only!!!" arrow inside the bio block (it now points downward to the banner below).
+- **Spacing**: Retain the existing `bioBannerGapMobile` / `bioBannerGapDesktop` props for the gap between bio and banner, applied to the vertical stack.
 
-New table:
+### 2. `src/components/AdBanner.tsx` — No changes needed
+The banner already renders at `aspect-video` inside its glass frame. The distortion was caused by the CardView wrapper forcing it square.
 
-- `companies` — `id`, `slug`, `name`, `logo_url`, `brand_color`, `is_active`, `is_default`, timestamps.
-  - Seed row: `IAM Worldwide` (marked default).
+## Visual Result
+```
+┌─────────────────────────────┐
+│  Header (cover + avatar)    │
+├─────────────────────────────┤
+│  ┌───────────────────────┐  │
+│  │  Bio (full width)     │  │  <- expands naturally
+│  │  [Read full bio]      │  │
+│  │  → Limited Time Only! │  │
+│  └───────────────────────┘  │
+├─────────────────────────────┤
+│  ┌───────────────────────┐  │
+│  │  Ad Banner            │  │  <- full width, aspect-video
+│  │  (carousel or video)  │  │
+│  └───────────────────────┘  │
+├─────────────────────────────┤
+│  Carousels / Social / etc.  │
+└─────────────────────────────┘
+```
 
-Add `company_id uuid` (nullable → backfilled → set NOT NULL) to every company-scoped table:
-
-- Videos: `training_items`, `training_folders`, `Videos`, `ambassadors_library`
-- Tools/Links: `tools`, `iam_links`
-- Files/Products: `IAM Files`, `files_repository`, `global_product_images`, `global_package_images`, `global_testimony_images`
-- Other libraries: `presentations`, `directory_entries`, `daily_quotes`, `ways_13`
-- Orb defaults: `tools_orb_settings` (one row per company)
-
-Add `company_id` to `profiles` (user → company). Optional same column on `cards` mirrored from the owner profile for fast public-page lookups.
-
-Backfill: set `company_id = <IAM id>` on every existing row in those tables and every existing profile/card.
-
-## 2. Access rules
-
-- Security-definer helper `current_user_company_id()` reads `profiles.company_id` for `auth.uid()`.
-- Helper `is_super_admin(auth.uid())` already exists.
-- Update RLS on every scoped table:
-  - **Read**: `company_id = current_user_company_id() OR is_super_admin(auth.uid())`.
-  - **Write**: super admin only (matches current admin-managed pattern).
-- Public card pages keep working: `PublicCard` reads `cards.company_id` directly (no auth) and queries libraries filtered by that id via a SECURITY DEFINER RPC, so visitors still see the right brand's content.
-
-## 3. Super-admin UI
-
-New **Companies** page under Super Admin Console (`/superadmin/companies`):
-
-- List companies (logo, name, slug, user count, active toggle).
-- "Add company" dialog (name, slug, logo, brand color).
-- Selecting a company sets an active-company context (persisted in localStorage).
-- A **Company Switcher** chip appears at the top of every existing admin manager (Videos, Tools, Files, Presentations, Directory, Ambassadors, Daily Quotes, Products/Packages, Orb Settings). Inserts/updates from those managers automatically stamp the active `company_id`.
-
-End-user UI is unchanged — their company is resolved from their profile.
-
-## 4. User assignment
-
-- `profiles.company_id` defaults to the IAM company on signup (via `handle_new_user`).
-- Super admin can change a user's company from the existing Users admin page (add a Company dropdown column).
-- Optional later: company-scoped signup links (`/signup?company=acme`) that pre-fill the company.
-
-## 5. Rollout order
-
-1. Migration: create `companies`, seed IAM row, add `company_id` columns, backfill, enable NOT NULL, add indexes.
-2. Migration: helper function + new RLS policies on every scoped table (replacing the current "everyone reads" ones).
-3. Update `handle_new_user` to assign IAM by default.
-4. Frontend: shared `useActiveCompany` hook + Company Switcher chip.
-5. Update every admin manager query/insert to use the active company id.
-6. Update every public/end-user query (Videos page, Tools orb, Files, Presentations, etc.) to filter by `current_user_company_id()` (RLS handles this automatically once policies are in place — code mostly just stops assuming a single shared set).
-7. Add `/superadmin/companies` page + user-admin company dropdown.
-
-## 6. Out of scope (can come later)
-
-- Per-company custom domains / theming on public cards.
-- Cross-company content sharing.
-- Self-service company onboarding (only super admin creates companies for now).
+## Acceptance Criteria
+- [ ] Bio text no longer clips or squishes into a square box.
+- [ ] Ad Banner displays at its natural `16:9` aspect ratio without stretching.
+- [ ] Layout remains responsive on mobile and desktop.
+- [ ] No visual regressions in sections below (carousels, social links, contacts).
