@@ -188,6 +188,8 @@ export default function RiderHeader({
               width={COVER_RENDER_WIDTH}
               height={COVER_RENDER_HEIGHT}
               eager
+              fit="contain"
+              letterbox
             />
           )}
 
