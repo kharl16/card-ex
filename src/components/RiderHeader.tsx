@@ -23,6 +23,8 @@ function LogoCrossfade({
   width = SQUARE_RENDER_SIZE,
   height = SQUARE_RENDER_SIZE,
   eager = false,
+  fit = "fill",
+  letterbox = false,
 }: {
   items: { url: string; alt?: string }[];
   autoPlayMs?: number;
@@ -30,6 +32,8 @@ function LogoCrossfade({
   width?: number;
   height?: number;
   eager?: boolean;
+  fit?: "fill" | "contain" | "cover";
+  letterbox?: boolean;
 }) {
   const safe = items.filter((it) => it && typeof it.url === "string" && it.url);
   const [active, setActive] = useState(0);
@@ -55,15 +59,26 @@ function LogoCrossfade({
     };
   }, [safe.length, autoPlayMs]);
   if (safe.length === 0) return null;
+  const cdnFit = fit === "contain" ? "contain" : fit === "cover" ? "cover" : "fill";
   return (
-    <div className="relative h-full w-full overflow-hidden p-0">
+    <div className="relative h-full w-full overflow-hidden p-0 bg-black/40">
+      {letterbox && safe[active] && (
+        <img
+          aria-hidden
+          src={cdnImage(safe[active].url, { width: Math.max(64, Math.round(width / 4)), height: Math.max(32, Math.round(height / 4)), resize: "cover", quality: 40 })}
+          alt=""
+          className="absolute inset-0 block h-full w-full max-w-none scale-110"
+          style={{ objectFit: "cover", objectPosition: "center", filter: "blur(24px) saturate(1.1) brightness(0.7)" }}
+          draggable={false}
+        />
+      )}
       {safe.map((item, idx) => (
         <img
           key={`${item.url}-${idx}`}
           src={cdnImage(item.url, {
             width,
             height,
-            resize: IMAGE_FIT_NO_CROP,
+            resize: cdnFit,
             quality: 80,
           })}
           alt={item.alt || alt}
@@ -72,7 +87,7 @@ function LogoCrossfade({
           draggable={false}
           className="absolute inset-0 block h-full w-full max-w-none"
           style={{
-            objectFit: IMAGE_FIT_NO_CROP,
+            objectFit: fit,
             objectPosition: "center",
             width: "100%",
             height: "100%",
