@@ -21,8 +21,9 @@ function getAspectRatio(imageType: ImageType): number {
   switch (imageType) {
     case "avatar":
     case "logo":
+      return 1; // 1:1 square
     case "cover":
-      return 1; // 1:1 square (cover is now square)
+      return 2.43; // matches RiderHeader COVER_ASPECT_RATIO
     default:
       return 1;
   }
@@ -35,7 +36,7 @@ function getOutputDimensions(imageType: ImageType): { width: number; height: num
     case "logo":
       return { width: 512, height: 512 };
     case "cover":
-      return { width: 1080, height: 1080 };
+      return { width: 1600, height: Math.round(1600 / 2.43) };
     default:
       return { width: 512, height: 512 };
   }
