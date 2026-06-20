@@ -1197,25 +1197,26 @@ export default function CardEditor() {
                         <Monitor className="h-3 w-3" /> Desktop
                       </span>
                     )}
-                    <div
-                      ref={desktopPreviewWrapRef}
-                      className="w-full overflow-hidden rounded-xl border border-border/50 bg-background"
-                      style={{ height: 800 * desktopScale }}
-                    >
+                    <div ref={desktopPreviewWrapRef} className="w-full">
                       <div
-                        style={{
-                          width: 1280,
-                          height: 800,
-                          transform: `scale(${desktopScale})`,
-                          transformOrigin: "top left",
-                        }}
+                        className="overflow-hidden rounded-xl border border-border/50 bg-background"
+                        style={{ height: 800 * desktopScale }}
                       >
-                        <iframe
-                          title="Desktop card preview"
-                          src={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
-                          style={{ width: 1280, height: 800, border: 0 }}
-                          loading="lazy"
-                        />
+                        <div
+                          style={{
+                            width: 1280,
+                            height: 800,
+                            transform: `scale(${desktopScale})`,
+                            transformOrigin: "top left",
+                          }}
+                        >
+                          <iframe
+                            title="Desktop card preview"
+                            src={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
+                            style={{ width: 1280, height: 800, border: 0 }}
+                            loading="lazy"
+                          />
+                        </div>
                       </div>
                     </div>
                     <p className="text-[10px] text-muted-foreground text-center">
