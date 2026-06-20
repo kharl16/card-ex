@@ -1086,12 +1086,21 @@ export default function CardEditor() {
 
           {/* Editor Content */}
           {layoutMode === "accordion" ? (
-            <SmartAccordion
-              sections={buildSections()}
-              defaultOpenId="basic"
-              enableDragDrop={customizeOrder}
-              onReorder={handleSectionReorder}
-            />
+            <>
+              <SectionNavigator
+                sections={buildSections()}
+                activeId={activeSectionId}
+                onJump={handleJumpToSection}
+              />
+              <SmartAccordion
+                sections={buildSections()}
+                defaultOpenId="basic"
+                openId={activeSectionId}
+                onOpenChange={setActiveSectionId}
+                enableDragDrop={customizeOrder}
+                onReorder={handleSectionReorder}
+              />
+            </>
           ) : (
             <div className="min-h-[600px]">
               <EditorWizard
