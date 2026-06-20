@@ -160,11 +160,19 @@ export function SmartAccordion({
   sections,
   allowMultipleOpen = false,
   defaultOpenId,
+  openId,
+  onOpenChange,
   enableDragDrop = false,
   onReorder,
 }: SmartAccordionProps) {
   const [orderedSections, setOrderedSections] = useState(sections);
-  const [openItems, setOpenItems] = useState<string[]>(defaultOpenId ? [defaultOpenId] : []);
+  const [internalOpen, setInternalOpen] = useState<string[]>(defaultOpenId ? [defaultOpenId] : []);
+  const isControlled = openId !== undefined;
+  const openItems = isControlled ? (openId ? [openId] : []) : internalOpen;
+  const setOpenItems = (next: string[]) => {
+    if (!isControlled) setInternalOpen(next);
+    onOpenChange?.(next[0] || "");
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),
