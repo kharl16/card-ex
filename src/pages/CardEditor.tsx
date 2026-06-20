@@ -27,9 +27,6 @@ import {
   Loader2,
   FileDown,
   CalendarDays,
-  Smartphone,
-  Monitor,
-  Columns2,
 } from "lucide-react";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import type { Tables } from "@/integrations/supabase/types";
