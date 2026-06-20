@@ -1187,7 +1187,11 @@ export default function CardEditor() {
                         <Monitor className="h-3 w-3" /> Desktop
                       </span>
                     )}
-                    <div ref={desktopPreviewWrapRef} className="w-full overflow-hidden rounded-xl border border-border/50 bg-background">
+                    <div
+                      ref={desktopPreviewWrapRef}
+                      className="w-full overflow-hidden rounded-xl border border-border/50 bg-background"
+                      style={{ height: 800 * desktopScale }}
+                    >
                       <div
                         style={{
                           width: 1280,
@@ -1203,10 +1207,6 @@ export default function CardEditor() {
                           loading="lazy"
                         />
                       </div>
-                      <div
-                        aria-hidden
-                        style={{ height: 800 * desktopScale - 800, marginTop: 0 }}
-                      />
                     </div>
                     <p className="text-[10px] text-muted-foreground text-center">
                       Desktop view reflects the last published version. Save to refresh.
