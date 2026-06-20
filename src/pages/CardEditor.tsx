@@ -27,6 +27,9 @@ import {
   Loader2,
   FileDown,
   CalendarDays,
+  Smartphone,
+  Monitor,
+  Columns2,
 } from "lucide-react";
 import ShareCardDialog from "@/components/ShareCardDialog";
 import type { Tables } from "@/integrations/supabase/types";
@@ -151,6 +154,25 @@ export default function CardEditor() {
   const initialLoadRef = useRef(true);
   const lastSavedCardRef = useRef<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const desktopPreviewWrapRef = useRef<HTMLDivElement>(null);
+  const [previewMode, setPreviewMode] = useState<"mobile" | "desktop" | "both">("mobile");
+  const [desktopScale, setDesktopScale] = useState(1);
+
+  // Scale a fixed 1280px desktop preview to fit its column
+  useEffect(() => {
+    if (previewMode === "mobile") return;
+    const el = desktopPreviewWrapRef.current;
+    if (!el) return;
+    const update = () => {
+      const w = el.clientWidth;
+      if (!w) return;
+      setDesktopScale(Math.min(1, w / 1280));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [previewMode]);
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
@@ -1094,46 +1116,108 @@ export default function CardEditor() {
         </div>
 
         {/* Live Preview */}
-        <div className="w-full max-w-full overflow-x-hidden lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scrollbar-thin">
+        <div className={`w-full max-w-full overflow-x-hidden lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:scrollbar-thin ${previewMode === "both" ? "lg:col-span-2" : ""}`}>
           <Card className="overflow-hidden border-border/50 transition-all duration-300 w-full">
-            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3">
+            <CardHeader className="bg-gradient-to-br from-muted/50 to-muted/20 py-3 gap-2">
               <CardTitle className="text-center text-sm font-medium">Card Preview</CardTitle>
+              <ToggleGroup
+                type="single"
+                value={previewMode}
+                onValueChange={(v) => v && setPreviewMode(v as typeof previewMode)}
+                className="justify-center"
+                size="sm"
+              >
+                <ToggleGroupItem value="mobile" aria-label="Mobile preview" className="gap-1 h-8 px-2 text-xs">
+                  <Smartphone className="h-3.5 w-3.5" /> Mobile
+                </ToggleGroupItem>
+                <ToggleGroupItem value="desktop" aria-label="Desktop preview" className="gap-1 h-8 px-2 text-xs">
+                  <Monitor className="h-3.5 w-3.5" /> Desktop
+                </ToggleGroupItem>
+                <ToggleGroupItem value="both" aria-label="Side-by-side preview" className="gap-1 h-8 px-2 text-xs">
+                  <Columns2 className="h-3.5 w-3.5" /> Both
+                </ToggleGroupItem>
+              </ToggleGroup>
             </CardHeader>
             <CardContent className="p-2 sm:p-4">
-              <div 
-                ref={previewContainerRef}
-                className="relative w-full max-w-full rounded-xl"
-              >
-                <CardView
-                  card={card}
-                  socialLinks={socialLinks}
-                  productImages={productImages}
-                  additionalContacts={additionalContacts}
-                  isInteractive={false}
-                  showQRCode={true}
-                  showVCardButtons={false}
-                  publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
-                  bottomAction={
-                    bookingEnabled ? (
-                      <div className="pointer-events-none">
-                        <Button
-                          className="w-full gap-2 h-10 text-sm font-semibold rounded-2xl"
-                          style={{ backgroundColor: (card.theme as any)?.primary || undefined }}
-                          aria-label="Book Appointment preview"
-                        >
-                          <CalendarDays className="h-4 w-4" />
-                          Book Appointment
-                        </Button>
+              <div className={`grid gap-4 ${previewMode === "both" ? "md:grid-cols-2" : "grid-cols-1"}`}>
+                {(previewMode === "mobile" || previewMode === "both") && (
+                  <div className="flex flex-col items-center gap-2">
+                    {previewMode === "both" && (
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <Smartphone className="h-3 w-3" /> Mobile
+                      </span>
+                    )}
+                    <div
+                      ref={previewContainerRef}
+                      className="relative w-full max-w-[420px] rounded-xl"
+                    >
+                      <CardView
+                        card={card}
+                        socialLinks={socialLinks}
+                        productImages={productImages}
+                        additionalContacts={additionalContacts}
+                        isInteractive={false}
+                        showQRCode={true}
+                        showVCardButtons={false}
+                        publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
+                        bottomAction={
+                          bookingEnabled ? (
+                            <div className="pointer-events-none">
+                              <Button
+                                className="w-full gap-2 h-10 text-sm font-semibold rounded-2xl"
+                                style={{ backgroundColor: (card.theme as any)?.primary || undefined }}
+                                aria-label="Book Appointment preview"
+                              >
+                                <CalendarDays className="h-4 w-4" />
+                                Book Appointment
+                              </Button>
+                            </div>
+                          ) : undefined
+                        }
+                      />
+                      <ToolsOrb mode="preview" containerRef={previewContainerRef} />
+                    </div>
+                  </div>
+                )}
+
+                {(previewMode === "desktop" || previewMode === "both") && (
+                  <div className="flex flex-col items-center gap-2">
+                    {previewMode === "both" && (
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <Monitor className="h-3 w-3" /> Desktop
+                      </span>
+                    )}
+                    <div
+                      ref={desktopPreviewWrapRef}
+                      className="w-full overflow-hidden rounded-xl border border-border/50 bg-background"
+                      style={{ height: 800 * desktopScale }}
+                    >
+                      <div
+                        style={{
+                          width: 1280,
+                          height: 800,
+                          transform: `scale(${desktopScale})`,
+                          transformOrigin: "top left",
+                        }}
+                      >
+                        <iframe
+                          title="Desktop card preview"
+                          src={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
+                          style={{ width: 1280, height: 800, border: 0 }}
+                          loading="lazy"
+                        />
                       </div>
-                    ) : undefined
-                  }
-                />
-                {/* ToolsOrb inside preview */}
-                <ToolsOrb mode="preview" containerRef={previewContainerRef} />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground text-center">
+                      Desktop view reflects the last published version. Save to refresh.
+                    </p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
+
       </main>
     </div>
   );
