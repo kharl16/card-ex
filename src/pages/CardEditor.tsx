@@ -46,6 +46,7 @@ import { getPublicCardUrl } from "@/lib/cardUrl";
 import ToolsOrb from "@/components/tools/ToolsOrb";
 // Editor section components
 import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
+import { SectionNavigator } from "@/components/editor/SectionNavigator";
 import { EditorWizard, WizardStep } from "@/components/editor/EditorWizard";
 import { BasicInformationSection } from "@/components/editor/sections/BasicInformationSection";
 import { ContactInformationSection, AdditionalContact } from "@/components/editor/sections/ContactInformationSection";
