@@ -42,6 +42,8 @@ interface SmartAccordionProps {
   sections: EditorSection[];
   allowMultipleOpen?: boolean;
   defaultOpenId?: string;
+  openId?: string;
+  onOpenChange?: (id: string) => void;
   enableDragDrop?: boolean;
   onReorder?: (newOrder: string[]) => void;
 }
