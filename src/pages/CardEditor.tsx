@@ -158,7 +158,10 @@ export default function CardEditor() {
   const [previewMode, setPreviewMode] = useState<"mobile" | "desktop" | "both">("mobile");
   const [desktopScale, setDesktopScale] = useState(1);
 
-  // Scale a fixed 1280px desktop preview to fit its column
+  // Scale a fixed 1280px desktop preview to fit its column.
+  // IMPORTANT: observe the outer wrapper (whose width is driven by layout),
+  // not the inner element whose height we set — otherwise we create a
+  // resize feedback loop ("shaking").
   useEffect(() => {
     if (previewMode === "mobile") return;
     const el = desktopPreviewWrapRef.current;
@@ -166,12 +169,19 @@ export default function CardEditor() {
     const update = () => {
       const w = el.clientWidth;
       if (!w) return;
-      setDesktopScale(Math.min(1, w / 1280));
+      const next = Math.min(1, w / 1280);
+      setDesktopScale((prev) => (Math.abs(prev - next) < 0.005 ? prev : next));
     };
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
-    return () => ro.disconnect();
+    // Re-measure after layout settles (handles "both" mode where column width
+    // resolves on a second paint).
+    const raf = requestAnimationFrame(update);
+    return () => {
+      ro.disconnect();
+      cancelAnimationFrame(raf);
+    };
   }, [previewMode]);
 
   // Generate formatted full name preview (single source of truth)
@@ -1187,25 +1197,26 @@ export default function CardEditor() {
                         <Monitor className="h-3 w-3" /> Desktop
                       </span>
                     )}
-                    <div
-                      ref={desktopPreviewWrapRef}
-                      className="w-full overflow-hidden rounded-xl border border-border/50 bg-background"
-                      style={{ height: 800 * desktopScale }}
-                    >
+                    <div ref={desktopPreviewWrapRef} className="w-full">
                       <div
-                        style={{
-                          width: 1280,
-                          height: 800,
-                          transform: `scale(${desktopScale})`,
-                          transformOrigin: "top left",
-                        }}
+                        className="overflow-hidden rounded-xl border border-border/50 bg-background"
+                        style={{ height: 800 * desktopScale }}
                       >
-                        <iframe
-                          title="Desktop card preview"
-                          src={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
-                          style={{ width: 1280, height: 800, border: 0 }}
-                          loading="lazy"
-                        />
+                        <div
+                          style={{
+                            width: 1280,
+                            height: 800,
+                            transform: `scale(${desktopScale})`,
+                            transformOrigin: "top left",
+                          }}
+                        >
+                          <iframe
+                            title="Desktop card preview"
+                            src={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
+                            style={{ width: 1280, height: 800, border: 0 }}
+                            loading="lazy"
+                          />
+                        </div>
                       </div>
                     </div>
                     <p className="text-[10px] text-muted-foreground text-center">
