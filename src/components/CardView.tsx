@@ -451,30 +451,6 @@ export default function CardView({
                           </button>
                         )}
                       </div>
-                      {hasBanner && (
-                        <div
-                          className="mt-3 flex-shrink-0 flex items-center gap-1.5 self-start animate-pulse max-w-full"
-                          style={{ color: basePrimary }}
-                          aria-hidden="true"
-                        >
-                          <span className="text-sm sm:text-base font-bold uppercase tracking-wider break-words sm:whitespace-nowrap">
-                            Limited Time Only!!!
-                          </span>
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-6 w-6 sm:h-7 sm:w-7"
-                          >
-                            <path d="M12 5v14" />
-                            <path d="m6 13 6 6 6-6" />
-                          </svg>
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
