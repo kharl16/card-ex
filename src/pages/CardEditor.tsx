@@ -154,6 +154,25 @@ export default function CardEditor() {
   const initialLoadRef = useRef(true);
   const lastSavedCardRef = useRef<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const desktopPreviewWrapRef = useRef<HTMLDivElement>(null);
+  const [previewMode, setPreviewMode] = useState<"mobile" | "desktop" | "both">("mobile");
+  const [desktopScale, setDesktopScale] = useState(1);
+
+  // Scale a fixed 1280px desktop preview to fit its column
+  useEffect(() => {
+    if (previewMode === "mobile") return;
+    const el = desktopPreviewWrapRef.current;
+    if (!el) return;
+    const update = () => {
+      const w = el.clientWidth;
+      if (!w) return;
+      setDesktopScale(Math.min(1, w / 1280));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [previewMode]);
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
