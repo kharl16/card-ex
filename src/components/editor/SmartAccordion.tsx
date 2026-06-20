@@ -72,7 +72,7 @@ function SortableAccordionItem({ section, isOpen, enableDragDrop }: SortableAcco
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="w-full max-w-full overflow-x-hidden">
+    <div ref={setNodeRef} style={style} id={`editor-section-${section.id}`} className="w-full max-w-full overflow-x-hidden scroll-mt-28">
       <AccordionItem
         value={section.id}
         className={cn(
