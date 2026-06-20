@@ -42,6 +42,8 @@ interface SmartAccordionProps {
   sections: EditorSection[];
   allowMultipleOpen?: boolean;
   defaultOpenId?: string;
+  openId?: string;
+  onOpenChange?: (id: string) => void;
   enableDragDrop?: boolean;
   onReorder?: (newOrder: string[]) => void;
 }
@@ -70,7 +72,7 @@ function SortableAccordionItem({ section, isOpen, enableDragDrop }: SortableAcco
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="w-full max-w-full overflow-x-hidden">
+    <div ref={setNodeRef} style={style} id={`editor-section-${section.id}`} className="w-full max-w-full overflow-x-hidden scroll-mt-28">
       <AccordionItem
         value={section.id}
         className={cn(
@@ -158,11 +160,19 @@ export function SmartAccordion({
   sections,
   allowMultipleOpen = false,
   defaultOpenId,
+  openId,
+  onOpenChange,
   enableDragDrop = false,
   onReorder,
 }: SmartAccordionProps) {
   const [orderedSections, setOrderedSections] = useState(sections);
-  const [openItems, setOpenItems] = useState<string[]>(defaultOpenId ? [defaultOpenId] : []);
+  const [internalOpen, setInternalOpen] = useState<string[]>(defaultOpenId ? [defaultOpenId] : []);
+  const isControlled = openId !== undefined;
+  const openItems = isControlled ? (openId ? [openId] : []) : internalOpen;
+  const setOpenItems = (next: string[]) => {
+    if (!isControlled) setInternalOpen(next);
+    onOpenChange?.(next[0] || "");
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor),

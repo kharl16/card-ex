@@ -46,6 +46,7 @@ import { getPublicCardUrl } from "@/lib/cardUrl";
 import ToolsOrb from "@/components/tools/ToolsOrb";
 // Editor section components
 import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
+import { SectionNavigator } from "@/components/editor/SectionNavigator";
 import { EditorWizard, WizardStep } from "@/components/editor/EditorWizard";
 import { BasicInformationSection } from "@/components/editor/sections/BasicInformationSection";
 import { ContactInformationSection, AdditionalContact } from "@/components/editor/sections/ContactInformationSection";
@@ -152,6 +153,15 @@ export default function CardEditor() {
   const initialLoadRef = useRef(true);
   const lastSavedCardRef = useRef<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const [activeSectionId, setActiveSectionId] = useState<string>("basic");
+
+  const handleJumpToSection = useCallback((sectionId: string) => {
+    setActiveSectionId(sectionId);
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`editor-section-${sectionId}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
 
   // Generate formatted full name preview (single source of truth)
   const getFormattedName = (): string => {
@@ -1076,12 +1086,21 @@ export default function CardEditor() {
 
           {/* Editor Content */}
           {layoutMode === "accordion" ? (
-            <SmartAccordion
-              sections={buildSections()}
-              defaultOpenId="basic"
-              enableDragDrop={customizeOrder}
-              onReorder={handleSectionReorder}
-            />
+            <>
+              <SectionNavigator
+                sections={buildSections()}
+                activeId={activeSectionId}
+                onJump={handleJumpToSection}
+              />
+              <SmartAccordion
+                sections={buildSections()}
+                defaultOpenId="basic"
+                openId={activeSectionId}
+                onOpenChange={setActiveSectionId}
+                enableDragDrop={customizeOrder}
+                onReorder={handleSectionReorder}
+              />
+            </>
           ) : (
             <div className="min-h-[600px]">
               <EditorWizard
