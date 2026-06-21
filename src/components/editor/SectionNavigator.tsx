@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { EditorSection } from "./SmartAccordion";
 
 interface SectionNavigatorProps {
@@ -12,8 +13,21 @@ interface SectionNavigatorProps {
  * Sticky horizontal mini-map for the card editor.
  * Lets the user jump between sections (Bio, Contact, Social, etc.)
  * while the live preview stays in sync with edits.
+ *
+ * On mobile the chip list is swipeable with scroll-snap so each
+ * chip settles cleanly into view.
  */
 export function SectionNavigator({ sections, activeId, onJump }: SectionNavigatorProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const activeBtn = el.querySelector<HTMLElement>(`[data-section-id="${activeId}"]`);
+    if (!activeBtn) return;
+    activeBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+  }, [activeId]);
+
   if (!sections.length) return null;
 
   return (
@@ -21,7 +35,10 @@ export function SectionNavigator({ sections, activeId, onJump }: SectionNavigato
       aria-label="Editor sections"
       className="sticky top-16 z-30 -mx-2 mb-3 rounded-xl border border-border/60 bg-background/85 px-2 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/70"
     >
-      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-thin">
+      <div
+        ref={scrollRef}
+        className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth pb-1"
+      >
         {sections.map((s) => {
           const isActive = s.id === activeId;
           const isDone = s.progress === 100;
@@ -29,10 +46,11 @@ export function SectionNavigator({ sections, activeId, onJump }: SectionNavigato
             <button
               key={s.id}
               type="button"
+              data-section-id={s.id}
               onClick={() => onJump(s.id)}
               aria-current={isActive ? "true" : undefined}
               className={cn(
-                "group inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                "group inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all snap-start",
                 "min-h-[36px] whitespace-nowrap",
                 isActive
                   ? "border-[#D4AF37] bg-[#D4AF37]/15 text-foreground shadow-sm"
