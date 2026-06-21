@@ -105,7 +105,7 @@ function FilesPageContent() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-primary flex-shrink-0" />
-                <h1 className="text-lg font-bold truncate">Files</h1>
+                <h1 className="text-lg font-bold truncate">Resources</h1>
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                   {filteredFiles.length}
                 </Badge>
