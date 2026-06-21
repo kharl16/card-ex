@@ -1,19 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Download, Share2, Play, FolderOpen, Eye, Plus, Pencil, ArrowLeft } from "lucide-react";
+import { Download, Share2, Play, FolderOpen, Eye, ArrowLeft } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import AdminFileDialog from "../admin/AdminFileDialog";
-
-interface DetailRow {
-  label: string;
-  value: string;
-}
 
 interface FileItem {
   id: number;
@@ -27,8 +19,6 @@ interface FileItem {
   price_dp: string | null;
   price_srp: string | null;
   is_active: boolean;
-  details_heading: string | null;
-  details_rows: DetailRow[];
   unilevel_points: string | null;
   package_points_smc: string | null;
   rqv: string | null;
@@ -51,14 +41,11 @@ interface FilesSectionProps {
 }
 
 export default function FilesSection({ searchQuery }: FilesSectionProps) {
-  const { isAdmin } = useAuth();
   const [folders, setFolders] = useState<ResourceFolder[]>([]);
   const [items, setItems] = useState<FileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFolder, setActiveFolder] = useState<ResourceFolder | null>(null);
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
-  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<FileItem | null>(null);
 
   useEffect(() => {
     fetchFolders();
@@ -70,23 +57,45 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
     }
   }, [activeFolder]);
 
+  const mapRow = (row: any): FileItem => ({
+    id: row.id,
+    file_name: row.file_name || "",
+    description: row.description || null,
+    images: row.images || null,
+    folder_name: row.folder_name || null,
+    drive_link_download: row.drive_link_download || null,
+    drive_link_share: row.drive_link_share || null,
+    view_video_url: row.view_video_url || null,
+    price_dp: row.price_dp || null,
+    price_srp: row.price_srp || null,
+    is_active: row.is_active ?? true,
+    unilevel_points: row.unilevel_points != null ? String(row.unilevel_points) : null,
+    package_points_smc: row.package_points_smc || null,
+    rqv: row.rqv || null,
+    infinity: row.infinity || null,
+    check_match: row.check_match || null,
+    give_me_5: row.give_me_5 || null,
+    just_4_you: row.just_4_you || null,
+    wholesale_package_commission: row.wholesale_package_commission || null,
+  });
+
   const fetchFolders = async () => {
     try {
-      // Get distinct folder names from IAM Files table
+      // Read from the same source as the Dashboard Resources Hub
       const { data, error } = await supabase
-        .from("IAM Files")
-        .select('"Folder Name", "Images"');
+        .from("files_repository")
+        .select("folder_name, images")
+        .eq("is_active", true);
       if (error) throw error;
 
-      // Derive unique folders from the data
       const folderMap = new Map<string, ResourceFolder>();
       (data || []).forEach((row: any) => {
-        const name = row["Folder Name"];
+        const name = row.folder_name;
         if (name && !folderMap.has(name)) {
           folderMap.set(name, {
             id: name,
             folder_name: name,
-            images: row["Images"] || null,
+            images: row.images || null,
             is_active: true,
           });
         }
@@ -106,38 +115,13 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
   const fetchItems = async (folderName: string) => {
     try {
       const { data, error } = await supabase
-        .from("IAM Files")
+        .from("files_repository")
         .select("*")
-        .eq("Folder Name", folderName)
-        .order("File Name", { ascending: true });
+        .eq("folder_name", folderName)
+        .eq("is_active", true)
+        .order("file_name", { ascending: true });
       if (error) throw error;
-
-      // Map IAM Files columns to our FileItem interface
-      const mapped: FileItem[] = (data || []).map((row: any) => ({
-        id: row.id,
-        file_name: row["File Name"] || "",
-        description: row["Description"] || null,
-        images: row["Images"] || null,
-        folder_name: row["Folder Name"] || null,
-        drive_link_download: row["Drive Link Download"] || null,
-        drive_link_share: row["Drive Link share"] || null,
-        view_video_url: row["View Video URL"] || null,
-        price_dp: row["Price (DP)"] || null,
-        price_srp: row["Price (SRP)"] || null,
-        is_active: true,
-        details_heading: row.details_heading || null,
-        details_rows: Array.isArray(row.details_rows) ? row.details_rows : [],
-        unilevel_points: row["Unilevel Points"] != null ? String(row["Unilevel Points"]) : null,
-        package_points_smc: row["Package Points (SMC)"] || null,
-        rqv: row["RQV"] || null,
-        infinity: row["Infinity"] || null,
-        check_match: row["Check Match"] || null,
-        give_me_5: row["Give Me 5"] || null,
-        just_4_you: row["Just 4 You"] || null,
-        wholesale_package_commission: row["Wholesale Package Commission"] || null,
-      }));
-
-      setItems(mapped);
+      setItems((data || []).map(mapRow));
     } catch (err) {
       console.error("Error fetching files:", err);
     }
@@ -158,16 +142,6 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
     if (!images) return null;
     const urls = images.split(",").map((u) => u.trim()).filter(Boolean);
     return urls[0] || null;
-  };
-
-  const handleEdit = (item: FileItem) => {
-    setEditingItem(item);
-    setAdminDialogOpen(true);
-  };
-
-  const handleAdd = () => {
-    setEditingItem(null);
-    setAdminDialogOpen(true);
   };
 
   const handleBackToFolders = () => {
@@ -206,12 +180,6 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
 
         <h2 className="text-xl font-bold text-foreground">{activeFolder.folder_name}</h2>
 
-        {isAdmin && (
-          <Button onClick={handleAdd} className="w-full gap-2">
-            <Plus className="w-4 h-4" /> Add File
-          </Button>
-        )}
-
         <div className="grid grid-cols-2 gap-3">
           {filteredItems.map((item) => {
             const thumbnail = getThumbnail(item.images);
@@ -224,17 +192,6 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
                   "hover:shadow-lg hover:border-primary/30 transition-all"
                 )}
               >
-                {isAdmin && (
-                  <Button
-                    variant="secondary"
-                    size="icon"
-                    className="absolute top-2 right-2 z-10 h-8 w-8"
-                    onClick={() => handleEdit(item)}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                )}
-
                 <div
                   className="relative aspect-square bg-black cursor-pointer"
                   onClick={() => setSelectedFile(item)}
@@ -319,7 +276,7 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
 
         {filteredItems.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">No files in this folder yet</p>
+            <p className="text-lg text-muted-foreground">No resources in this folder yet</p>
           </div>
         )}
 
@@ -341,29 +298,6 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
               )}
               {selectedFile?.description && (
                 <p className="text-muted-foreground">{selectedFile.description}</p>
-              )}
-
-              {/* Package details table */}
-              {selectedFile && (selectedFile.details_heading || (selectedFile.details_rows?.length ?? 0) > 0) && (
-                <div className="rounded-xl border border-border bg-card/60 overflow-hidden">
-                  {selectedFile.details_heading && (
-                    <div className="px-4 py-3 border-b border-border bg-muted/40">
-                      <p className="text-sm font-semibold text-foreground">
-                        {selectedFile.details_heading}
-                      </p>
-                    </div>
-                  )}
-                  {selectedFile.details_rows?.length > 0 && (
-                    <div className="divide-y divide-border">
-                      {selectedFile.details_rows.map((row, idx) => (
-                        <div key={idx} className="flex items-center justify-between gap-4 px-4 py-2.5">
-                          <span className="text-sm text-muted-foreground">{row.label}</span>
-                          <span className="text-sm font-semibold text-foreground text-right">{row.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
               )}
 
               <div className="flex gap-4">
@@ -451,13 +385,6 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
             </div>
           </DialogContent>
         </Dialog>
-
-        <AdminFileDialog
-          open={adminDialogOpen}
-          onOpenChange={setAdminDialogOpen}
-          item={editingItem}
-          onSaved={() => fetchItems(activeFolder.folder_name)}
-        />
       </div>
     );
   }
@@ -465,15 +392,9 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
   // ── Folder grid view ──
   return (
     <div className="space-y-4">
-      {isAdmin && (
-        <Button onClick={handleAdd} className="w-full gap-2">
-          <Plus className="w-4 h-4" /> Add File
-        </Button>
-      )}
-
-      {filteredFolders.length === 0 && !isAdmin && (
+      {filteredFolders.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-lg text-muted-foreground">No file folders available yet</p>
+          <p className="text-lg text-muted-foreground">No resource folders available yet</p>
         </div>
       )}
 
@@ -502,13 +423,6 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
           </button>
         ))}
       </div>
-
-      <AdminFileDialog
-        open={adminDialogOpen}
-        onOpenChange={setAdminDialogOpen}
-        item={editingItem}
-        onSaved={fetchFolders}
-      />
     </div>
   );
 }
