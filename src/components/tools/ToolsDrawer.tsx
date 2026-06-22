@@ -85,8 +85,11 @@ export default function ToolsDrawer({
   }, [open]);
 
   const handleBack = () => {
+    // Close the drawer entirely so the user returns to the Card View
+    // instead of the intermediate Tools Hub tile listing.
     setSearchQuery("");
     onSectionChange(null);
+    onOpenChange(false);
   };
 
   const renderContent = () => {
