@@ -103,7 +103,7 @@ export function ReferralEarningsBadge({
             </p>
             <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-amber-100/80">
               <Users className="h-3 w-3" />
-              {count} referral{count === 1 ? "" : "s"} paid out
+              {count} successful referral{count === 1 ? "" : "s"}
             </p>
           </div>
         </div>
