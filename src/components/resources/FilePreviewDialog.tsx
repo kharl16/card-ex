@@ -2,6 +2,7 @@ import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, X } fro
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { TopRightActions } from "@/components/ui/top-right-actions";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
 
@@ -81,19 +82,22 @@ export function FilePreviewDialog({
             {currentIndex + 1} / {files.length}
           </div>
 
-          {/* Top-right favorite */}
-          <Button
-            size="icon"
-            variant="ghost"
-            className={cn(
-              "absolute top-3 right-14 h-9 w-9 bg-black/40 hover:bg-black/60 rounded-full backdrop-blur-md border border-white/10",
-              isFavorite && "text-red-500"
-            )}
-            onClick={onToggleFavorite}
-          >
-            <Heart className={cn("h-4 w-4", isFavorite && "fill-current drop-shadow-[0_0_6px_rgba(239,68,68,0.5)]")} />
-          </Button>
+          {/* Top-right actions (reserves space for Dialog's built-in X) */}
+          <TopRightActions reserveCloseSlot>
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                "h-9 w-9 bg-black/40 hover:bg-black/60 rounded-full backdrop-blur-md border border-white/10",
+                isFavorite && "text-red-500"
+              )}
+              onClick={onToggleFavorite}
+            >
+              <Heart className={cn("h-4 w-4", isFavorite && "fill-current drop-shadow-[0_0_6px_rgba(239,68,68,0.5)]")} />
+            </Button>
+          </TopRightActions>
         </div>
+
 
         {/* Details */}
         <div className="p-5 space-y-4">
