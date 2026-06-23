@@ -2,6 +2,7 @@ import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, X } fro
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { TopRightActions } from "@/components/ui/top-right-actions";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
 
