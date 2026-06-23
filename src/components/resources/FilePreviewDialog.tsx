@@ -86,7 +86,7 @@ export function FilePreviewDialog({
             size="icon"
             variant="ghost"
             className={cn(
-              "absolute top-3 right-3 h-9 w-9 bg-black/40 hover:bg-black/60 rounded-full backdrop-blur-md border border-white/10",
+              "absolute top-3 right-14 h-9 w-9 bg-black/40 hover:bg-black/60 rounded-full backdrop-blur-md border border-white/10",
               isFavorite && "text-red-500"
             )}
             onClick={onToggleFavorite}
