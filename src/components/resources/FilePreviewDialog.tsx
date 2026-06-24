@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
