@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -33,25 +33,101 @@ export function FilePreviewDialog({
   const currentIndex = files.findIndex((f) => f.id === file.id);
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < files.length - 1;
+  const prevFile = hasPrev ? files[currentIndex - 1] : null;
+  const nextFile = hasNext ? files[currentIndex + 1] : null;
 
   const goPrev = () => { if (hasPrev) onNavigate(files[currentIndex - 1]); };
   const goNext = () => { if (hasNext) onNavigate(files[currentIndex + 1]); };
 
-  // Swipe / drag gesture (works for touch + mouse on mobile, tablet, desktop)
-  const dragStart = useRef<{ x: number; y: number } | null>(null);
-  const SWIPE_THRESHOLD = 50;
+  // Phone-gallery style swipe: track drag, follow finger, snap with animation
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const dragStart = useRef<{ x: number; y: number; width: number; locked: boolean | null } | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const SWIPE_RATIO = 0.2; // 20% of width triggers navigation
+  const SWIPE_VELOCITY_PX = 60;
+
+  // Reset drag whenever the active file changes
+  useEffect(() => {
+    setDragX(0);
+    setAnimating(false);
+  }, [file.id]);
+
   const onPointerDown = (e: React.PointerEvent) => {
-    dragStart.current = { x: e.clientX, y: e.clientY };
+    if (animating) return;
+    const width = trackRef.current?.clientWidth ?? window.innerWidth;
+    dragStart.current = { x: e.clientX, y: e.clientY, width, locked: null };
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragStart.current) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    // Lock axis after small movement so vertical scroll still works
+    if (dragStart.current.locked === null) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      dragStart.current.locked = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!dragStart.current.locked) return;
+    let next = dx;
+    // Add rubber-band resistance at the ends
+    if ((dx > 0 && !hasPrev) || (dx < 0 && !hasNext)) {
+      next = dx * 0.25;
+    }
+    setDragX(next);
+  };
+  const finishSwipe = (dx: number, width: number) => {
+    const threshold = width * SWIPE_RATIO;
+    const goingNext = dx < 0 && hasNext && (Math.abs(dx) > threshold || dx < -SWIPE_VELOCITY_PX * 2);
+    const goingPrev = dx > 0 && hasPrev && (Math.abs(dx) > threshold || dx > SWIPE_VELOCITY_PX * 2);
+    setAnimating(true);
+    if (goingNext) {
+      setDragX(-width);
+      window.setTimeout(() => { goNext(); }, 220);
+    } else if (goingPrev) {
+      setDragX(width);
+      window.setTimeout(() => { goPrev(); }, 220);
+    } else {
+      setDragX(0);
+      window.setTimeout(() => setAnimating(false), 220);
+    }
   };
   const onPointerUp = (e: React.PointerEvent) => {
     if (!dragStart.current) return;
     const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
+    const width = dragStart.current.width;
+    const locked = dragStart.current.locked;
     dragStart.current = null;
-    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
-      if (dx < 0) goNext();
-      else goPrev();
+    if (locked) finishSwipe(dx, width);
+    else setDragX(0);
+  };
+  const onPointerCancel = () => {
+    if (!dragStart.current) return;
+    const width = dragStart.current.width;
+    dragStart.current = null;
+    setAnimating(true);
+    setDragX(0);
+    window.setTimeout(() => setAnimating(false), 220);
+  };
+
+  const renderImage = (f: FileResource | null) => {
+    if (!f) return <div className="w-full h-full" />;
+    if (f.images) {
+      return (
+        <img
+          src={f.images}
+          alt={f.file_name}
+          className="w-full h-full object-contain max-h-[55vh] select-none pointer-events-none"
+          draggable={false}
+          referrerPolicy="no-referrer"
+        />
+      );
     }
+    return (
+      <div className="flex items-center justify-center h-48 w-full text-muted-foreground/20">
+        <Download className="h-16 w-16" />
+      </div>
+    );
   };
 
   return (
@@ -59,24 +135,32 @@ export function FilePreviewDialog({
       <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 overflow-hidden bg-background border-border/30 shadow-2xl shadow-black/20 rounded-2xl">
         {/* Image area */}
         <div
-          className="relative bg-black/95 flex items-center justify-center min-h-[40vh] max-h-[55vh] touch-pan-y cursor-grab active:cursor-grabbing"
+          ref={trackRef}
+          className="relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh] touch-pan-y cursor-grab active:cursor-grabbing"
           onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerCancel={() => { dragStart.current = null; }}
+          onPointerCancel={onPointerCancel}
         >
-          {file.images ? (
-            <img
-              src={file.images}
-              alt={file.file_name}
-              className="w-full h-full object-contain max-h-[55vh] select-none"
-              draggable={false}
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-48 text-muted-foreground/20">
-              <Download className="h-16 w-16" />
+          {/* Sliding track: [prev][current][next] */}
+          <div
+            className="flex h-full min-h-[40vh] max-h-[55vh] will-change-transform"
+            style={{
+              width: "300%",
+              transform: `translate3d(calc(-33.3333% + ${dragX}px), 0, 0)`,
+              transition: animating ? "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)" : "none",
+            }}
+          >
+            <div className="w-1/3 flex items-center justify-center shrink-0">
+              {renderImage(prevFile)}
             </div>
-          )}
+            <div className="w-1/3 flex items-center justify-center shrink-0">
+              {renderImage(file)}
+            </div>
+            <div className="w-1/3 flex items-center justify-center shrink-0">
+              {renderImage(nextFile)}
+            </div>
+          </div>
 
           {/* Nav arrows */}
           {hasPrev && (
