@@ -1,6 +1,7 @@
-// Generates a luxury gold-on-black OG fallback image as SVG.
-// Used by card-meta when a card has no avatar_url so social previews
-// never show the generic placeholder.
+// Generates a luxury gold-on-black OG image as SVG, composing the card
+// owner's profile photo with a name + title overlay. The avatar is fetched
+// server-side and base64-embedded so social crawlers can render it without
+// making a second request.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,15 +27,63 @@ function escapeXml(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
-function buildSvg(opts: { initials: string; name: string; subtitle: string }): string {
-  const { initials, name, subtitle } = opts;
+async function fetchAvatarAsDataUri(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Card-Ex OG Image Composer" },
+      // Avoid hanging the function on slow CDNs.
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!res.ok) return null;
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    if (!contentType.startsWith("image/")) return null;
+    const buf = new Uint8Array(await res.arrayBuffer());
+    // Cap at ~2MB to keep SVG payload reasonable for crawlers.
+    if (buf.byteLength > 2_000_000) return null;
+    let binary = "";
+    for (let i = 0; i < buf.length; i++) binary += String.fromCharCode(buf[i]);
+    const base64 = btoa(binary);
+    return `data:${contentType};base64,${base64}`;
+  } catch (e) {
+    console.warn("avatar fetch failed:", e);
+    return null;
+  }
+}
+
+function buildSvg(opts: {
+  initials: string;
+  name: string;
+  subtitle: string;
+  avatarDataUri: string | null;
+}): string {
+  const { initials, name, subtitle, avatarDataUri } = opts;
   const safeName = escapeXml(name);
   const safeSub = escapeXml(subtitle);
   const safeInit = escapeXml(initials);
 
+  const avatarBlock = avatarDataUri
+    ? `
+    <clipPath id="avatarClip">
+      <circle cx="600" cy="245" r="118"/>
+    </clipPath>
+    <g filter="url(#softShadow)">
+      <circle cx="600" cy="245" r="124" fill="#0a0a0a" stroke="url(#gold)" stroke-width="3"/>
+      <image href="${avatarDataUri}" x="482" y="127" width="236" height="236"
+             preserveAspectRatio="xMidYMid slice" clip-path="url(#avatarClip)"/>
+      <circle cx="600" cy="245" r="118" fill="none" stroke="#d4af37" stroke-opacity="0.6" stroke-width="1.5"/>
+    </g>`
+    : `
+    <g filter="url(#softShadow)">
+      <circle cx="600" cy="245" r="120" fill="#0a0a0a" stroke="url(#gold)" stroke-width="3"/>
+      <circle cx="600" cy="245" r="112" fill="none" stroke="#d4af37" stroke-opacity="0.4" stroke-width="1"/>
+      <text x="600" y="245" text-anchor="middle" dominant-baseline="central"
+            font-family="Georgia, 'Times New Roman', serif" font-size="96" font-weight="700"
+            fill="url(#gold)">${safeInit}</text>
+    </g>`;
+
   // 1200x630 — Facebook/Twitter recommended OG size
   return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#0a0a0a"/>
@@ -74,21 +123,15 @@ function buildSvg(opts: { initials: string; name: string; subtitle: string }): s
   <rect x="30" y="30" width="1140" height="570" fill="none" stroke="url(#gold)" stroke-width="2" rx="20"/>
   <rect x="42" y="42" width="1116" height="546" fill="none" stroke="#d4af37" stroke-opacity="0.25" stroke-width="1" rx="16"/>
 
-  <!-- Avatar circle with initials -->
-  <g filter="url(#softShadow)">
-    <circle cx="600" cy="245" r="120" fill="#0a0a0a" stroke="url(#gold)" stroke-width="3"/>
-    <circle cx="600" cy="245" r="112" fill="none" stroke="#d4af37" stroke-opacity="0.4" stroke-width="1"/>
-    <text x="600" y="245" text-anchor="middle" dominant-baseline="central"
-          font-family="Georgia, 'Times New Roman', serif" font-size="96" font-weight="700"
-          fill="url(#gold)">${safeInit}</text>
-  </g>
+  <!-- Avatar (photo if available, otherwise initials) -->
+  ${avatarBlock}
 
   <!-- Name -->
   <text x="600" y="430" text-anchor="middle"
         font-family="Georgia, 'Times New Roman', serif" font-size="56" font-weight="600"
         fill="#f5f5f5">${safeName}</text>
 
-  <!-- Subtitle -->
+  <!-- Subtitle (title • company) -->
   ${
     safeSub
       ? `<text x="600" y="480" text-anchor="middle"
@@ -114,6 +157,7 @@ Deno.serve(async (req) => {
     const name = url.searchParams.get("name")?.trim() || "Card-Ex";
     const subtitle = url.searchParams.get("subtitle")?.trim() || "";
     const initialsParam = url.searchParams.get("initials")?.trim();
+    const avatarParam = url.searchParams.get("avatar")?.trim();
     const initials = initialsParam || getInitials(name);
 
     // Truncate to keep layout tidy.
@@ -121,7 +165,17 @@ Deno.serve(async (req) => {
     const safeSub = subtitle.length > 60 ? subtitle.slice(0, 59) + "…" : subtitle;
     const safeInit = initials.slice(0, 3);
 
-    const svg = buildSvg({ initials: safeInit, name: safeName, subtitle: safeSub });
+    let avatarDataUri: string | null = null;
+    if (avatarParam && /^https?:\/\//i.test(avatarParam)) {
+      avatarDataUri = await fetchAvatarAsDataUri(avatarParam);
+    }
+
+    const svg = buildSvg({
+      initials: safeInit,
+      name: safeName,
+      subtitle: safeSub,
+      avatarDataUri,
+    });
 
     return new Response(svg, {
       status: 200,
