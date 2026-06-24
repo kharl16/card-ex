@@ -37,11 +37,33 @@ export function FilePreviewDialog({
   const goPrev = () => { if (hasPrev) onNavigate(files[currentIndex - 1]); };
   const goNext = () => { if (hasNext) onNavigate(files[currentIndex + 1]); };
 
+  // Swipe / drag gesture (works for touch + mouse on mobile, tablet, desktop)
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const SWIPE_THRESHOLD = 50;
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragStart.current = { x: e.clientX, y: e.clientY };
+  };
+  const onPointerUp = (e: React.PointerEvent) => {
+    if (!dragStart.current) return;
+    const dx = e.clientX - dragStart.current.x;
+    const dy = e.clientY - dragStart.current.y;
+    dragStart.current = null;
+    if (Math.abs(dx) > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy)) {
+      if (dx < 0) goNext();
+      else goPrev();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 overflow-hidden bg-background border-border/30 shadow-2xl shadow-black/20 rounded-2xl">
         {/* Image area */}
-        <div className="relative bg-black/95 flex items-center justify-center min-h-[40vh] max-h-[55vh]">
+        <div
+          className="relative bg-black/95 flex items-center justify-center min-h-[40vh] max-h-[55vh] touch-pan-y cursor-grab active:cursor-grabbing"
+          onPointerDown={onPointerDown}
+          onPointerUp={onPointerUp}
+          onPointerCancel={() => { dragStart.current = null; }}
+        >
           {file.images ? (
             <img
               src={file.images}
