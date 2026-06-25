@@ -1,18 +1,7 @@
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, fireEvent, act } from "@testing-library/react";
 import { FilePreviewDialog } from "./FilePreviewDialog";
 import type { FileResource } from "@/types/resources";
-
-beforeAll(() => {
-  // jsdom doesn't implement these pointer-capture APIs
-  if (!Element.prototype.setPointerCapture) {
-    Element.prototype.setPointerCapture = function () {};
-    Element.prototype.releasePointerCapture = function () {};
-    Element.prototype.hasPointerCapture = function () {
-      return false;
-    };
-  }
-});
 
 const makeFile = (id: number, name: string): FileResource =>
   ({
@@ -62,10 +51,10 @@ function swipeLeft(track: HTMLElement, width = 600) {
     configurable: true,
     value: width,
   });
-  fireEvent.pointerDown(track, { pointerId: 1, clientX: 500, clientY: 100 });
-  fireEvent.pointerMove(track, { pointerId: 1, clientX: 480, clientY: 100 });
-  fireEvent.pointerMove(track, { pointerId: 1, clientX: 200, clientY: 100 });
-  fireEvent.pointerUp(track, { pointerId: 1, clientX: 200, clientY: 100 });
+  fireEvent.mouseDown(track, { button: 0, clientX: 500, clientY: 100 });
+  fireEvent.mouseMove(window, { clientX: 480, clientY: 100 });
+  fireEvent.mouseMove(window, { clientX: 200, clientY: 100 });
+  fireEvent.mouseUp(window, { clientX: 200, clientY: 100 });
 }
 
 describe("FilePreviewDialog swipe gestures (regression)", () => {
@@ -137,10 +126,10 @@ describe("FilePreviewDialog swipe gestures (regression)", () => {
       track = getTrack(document.body);
       // swipe right -> prev
       Object.defineProperty(track, "clientWidth", { configurable: true, value: 600 });
-      fireEvent.pointerDown(track, { pointerId: 2, clientX: 100, clientY: 100 });
-      fireEvent.pointerMove(track, { pointerId: 2, clientX: 130, clientY: 100 });
-      fireEvent.pointerMove(track, { pointerId: 2, clientX: 450, clientY: 100 });
-      fireEvent.pointerUp(track, { pointerId: 2, clientX: 450, clientY: 100 });
+      fireEvent.mouseDown(track, { button: 0, clientX: 100, clientY: 100 });
+      fireEvent.mouseMove(window, { clientX: 130, clientY: 100 });
+      fireEvent.mouseMove(window, { clientX: 450, clientY: 100 });
+      fireEvent.mouseUp(window, { clientX: 450, clientY: 100 });
       act(() => {
         vi.advanceTimersByTime(250);
       });
