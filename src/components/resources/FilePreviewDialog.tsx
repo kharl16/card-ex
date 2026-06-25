@@ -31,13 +31,17 @@ export function FilePreviewDialog({
   if (!file) return null;
 
   const currentIndex = files.findIndex((f) => f.id === file.id);
-  const hasPrev = currentIndex > 0;
-  const hasNext = currentIndex < files.length - 1;
-  const prevFile = hasPrev ? files[currentIndex - 1] : null;
-  const nextFile = hasNext ? files[currentIndex + 1] : null;
+  const total = files.length;
+  const canLoop = total > 1;
+  const hasPrev = canLoop;
+  const hasNext = canLoop;
+  const prevIndex = canLoop ? (currentIndex - 1 + total) % total : -1;
+  const nextIndex = canLoop ? (currentIndex + 1) % total : -1;
+  const prevFile = hasPrev ? files[prevIndex] : null;
+  const nextFile = hasNext ? files[nextIndex] : null;
 
-  const goPrev = () => { if (hasPrev) onNavigate(files[currentIndex - 1]); };
-  const goNext = () => { if (hasNext) onNavigate(files[currentIndex + 1]); };
+  const goPrev = () => { if (hasPrev) onNavigate(files[prevIndex]); };
+  const goNext = () => { if (hasNext) onNavigate(files[nextIndex]); };
 
   // Phone-gallery style swipe: track drag, follow finger, snap with animation
   const trackRef = useRef<HTMLDivElement | null>(null);
