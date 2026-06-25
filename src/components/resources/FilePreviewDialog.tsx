@@ -51,16 +51,26 @@ export function FilePreviewDialog({
   useEffect(() => {
     setDragX(0);
     setAnimating(false);
+    dragStart.current = null;
   }, [file.id]);
 
+  const releaseCapture = (e: React.PointerEvent) => {
+    try {
+      const el = e.currentTarget as HTMLElement;
+      if (el.hasPointerCapture?.(e.pointerId)) el.releasePointerCapture(e.pointerId);
+    } catch {}
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
-    if (animating) return;
     // Don't intercept clicks on interactive controls (arrow buttons, favorite, etc.)
     if ((e.target as HTMLElement).closest("button, a, [role='button']")) return;
+    // Cancel any in-flight animation so a new swipe can start immediately
+    if (animating) {
+      setAnimating(false);
+      setDragX(0);
+    }
     const width = trackRef.current?.clientWidth ?? window.innerWidth;
     dragStart.current = { x: e.clientX, y: e.clientY, width, locked: null };
-    // NOTE: defer setPointerCapture until a horizontal drag is confirmed,
-    // otherwise mouse clicks on overlay buttons won't fire.
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!dragStart.current) return;
@@ -90,16 +100,17 @@ export function FilePreviewDialog({
     setAnimating(true);
     if (goingNext) {
       setDragX(-width);
-      window.setTimeout(() => { goNext(); }, 220);
+      window.setTimeout(() => { goNext(); setAnimating(false); }, 220);
     } else if (goingPrev) {
       setDragX(width);
-      window.setTimeout(() => { goPrev(); }, 220);
+      window.setTimeout(() => { goPrev(); setAnimating(false); }, 220);
     } else {
       setDragX(0);
       window.setTimeout(() => setAnimating(false), 220);
     }
   };
   const onPointerUp = (e: React.PointerEvent) => {
+    releaseCapture(e);
     if (!dragStart.current) return;
     const dx = e.clientX - dragStart.current.x;
     const width = dragStart.current.width;
@@ -108,14 +119,14 @@ export function FilePreviewDialog({
     if (locked) finishSwipe(dx, width);
     else setDragX(0);
   };
-  const onPointerCancel = () => {
-    if (!dragStart.current) return;
-    const width = dragStart.current.width;
+  const onPointerCancel = (e: React.PointerEvent) => {
+    releaseCapture(e);
     dragStart.current = null;
     setAnimating(true);
     setDragX(0);
     window.setTimeout(() => setAnimating(false), 220);
   };
+
 
   const renderImage = (f: FileResource | null) => {
     if (!f) return <div className="w-full h-full" />;
