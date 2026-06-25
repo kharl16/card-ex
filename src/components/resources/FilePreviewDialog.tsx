@@ -226,14 +226,14 @@ export function FilePreviewDialog({
           )}
 
           {(file.price_dp || file.price_srp) && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-start gap-2">
               {file.price_dp && (
-                <Badge className="font-mono text-xs px-2.5 py-1 bg-primary/90 border-0 shadow-md shadow-primary/20">
-                  DP: {file.price_dp}
-                </Badge>
+                <div className="font-mono text-xs px-2.5 py-1.5 rounded-md bg-primary/90 border-0 shadow-md shadow-primary/20 text-primary-foreground whitespace-pre-wrap leading-relaxed">
+                  <span className="font-semibold">DP:</span> {file.price_dp}
+                </div>
               )}
               {file.price_srp && (
-                <Badge variant="secondary" className="font-mono text-xs px-2.5 py-1">
+                <Badge variant="secondary" className="font-mono text-xs px-2.5 py-1 shrink-0">
                   SRP: {file.price_srp}
                 </Badge>
               )}
