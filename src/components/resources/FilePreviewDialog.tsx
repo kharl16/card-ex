@@ -55,9 +55,12 @@ export function FilePreviewDialog({
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (animating) return;
+    // Don't intercept clicks on interactive controls (arrow buttons, favorite, etc.)
+    if ((e.target as HTMLElement).closest("button, a, [role='button']")) return;
     const width = trackRef.current?.clientWidth ?? window.innerWidth;
     dragStart.current = { x: e.clientX, y: e.clientY, width, locked: null };
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    // NOTE: defer setPointerCapture until a horizontal drag is confirmed,
+    // otherwise mouse clicks on overlay buttons won't fire.
   };
   const onPointerMove = (e: React.PointerEvent) => {
     if (!dragStart.current) return;
@@ -66,7 +69,11 @@ export function FilePreviewDialog({
     // Lock axis after small movement so vertical scroll still works
     if (dragStart.current.locked === null) {
       if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      dragStart.current.locked = Math.abs(dx) > Math.abs(dy);
+      const horizontal = Math.abs(dx) > Math.abs(dy);
+      dragStart.current.locked = horizontal;
+      if (horizontal) {
+        try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
+      }
     }
     if (!dragStart.current.locked) return;
     let next = dx;
