@@ -62,9 +62,18 @@ function touchSwipeLeft(track: HTMLElement, width = 600) {
     configurable: true,
     value: width,
   });
-  fireEvent.touchStart(track, { touches: [{ clientX: 500, clientY: 100 }] });
-  fireEvent.touchMove(track, { touches: [{ clientX: 480, clientY: 100 }] });
-  fireEvent.touchMove(track, { touches: [{ clientX: 200, clientY: 100 }] });
+  fireEvent.touchStart(track, {
+    touches: [{ clientX: 500, clientY: 100 }],
+    changedTouches: [{ clientX: 500, clientY: 100 }],
+  });
+  fireEvent.touchMove(track, {
+    touches: [{ clientX: 480, clientY: 100 }],
+    changedTouches: [{ clientX: 480, clientY: 100 }],
+  });
+  fireEvent.touchMove(track, {
+    touches: [{ clientX: 200, clientY: 100 }],
+    changedTouches: [{ clientX: 200, clientY: 100 }],
+  });
   fireEvent.touchEnd(track, { changedTouches: [{ clientX: 200, clientY: 100 }] });
 }
 
