@@ -1,18 +1,7 @@
-import { describe, it, expect, vi, beforeAll } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, fireEvent, act } from "@testing-library/react";
 import { FilePreviewDialog } from "./FilePreviewDialog";
 import type { FileResource } from "@/types/resources";
-
-beforeAll(() => {
-  // jsdom doesn't implement these pointer-capture APIs
-  if (!Element.prototype.setPointerCapture) {
-    Element.prototype.setPointerCapture = function () {};
-    Element.prototype.releasePointerCapture = function () {};
-    Element.prototype.hasPointerCapture = function () {
-      return false;
-    };
-  }
-});
 
 const makeFile = (id: number, name: string): FileResource =>
   ({
@@ -62,10 +51,46 @@ function swipeLeft(track: HTMLElement, width = 600) {
     configurable: true,
     value: width,
   });
-  fireEvent.pointerDown(track, { pointerId: 1, clientX: 500, clientY: 100 });
-  fireEvent.pointerMove(track, { pointerId: 1, clientX: 480, clientY: 100 });
-  fireEvent.pointerMove(track, { pointerId: 1, clientX: 200, clientY: 100 });
-  fireEvent.pointerUp(track, { pointerId: 1, clientX: 200, clientY: 100 });
+  fireEvent.mouseDown(track, { button: 0, clientX: 500, clientY: 100 });
+  fireEvent.mouseMove(window, { clientX: 480, clientY: 100 });
+  fireEvent.mouseMove(window, { clientX: 200, clientY: 100 });
+  fireEvent.mouseUp(window, { clientX: 200, clientY: 100 });
+}
+
+function touchSwipeLeft(track: HTMLElement, width = 600) {
+  Object.defineProperty(track, "clientWidth", {
+    configurable: true,
+    value: width,
+  });
+  fireEvent.touchStart(track, {
+    touches: [{ clientX: 500, clientY: 100 }],
+    changedTouches: [{ clientX: 500, clientY: 100 }],
+  });
+  fireEvent.touchMove(track, {
+    touches: [{ clientX: 480, clientY: 100 }],
+    changedTouches: [{ clientX: 480, clientY: 100 }],
+  });
+  fireEvent.touchMove(track, {
+    touches: [{ clientX: 200, clientY: 100 }],
+    changedTouches: [{ clientX: 200, clientY: 100 }],
+  });
+  fireEvent.touchEnd(track, { changedTouches: [{ clientX: 200, clientY: 100 }] });
+}
+
+function renderDialog(file: FileResource, onNavigate: (file: FileResource) => void) {
+  const noop = () => {};
+  return (
+    <FilePreviewDialog
+      file={file}
+      files={files}
+      open
+      onOpenChange={noop}
+      isFavorite={false}
+      onToggleFavorite={noop}
+      onLogEvent={noop}
+      onNavigate={onNavigate}
+    />
+  );
 }
 
 describe("FilePreviewDialog swipe gestures (regression)", () => {
@@ -73,20 +98,8 @@ describe("FilePreviewDialog swipe gestures (regression)", () => {
     vi.useFakeTimers();
     try {
       const onNavigate = vi.fn();
-      const noop = () => {};
 
-      const { rerender } = render(
-        <FilePreviewDialog
-          file={files[0]}
-          files={files}
-          open
-          onOpenChange={noop}
-          isFavorite={false}
-          onToggleFavorite={noop}
-          onLogEvent={noop}
-          onNavigate={onNavigate}
-        />,
-      );
+      const { rerender } = render(renderDialog(files[0], onNavigate));
 
       // --- First swipe: should navigate to files[1]
       let track = getTrack(document.body);
@@ -98,18 +111,7 @@ describe("FilePreviewDialog swipe gestures (regression)", () => {
       expect(onNavigate).toHaveBeenLastCalledWith(files[1]);
 
       // Parent commits the navigation
-      rerender(
-        <FilePreviewDialog
-          file={files[1]}
-          files={files}
-          open
-          onOpenChange={noop}
-          isFavorite={false}
-          onToggleFavorite={noop}
-          onLogEvent={noop}
-          onNavigate={onNavigate}
-        />,
-      );
+      rerender(renderDialog(files[1], onNavigate));
 
       // --- Second swipe: should ALSO navigate (regression check)
       track = getTrack(document.body);
@@ -121,31 +123,48 @@ describe("FilePreviewDialog swipe gestures (regression)", () => {
       expect(onNavigate).toHaveBeenLastCalledWith(files[2]);
 
       // Commit and try a third time (going back) to be thorough
-      rerender(
-        <FilePreviewDialog
-          file={files[2]}
-          files={files}
-          open
-          onOpenChange={noop}
-          isFavorite={false}
-          onToggleFavorite={noop}
-          onLogEvent={noop}
-          onNavigate={onNavigate}
-        />,
-      );
+      rerender(renderDialog(files[2], onNavigate));
 
       track = getTrack(document.body);
       // swipe right -> prev
       Object.defineProperty(track, "clientWidth", { configurable: true, value: 600 });
-      fireEvent.pointerDown(track, { pointerId: 2, clientX: 100, clientY: 100 });
-      fireEvent.pointerMove(track, { pointerId: 2, clientX: 130, clientY: 100 });
-      fireEvent.pointerMove(track, { pointerId: 2, clientX: 450, clientY: 100 });
-      fireEvent.pointerUp(track, { pointerId: 2, clientX: 450, clientY: 100 });
+      fireEvent.mouseDown(track, { button: 0, clientX: 100, clientY: 100 });
+      fireEvent.mouseMove(window, { clientX: 130, clientY: 100 });
+      fireEvent.mouseMove(window, { clientX: 450, clientY: 100 });
+      fireEvent.mouseUp(window, { clientX: 450, clientY: 100 });
       act(() => {
         vi.advanceTimersByTime(250);
       });
       expect(onNavigate).toHaveBeenCalledTimes(3);
       expect(onNavigate).toHaveBeenLastCalledWith(files[1]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("responds to repeated touch swipe gestures for tablets", () => {
+    vi.useFakeTimers();
+    try {
+      const onNavigate = vi.fn();
+      const { rerender } = render(renderDialog(files[0], onNavigate));
+
+      let track = getTrack(document.body);
+      touchSwipeLeft(track);
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(onNavigate).toHaveBeenCalledTimes(1);
+      expect(onNavigate).toHaveBeenLastCalledWith(files[1]);
+
+      rerender(renderDialog(files[1], onNavigate));
+
+      track = getTrack(document.body);
+      touchSwipeLeft(track);
+      act(() => {
+        vi.advanceTimersByTime(250);
+      });
+      expect(onNavigate).toHaveBeenCalledTimes(2);
+      expect(onNavigate).toHaveBeenLastCalledWith(files[2]);
     } finally {
       vi.useRealTimers();
     }
