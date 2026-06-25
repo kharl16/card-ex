@@ -247,9 +247,17 @@ export function ResourceItemEditor({
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Price (DP)">
-                  <Input
+                  <Textarea
+                    rows={4}
                     value={form.price_dp ?? ""}
                     onChange={(e) => update("price_dp", e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                      }
+                    }}
+                    placeholder={"Line 1\nShift+Enter for new line\nLine 3\nLine 4"}
+                    className="min-h-[112px] resize-y"
                   />
                 </Field>
                 <Field label="Price (SRP)">
