@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,57 +42,62 @@ export function FilePreviewDialog({
   // Phone-gallery style swipe: track drag, follow finger, snap with animation
   const trackRef = useRef<HTMLDivElement | null>(null);
   const dragStart = useRef<{ x: number; y: number; width: number; locked: boolean | null } | null>(null);
+  const mouseListeners = useRef<{ move: (event: MouseEvent) => void; up: (event: MouseEvent) => void } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [animating, setAnimating] = useState(false);
   const SWIPE_RATIO = 0.2; // 20% of width triggers navigation
   const SWIPE_VELOCITY_PX = 60;
+
+  const removeMouseListeners = useCallback(() => {
+    if (!mouseListeners.current) return;
+    window.removeEventListener("mousemove", mouseListeners.current.move);
+    window.removeEventListener("mouseup", mouseListeners.current.up);
+    mouseListeners.current = null;
+  }, []);
+
+  useEffect(() => removeMouseListeners, [removeMouseListeners]);
 
   // Reset drag whenever the active file changes
   useEffect(() => {
     setDragX(0);
     setAnimating(false);
     dragStart.current = null;
-  }, [file.id]);
+    removeMouseListeners();
+  }, [file.id, removeMouseListeners]);
 
-  const releaseCapture = (e: React.PointerEvent) => {
-    try {
-      const el = e.currentTarget as HTMLElement;
-      if (el.hasPointerCapture?.(e.pointerId)) el.releasePointerCapture(e.pointerId);
-    } catch {}
-  };
+  const isInteractiveTarget = (target: EventTarget | null) =>
+    target instanceof HTMLElement && Boolean(target.closest("button, a, [role='button']"));
 
-  const onPointerDown = (e: React.PointerEvent) => {
-    // Don't intercept clicks on interactive controls (arrow buttons, favorite, etc.)
-    if ((e.target as HTMLElement).closest("button, a, [role='button']")) return;
+  const beginSwipe = (x: number, y: number) => {
     // Cancel any in-flight animation so a new swipe can start immediately
     if (animating) {
       setAnimating(false);
       setDragX(0);
     }
     const width = trackRef.current?.clientWidth ?? window.innerWidth;
-    dragStart.current = { x: e.clientX, y: e.clientY, width, locked: null };
+    dragStart.current = { x, y, width, locked: null };
   };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragStart.current) return;
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
+
+  const updateSwipe = (x: number, y: number) => {
+    if (!dragStart.current) return false;
+    const dx = x - dragStart.current.x;
+    const dy = y - dragStart.current.y;
     // Lock axis after small movement so vertical scroll still works
     if (dragStart.current.locked === null) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      const horizontal = Math.abs(dx) > Math.abs(dy);
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return false;
+      const horizontal = Math.abs(dx) > Math.abs(dy) * 1.1;
       dragStart.current.locked = horizontal;
-      if (horizontal) {
-        try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch {}
-      }
     }
-    if (!dragStart.current.locked) return;
+    if (!dragStart.current.locked) return false;
     let next = dx;
     // Add rubber-band resistance at the ends
     if ((dx > 0 && !hasPrev) || (dx < 0 && !hasNext)) {
       next = dx * 0.25;
     }
     setDragX(next);
+    return true;
   };
+
   const finishSwipe = (dx: number, width: number) => {
     const threshold = width * SWIPE_RATIO;
     const goingNext = dx < 0 && hasNext && (Math.abs(dx) > threshold || dx < -SWIPE_VELOCITY_PX * 2);
@@ -109,22 +114,58 @@ export function FilePreviewDialog({
       window.setTimeout(() => setAnimating(false), 220);
     }
   };
-  const onPointerUp = (e: React.PointerEvent) => {
-    releaseCapture(e);
+
+  const endSwipe = (x: number) => {
     if (!dragStart.current) return;
-    const dx = e.clientX - dragStart.current.x;
+    const dx = x - dragStart.current.x;
     const width = dragStart.current.width;
     const locked = dragStart.current.locked;
     dragStart.current = null;
     if (locked) finishSwipe(dx, width);
     else setDragX(0);
   };
-  const onPointerCancel = (e: React.PointerEvent) => {
-    releaseCapture(e);
+
+  const cancelSwipe = () => {
+    removeMouseListeners();
     dragStart.current = null;
     setAnimating(true);
     setDragX(0);
     window.setTimeout(() => setAnimating(false), 220);
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0 || isInteractiveTarget(e.target)) return;
+    e.preventDefault();
+    removeMouseListeners();
+    beginSwipe(e.clientX, e.clientY);
+
+    const move = (event: MouseEvent) => {
+      if (updateSwipe(event.clientX, event.clientY)) event.preventDefault();
+    };
+    const up = (event: MouseEvent) => {
+      removeMouseListeners();
+      endSwipe(event.clientX);
+    };
+    mouseListeners.current = { move, up };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (isInteractiveTarget(e.target) || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    beginSwipe(touch.clientX, touch.clientY);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    if (updateSwipe(touch.clientX, touch.clientY)) e.preventDefault();
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const touch = e.changedTouches[0];
+    if (touch) endSwipe(touch.clientX);
   };
 
 
@@ -155,10 +196,11 @@ export function FilePreviewDialog({
         <div
           ref={trackRef}
           className="relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh] touch-pan-y cursor-grab active:cursor-grabbing"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerCancel}
+          onMouseDown={onMouseDown}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onTouchCancel={cancelSwipe}
         >
           {/* Sliding track: [prev][current][next] */}
           <div
