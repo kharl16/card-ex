@@ -252,12 +252,21 @@ export function ResourceItemEditor({
                     value={form.price_dp ?? ""}
                     onChange={(e) => update("price_dp", e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
+                      if (e.key === "Enter") {
                         e.preventDefault();
+                        e.stopPropagation();
+                        const ta = e.currentTarget;
+                        const start = ta.selectionStart ?? ta.value.length;
+                        const end = ta.selectionEnd ?? ta.value.length;
+                        const next = ta.value.slice(0, start) + "\n" + ta.value.slice(end);
+                        update("price_dp", next);
+                        requestAnimationFrame(() => {
+                          ta.selectionStart = ta.selectionEnd = start + 1;
+                        });
                       }
                     }}
-                    placeholder={"Line 1\nShift+Enter for new line\nLine 3\nLine 4"}
-                    className="min-h-[112px] resize-y"
+                    placeholder={"Line 1\nPress Enter for new line\nLine 3\nLine 4"}
+                    className="min-h-[112px] resize-y whitespace-pre-wrap"
                   />
                 </Field>
                 <Field label="Price (SRP)">
