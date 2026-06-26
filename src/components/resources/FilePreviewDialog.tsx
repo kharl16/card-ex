@@ -82,7 +82,7 @@ export function FilePreviewDialog({
     zoomRef.current = zoom;
   }, [zoom]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     animatingRef.current = animating;
   }, [animating]);
 
