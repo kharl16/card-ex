@@ -436,12 +436,19 @@ export function FilePreviewDialog({
     if (!f) return <div className="w-full h-full" />;
     if (f.images) {
       const scale = isCurrent ? zoom : 1;
+      const tx = isCurrent ? pan.x : 0;
+      const ty = isCurrent ? pan.y : 0;
+      const isPanning = isCurrent && (panStartRef.current?.active || pinchRef.current.active);
       return (
         <img
+          ref={isCurrent ? imgRef : undefined}
           src={f.images}
           alt={f.file_name}
-          className="w-full h-full object-contain max-h-[55vh] select-none pointer-events-none transition-transform duration-200"
-          style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
+          className={cn(
+            "w-full h-full object-contain max-h-[55vh] select-none pointer-events-none",
+            isPanning ? "" : "transition-transform duration-200"
+          )}
+          style={{ transform: `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`, transformOrigin: "center center" }}
           draggable={false}
           referrerPolicy="no-referrer"
         />
