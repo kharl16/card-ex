@@ -196,14 +196,16 @@ export function FilePreviewDialog({
 
 
 
-  const renderImage = (f: FileResource | null) => {
+  const renderImage = (f: FileResource | null, isCurrent = false) => {
     if (!f) return <div className="w-full h-full" />;
     if (f.images) {
+      const scale = isCurrent ? zoom : 1;
       return (
         <img
           src={f.images}
           alt={f.file_name}
-          className="w-full h-full object-contain max-h-[55vh] select-none pointer-events-none"
+          className="w-full h-full object-contain max-h-[55vh] select-none pointer-events-none transition-transform duration-200"
+          style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
           draggable={false}
           referrerPolicy="no-referrer"
         />
@@ -215,6 +217,7 @@ export function FilePreviewDialog({
       </div>
     );
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
