@@ -232,9 +232,9 @@ export function FilePreviewDialog({
         tapStartRef.current = null;
         return;
       }
-      if (zoomRef.current > 1.01 || e.touches.length !== 1) return;
       const t = e.touches[0];
       tapStartRef.current = { time: Date.now(), x: t.clientX, y: t.clientY };
+      if (zoomRef.current > 1.01 || e.touches.length !== 1) return;
       beginSwipe(t.clientX, t.clientY);
     };
     const onMove = (e: TouchEvent) => {
@@ -259,8 +259,9 @@ export function FilePreviewDialog({
       }
       const t = e.changedTouches[0];
       if (t) {
-        maybeHandleDoubleTap(t);
+        const wasSwipe = dragStart.current?.locked === true;
         endSwipe(t.clientX);
+        if (!wasSwipe) maybeHandleDoubleTap(t);
       }
     };
     const onWheel = (e: WheelEvent) => {
