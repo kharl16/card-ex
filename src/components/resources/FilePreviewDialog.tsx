@@ -343,23 +343,6 @@ export function FilePreviewDialog({
     window.addEventListener("mouseup", up);
   };
 
-  const onMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0 || isInteractiveTarget(e.target)) return;
-    e.preventDefault();
-    removeMouseListeners();
-    beginSwipe(e.clientX, e.clientY);
-
-    const move = (event: MouseEvent) => {
-      if (updateSwipe(event.clientX, event.clientY)) event.preventDefault();
-    };
-    const up = (event: MouseEvent) => {
-      removeMouseListeners();
-      endSwipe(event.clientX);
-    };
-    mouseListeners.current = { move, up };
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
-  };
 
   // Native pinch-to-zoom + single-finger swipe. Refs keep iOS Safari gestures
   // stable while zoom state changes during a continuous pinch.
