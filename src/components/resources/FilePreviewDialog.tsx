@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
+import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -156,36 +156,69 @@ export function FilePreviewDialog({
     window.addEventListener("mouseup", up);
   };
 
-  // Attach native non-passive touch listeners so preventDefault() reliably
-  // suppresses the browser's horizontal pan on tablets/phones (React's
-  // synthetic touch listeners are passive and cannot cancel the gesture).
+  // Native pinch-to-zoom + single-finger swipe.
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
+    const pinch = { active: false, startDist: 0, startZoom: 1 };
+    const distance = (t: TouchList) => {
+      const dx = t[0].clientX - t[1].clientX;
+      const dy = t[0].clientY - t[1].clientY;
+      return Math.hypot(dx, dy);
+    };
     const onStart = (e: TouchEvent) => {
-      if (zoom !== 1) return;
-      if (isInteractiveTarget(e.target) || e.touches.length !== 1) return;
+      if (isInteractiveTarget(e.target)) return;
+      if (e.touches.length === 2) {
+        pinch.active = true;
+        pinch.startDist = distance(e.touches);
+        pinch.startZoom = zoom;
+        dragStart.current = null;
+        return;
+      }
+      if (zoom !== 1 || e.touches.length !== 1) return;
       const t = e.touches[0];
       beginSwipe(t.clientX, t.clientY);
     };
     const onMove = (e: TouchEvent) => {
+      if (pinch.active && e.touches.length === 2) {
+        e.preventDefault();
+        const ratio = distance(e.touches) / (pinch.startDist || 1);
+        const next = Math.min(4, Math.max(1, pinch.startZoom * ratio));
+        setZoom(+next.toFixed(3));
+        return;
+      }
       if (zoom !== 1 || e.touches.length !== 1) return;
       const t = e.touches[0];
       if (updateSwipe(t.clientX, t.clientY)) e.preventDefault();
     };
     const onEnd = (e: TouchEvent) => {
+      if (pinch.active) {
+        if (e.touches.length < 2) pinch.active = false;
+        return;
+      }
       const t = e.changedTouches[0];
       if (t) endSwipe(t.clientX);
     };
+    const onWheel = (e: WheelEvent) => {
+      // Trackpad pinch gestures arrive as wheel events with ctrlKey
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      setZoom((z) => +Math.min(4, Math.max(1, z - e.deltaY * 0.01)).toFixed(3));
+    };
+    const onDblClick = () => setZoom((z) => (z > 1 ? 1 : 2));
     el.addEventListener("touchstart", onStart, { passive: true });
     el.addEventListener("touchmove", onMove, { passive: false });
     el.addEventListener("touchend", onEnd, { passive: true });
     el.addEventListener("touchcancel", cancelSwipe, { passive: true });
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("dblclick", onDblClick);
     return () => {
       el.removeEventListener("touchstart", onStart);
       el.removeEventListener("touchmove", onMove);
       el.removeEventListener("touchend", onEnd);
       el.removeEventListener("touchcancel", cancelSwipe);
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("dblclick", onDblClick);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zoom, file.id, hasPrev, hasNext]);
@@ -251,29 +284,8 @@ export function FilePreviewDialog({
             </div>
           </div>
 
-          {/* Zoom controls */}
-          {file.images && (
-            <div className="absolute left-2 top-2 z-10 flex gap-1.5">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
-                onClick={() => setZoom((z) => Math.min(3, +(z + 0.5).toFixed(2)))}
-                aria-label="Zoom in"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
-                onClick={() => setZoom((z) => Math.max(1, +(z - 0.5).toFixed(2)))}
-                aria-label="Zoom out"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+
+
 
 
           {/* Nav arrows */}
