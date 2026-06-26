@@ -50,6 +50,10 @@ export function FilePreviewDialog({
   const [dragX, setDragX] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const panRef = useRef({ x: 0, y: 0 });
+  const panStartRef = useRef<{ x: number; y: number; panX: number; panY: number; active: boolean } | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
   const zoomRef = useRef(1);
   const animatingRef = useRef(false);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
@@ -60,6 +64,20 @@ export function FilePreviewDialog({
   const SWIPE_VELOCITY_PX = 60;
   const DOUBLE_TAP_MS = 320;
   const TAP_MOVE_TOLERANCE = 24;
+
+  const clampPan = useCallback((x: number, y: number, z: number) => {
+    const el = trackRef.current;
+    const img = imgRef.current;
+    if (!el || !img || z <= 1.01) return { x: 0, y: 0 };
+    const rect = img.getBoundingClientRect();
+    // rect already reflects current scale via CSS transform on the rendered img
+    const maxX = Math.max(0, (rect.width - el.clientWidth) / 2);
+    const maxY = Math.max(0, (rect.height - el.clientHeight) / 2);
+    return {
+      x: Math.min(maxX, Math.max(-maxX, x)),
+      y: Math.min(maxY, Math.max(-maxY, y)),
+    };
+  }, []);
 
   const clampZoom = (value: number) => +Math.min(4, Math.max(1, value)).toFixed(3);
   const commitZoom = useCallback((value: number | ((current: number) => number)) => {
