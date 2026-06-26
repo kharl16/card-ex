@@ -54,6 +54,8 @@ export function FilePreviewDialog({
   const animatingRef = useRef(false);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const tapStartRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const touchHandledEvents = useRef<WeakSet<Event>>(new WeakSet());
+  const pinchRef = useRef({ active: false, startDist: 0, startZoom: 1 });
   const SWIPE_RATIO = 0.2; // 20% of width triggers navigation
   const SWIPE_VELOCITY_PX = 60;
   const DOUBLE_TAP_MS = 320;
@@ -168,6 +170,80 @@ export function FilePreviewDialog({
     commitZoom(1);
   }, [commitZoom]);
 
+  const distanceBetweenTouches = (touches: TouchList | React.TouchList) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.hypot(dx, dy);
+  };
+
+  const maybeHandleDoubleTap = useCallback((touch: Pick<Touch, "clientX" | "clientY">) => {
+    const start = tapStartRef.current;
+    tapStartRef.current = null;
+    if (!start) return;
+    const moved = Math.hypot(touch.clientX - start.x, touch.clientY - start.y);
+    const elapsed = Date.now() - start.time;
+    if (moved > TAP_MOVE_TOLERANCE || elapsed > 360) return;
+
+    const previous = lastTapRef.current;
+    const current = { time: Date.now(), x: touch.clientX, y: touch.clientY };
+    if (
+      previous &&
+      current.time - previous.time <= DOUBLE_TAP_MS &&
+      Math.hypot(current.x - previous.x, current.y - previous.y) <= TAP_MOVE_TOLERANCE * 1.5
+    ) {
+      lastTapRef.current = null;
+      dragStart.current = null;
+      setDragX(0);
+      resetZoomToActualSize();
+    } else {
+      lastTapRef.current = current;
+    }
+  }, [resetZoomToActualSize]);
+
+  const handleTouchStartCore = useCallback((touches: TouchList | React.TouchList, target: EventTarget | null) => {
+    if (isInteractiveTarget(target) || touches.length === 0) return false;
+    if (touches.length === 2) {
+      pinchRef.current.active = true;
+      pinchRef.current.startDist = distanceBetweenTouches(touches);
+      pinchRef.current.startZoom = zoomRef.current;
+      dragStart.current = null;
+      tapStartRef.current = null;
+      return true;
+    }
+    const t = touches[0];
+    tapStartRef.current = { time: Date.now(), x: t.clientX, y: t.clientY };
+    if (zoomRef.current > 1.01 || touches.length !== 1) return false;
+    beginSwipe(t.clientX, t.clientY);
+    return false;
+  }, []);
+
+  const handleTouchMoveCore = useCallback((touches: TouchList | React.TouchList) => {
+    if (pinchRef.current.active && touches.length === 2) {
+      const ratio = distanceBetweenTouches(touches) / (pinchRef.current.startDist || 1);
+      commitZoom(pinchRef.current.startZoom * ratio);
+      return true;
+    }
+    if (zoomRef.current > 1.01 || touches.length !== 1) return false;
+    const t = touches[0];
+    if (tapStartRef.current) {
+      const moved = Math.hypot(t.clientX - tapStartRef.current.x, t.clientY - tapStartRef.current.y);
+      if (moved > TAP_MOVE_TOLERANCE) tapStartRef.current = null;
+    }
+    return updateSwipe(t.clientX, t.clientY);
+  }, [commitZoom]);
+
+  const handleTouchEndCore = useCallback((touches: TouchList | React.TouchList, changedTouches: TouchList | React.TouchList) => {
+    if (pinchRef.current.active) {
+      if (touches.length < 2) pinchRef.current.active = false;
+      return;
+    }
+    const t = changedTouches[0];
+    if (!t) return;
+    const wasSwipe = dragStart.current?.locked === true;
+    endSwipe(t.clientX);
+    if (!wasSwipe) maybeHandleDoubleTap(t);
+  }, [maybeHandleDoubleTap]);
+
   const onMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0 || isInteractiveTarget(e.target)) return;
     e.preventDefault();
@@ -191,78 +267,18 @@ export function FilePreviewDialog({
   useLayoutEffect(() => {
     const el = trackRef.current;
     if (!el) return;
-    const pinch = { active: false, startDist: 0, startZoom: 1 };
     const safariGesture = { active: false, startZoom: 1 };
-    const distance = (t: TouchList) => {
-      const dx = t[0].clientX - t[1].clientX;
-      const dy = t[0].clientY - t[1].clientY;
-      return Math.hypot(dx, dy);
-    };
-    const maybeHandleDoubleTap = (touch: Touch) => {
-      const start = tapStartRef.current;
-      tapStartRef.current = null;
-      if (!start) return;
-      const moved = Math.hypot(touch.clientX - start.x, touch.clientY - start.y);
-      const elapsed = Date.now() - start.time;
-      if (moved > TAP_MOVE_TOLERANCE || elapsed > 360) return;
-
-      const previous = lastTapRef.current;
-      const current = { time: Date.now(), x: touch.clientX, y: touch.clientY };
-      if (
-        previous &&
-        current.time - previous.time <= DOUBLE_TAP_MS &&
-        Math.hypot(current.x - previous.x, current.y - previous.y) <= TAP_MOVE_TOLERANCE * 1.5
-      ) {
-        lastTapRef.current = null;
-        dragStart.current = null;
-        setDragX(0);
-        resetZoomToActualSize();
-      } else {
-        lastTapRef.current = current;
-      }
-    };
     const onStart = (e: TouchEvent) => {
-      if (isInteractiveTarget(e.target)) return;
-      if (e.touches.length === 2) {
-        e.preventDefault();
-        pinch.active = true;
-        pinch.startDist = distance(e.touches);
-        pinch.startZoom = zoomRef.current;
-        dragStart.current = null;
-        tapStartRef.current = null;
-        return;
-      }
-      const t = e.touches[0];
-      tapStartRef.current = { time: Date.now(), x: t.clientX, y: t.clientY };
-      if (zoomRef.current > 1.01 || e.touches.length !== 1) return;
-      beginSwipe(t.clientX, t.clientY);
+      touchHandledEvents.current.add(e);
+      if (handleTouchStartCore(e.touches, e.target)) e.preventDefault();
     };
     const onMove = (e: TouchEvent) => {
-      if (pinch.active && e.touches.length === 2) {
-        e.preventDefault();
-        const ratio = distance(e.touches) / (pinch.startDist || 1);
-        commitZoom(pinch.startZoom * ratio);
-        return;
-      }
-      if (zoomRef.current > 1.01 || e.touches.length !== 1) return;
-      const t = e.touches[0];
-      if (tapStartRef.current) {
-        const moved = Math.hypot(t.clientX - tapStartRef.current.x, t.clientY - tapStartRef.current.y);
-        if (moved > TAP_MOVE_TOLERANCE) tapStartRef.current = null;
-      }
-      if (updateSwipe(t.clientX, t.clientY)) e.preventDefault();
+      touchHandledEvents.current.add(e);
+      if (handleTouchMoveCore(e.touches)) e.preventDefault();
     };
     const onEnd = (e: TouchEvent) => {
-      if (pinch.active) {
-        if (e.touches.length < 2) pinch.active = false;
-        return;
-      }
-      const t = e.changedTouches[0];
-      if (t) {
-        const wasSwipe = dragStart.current?.locked === true;
-        endSwipe(t.clientX);
-        if (!wasSwipe) maybeHandleDoubleTap(t);
-      }
+      touchHandledEvents.current.add(e);
+      handleTouchEndCore(e.touches, e.changedTouches);
     };
     const onWheel = (e: WheelEvent) => {
       // Trackpad pinch gestures arrive as wheel events with ctrlKey
@@ -309,7 +325,22 @@ export function FilePreviewDialog({
       el.removeEventListener("gestureend", onGestureEnd);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [file.id, hasPrev, hasNext, commitZoom, resetZoomToActualSize]);
+  }, [file.id, hasPrev, hasNext, commitZoom, resetZoomToActualSize, handleTouchStartCore, handleTouchMoveCore, handleTouchEndCore]);
+
+  const onReactTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchHandledEvents.current.has(e.nativeEvent)) return;
+    if (handleTouchStartCore(e.touches, e.target) && e.cancelable) e.preventDefault();
+  };
+
+  const onReactTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchHandledEvents.current.has(e.nativeEvent)) return;
+    if (handleTouchMoveCore(e.touches) && e.cancelable) e.preventDefault();
+  };
+
+  const onReactTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchHandledEvents.current.has(e.nativeEvent)) return;
+    handleTouchEndCore(e.touches, e.changedTouches);
+  };
 
   // Reset zoom whenever the previewed file changes
   useEffect(() => { commitZoom(1); }, [file.id, commitZoom]);
@@ -353,6 +384,9 @@ export function FilePreviewDialog({
             !isZoomed ? "touch-pan-y cursor-grab active:cursor-grabbing" : "touch-none cursor-zoom-out"
           )}
           onMouseDown={onMouseDown}
+          onTouchStart={onReactTouchStart}
+          onTouchMove={onReactTouchMove}
+          onTouchEnd={onReactTouchEnd}
           style={{ touchAction: isZoomed ? "none" : "pan-y" }}
         >
           {/* Sliding track: [prev][current][next] */}
