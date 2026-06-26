@@ -50,6 +50,10 @@ export function FilePreviewDialog({
   const [dragX, setDragX] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const panRef = useRef({ x: 0, y: 0 });
+  const panStartRef = useRef<{ x: number; y: number; panX: number; panY: number; active: boolean } | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
   const zoomRef = useRef(1);
   const animatingRef = useRef(false);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
@@ -61,15 +65,40 @@ export function FilePreviewDialog({
   const DOUBLE_TAP_MS = 320;
   const TAP_MOVE_TOLERANCE = 24;
 
+  const clampPan = useCallback((x: number, y: number, z: number) => {
+    const el = trackRef.current;
+    const img = imgRef.current;
+    if (!el || !img || z <= 1.01) return { x: 0, y: 0 };
+    const rect = img.getBoundingClientRect();
+    // rect already reflects current scale via CSS transform on the rendered img
+    const maxX = Math.max(0, (rect.width - el.clientWidth) / 2);
+    const maxY = Math.max(0, (rect.height - el.clientHeight) / 2);
+    return {
+      x: Math.min(maxX, Math.max(-maxX, x)),
+      y: Math.min(maxY, Math.max(-maxY, y)),
+    };
+  }, []);
+
   const clampZoom = (value: number) => +Math.min(4, Math.max(1, value)).toFixed(3);
   const commitZoom = useCallback((value: number | ((current: number) => number)) => {
     setZoom((current) => {
       const raw = typeof value === "function" ? value(current) : value;
       const next = clampZoom(raw);
       zoomRef.current = next;
+      if (next <= 1.01) {
+        panRef.current = { x: 0, y: 0 };
+        setPan({ x: 0, y: 0 });
+      } else {
+        // Re-clamp existing pan to new zoom bounds on next frame
+        requestAnimationFrame(() => {
+          const clamped = clampPan(panRef.current.x, panRef.current.y, next);
+          panRef.current = clamped;
+          setPan(clamped);
+        });
+      }
       return next;
     });
-  }, []);
+  }, [clampPan]);
 
   const removeMouseListeners = useCallback(() => {
     if (!mouseListeners.current) return;
@@ -88,14 +117,47 @@ export function FilePreviewDialog({
     animatingRef.current = animating;
   }, [animating]);
 
-  // Reset drag whenever the active file changes
+  // Reset drag/pan whenever the active file changes
   useEffect(() => {
     setDragX(0);
     setAnimating(false);
     animatingRef.current = false;
     dragStart.current = null;
+    panStartRef.current = null;
+    panRef.current = { x: 0, y: 0 };
+    setPan({ x: 0, y: 0 });
     removeMouseListeners();
   }, [file.id, removeMouseListeners]);
+
+  const beginPan = (x: number, y: number) => {
+    panStartRef.current = {
+      x, y,
+      panX: panRef.current.x,
+      panY: panRef.current.y,
+      active: false,
+    };
+  };
+
+  const updatePan = (x: number, y: number) => {
+    const start = panStartRef.current;
+    if (!start) return false;
+    const dx = x - start.x;
+    const dy = y - start.y;
+    if (!start.active) {
+      if (Math.hypot(dx, dy) < 4) return false;
+      start.active = true;
+    }
+    const next = clampPan(start.panX + dx, start.panY + dy, zoomRef.current);
+    panRef.current = next;
+    setPan(next);
+    return true;
+  };
+
+  const endPan = () => {
+    const wasActive = panStartRef.current?.active === true;
+    panStartRef.current = null;
+    return wasActive;
+  };
 
   const isInteractiveTarget = (target: EventTarget | null) =>
     target instanceof HTMLElement && Boolean(target.closest("button, a, [role='button']"));
@@ -207,12 +269,17 @@ export function FilePreviewDialog({
       pinchRef.current.startDist = distanceBetweenTouches(touches);
       pinchRef.current.startZoom = zoomRef.current;
       dragStart.current = null;
+      panStartRef.current = null;
       tapStartRef.current = null;
       return true;
     }
     const t = touches[0];
     tapStartRef.current = { time: Date.now(), x: t.clientX, y: t.clientY };
-    if (zoomRef.current > 1.01 || touches.length !== 1) return false;
+    if (touches.length !== 1) return false;
+    if (zoomRef.current > 1.01) {
+      beginPan(t.clientX, t.clientY);
+      return false;
+    }
     beginSwipe(t.clientX, t.clientY);
     return false;
   };
@@ -223,11 +290,14 @@ export function FilePreviewDialog({
       commitZoom(pinchRef.current.startZoom * ratio);
       return true;
     }
-    if (zoomRef.current > 1.01 || touches.length !== 1) return false;
+    if (touches.length !== 1) return false;
     const t = touches[0];
     if (tapStartRef.current) {
       const moved = Math.hypot(t.clientX - tapStartRef.current.x, t.clientY - tapStartRef.current.y);
       if (moved > TAP_MOVE_TOLERANCE) tapStartRef.current = null;
+    }
+    if (panStartRef.current) {
+      return updatePan(t.clientX, t.clientY);
     }
     return updateSwipe(t.clientX, t.clientY);
   };
@@ -240,27 +310,39 @@ export function FilePreviewDialog({
     const t = changedTouches[0];
     if (!t) return;
     const wasSwipe = dragStart.current?.locked === true;
+    const wasPan = endPan();
     endSwipe(t.clientX);
-    if (!wasSwipe) maybeHandleDoubleTap(t);
+    if (!wasSwipe && !wasPan) maybeHandleDoubleTap(t);
   };
 
   const onMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0 || isInteractiveTarget(e.target)) return;
     e.preventDefault();
     removeMouseListeners();
-    beginSwipe(e.clientX, e.clientY);
+    const zoomed = zoomRef.current > 1.01;
+    if (zoomed) {
+      beginPan(e.clientX, e.clientY);
+    } else {
+      beginSwipe(e.clientX, e.clientY);
+    }
 
     const move = (event: MouseEvent) => {
-      if (updateSwipe(event.clientX, event.clientY)) event.preventDefault();
+      if (panStartRef.current) {
+        if (updatePan(event.clientX, event.clientY)) event.preventDefault();
+      } else if (updateSwipe(event.clientX, event.clientY)) {
+        event.preventDefault();
+      }
     };
     const up = (event: MouseEvent) => {
       removeMouseListeners();
+      endPan();
       endSwipe(event.clientX);
     };
     mouseListeners.current = { move, up };
     window.addEventListener("mousemove", move);
     window.addEventListener("mouseup", up);
   };
+
 
   // Native pinch-to-zoom + single-finger swipe. Refs keep iOS Safari gestures
   // stable while zoom state changes during a continuous pinch.
@@ -354,12 +436,19 @@ export function FilePreviewDialog({
     if (!f) return <div className="w-full h-full" />;
     if (f.images) {
       const scale = isCurrent ? zoom : 1;
+      const tx = isCurrent ? pan.x : 0;
+      const ty = isCurrent ? pan.y : 0;
+      const isPanning = isCurrent && (panStartRef.current?.active || pinchRef.current.active);
       return (
         <img
+          ref={isCurrent ? imgRef : undefined}
           src={f.images}
           alt={f.file_name}
-          className="w-full h-full object-contain max-h-[55vh] select-none pointer-events-none transition-transform duration-200"
-          style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
+          className={cn(
+            "w-full h-full object-contain max-h-[55vh] select-none pointer-events-none",
+            isPanning ? "" : "transition-transform duration-200"
+          )}
+          style={{ transform: `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`, transformOrigin: "center center" }}
           draggable={false}
           referrerPolicy="no-referrer"
         />
@@ -381,7 +470,8 @@ export function FilePreviewDialog({
           ref={trackRef}
           className={cn(
             "relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh]",
-            !isZoomed ? "touch-pan-y cursor-grab active:cursor-grabbing" : "touch-none cursor-zoom-out"
+            "cursor-grab active:cursor-grabbing",
+            !isZoomed ? "touch-pan-y" : "touch-none"
           )}
           onMouseDown={onMouseDown}
           onTouchStart={onReactTouchStart}
