@@ -188,7 +188,7 @@ export function FilePreviewDialog({
 
   // Native pinch-to-zoom + single-finger swipe. Refs keep iOS Safari gestures
   // stable while zoom state changes during a continuous pinch.
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = trackRef.current;
     if (!el) return;
     const pinch = { active: false, startDist: 0, startZoom: 1 };
