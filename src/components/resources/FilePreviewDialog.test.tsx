@@ -77,6 +77,43 @@ function touchSwipeLeft(track: HTMLElement, width = 600) {
   fireEvent.touchEnd(track, { changedTouches: [{ clientX: 200, clientY: 100 }] });
 }
 
+function pinchZoom(track: HTMLElement) {
+  fireEvent.touchStart(track, {
+    touches: [
+      { clientX: 200, clientY: 100 },
+      { clientX: 260, clientY: 100 },
+    ],
+    changedTouches: [
+      { clientX: 200, clientY: 100 },
+      { clientX: 260, clientY: 100 },
+    ],
+  });
+  fireEvent.touchMove(track, {
+    touches: [
+      { clientX: 170, clientY: 100 },
+      { clientX: 290, clientY: 100 },
+    ],
+    changedTouches: [
+      { clientX: 170, clientY: 100 },
+      { clientX: 290, clientY: 100 },
+    ],
+  });
+  fireEvent.touchEnd(track, { changedTouches: [{ clientX: 170, clientY: 100 }] });
+}
+
+function doubleTap(track: HTMLElement) {
+  fireEvent.touchStart(track, {
+    touches: [{ clientX: 250, clientY: 150 }],
+    changedTouches: [{ clientX: 250, clientY: 150 }],
+  });
+  fireEvent.touchEnd(track, { changedTouches: [{ clientX: 250, clientY: 150 }] });
+  fireEvent.touchStart(track, {
+    touches: [{ clientX: 252, clientY: 150 }],
+    changedTouches: [{ clientX: 252, clientY: 150 }],
+  });
+  fireEvent.touchEnd(track, { changedTouches: [{ clientX: 252, clientY: 150 }] });
+}
+
 function renderDialog(file: FileResource, onNavigate: (file: FileResource) => void) {
   const noop = () => {};
   return (
@@ -168,5 +205,19 @@ describe("FilePreviewDialog swipe gestures (regression)", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("resets pinch zoom to 100% with a double tap", () => {
+    const onNavigate = vi.fn();
+    render(renderDialog(files[0], onNavigate));
+
+    const track = getTrack(document.body);
+    const image = document.querySelector("img[alt='one']") as HTMLImageElement;
+
+    pinchZoom(track);
+    expect(image.style.transform).toBe("scale(2)");
+
+    doubleTap(track);
+    expect(image.style.transform).toBe("scale(1)");
   });
 });
