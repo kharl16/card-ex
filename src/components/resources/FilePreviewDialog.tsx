@@ -50,8 +50,24 @@ export function FilePreviewDialog({
   const [dragX, setDragX] = useState(0);
   const [animating, setAnimating] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const zoomRef = useRef(1);
+  const animatingRef = useRef(false);
+  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const tapStartRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const SWIPE_RATIO = 0.2; // 20% of width triggers navigation
   const SWIPE_VELOCITY_PX = 60;
+  const DOUBLE_TAP_MS = 320;
+  const TAP_MOVE_TOLERANCE = 24;
+
+  const clampZoom = (value: number) => +Math.min(4, Math.max(1, value)).toFixed(3);
+  const commitZoom = useCallback((value: number | ((current: number) => number)) => {
+    setZoom((current) => {
+      const raw = typeof value === "function" ? value(current) : value;
+      const next = clampZoom(raw);
+      zoomRef.current = next;
+      return next;
+    });
+  }, []);
 
   const removeMouseListeners = useCallback(() => {
     if (!mouseListeners.current) return;
@@ -62,10 +78,19 @@ export function FilePreviewDialog({
 
   useEffect(() => removeMouseListeners, [removeMouseListeners]);
 
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+
+  useEffect(() => {
+    animatingRef.current = animating;
+  }, [animating]);
+
   // Reset drag whenever the active file changes
   useEffect(() => {
     setDragX(0);
     setAnimating(false);
+    animatingRef.current = false;
     dragStart.current = null;
     removeMouseListeners();
   }, [file.id, removeMouseListeners]);
@@ -75,8 +100,9 @@ export function FilePreviewDialog({
 
   const beginSwipe = (x: number, y: number) => {
     // Cancel any in-flight animation so a new swipe can start immediately
-    if (animating) {
+    if (animatingRef.current) {
       setAnimating(false);
+      animatingRef.current = false;
       setDragX(0);
     }
     const width = trackRef.current?.clientWidth ?? window.innerWidth;
@@ -138,6 +164,10 @@ export function FilePreviewDialog({
     window.setTimeout(() => setAnimating(false), 220);
   };
 
+  const resetZoomToActualSize = useCallback(() => {
+    commitZoom(1);
+  }, [commitZoom]);
+
   const onMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0 || isInteractiveTarget(e.target)) return;
     e.preventDefault();
@@ -156,39 +186,70 @@ export function FilePreviewDialog({
     window.addEventListener("mouseup", up);
   };
 
-  // Native pinch-to-zoom + single-finger swipe.
+  // Native pinch-to-zoom + single-finger swipe. Refs keep iOS Safari gestures
+  // stable while zoom state changes during a continuous pinch.
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
     const pinch = { active: false, startDist: 0, startZoom: 1 };
+    const safariGesture = { active: false, startZoom: 1 };
     const distance = (t: TouchList) => {
       const dx = t[0].clientX - t[1].clientX;
       const dy = t[0].clientY - t[1].clientY;
       return Math.hypot(dx, dy);
     };
+    const maybeHandleDoubleTap = (touch: Touch) => {
+      const start = tapStartRef.current;
+      tapStartRef.current = null;
+      if (!start) return;
+      const moved = Math.hypot(touch.clientX - start.x, touch.clientY - start.y);
+      const elapsed = Date.now() - start.time;
+      if (moved > TAP_MOVE_TOLERANCE || elapsed > 360) return;
+
+      const previous = lastTapRef.current;
+      const current = { time: Date.now(), x: touch.clientX, y: touch.clientY };
+      if (
+        previous &&
+        current.time - previous.time <= DOUBLE_TAP_MS &&
+        Math.hypot(current.x - previous.x, current.y - previous.y) <= TAP_MOVE_TOLERANCE * 1.5
+      ) {
+        lastTapRef.current = null;
+        dragStart.current = null;
+        setDragX(0);
+        resetZoomToActualSize();
+      } else {
+        lastTapRef.current = current;
+      }
+    };
     const onStart = (e: TouchEvent) => {
       if (isInteractiveTarget(e.target)) return;
       if (e.touches.length === 2) {
+        e.preventDefault();
         pinch.active = true;
         pinch.startDist = distance(e.touches);
-        pinch.startZoom = zoom;
+        pinch.startZoom = zoomRef.current;
         dragStart.current = null;
+        tapStartRef.current = null;
         return;
       }
-      if (zoom !== 1 || e.touches.length !== 1) return;
+      if (zoomRef.current > 1.01 || e.touches.length !== 1) return;
       const t = e.touches[0];
+      tapStartRef.current = { time: Date.now(), x: t.clientX, y: t.clientY };
       beginSwipe(t.clientX, t.clientY);
     };
     const onMove = (e: TouchEvent) => {
       if (pinch.active && e.touches.length === 2) {
         e.preventDefault();
         const ratio = distance(e.touches) / (pinch.startDist || 1);
-        const next = Math.min(4, Math.max(1, pinch.startZoom * ratio));
-        setZoom(+next.toFixed(3));
+        commitZoom(pinch.startZoom * ratio);
         return;
       }
-      if (zoom !== 1 || e.touches.length !== 1) return;
+      if (zoomRef.current > 1.01 || e.touches.length !== 1) return;
       const t = e.touches[0];
+      if (tapStartRef.current) {
+        const moved = Math.hypot(t.clientX - tapStartRef.current.x, t.clientY - tapStartRef.current.y);
+        if (moved > TAP_MOVE_TOLERANCE) tapStartRef.current = null;
+      }
       if (updateSwipe(t.clientX, t.clientY)) e.preventDefault();
     };
     const onEnd = (e: TouchEvent) => {
@@ -197,21 +258,44 @@ export function FilePreviewDialog({
         return;
       }
       const t = e.changedTouches[0];
-      if (t) endSwipe(t.clientX);
+      if (t) {
+        maybeHandleDoubleTap(t);
+        endSwipe(t.clientX);
+      }
     };
     const onWheel = (e: WheelEvent) => {
       // Trackpad pinch gestures arrive as wheel events with ctrlKey
       if (!e.ctrlKey) return;
       e.preventDefault();
-      setZoom((z) => +Math.min(4, Math.max(1, z - e.deltaY * 0.01)).toFixed(3));
+      commitZoom((z) => z - e.deltaY * 0.01);
     };
-    const onDblClick = () => setZoom((z) => (z > 1 ? 1 : 2));
-    el.addEventListener("touchstart", onStart, { passive: true });
+    const onDblClick = () => resetZoomToActualSize();
+    const onGestureStart = (e: Event) => {
+      e.preventDefault();
+      safariGesture.active = true;
+      safariGesture.startZoom = zoomRef.current;
+      dragStart.current = null;
+      tapStartRef.current = null;
+    };
+    const onGestureChange = (e: Event) => {
+      if (!safariGesture.active) return;
+      e.preventDefault();
+      const gesture = e as Event & { scale?: number };
+      commitZoom(safariGesture.startZoom * (gesture.scale ?? 1));
+    };
+    const onGestureEnd = (e: Event) => {
+      e.preventDefault();
+      safariGesture.active = false;
+    };
+    el.addEventListener("touchstart", onStart, { passive: false });
     el.addEventListener("touchmove", onMove, { passive: false });
     el.addEventListener("touchend", onEnd, { passive: true });
     el.addEventListener("touchcancel", cancelSwipe, { passive: true });
     el.addEventListener("wheel", onWheel, { passive: false });
     el.addEventListener("dblclick", onDblClick);
+    el.addEventListener("gesturestart", onGestureStart, { passive: false } as AddEventListenerOptions);
+    el.addEventListener("gesturechange", onGestureChange, { passive: false } as AddEventListenerOptions);
+    el.addEventListener("gestureend", onGestureEnd, { passive: false } as AddEventListenerOptions);
     return () => {
       el.removeEventListener("touchstart", onStart);
       el.removeEventListener("touchmove", onMove);
@@ -219,15 +303,20 @@ export function FilePreviewDialog({
       el.removeEventListener("touchcancel", cancelSwipe);
       el.removeEventListener("wheel", onWheel);
       el.removeEventListener("dblclick", onDblClick);
+      el.removeEventListener("gesturestart", onGestureStart);
+      el.removeEventListener("gesturechange", onGestureChange);
+      el.removeEventListener("gestureend", onGestureEnd);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zoom, file.id, hasPrev, hasNext]);
+  }, [file.id, hasPrev, hasNext, commitZoom, resetZoomToActualSize]);
 
   // Reset zoom whenever the previewed file changes
-  useEffect(() => { setZoom(1); }, [file.id]);
+  useEffect(() => { commitZoom(1); }, [file.id, commitZoom]);
 
 
 
+
+  const isZoomed = zoom > 1.01;
 
   const renderImage = (f: FileResource | null, isCurrent = false) => {
     if (!f) return <div className="w-full h-full" />;
@@ -260,9 +349,10 @@ export function FilePreviewDialog({
           ref={trackRef}
           className={cn(
             "relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh]",
-            zoom === 1 ? "touch-pan-y cursor-grab active:cursor-grabbing" : "touch-auto cursor-zoom-out"
+            !isZoomed ? "touch-pan-y cursor-grab active:cursor-grabbing" : "touch-none cursor-zoom-out"
           )}
           onMouseDown={onMouseDown}
+          style={{ touchAction: isZoomed ? "none" : "pan-y" }}
         >
           {/* Sliding track: [prev][current][next] */}
           <div
