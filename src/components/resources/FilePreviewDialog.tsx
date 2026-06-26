@@ -269,12 +269,17 @@ export function FilePreviewDialog({
       pinchRef.current.startDist = distanceBetweenTouches(touches);
       pinchRef.current.startZoom = zoomRef.current;
       dragStart.current = null;
+      panStartRef.current = null;
       tapStartRef.current = null;
       return true;
     }
     const t = touches[0];
     tapStartRef.current = { time: Date.now(), x: t.clientX, y: t.clientY };
-    if (zoomRef.current > 1.01 || touches.length !== 1) return false;
+    if (touches.length !== 1) return false;
+    if (zoomRef.current > 1.01) {
+      beginPan(t.clientX, t.clientY);
+      return false;
+    }
     beginSwipe(t.clientX, t.clientY);
     return false;
   };
@@ -285,11 +290,14 @@ export function FilePreviewDialog({
       commitZoom(pinchRef.current.startZoom * ratio);
       return true;
     }
-    if (zoomRef.current > 1.01 || touches.length !== 1) return false;
+    if (touches.length !== 1) return false;
     const t = touches[0];
     if (tapStartRef.current) {
       const moved = Math.hypot(t.clientX - tapStartRef.current.x, t.clientY - tapStartRef.current.y);
       if (moved > TAP_MOVE_TOLERANCE) tapStartRef.current = null;
+    }
+    if (panStartRef.current) {
+      return updatePan(t.clientX, t.clientY);
     }
     return updateSwipe(t.clientX, t.clientY);
   };
@@ -302,8 +310,37 @@ export function FilePreviewDialog({
     const t = changedTouches[0];
     if (!t) return;
     const wasSwipe = dragStart.current?.locked === true;
+    const wasPan = endPan();
     endSwipe(t.clientX);
-    if (!wasSwipe) maybeHandleDoubleTap(t);
+    if (!wasSwipe && !wasPan) maybeHandleDoubleTap(t);
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0 || isInteractiveTarget(e.target)) return;
+    e.preventDefault();
+    removeMouseListeners();
+    const zoomed = zoomRef.current > 1.01;
+    if (zoomed) {
+      beginPan(e.clientX, e.clientY);
+    } else {
+      beginSwipe(e.clientX, e.clientY);
+    }
+
+    const move = (event: MouseEvent) => {
+      if (panStartRef.current) {
+        if (updatePan(event.clientX, event.clientY)) event.preventDefault();
+      } else if (updateSwipe(event.clientX, event.clientY)) {
+        event.preventDefault();
+      }
+    };
+    const up = (event: MouseEvent) => {
+      removeMouseListeners();
+      endPan();
+      endSwipe(event.clientX);
+    };
+    mouseListeners.current = { move, up };
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", up);
   };
 
   const onMouseDown = (e: React.MouseEvent) => {
