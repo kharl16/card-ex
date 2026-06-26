@@ -69,7 +69,7 @@ export function FilePreviewDialog({
       zoomRef.current = next;
       return next;
     });
-  }, [beginSwipe]);
+  }, []);
 
   const removeMouseListeners = useCallback(() => {
     if (!mouseListeners.current) return;
@@ -168,7 +168,7 @@ export function FilePreviewDialog({
 
   const resetZoomToActualSize = useCallback(() => {
     commitZoom(1);
-  }, [commitZoom, updateSwipe]);
+  }, [commitZoom]);
 
   const distanceBetweenTouches = (touches: TouchList | React.TouchList) => {
     const dx = touches[0].clientX - touches[1].clientX;
@@ -200,7 +200,7 @@ export function FilePreviewDialog({
     }
   }, [resetZoomToActualSize]);
 
-  const handleTouchStartCore = useCallback((touches: TouchList | React.TouchList, target: EventTarget | null) => {
+  const handleTouchStartCore = (touches: TouchList | React.TouchList, target: EventTarget | null) => {
     if (isInteractiveTarget(target) || touches.length === 0) return false;
     if (touches.length === 2) {
       pinchRef.current.active = true;
@@ -215,9 +215,9 @@ export function FilePreviewDialog({
     if (zoomRef.current > 1.01 || touches.length !== 1) return false;
     beginSwipe(t.clientX, t.clientY);
     return false;
-  }, []);
+  };
 
-  const handleTouchMoveCore = useCallback((touches: TouchList | React.TouchList) => {
+  const handleTouchMoveCore = (touches: TouchList | React.TouchList) => {
     if (pinchRef.current.active && touches.length === 2) {
       const ratio = distanceBetweenTouches(touches) / (pinchRef.current.startDist || 1);
       commitZoom(pinchRef.current.startZoom * ratio);
@@ -230,9 +230,9 @@ export function FilePreviewDialog({
       if (moved > TAP_MOVE_TOLERANCE) tapStartRef.current = null;
     }
     return updateSwipe(t.clientX, t.clientY);
-  }, [commitZoom]);
+  };
 
-  const handleTouchEndCore = useCallback((touches: TouchList | React.TouchList, changedTouches: TouchList | React.TouchList) => {
+  const handleTouchEndCore = (touches: TouchList | React.TouchList, changedTouches: TouchList | React.TouchList) => {
     if (pinchRef.current.active) {
       if (touches.length < 2) pinchRef.current.active = false;
       return;
@@ -242,7 +242,7 @@ export function FilePreviewDialog({
     const wasSwipe = dragStart.current?.locked === true;
     endSwipe(t.clientX);
     if (!wasSwipe) maybeHandleDoubleTap(t);
-  }, [endSwipe, maybeHandleDoubleTap]);
+  };
 
   const onMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0 || isInteractiveTarget(e.target)) return;
