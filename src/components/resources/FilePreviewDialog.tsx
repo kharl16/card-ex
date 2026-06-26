@@ -69,7 +69,7 @@ export function FilePreviewDialog({
       zoomRef.current = next;
       return next;
     });
-  }, []);
+  }, [beginSwipe]);
 
   const removeMouseListeners = useCallback(() => {
     if (!mouseListeners.current) return;
@@ -168,7 +168,7 @@ export function FilePreviewDialog({
 
   const resetZoomToActualSize = useCallback(() => {
     commitZoom(1);
-  }, [commitZoom]);
+  }, [commitZoom, updateSwipe]);
 
   const distanceBetweenTouches = (touches: TouchList | React.TouchList) => {
     const dx = touches[0].clientX - touches[1].clientX;
@@ -242,7 +242,7 @@ export function FilePreviewDialog({
     const wasSwipe = dragStart.current?.locked === true;
     endSwipe(t.clientX);
     if (!wasSwipe) maybeHandleDoubleTap(t);
-  }, [maybeHandleDoubleTap]);
+  }, [endSwipe, maybeHandleDoubleTap]);
 
   const onMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0 || isInteractiveTarget(e.target)) return;
