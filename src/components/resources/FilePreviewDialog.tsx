@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
 import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -78,7 +78,7 @@ export function FilePreviewDialog({
 
   useEffect(() => removeMouseListeners, [removeMouseListeners]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     zoomRef.current = zoom;
   }, [zoom]);
 
