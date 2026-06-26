@@ -470,7 +470,8 @@ export function FilePreviewDialog({
           ref={trackRef}
           className={cn(
             "relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh]",
-            !isZoomed ? "touch-pan-y cursor-grab active:cursor-grabbing" : "touch-none cursor-zoom-out"
+            "cursor-grab active:cursor-grabbing",
+            !isZoomed ? "touch-pan-y" : "touch-none"
           )}
           onMouseDown={onMouseDown}
           onTouchStart={onReactTouchStart}
