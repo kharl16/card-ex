@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -49,6 +49,7 @@ export function FilePreviewDialog({
   const mouseListeners = useRef<{ move: (event: MouseEvent) => void; up: (event: MouseEvent) => void } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [animating, setAnimating] = useState(false);
+  const [zoom, setZoom] = useState(1);
   const SWIPE_RATIO = 0.2; // 20% of width triggers navigation
   const SWIPE_VELOCITY_PX = 60;
 
@@ -155,32 +156,56 @@ export function FilePreviewDialog({
     window.addEventListener("mouseup", up);
   };
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (isInteractiveTarget(e.target) || e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    beginSwipe(touch.clientX, touch.clientY);
-  };
+  // Attach native non-passive touch listeners so preventDefault() reliably
+  // suppresses the browser's horizontal pan on tablets/phones (React's
+  // synthetic touch listeners are passive and cannot cancel the gesture).
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const onStart = (e: TouchEvent) => {
+      if (zoom !== 1) return;
+      if (isInteractiveTarget(e.target) || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      beginSwipe(t.clientX, t.clientY);
+    };
+    const onMove = (e: TouchEvent) => {
+      if (zoom !== 1 || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      if (updateSwipe(t.clientX, t.clientY)) e.preventDefault();
+    };
+    const onEnd = (e: TouchEvent) => {
+      const t = e.changedTouches[0];
+      if (t) endSwipe(t.clientX);
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    el.addEventListener("touchcancel", cancelSwipe, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+      el.removeEventListener("touchcancel", cancelSwipe);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom, file.id, hasPrev, hasNext]);
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    if (updateSwipe(touch.clientX, touch.clientY)) e.preventDefault();
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    const touch = e.changedTouches[0];
-    if (touch) endSwipe(touch.clientX);
-  };
+  // Reset zoom whenever the previewed file changes
+  useEffect(() => { setZoom(1); }, [file.id]);
 
 
-  const renderImage = (f: FileResource | null) => {
+
+
+  const renderImage = (f: FileResource | null, isCurrent = false) => {
     if (!f) return <div className="w-full h-full" />;
     if (f.images) {
+      const scale = isCurrent ? zoom : 1;
       return (
         <img
           src={f.images}
           alt={f.file_name}
-          className="w-full h-full object-contain max-h-[55vh] select-none pointer-events-none"
+          className="w-full h-full object-contain max-h-[55vh] select-none pointer-events-none transition-transform duration-200"
+          style={{ transform: `scale(${scale})`, transformOrigin: "center center" }}
           draggable={false}
           referrerPolicy="no-referrer"
         />
@@ -193,18 +218,18 @@ export function FilePreviewDialog({
     );
   };
 
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 overflow-hidden bg-background border-border/30 shadow-2xl shadow-black/20 rounded-2xl">
         {/* Image area */}
         <div
           ref={trackRef}
-          className="relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh] touch-pan-y cursor-grab active:cursor-grabbing"
+          className={cn(
+            "relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh]",
+            zoom === 1 ? "touch-pan-y cursor-grab active:cursor-grabbing" : "touch-auto cursor-zoom-out"
+          )}
           onMouseDown={onMouseDown}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          onTouchCancel={cancelSwipe}
         >
           {/* Sliding track: [prev][current][next] */}
           <div
@@ -219,12 +244,37 @@ export function FilePreviewDialog({
               {renderImage(prevFile)}
             </div>
             <div className="w-1/3 flex items-center justify-center shrink-0">
-              {renderImage(file)}
+              {renderImage(file, true)}
             </div>
             <div className="w-1/3 flex items-center justify-center shrink-0">
               {renderImage(nextFile)}
             </div>
           </div>
+
+          {/* Zoom controls */}
+          {file.images && (
+            <div className="absolute left-2 top-2 z-10 flex gap-1.5">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
+                onClick={() => setZoom((z) => Math.min(3, +(z + 0.5).toFixed(2)))}
+                aria-label="Zoom in"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
+                onClick={() => setZoom((z) => Math.max(1, +(z - 0.5).toFixed(2)))}
+                aria-label="Zoom out"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
 
           {/* Nav arrows */}
           {hasPrev && (
