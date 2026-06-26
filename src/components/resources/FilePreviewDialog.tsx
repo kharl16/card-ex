@@ -85,9 +85,20 @@ export function FilePreviewDialog({
       const raw = typeof value === "function" ? value(current) : value;
       const next = clampZoom(raw);
       zoomRef.current = next;
+      if (next <= 1.01) {
+        panRef.current = { x: 0, y: 0 };
+        setPan({ x: 0, y: 0 });
+      } else {
+        // Re-clamp existing pan to new zoom bounds on next frame
+        requestAnimationFrame(() => {
+          const clamped = clampPan(panRef.current.x, panRef.current.y, next);
+          panRef.current = clamped;
+          setPan(clamped);
+        });
+      }
       return next;
     });
-  }, []);
+  }, [clampPan]);
 
   const removeMouseListeners = useCallback(() => {
     if (!mouseListeners.current) return;
