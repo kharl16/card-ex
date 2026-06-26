@@ -156,22 +156,44 @@ export function FilePreviewDialog({
     window.addEventListener("mouseup", up);
   };
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    if (isInteractiveTarget(e.target) || e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    beginSwipe(touch.clientX, touch.clientY);
-  };
+  // Attach native non-passive touch listeners so preventDefault() reliably
+  // suppresses the browser's horizontal pan on tablets/phones (React's
+  // synthetic touch listeners are passive and cannot cancel the gesture).
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const onStart = (e: TouchEvent) => {
+      if (zoom !== 1) return;
+      if (isInteractiveTarget(e.target) || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      beginSwipe(t.clientX, t.clientY);
+    };
+    const onMove = (e: TouchEvent) => {
+      if (zoom !== 1 || e.touches.length !== 1) return;
+      const t = e.touches[0];
+      if (updateSwipe(t.clientX, t.clientY)) e.preventDefault();
+    };
+    const onEnd = (e: TouchEvent) => {
+      const t = e.changedTouches[0];
+      if (t) endSwipe(t.clientX);
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd, { passive: true });
+    el.addEventListener("touchcancel", cancelSwipe, { passive: true });
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+      el.removeEventListener("touchcancel", cancelSwipe);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoom, file.id, hasPrev, hasNext]);
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    if (e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    if (updateSwipe(touch.clientX, touch.clientY)) e.preventDefault();
-  };
+  // Reset zoom whenever the previewed file changes
+  useEffect(() => { setZoom(1); }, [file.id]);
 
-  const onTouchEnd = (e: React.TouchEvent) => {
-    const touch = e.changedTouches[0];
-    if (touch) endSwipe(touch.clientX);
-  };
+
 
 
   const renderImage = (f: FileResource | null) => {
