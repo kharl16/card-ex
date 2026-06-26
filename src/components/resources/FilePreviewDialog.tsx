@@ -117,14 +117,47 @@ export function FilePreviewDialog({
     animatingRef.current = animating;
   }, [animating]);
 
-  // Reset drag whenever the active file changes
+  // Reset drag/pan whenever the active file changes
   useEffect(() => {
     setDragX(0);
     setAnimating(false);
     animatingRef.current = false;
     dragStart.current = null;
+    panStartRef.current = null;
+    panRef.current = { x: 0, y: 0 };
+    setPan({ x: 0, y: 0 });
     removeMouseListeners();
   }, [file.id, removeMouseListeners]);
+
+  const beginPan = (x: number, y: number) => {
+    panStartRef.current = {
+      x, y,
+      panX: panRef.current.x,
+      panY: panRef.current.y,
+      active: false,
+    };
+  };
+
+  const updatePan = (x: number, y: number) => {
+    const start = panStartRef.current;
+    if (!start) return false;
+    const dx = x - start.x;
+    const dy = y - start.y;
+    if (!start.active) {
+      if (Math.hypot(dx, dy) < 4) return false;
+      start.active = true;
+    }
+    const next = clampPan(start.panX + dx, start.panY + dy, zoomRef.current);
+    panRef.current = next;
+    setPan(next);
+    return true;
+  };
+
+  const endPan = () => {
+    const wasActive = panStartRef.current?.active === true;
+    panStartRef.current = null;
+    return wasActive;
+  };
 
   const isInteractiveTarget = (target: EventTarget | null) =>
     target instanceof HTMLElement && Boolean(target.closest("button, a, [role='button']"));
