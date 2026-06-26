@@ -49,6 +49,7 @@ export function FilePreviewDialog({
   const mouseListeners = useRef<{ move: (event: MouseEvent) => void; up: (event: MouseEvent) => void } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [animating, setAnimating] = useState(false);
+  const [zoom, setZoom] = useState(1);
   const SWIPE_RATIO = 0.2; // 20% of width triggers navigation
   const SWIPE_VELOCITY_PX = 60;
 
