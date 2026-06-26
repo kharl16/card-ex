@@ -225,12 +225,11 @@ export function FilePreviewDialog({
         {/* Image area */}
         <div
           ref={trackRef}
-          className="relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh] touch-pan-y cursor-grab active:cursor-grabbing"
+          className={cn(
+            "relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh]",
+            zoom === 1 ? "touch-pan-y cursor-grab active:cursor-grabbing" : "touch-auto cursor-zoom-out"
+          )}
           onMouseDown={onMouseDown}
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          onTouchCancel={cancelSwipe}
         >
           {/* Sliding track: [prev][current][next] */}
           <div
@@ -245,12 +244,37 @@ export function FilePreviewDialog({
               {renderImage(prevFile)}
             </div>
             <div className="w-1/3 flex items-center justify-center shrink-0">
-              {renderImage(file)}
+              {renderImage(file, true)}
             </div>
             <div className="w-1/3 flex items-center justify-center shrink-0">
               {renderImage(nextFile)}
             </div>
           </div>
+
+          {/* Zoom controls */}
+          {file.images && (
+            <div className="absolute left-2 top-2 z-10 flex gap-1.5">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
+                onClick={() => setZoom((z) => Math.min(3, +(z + 0.5).toFixed(2)))}
+                aria-label="Zoom in"
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
+                onClick={() => setZoom((z) => Math.max(1, +(z - 0.5).toFixed(2)))}
+                aria-label="Zoom out"
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
 
           {/* Nav arrows */}
           {hasPrev && (
