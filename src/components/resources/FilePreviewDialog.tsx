@@ -251,29 +251,8 @@ export function FilePreviewDialog({
             </div>
           </div>
 
-          {/* Zoom controls */}
-          {file.images && (
-            <div className="absolute left-2 top-2 z-10 flex gap-1.5">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
-                onClick={() => setZoom((z) => Math.min(3, +(z + 0.5).toFixed(2)))}
-                aria-label="Zoom in"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-9 w-9 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
-                onClick={() => setZoom((z) => Math.max(1, +(z - 0.5).toFixed(2)))}
-                aria-label="Zoom out"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-            </div>
-          )}
+
+
 
 
           {/* Nav arrows */}
