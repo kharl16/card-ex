@@ -445,16 +445,106 @@ function AdminResourcesContent() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Visibility</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>
+                      <div className="flex items-center gap-1">
+                        <span>Name</span>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <Filter className={`h-3 w-3 ${nameFilter ? "text-primary" : ""}`} />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2" align="start">
+                            <Input
+                              placeholder="Filter name..."
+                              value={nameFilter}
+                              onChange={(e) => setNameFilter(e.target.value)}
+                              className="h-8"
+                            />
+                            {nameFilter && (
+                              <Button variant="ghost" size="sm" className="mt-2 w-full h-7" onClick={() => setNameFilter("")}>Clear</Button>
+                            )}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </TableHead>
+                    {activeTab === "files" && (
+                      <TableHead>
+                        <div className="flex items-center gap-1">
+                          <span>Folder</span>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <Filter className={`h-3 w-3 ${folderFilter !== "__all" ? "text-primary" : ""}`} />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-2" align="start">
+                              <Select value={folderFilter} onValueChange={setFolderFilter}>
+                                <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__all">All folders</SelectItem>
+                                  {folderOptions.map((f) => (
+                                    <SelectItem key={f} value={f}>{f}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </TableHead>
+                    )}
+                    <TableHead>
+                      <div className="flex items-center gap-1">
+                        <span>Visibility</span>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <Filter className={`h-3 w-3 ${visibilityFilter !== "__all" ? "text-primary" : ""}`} />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-2" align="start">
+                            <Select value={visibilityFilter} onValueChange={setVisibilityFilter}>
+                              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__all">All</SelectItem>
+                                {visibilityOptions.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </TableHead>
+                    <TableHead>
+                      <div className="flex items-center gap-1">
+                        <span>Status</span>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <Filter className={`h-3 w-3 ${statusFilter !== "__all" ? "text-primary" : ""}`} />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-40 p-2" align="start">
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                              <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="__all">All</SelectItem>
+                                <SelectItem value="active">Active</SelectItem>
+                                <SelectItem value="inactive">Inactive</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </TableHead>
                     <TableHead className="w-[100px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredData.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={activeTab === "files" ? 5 : 4} className="text-center py-8 text-muted-foreground">
                         No records found
                       </TableCell>
                     </TableRow>
@@ -468,6 +558,11 @@ function AdminResourcesContent() {
                           {activeTab === "directory" && item.location}
                           {activeTab === "ways" && (item.content?.slice(0, 50) + "...")}
                         </TableCell>
+                        {activeTab === "files" && (
+                          <TableCell className="text-sm text-muted-foreground">
+                            {item.folder_name || <span className="italic opacity-60">—</span>}
+                          </TableCell>
+                        )}
                         <TableCell>
                           <Select
                             value={item.visibility_level || "public_members"}
