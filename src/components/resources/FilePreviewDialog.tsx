@@ -254,9 +254,19 @@ export function FilePreviewDialog({
     window.setTimeout(() => setAnimating(false), 220);
   };
 
+  const [resetAnim, setResetAnim] = useState(false);
+  const resetTimerRef = useRef<number | null>(null);
   const resetZoomToActualSize = useCallback(() => {
-    commitZoom(1);
+    if (zoomRef.current <= 1.01) return;
+    if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+    setResetAnim(true);
+    // Commit on next frame so the transition class is in place before transform changes
+    requestAnimationFrame(() => commitZoom(1));
+    resetTimerRef.current = window.setTimeout(() => setResetAnim(false), 360);
   }, [commitZoom]);
+  useEffect(() => () => {
+    if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+  }, []);
 
   const distanceBetweenTouches = (touches: TouchList | React.TouchList) => {
     const dx = touches[0].clientX - touches[1].clientX;
