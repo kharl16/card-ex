@@ -319,7 +319,7 @@ export function FilePreviewDialog({
     tapStartRef.current = { time: Date.now(), x: t.clientX, y: t.clientY };
     if (touches.length !== 1) return false;
     if (zoomRef.current > 1.01) {
-      beginPan(t.clientX, t.clientY);
+      // Single-pointer panning is handled uniformly via Pointer Events
       return false;
     }
     beginSwipe(t.clientX, t.clientY);
