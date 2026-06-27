@@ -59,20 +59,46 @@ export function FilePreviewDialog({
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const tapStartRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const touchHandledEvents = useRef<WeakSet<Event>>(new WeakSet());
-  const pinchRef = useRef({ active: false, startDist: 0, startZoom: 1 });
+  const pinchRef = useRef({
+    active: false,
+    startDist: 0,
+    startZoom: 1,
+    startMidX: 0,
+    startMidY: 0,
+    startPanX: 0,
+    startPanY: 0,
+  });
   const SWIPE_RATIO = 0.2; // 20% of width triggers navigation
   const SWIPE_VELOCITY_PX = 60;
   const DOUBLE_TAP_MS = 320;
   const TAP_MOVE_TOLERANCE = 24;
 
+  // Smart pan bounds: accounts for object-contain rendering so the image
+  // can't be panned past the visible content edges regardless of aspect ratio.
   const clampPan = useCallback((x: number, y: number, z: number) => {
     const el = trackRef.current;
     const img = imgRef.current;
     if (!el || !img || z <= 1.01) return { x: 0, y: 0 };
-    const rect = img.getBoundingClientRect();
-    // rect already reflects current scale via CSS transform on the rendered img
-    const maxX = Math.max(0, (rect.width - el.clientWidth) / 2);
-    const maxY = Math.max(0, (rect.height - el.clientHeight) / 2);
+    const cw = el.clientWidth;
+    const ch = el.clientHeight;
+    const nw = img.naturalWidth || cw;
+    const nh = img.naturalHeight || ch;
+    // Compute object-contain displayed size inside the container (at zoom = 1)
+    const containerRatio = cw / ch;
+    const imageRatio = nw / nh;
+    let baseW: number;
+    let baseH: number;
+    if (imageRatio > containerRatio) {
+      baseW = cw;
+      baseH = cw / imageRatio;
+    } else {
+      baseH = ch;
+      baseW = ch * imageRatio;
+    }
+    const displayedW = baseW * z;
+    const displayedH = baseH * z;
+    const maxX = Math.max(0, (displayedW - cw) / 2);
+    const maxY = Math.max(0, (displayedH - ch) / 2);
     return {
       x: Math.min(maxX, Math.max(-maxX, x)),
       y: Math.min(maxY, Math.max(-maxY, y)),
