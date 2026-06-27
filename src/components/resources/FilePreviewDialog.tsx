@@ -291,9 +291,15 @@ export function FilePreviewDialog({
   const handleTouchStartCore = (touches: TouchList | React.TouchList, target: EventTarget | null) => {
     if (isInteractiveTarget(target) || touches.length === 0) return false;
     if (touches.length === 2) {
+      const midX = (touches[0].clientX + touches[1].clientX) / 2;
+      const midY = (touches[0].clientY + touches[1].clientY) / 2;
       pinchRef.current.active = true;
       pinchRef.current.startDist = distanceBetweenTouches(touches);
       pinchRef.current.startZoom = zoomRef.current;
+      pinchRef.current.startMidX = midX;
+      pinchRef.current.startMidY = midY;
+      pinchRef.current.startPanX = panRef.current.x;
+      pinchRef.current.startPanY = panRef.current.y;
       dragStart.current = null;
       panStartRef.current = null;
       tapStartRef.current = null;
@@ -313,7 +319,26 @@ export function FilePreviewDialog({
   const handleTouchMoveCore = (touches: TouchList | React.TouchList) => {
     if (pinchRef.current.active && touches.length === 2) {
       const ratio = distanceBetweenTouches(touches) / (pinchRef.current.startDist || 1);
-      commitZoom(pinchRef.current.startZoom * ratio);
+      const nextZoom = clampZoom(pinchRef.current.startZoom * ratio);
+      // Two-finger pan: follow the midpoint translation
+      const midX = (touches[0].clientX + touches[1].clientX) / 2;
+      const midY = (touches[0].clientY + touches[1].clientY) / 2;
+      const dx = midX - pinchRef.current.startMidX;
+      const dy = midY - pinchRef.current.startMidY;
+      zoomRef.current = nextZoom;
+      setZoom(nextZoom);
+      if (nextZoom <= 1.01) {
+        panRef.current = { x: 0, y: 0 };
+        setPan({ x: 0, y: 0 });
+      } else {
+        const next = clampPan(
+          pinchRef.current.startPanX + dx,
+          pinchRef.current.startPanY + dy,
+          nextZoom,
+        );
+        panRef.current = next;
+        setPan(next);
+      }
       return true;
     }
     if (touches.length !== 1) return false;
