@@ -532,7 +532,9 @@ export function FilePreviewDialog({
           alt={f.file_name}
           className={cn(
             "w-full h-full object-contain max-h-[55vh] select-none pointer-events-none",
-            isPanning ? "" : "transition-transform duration-200"
+            isCurrent && resetAnim
+              ? "transition-transform duration-300 ease-out"
+              : isPanning ? "" : "transition-transform duration-200"
           )}
           style={{ transform: `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`, transformOrigin: "center center" }}
           draggable={false}
