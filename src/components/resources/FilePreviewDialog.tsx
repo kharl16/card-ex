@@ -376,33 +376,58 @@ export function FilePreviewDialog({
     if (!wasSwipe && !wasPan) maybeHandleDoubleTap(t);
   };
 
-  const onMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0 || isInteractiveTarget(e.target)) return;
-    e.preventDefault();
-    removeMouseListeners();
+  // Unified single-pointer handling (mouse, pen, touch) — used for panning
+  // while zoomed and for swiping when not zoomed. Pinch is still handled by
+  // the touch handlers above because Pointer Events arrive as separate streams.
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    if (isInteractiveTarget(e.target)) return;
+    // If a pinch is in progress (2 touches), let touch handlers manage it.
+    if (pinchRef.current.active) return;
     const zoomed = zoomRef.current > 1.01;
     if (zoomed) {
       beginPan(e.clientX, e.clientY);
-    } else {
+      try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch { /* noop */ }
+    } else if (e.pointerType !== "touch") {
+      // Touch swipe is still driven by the touch handler so it can axis-lock vs page scroll.
       beginSwipe(e.clientX, e.clientY);
+    } else {
+      return;
     }
 
-    const move = (event: MouseEvent) => {
+    const target = e.currentTarget;
+    const move = (event: PointerEvent) => {
+      if (event.pointerId !== e.pointerId) return;
+      if (pinchRef.current.active) return;
       if (panStartRef.current) {
         if (updatePan(event.clientX, event.clientY)) event.preventDefault();
       } else if (updateSwipe(event.clientX, event.clientY)) {
         event.preventDefault();
       }
     };
-    const up = (event: MouseEvent) => {
-      removeMouseListeners();
+    const cleanup = () => {
+      target.removeEventListener("pointermove", move);
+      target.removeEventListener("pointerup", up);
+      target.removeEventListener("pointercancel", cancel);
+      try { target.releasePointerCapture(e.pointerId); } catch { /* noop */ }
+    };
+    const up = (event: PointerEvent) => {
+      if (event.pointerId !== e.pointerId) return;
+      cleanup();
       endPan();
       endSwipe(event.clientX);
     };
-    mouseListeners.current = { move, up };
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
+    const cancel = (event: PointerEvent) => {
+      if (event.pointerId !== e.pointerId) return;
+      cleanup();
+      endPan();
+      cancelSwipe();
+    };
+    target.addEventListener("pointermove", move);
+    target.addEventListener("pointerup", up);
+    target.addEventListener("pointercancel", cancel);
   };
+
 
 
   // Native pinch-to-zoom + single-finger swipe. Refs keep iOS Safari gestures
