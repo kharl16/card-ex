@@ -559,7 +559,7 @@ export function FilePreviewDialog({
             "cursor-grab active:cursor-grabbing",
             !isZoomed ? "touch-pan-y" : "touch-none"
           )}
-          onMouseDown={onMouseDown}
+          onPointerDown={onPointerDown}
           onTouchStart={onReactTouchStart}
           onTouchMove={onReactTouchMove}
           onTouchEnd={onReactTouchEnd}
