@@ -59,20 +59,46 @@ export function FilePreviewDialog({
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const tapStartRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const touchHandledEvents = useRef<WeakSet<Event>>(new WeakSet());
-  const pinchRef = useRef({ active: false, startDist: 0, startZoom: 1 });
+  const pinchRef = useRef({
+    active: false,
+    startDist: 0,
+    startZoom: 1,
+    startMidX: 0,
+    startMidY: 0,
+    startPanX: 0,
+    startPanY: 0,
+  });
   const SWIPE_RATIO = 0.2; // 20% of width triggers navigation
   const SWIPE_VELOCITY_PX = 60;
   const DOUBLE_TAP_MS = 320;
   const TAP_MOVE_TOLERANCE = 24;
 
+  // Smart pan bounds: accounts for object-contain rendering so the image
+  // can't be panned past the visible content edges regardless of aspect ratio.
   const clampPan = useCallback((x: number, y: number, z: number) => {
     const el = trackRef.current;
     const img = imgRef.current;
     if (!el || !img || z <= 1.01) return { x: 0, y: 0 };
-    const rect = img.getBoundingClientRect();
-    // rect already reflects current scale via CSS transform on the rendered img
-    const maxX = Math.max(0, (rect.width - el.clientWidth) / 2);
-    const maxY = Math.max(0, (rect.height - el.clientHeight) / 2);
+    const cw = el.clientWidth;
+    const ch = el.clientHeight;
+    const nw = img.naturalWidth || cw;
+    const nh = img.naturalHeight || ch;
+    // Compute object-contain displayed size inside the container (at zoom = 1)
+    const containerRatio = cw / ch;
+    const imageRatio = nw / nh;
+    let baseW: number;
+    let baseH: number;
+    if (imageRatio > containerRatio) {
+      baseW = cw;
+      baseH = cw / imageRatio;
+    } else {
+      baseH = ch;
+      baseW = ch * imageRatio;
+    }
+    const displayedW = baseW * z;
+    const displayedH = baseH * z;
+    const maxX = Math.max(0, (displayedW - cw) / 2);
+    const maxY = Math.max(0, (displayedH - ch) / 2);
     return {
       x: Math.min(maxX, Math.max(-maxX, x)),
       y: Math.min(maxY, Math.max(-maxY, y)),
@@ -265,9 +291,15 @@ export function FilePreviewDialog({
   const handleTouchStartCore = (touches: TouchList | React.TouchList, target: EventTarget | null) => {
     if (isInteractiveTarget(target) || touches.length === 0) return false;
     if (touches.length === 2) {
+      const midX = (touches[0].clientX + touches[1].clientX) / 2;
+      const midY = (touches[0].clientY + touches[1].clientY) / 2;
       pinchRef.current.active = true;
       pinchRef.current.startDist = distanceBetweenTouches(touches);
       pinchRef.current.startZoom = zoomRef.current;
+      pinchRef.current.startMidX = midX;
+      pinchRef.current.startMidY = midY;
+      pinchRef.current.startPanX = panRef.current.x;
+      pinchRef.current.startPanY = panRef.current.y;
       dragStart.current = null;
       panStartRef.current = null;
       tapStartRef.current = null;
@@ -287,7 +319,26 @@ export function FilePreviewDialog({
   const handleTouchMoveCore = (touches: TouchList | React.TouchList) => {
     if (pinchRef.current.active && touches.length === 2) {
       const ratio = distanceBetweenTouches(touches) / (pinchRef.current.startDist || 1);
-      commitZoom(pinchRef.current.startZoom * ratio);
+      const nextZoom = clampZoom(pinchRef.current.startZoom * ratio);
+      // Two-finger pan: follow the midpoint translation
+      const midX = (touches[0].clientX + touches[1].clientX) / 2;
+      const midY = (touches[0].clientY + touches[1].clientY) / 2;
+      const dx = midX - pinchRef.current.startMidX;
+      const dy = midY - pinchRef.current.startMidY;
+      zoomRef.current = nextZoom;
+      setZoom(nextZoom);
+      if (nextZoom <= 1.01) {
+        panRef.current = { x: 0, y: 0 };
+        setPan({ x: 0, y: 0 });
+      } else {
+        const next = clampPan(
+          pinchRef.current.startPanX + dx,
+          pinchRef.current.startPanY + dy,
+          nextZoom,
+        );
+        panRef.current = next;
+        setPan(next);
+      }
       return true;
     }
     if (touches.length !== 1) return false;
