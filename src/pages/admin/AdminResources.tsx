@@ -288,26 +288,42 @@ function AdminResourcesContent() {
     return result;
   };
 
+  // Column filters
+  const [nameFilter, setNameFilter] = useState("");
+  const [folderFilter, setFolderFilter] = useState<string>("__all");
+  const [visibilityFilter, setVisibilityFilter] = useState<string>("__all");
+  const [statusFilter, setStatusFilter] = useState<string>("__all");
+
+  const folderOptions = useMemo(() => {
+    const set = new Set<string>();
+    (files as any[]).forEach((f) => { if (f.folder_name) set.add(f.folder_name); });
+    return Array.from(set).sort();
+  }, [files]);
+
   // Filter data
   const filteredData = currentData.filter((item: any) => {
     const searchLower = searchTerm.toLowerCase();
-    if (activeTab === "files") {
-      return item.file_name?.toLowerCase().includes(searchLower);
-    }
-    if (activeTab === "ambassadors") {
-      return item.endorser?.toLowerCase().includes(searchLower) || item.product_endorsed?.toLowerCase().includes(searchLower);
-    }
-    if (activeTab === "links") {
-      return item.name?.toLowerCase().includes(searchLower);
-    }
-    if (activeTab === "directory") {
-      return item.location?.toLowerCase().includes(searchLower);
-    }
-    if (activeTab === "ways") {
-      return item.content?.toLowerCase().includes(searchLower);
+    const nameLower = nameFilter.toLowerCase();
+    const getName = () => {
+      if (activeTab === "files") return item.file_name || "";
+      if (activeTab === "ambassadors") return `${item.endorser || ""} ${item.product_endorsed || ""}`;
+      if (activeTab === "links") return item.name || "";
+      if (activeTab === "directory") return item.location || "";
+      if (activeTab === "ways") return item.content || "";
+      return "";
+    };
+    const name = getName().toLowerCase();
+    if (searchLower && !name.includes(searchLower)) return false;
+    if (nameLower && !name.includes(nameLower)) return false;
+    if (activeTab === "files" && folderFilter !== "__all" && (item.folder_name || "") !== folderFilter) return false;
+    if (visibilityFilter !== "__all" && (item.visibility_level || "public_members") !== visibilityFilter) return false;
+    if (statusFilter !== "__all") {
+      const wantActive = statusFilter === "active";
+      if (!!item.is_active !== wantActive) return false;
     }
     return true;
   });
+
 
   if (roleLoading || dataLoading) {
     return (
