@@ -419,6 +419,7 @@ export default function Dashboard() {
         {/* Welcome + Quote */}
         <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
+          <GlobalSearch />
           <MotivationalQuote />
         </div>
 
