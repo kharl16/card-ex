@@ -17,12 +17,14 @@ import MindsetQuizSection from "@/components/tools/sections/MindsetQuizSection";
 import AffirmationsSection from "@/components/tools/sections/AffirmationsSection";
 import BookRecommendationsSection from "@/components/tools/sections/BookRecommendationsSection";
 import { Brain, Heart, GraduationCap, Sparkles, BookOpen } from "lucide-react";
+import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 
 export default function Tools() {
   const { tools, loading, error, categories, refetch, createTool, updateTool, deleteTool } = useTools();
   const { isAdmin } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  useSearchQueryParam(setSearchTerm);
 
   // Dialog states
   const [formDialogOpen, setFormDialogOpen] = useState(false);

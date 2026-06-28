@@ -11,12 +11,14 @@ import { Label } from "@/components/ui/label";
 import { ResourcesProvider } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
 import { AmbassadorCard } from "@/components/resources/AmbassadorCard";
+import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 
 function AmbassadorsPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string>("all");
   const [hasVideo, setHasVideo] = useState(false);
   const [sortBy, setSortBy] = useState<"endorser" | "product">("endorser");
+  useSearchQueryParam(setSearchTerm);
 
   const { ambassadors, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 

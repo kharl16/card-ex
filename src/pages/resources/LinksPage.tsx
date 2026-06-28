@@ -10,10 +10,12 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ResourcesProvider } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
+import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 
 function LinksPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  useSearchQueryParam(setSearchTerm);
 
   const { links, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 

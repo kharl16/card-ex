@@ -11,6 +11,7 @@ import { useResourceData } from "@/hooks/useResourceData";
 import { ResourceCard } from "@/components/resources/ResourceCard";
 import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
 import type { FileResource } from "@/types/resources";
+import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 
 function FilesPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -18,6 +19,7 @@ function FilesPageContent() {
   const [sortBy, setSortBy] = useState<"name" | "newest">("name");
   const [showFilters, setShowFilters] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
+  useSearchQueryParam(setSearchTerm);
 
   // Read folder from URL query param on mount
   useEffect(() => {

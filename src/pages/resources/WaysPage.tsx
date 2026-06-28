@@ -15,10 +15,12 @@ import {
 import { cn } from "@/lib/utils";
 import { ResourcesProvider } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
+import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 
 function WaysPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  useSearchQueryParam(setSearchTerm);
 
   const { ways, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 

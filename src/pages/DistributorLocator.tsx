@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
+import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 
 const DirectoryMapView = lazy(() => import("@/components/tools/sections/DirectoryMapView"));
 
@@ -81,6 +82,7 @@ export default function DistributorLocator() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [detailEntry, setDetailEntry] = useState<DirectoryEntry | null>(null);
+  useSearchQueryParam(setSearchTerm);
 
   useEffect(() => {
     (async () => {
