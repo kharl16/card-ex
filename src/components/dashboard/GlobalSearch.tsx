@@ -240,7 +240,7 @@ export function GlobalSearch() {
           if (!user) return [];
           const { data: cards } = await supabase
             .from("cards")
-            .select("id, name, title")
+            .select("id, full_name, title")
             .eq("user_id", user.id);
           const ids = (cards ?? []).map((c) => c.id);
           if (!ids.length) return [];
@@ -256,7 +256,7 @@ export function GlobalSearch() {
             return {
               id: `img-${r.id}`,
               section: "Gallery",
-              title: c?.name || c?.title || "Gallery image",
+              title: c?.full_name || c?.title || "Gallery image",
               subtitle: r.url,
               route: "/gallery",
             };
