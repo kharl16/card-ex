@@ -10,11 +10,13 @@ import { ResourcesProvider } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
 import { DirectoryCard } from "@/components/resources/DirectoryCard";
 import { cn } from "@/lib/utils";
+import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 
 function DirectoryPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSite, setSelectedSite] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"location" | "owner">("location");
+  useSearchQueryParam(setSearchTerm);
 
   const { directory, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
 
