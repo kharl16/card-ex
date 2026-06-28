@@ -52,6 +52,7 @@ import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
 import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
 import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
+import { GlobalSearch } from "@/components/dashboard/GlobalSearch";
 import { ProgressTracker } from "@/components/dashboard/ProgressTracker";
 import { ReferralEarningsBadge } from "@/components/referral/ReferralEarningsBadge";
 import { PendingReferralCommissions } from "@/components/referral/PendingReferralCommissions";
@@ -418,6 +419,7 @@ export default function Dashboard() {
         {/* Welcome + Quote */}
         <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
+          <GlobalSearch />
           <MotivationalQuote />
         </div>
 
