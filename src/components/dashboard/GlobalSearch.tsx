@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { cn } from "@/lib/utils";
+import { fuzzyScoreAny } from "@/lib/fuzzy";
 
 type Section = "Locator" | "Videos" | "Resources" | "Gallery" | "Tools";
 
@@ -26,6 +27,7 @@ interface Hit {
   title: string;
   subtitle?: string;
   route: string;
+  score?: number;
 }
 
 const SECTION_META: Record<Section, { icon: React.ComponentType<{ className?: string }>; color: string }> = {
@@ -35,6 +37,47 @@ const SECTION_META: Record<Section, { icon: React.ComponentType<{ className?: st
   Gallery: { icon: ImageIcon, color: "text-sky-400" },
   Tools: { icon: Wrench, color: "text-violet-400" },
 };
+
+// Built-in Tools page sections (not stored in the `tools` table).
+// `open` is forwarded as a URL param so Tools.tsx auto-opens the matching
+// collapsible.
+const BUILTIN_TOOLS: Array<{
+  open: string;
+  title: string;
+  subtitle: string;
+  keywords: string[];
+}> = [
+  {
+    open: "disc",
+    title: "D.I.S.C. Personality Test",
+    subtitle: "Discover your personality type and growth areas",
+    keywords: ["disc", "personality", "dominance", "influence", "steadiness", "conscientious", "animal", "test"],
+  },
+  {
+    open: "love",
+    title: "5 Love Languages Test",
+    subtitle: "Discover how you give and receive love best",
+    keywords: ["love", "languages", "five", "5", "relationship", "quiz", "test"],
+  },
+  {
+    open: "affirmations",
+    title: "Daily Affirmation Generator",
+    subtitle: "Bilingual EN/Tagalog by category",
+    keywords: ["affirmation", "daily", "tagalog", "motivation", "mindset"],
+  },
+  {
+    open: "books",
+    title: "Book Recommendations",
+    subtitle: "Picks based on your personality results",
+    keywords: ["book", "reading", "library", "recommendation"],
+  },
+  {
+    open: "mindset",
+    title: "Mindset Score",
+    subtitle: "Fixed vs Growth (Carol Dweck) — saves to card",
+    keywords: ["mindset", "growth", "fixed", "dweck", "score", "quiz"],
+  },
+];
 
 export function GlobalSearch() {
   const navigate = useNavigate();
@@ -264,9 +307,31 @@ export function GlobalSearch() {
         })()
       );
 
-      const results = (await Promise.all(queries)).flat();
+      const raw = (await Promise.all(queries)).flat();
+
+      // Built-in Tools (DISC, Love Languages, etc.) — fuzzy matched locally.
+      const builtinHits: Hit[] = BUILTIN_TOOLS.flatMap((bt) => {
+        const score = fuzzyScoreAny(debounced, [bt.title, bt.subtitle, ...bt.keywords]);
+        if (score < 0.55) return [];
+        return [{
+          id: `builtin-${bt.open}`,
+          section: "Tools" as const,
+          title: bt.title,
+          subtitle: bt.subtitle,
+          route: `/tools?open=${bt.open}`,
+          score,
+        }];
+      });
+
+      // Fuzzy-rank server hits so close-but-imperfect matches surface naturally.
+      const scored = [...raw, ...builtinHits].map((h) => ({
+        ...h,
+        score: h.score ?? fuzzyScoreAny(debounced, [h.title, h.subtitle]),
+      }));
+      scored.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
       if (!cancelled) {
-        setHits(results);
+        setHits(scored);
         setLoading(false);
       }
     };
@@ -296,7 +361,9 @@ export function GlobalSearch() {
   const go = (h: Hit) => {
     setOpen(false);
     setQuery("");
-    navigate(`${h.route}?q=${encodeURIComponent(debounced)}`);
+    // Built-in tools already carry their own query string (e.g. ?open=disc).
+    const sep = h.route.includes("?") ? "&" : "?";
+    navigate(`${h.route}${sep}q=${encodeURIComponent(debounced)}`);
   };
 
   return (

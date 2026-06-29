@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { ToolCard } from "./ToolCard";
 import type { Tool } from "@/hooks/useTools";
+import { fuzzyScoreAny } from "@/lib/fuzzy";
 
 interface ToolsListProps {
   tools: Tool[];
@@ -23,19 +24,20 @@ export function ToolsList({
   const filteredTools = useMemo(() => {
     let result = tools;
 
-    // Filter by category
     if (selectedCategory !== "All") {
       result = result.filter((tool) => tool.category === selectedCategory);
     }
 
-    // Filter by search term (title and description)
-    if (searchTerm.trim()) {
-      const query = searchTerm.toLowerCase().trim();
-      result = result.filter((tool) => {
-        const titleMatch = tool.title.toLowerCase().includes(query);
-        const descMatch = tool.description?.toLowerCase().includes(query);
-        return titleMatch || descMatch;
-      });
+    const q = searchTerm.trim();
+    if (q) {
+      const scored = result
+        .map((tool) => ({
+          tool,
+          score: fuzzyScoreAny(q, [tool.title, tool.description, tool.category]),
+        }))
+        .filter((x) => x.score >= 0.55)
+        .sort((a, b) => b.score - a.score);
+      result = scored.map((x) => x.tool);
     }
 
     return result;

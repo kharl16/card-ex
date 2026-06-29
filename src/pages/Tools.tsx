@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { RefreshCw, Wrench, Plus, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import AffirmationsSection from "@/components/tools/sections/AffirmationsSection
 import BookRecommendationsSection from "@/components/tools/sections/BookRecommendationsSection";
 import { Brain, Heart, GraduationCap, Sparkles, BookOpen } from "lucide-react";
 import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
+import { fuzzyScoreAny } from "@/lib/fuzzy";
 
 export default function Tools() {
   const { tools, loading, error, categories, refetch, createTool, updateTool, deleteTool } = useTools();
@@ -25,6 +27,28 @@ export default function Tools() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   useSearchQueryParam(setSearchTerm);
+  const [params] = useSearchParams();
+  const openParam = params.get("open") ?? "";
+  const q = params.get("q") ?? "";
+
+  // Auto-open built-in sections when navigated from Global Search.
+  const autoOpen = useMemo(() => {
+    const map: Record<string, string[]> = {
+      disc: ["disc", "personality", "dominance", "influence", "steadiness"],
+      love: ["love languages", "5 love", "love language"],
+      affirmations: ["affirmation", "daily affirmation", "tagalog"],
+      books: ["book recommendation", "book", "reading"],
+      mindset: ["mindset", "growth mindset", "fixed mindset", "dweck"],
+    };
+    const result: Record<string, boolean> = { disc: false, love: false, affirmations: false, books: false, mindset: false };
+    if (openParam && openParam in result) result[openParam] = true;
+    if (q) {
+      for (const k of Object.keys(map)) {
+        if (fuzzyScoreAny(q, map[k]) >= 0.6) result[k] = true;
+      }
+    }
+    return result;
+  }, [openParam, q]);
 
   // Dialog states
   const [formDialogOpen, setFormDialogOpen] = useState(false);
@@ -87,7 +111,7 @@ export default function Tools() {
         </div>
 
         {/* Featured: D.I.S.C. Personality Test */}
-        <Collapsible className="mb-3">
+        <Collapsible className="mb-3" defaultOpen={autoOpen.disc}>
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
             <CollapsibleTrigger className="w-full group">
               <div className="flex items-center gap-3 p-3 sm:p-4">
@@ -110,7 +134,7 @@ export default function Tools() {
         </Collapsible>
 
         {/* Featured: 5 Love Languages Test */}
-        <Collapsible className="mb-6">
+        <Collapsible className="mb-6" defaultOpen={autoOpen.love}>
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
             <CollapsibleTrigger className="w-full group">
               <div className="flex items-center gap-3 p-3 sm:p-4">
@@ -133,7 +157,7 @@ export default function Tools() {
         </Collapsible>
 
         {/* Featured: Learning & Growth (parent collapsible with nested tools) */}
-        <Collapsible className="mb-6">
+        <Collapsible className="mb-6" defaultOpen={autoOpen.affirmations || autoOpen.books || autoOpen.mindset}>
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
             <CollapsibleTrigger className="w-full group">
               <div className="flex items-center gap-3 p-3 sm:p-4">
@@ -150,7 +174,7 @@ export default function Tools() {
             <CollapsibleContent>
               <div className="px-3 pb-3 sm:px-4 sm:pb-4 border-t border-border/50 pt-3 space-y-2">
 
-                <Collapsible>
+                <Collapsible defaultOpen={autoOpen.affirmations}>
                   <Card className="border-border/60">
                     <CollapsibleTrigger className="w-full group">
                       <div className="flex items-center gap-3 p-3">
@@ -172,7 +196,7 @@ export default function Tools() {
                   </Card>
                 </Collapsible>
 
-                <Collapsible>
+                <Collapsible defaultOpen={autoOpen.books}>
                   <Card className="border-border/60">
                     <CollapsibleTrigger className="w-full group">
                       <div className="flex items-center gap-3 p-3">
@@ -194,7 +218,7 @@ export default function Tools() {
                   </Card>
                 </Collapsible>
 
-                <Collapsible>
+                <Collapsible defaultOpen={autoOpen.mindset}>
                   <Card className="border-border/60">
                     <CollapsibleTrigger className="w-full group">
                       <div className="flex items-center gap-3 p-3">
