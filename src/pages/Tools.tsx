@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { RefreshCw, Wrench, Plus, ChevronDown } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import AffirmationsSection from "@/components/tools/sections/AffirmationsSection
 import BookRecommendationsSection from "@/components/tools/sections/BookRecommendationsSection";
 import { Brain, Heart, GraduationCap, Sparkles, BookOpen } from "lucide-react";
 import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
+import { fuzzyScoreAny } from "@/lib/fuzzy";
 
 export default function Tools() {
   const { tools, loading, error, categories, refetch, createTool, updateTool, deleteTool } = useTools();
@@ -25,6 +27,28 @@ export default function Tools() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   useSearchQueryParam(setSearchTerm);
+  const [params] = useSearchParams();
+  const openParam = params.get("open") ?? "";
+  const q = params.get("q") ?? "";
+
+  // Auto-open built-in sections when navigated from Global Search.
+  const autoOpen = useMemo(() => {
+    const map: Record<string, string[]> = {
+      disc: ["disc", "personality", "dominance", "influence", "steadiness"],
+      love: ["love languages", "5 love", "love language"],
+      affirmations: ["affirmation", "daily affirmation", "tagalog"],
+      books: ["book recommendation", "book", "reading"],
+      mindset: ["mindset", "growth mindset", "fixed mindset", "dweck"],
+    };
+    const result: Record<string, boolean> = { disc: false, love: false, affirmations: false, books: false, mindset: false };
+    if (openParam && openParam in result) result[openParam] = true;
+    if (q) {
+      for (const k of Object.keys(map)) {
+        if (fuzzyScoreAny(q, map[k]) >= 0.6) result[k] = true;
+      }
+    }
+    return result;
+  }, [openParam, q]);
 
   // Dialog states
   const [formDialogOpen, setFormDialogOpen] = useState(false);
