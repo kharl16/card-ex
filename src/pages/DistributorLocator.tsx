@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Search, MapPin, Phone, Clock, Facebook, Navigation,
-  Route, Locate, Loader2, List, Map, X, ArrowLeft, User, Eye, Share2,
+  Route, Locate, Loader2, List, Map, X, ArrowLeft, User, Eye, Share2, Plus, Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -14,6 +14,9 @@ import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
+import { useAuth } from "@/contexts/AuthContext";
+import AdminDirectoryDialog from "@/components/tools/admin/AdminDirectoryDialog";
+
 
 const DirectoryMapView = lazy(() => import("@/components/tools/sections/DirectoryMapView"));
 
