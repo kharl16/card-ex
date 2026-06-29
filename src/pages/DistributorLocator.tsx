@@ -466,13 +466,30 @@ export default function DistributorLocator() {
             </Button>
             <h2 className="text-lg font-bold truncate flex-1">{detailEntry?.location}</h2>
             {isAdmin && detailEntry && (
-              <Button
-                variant="outline" size="sm" className="gap-1.5"
-                onClick={() => { setEditingEntry(detailEntry); setAdminDialogOpen(true); setDetailEntry(null); }}
-              >
-                <Pencil className="h-4 w-4" /> Edit
-              </Button>
+              <>
+                <Button
+                  variant="outline" size="sm" className="gap-1.5"
+                  onClick={() => { setEditingEntry(detailEntry); setAdminDialogOpen(true); setDetailEntry(null); }}
+                >
+                  <Pencil className="h-4 w-4" /> Edit
+                </Button>
+                <Button
+                  variant="destructive" size="sm" className="gap-1.5"
+                  onClick={async () => {
+                    if (!detailEntry?.id) return;
+                    if (!confirm(`Delete "${detailEntry.location}"? This cannot be undone.`)) return;
+                    const { error } = await supabase.from("directory_entries").delete().eq("id", detailEntry.id);
+                    if (error) { toast.error(error.message); return; }
+                    toast.success("Location deleted");
+                    setDetailEntry(null);
+                    fetchEntries();
+                  }}
+                >
+                  <X className="h-4 w-4" /> Delete
+                </Button>
+              </>
             )}
+
           </div>
           {detailEntry && <LocationDetail entry={detailEntry} userLocation={userLocation} />}
         </DialogContent>
