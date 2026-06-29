@@ -184,15 +184,15 @@ export default function DistributorLocator() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
             <Link to="/">
               <Button variant="ghost" size="icon" aria-label="Back to home"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
-            <div className="flex-1">
+            <div className="flex-1 min-w-[140px]">
               <h1 className="text-xl font-bold">Find a Location</h1>
               <p className="text-xs text-muted-foreground">{filtered.length} locations</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {isAdmin && (
                 <Button
                   variant="default" size="sm"
@@ -228,6 +228,7 @@ export default function DistributorLocator() {
               </div>
             </div>
           </div>
+
 
           {/* Search */}
           <div className="relative mb-3">
