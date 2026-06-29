@@ -77,6 +77,7 @@ function formatDistance(dist: number): string {
 
 export default function DistributorLocator() {
   const { activeCompanyId } = useActiveCompany();
+  const { isAdmin } = useAuth();
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -85,20 +86,25 @@ export default function DistributorLocator() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [detailEntry, setDetailEntry] = useState<DirectoryEntry | null>(null);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<DirectoryEntry | null>(null);
   useSearchQueryParam(setSearchTerm);
 
-  useEffect(() => {
-    (async () => {
-      let q = supabase
-        .from("directory_entries")
-        .select("*")
-        .eq("is_active", true);
-      if (activeCompanyId) q = q.eq("company_id", activeCompanyId);
-      const { data } = await q.order("sort_order", { ascending: true });
-      setEntries((data as DirectoryEntry[]) || []);
-      setLoading(false);
-    })();
+  const fetchEntries = useCallback(async () => {
+    let q = supabase
+      .from("directory_entries")
+      .select("*")
+      .eq("is_active", true);
+    if (activeCompanyId) q = q.eq("company_id", activeCompanyId);
+    const { data } = await q.order("sort_order", { ascending: true });
+    setEntries((data as DirectoryEntry[]) || []);
+    setLoading(false);
   }, [activeCompanyId]);
+
+  useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
+
 
   const siteNames = useMemo(() => {
     const s = new Set<string>();
