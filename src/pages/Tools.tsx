@@ -174,7 +174,7 @@ export default function Tools() {
             <CollapsibleContent>
               <div className="px-3 pb-3 sm:px-4 sm:pb-4 border-t border-border/50 pt-3 space-y-2">
 
-                <Collapsible>
+                <Collapsible defaultOpen={autoOpen.affirmations}>
                   <Card className="border-border/60">
                     <CollapsibleTrigger className="w-full group">
                       <div className="flex items-center gap-3 p-3">
