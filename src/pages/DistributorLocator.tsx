@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   Search, MapPin, Phone, Clock, Facebook, Navigation,
-  Route, Locate, Loader2, List, Map, X, ArrowLeft, User, Eye, Share2,
+  Route, Locate, Loader2, List, Map, X, ArrowLeft, User, Eye, Share2, Plus, Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
@@ -14,6 +14,9 @@ import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
+import { useAuth } from "@/contexts/AuthContext";
+import AdminDirectoryDialog from "@/components/tools/admin/AdminDirectoryDialog";
+
 
 const DirectoryMapView = lazy(() => import("@/components/tools/sections/DirectoryMapView"));
 
@@ -74,6 +77,7 @@ function formatDistance(dist: number): string {
 
 export default function DistributorLocator() {
   const { activeCompanyId } = useActiveCompany();
+  const { isAdmin } = useAuth();
   const [entries, setEntries] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -82,20 +86,25 @@ export default function DistributorLocator() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
   const [detailEntry, setDetailEntry] = useState<DirectoryEntry | null>(null);
+  const [adminDialogOpen, setAdminDialogOpen] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<DirectoryEntry | null>(null);
   useSearchQueryParam(setSearchTerm);
 
-  useEffect(() => {
-    (async () => {
-      let q = supabase
-        .from("directory_entries")
-        .select("*")
-        .eq("is_active", true);
-      if (activeCompanyId) q = q.eq("company_id", activeCompanyId);
-      const { data } = await q.order("sort_order", { ascending: true });
-      setEntries((data as DirectoryEntry[]) || []);
-      setLoading(false);
-    })();
+  const fetchEntries = useCallback(async () => {
+    let q = supabase
+      .from("directory_entries")
+      .select("*")
+      .eq("is_active", true);
+    if (activeCompanyId) q = q.eq("company_id", activeCompanyId);
+    const { data } = await q.order("sort_order", { ascending: true });
+    setEntries((data as DirectoryEntry[]) || []);
+    setLoading(false);
   }, [activeCompanyId]);
+
+  useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
+
 
   const siteNames = useMemo(() => {
     const s = new Set<string>();
@@ -184,6 +193,16 @@ export default function DistributorLocator() {
               <p className="text-xs text-muted-foreground">{filtered.length} locations</p>
             </div>
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button
+                  variant="default" size="sm"
+                  onClick={() => { setEditingEntry(null); setAdminDialogOpen(true); }}
+                  className="gap-1.5"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Location
+                </Button>
+              )}
               <Button
                 variant="outline" size="sm"
                 onClick={findMe} disabled={locating}
@@ -192,6 +211,7 @@ export default function DistributorLocator() {
                 {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Locate className="h-4 w-4" />}
                 Near Me
               </Button>
+
               <div className="flex border rounded-lg overflow-hidden">
                 <Button
                   variant={viewMode === "map" ? "default" : "ghost"} size="sm"
@@ -444,13 +464,29 @@ export default function DistributorLocator() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h2 className="text-lg font-bold truncate flex-1">{detailEntry?.location}</h2>
+            {isAdmin && detailEntry && (
+              <Button
+                variant="outline" size="sm" className="gap-1.5"
+                onClick={() => { setEditingEntry(detailEntry); setAdminDialogOpen(true); setDetailEntry(null); }}
+              >
+                <Pencil className="h-4 w-4" /> Edit
+              </Button>
+            )}
           </div>
           {detailEntry && <LocationDetail entry={detailEntry} userLocation={userLocation} />}
         </DialogContent>
       </Dialog>
+
+      <AdminDirectoryDialog
+        open={adminDialogOpen}
+        onOpenChange={setAdminDialogOpen}
+        item={editingEntry as any}
+        onSaved={fetchEntries}
+      />
     </div>
   );
 }
+
 
 function LocationDetail({ entry, userLocation }: { entry: DirectoryEntry; userLocation: { lat: number; lng: number } | null }) {
   const phones = [entry.phone_1, entry.phone_2, entry.phone_3].filter(Boolean) as string[];
