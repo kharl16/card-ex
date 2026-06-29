@@ -134,7 +134,7 @@ export default function Tools() {
         </Collapsible>
 
         {/* Featured: 5 Love Languages Test */}
-        <Collapsible className="mb-6">
+        <Collapsible className="mb-6" defaultOpen={autoOpen.love}>
           <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
             <CollapsibleTrigger className="w-full group">
               <div className="flex items-center gap-3 p-3 sm:p-4">
