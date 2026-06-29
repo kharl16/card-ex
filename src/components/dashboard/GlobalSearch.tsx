@@ -307,9 +307,31 @@ export function GlobalSearch() {
         })()
       );
 
-      const results = (await Promise.all(queries)).flat();
+      const raw = (await Promise.all(queries)).flat();
+
+      // Built-in Tools (DISC, Love Languages, etc.) — fuzzy matched locally.
+      const builtinHits: Hit[] = BUILTIN_TOOLS.flatMap((bt) => {
+        const score = fuzzyScoreAny(debounced, [bt.title, bt.subtitle, ...bt.keywords]);
+        if (score < 0.55) return [];
+        return [{
+          id: `builtin-${bt.open}`,
+          section: "Tools" as const,
+          title: bt.title,
+          subtitle: bt.subtitle,
+          route: `/tools?open=${bt.open}`,
+          score,
+        }];
+      });
+
+      // Fuzzy-rank server hits so close-but-imperfect matches surface naturally.
+      const scored = [...raw, ...builtinHits].map((h) => ({
+        ...h,
+        score: h.score ?? fuzzyScoreAny(debounced, [h.title, h.subtitle]),
+      }));
+      scored.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+
       if (!cancelled) {
-        setHits(results);
+        setHits(scored);
         setLoading(false);
       }
     };
@@ -339,7 +361,9 @@ export function GlobalSearch() {
   const go = (h: Hit) => {
     setOpen(false);
     setQuery("");
-    navigate(`${h.route}?q=${encodeURIComponent(debounced)}`);
+    // Built-in tools already carry their own query string (e.g. ?open=disc).
+    const sep = h.route.includes("?") ? "&" : "?";
+    navigate(`${h.route}${sep}q=${encodeURIComponent(debounced)}`);
   };
 
   return (
