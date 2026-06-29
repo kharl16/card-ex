@@ -464,13 +464,29 @@ export default function DistributorLocator() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h2 className="text-lg font-bold truncate flex-1">{detailEntry?.location}</h2>
+            {isAdmin && detailEntry && (
+              <Button
+                variant="outline" size="sm" className="gap-1.5"
+                onClick={() => { setEditingEntry(detailEntry); setAdminDialogOpen(true); setDetailEntry(null); }}
+              >
+                <Pencil className="h-4 w-4" /> Edit
+              </Button>
+            )}
           </div>
           {detailEntry && <LocationDetail entry={detailEntry} userLocation={userLocation} />}
         </DialogContent>
       </Dialog>
+
+      <AdminDirectoryDialog
+        open={adminDialogOpen}
+        onOpenChange={setAdminDialogOpen}
+        item={editingEntry as any}
+        onSaved={fetchEntries}
+      />
     </div>
   );
 }
+
 
 function LocationDetail({ entry, userLocation }: { entry: DirectoryEntry; userLocation: { lat: number; lng: number } | null }) {
   const phones = [entry.phone_1, entry.phone_2, entry.phone_3].filter(Boolean) as string[];
