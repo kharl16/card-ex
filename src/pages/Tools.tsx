@@ -218,7 +218,7 @@ export default function Tools() {
                   </Card>
                 </Collapsible>
 
-                <Collapsible>
+                <Collapsible defaultOpen={autoOpen.mindset}>
                   <Card className="border-border/60">
                     <CollapsibleTrigger className="w-full group">
                       <div className="flex items-center gap-3 p-3">
