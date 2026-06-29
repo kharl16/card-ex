@@ -193,6 +193,16 @@ export default function DistributorLocator() {
               <p className="text-xs text-muted-foreground">{filtered.length} locations</p>
             </div>
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button
+                  variant="default" size="sm"
+                  onClick={() => { setEditingEntry(null); setAdminDialogOpen(true); }}
+                  className="gap-1.5"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Location
+                </Button>
+              )}
               <Button
                 variant="outline" size="sm"
                 onClick={findMe} disabled={locating}
@@ -201,6 +211,7 @@ export default function DistributorLocator() {
                 {locating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Locate className="h-4 w-4" />}
                 Near Me
               </Button>
+
               <div className="flex border rounded-lg overflow-hidden">
                 <Button
                   variant={viewMode === "map" ? "default" : "ghost"} size="sm"
