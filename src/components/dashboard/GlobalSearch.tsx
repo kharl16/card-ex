@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { cn } from "@/lib/utils";
+import { fuzzyScoreAny } from "@/lib/fuzzy";
 
 type Section = "Locator" | "Videos" | "Resources" | "Gallery" | "Tools";
 
@@ -26,6 +27,7 @@ interface Hit {
   title: string;
   subtitle?: string;
   route: string;
+  score?: number;
 }
 
 const SECTION_META: Record<Section, { icon: React.ComponentType<{ className?: string }>; color: string }> = {
@@ -35,6 +37,47 @@ const SECTION_META: Record<Section, { icon: React.ComponentType<{ className?: st
   Gallery: { icon: ImageIcon, color: "text-sky-400" },
   Tools: { icon: Wrench, color: "text-violet-400" },
 };
+
+// Built-in Tools page sections (not stored in the `tools` table).
+// `open` is forwarded as a URL param so Tools.tsx auto-opens the matching
+// collapsible.
+const BUILTIN_TOOLS: Array<{
+  open: string;
+  title: string;
+  subtitle: string;
+  keywords: string[];
+}> = [
+  {
+    open: "disc",
+    title: "D.I.S.C. Personality Test",
+    subtitle: "Discover your personality type and growth areas",
+    keywords: ["disc", "personality", "dominance", "influence", "steadiness", "conscientious", "animal", "test"],
+  },
+  {
+    open: "love",
+    title: "5 Love Languages Test",
+    subtitle: "Discover how you give and receive love best",
+    keywords: ["love", "languages", "five", "5", "relationship", "quiz", "test"],
+  },
+  {
+    open: "affirmations",
+    title: "Daily Affirmation Generator",
+    subtitle: "Bilingual EN/Tagalog by category",
+    keywords: ["affirmation", "daily", "tagalog", "motivation", "mindset"],
+  },
+  {
+    open: "books",
+    title: "Book Recommendations",
+    subtitle: "Picks based on your personality results",
+    keywords: ["book", "reading", "library", "recommendation"],
+  },
+  {
+    open: "mindset",
+    title: "Mindset Score",
+    subtitle: "Fixed vs Growth (Carol Dweck) — saves to card",
+    keywords: ["mindset", "growth", "fixed", "dweck", "score", "quiz"],
+  },
+];
 
 export function GlobalSearch() {
   const navigate = useNavigate();
