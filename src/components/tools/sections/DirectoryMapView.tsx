@@ -123,19 +123,61 @@ export default function DirectoryMapView({
     };
   }, []);
 
-  // Filter items that have valid coordinates
+  // Geocoded fallback cache for entries whose maps_link lacks parseable coords
+  // (e.g. shortened maps.app.goo.gl URLs). Keyed by entry id.
+  const [geocoded, setGeocoded] = useState<Record<number, { lat: number; lng: number }>>({});
+
+  // Resolve coords: first try URL parse, then fall back to geocoded cache
   const locationsWithCoords = useMemo(() => {
     const result: LocationWithCoords[] = [];
-    
     items.forEach((item) => {
-      const coords = extractCoordsFromUrl(item.maps_link);
-      if (coords) {
-        result.push({ ...item, coords });
-      }
+      const coords = extractCoordsFromUrl(item.maps_link) ?? geocoded[item.id];
+      if (coords) result.push({ ...item, coords });
     });
-    
     return result;
-  }, [items, extractCoordsFromUrl]);
+  }, [items, extractCoordsFromUrl, geocoded]);
+
+  // Geocode entries that have no coords yet via OpenStreetMap Nominatim.
+  // Uses address (preferred) or location name, appended with "Philippines" hint.
+  useEffect(() => {
+    const pending = items.filter(
+      (i) => !extractCoordsFromUrl(i.maps_link) && geocoded[i.id] === undefined
+    );
+    if (pending.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      for (const item of pending) {
+        const q = [item.address, item.location].filter(Boolean).join(", ");
+        if (!q) continue;
+        try {
+          const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(
+            q + ", Philippines"
+          )}`;
+          const res = await fetch(url, { headers: { Accept: "application/json" } });
+          if (!res.ok) continue;
+          const data = (await res.json()) as Array<{ lat: string; lon: string }>;
+          if (cancelled) return;
+          if (data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lng = parseFloat(data[0].lon);
+            if (!isNaN(lat) && !isNaN(lng)) {
+              setGeocoded((prev) => ({ ...prev, [item.id]: { lat, lng } }));
+            }
+          }
+          // Be polite to Nominatim's 1 req/sec policy
+          await new Promise((r) => setTimeout(r, 1100));
+        } catch {
+          /* ignore */
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
 
   // Default center (Philippines)
   const defaultCenter: [number, number] = userLocation 
