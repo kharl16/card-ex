@@ -131,7 +131,20 @@ export default function DirectoryMapView({
   const locationsWithCoords = useMemo(() => {
     const result: LocationWithCoords[] = [];
     items.forEach((item) => {
-      const coords = extractCoordsFromUrl(item.maps_link) ?? geocoded[item.id];
+      const parsed = extractCoordsFromUrl(item.maps_link);
+      const fallback = geocoded[item.id];
+      const coords = parsed ?? fallback;
+      if (/nueva\s*vizcaya/i.test(item.location ?? "") || /nueva\s*vizcaya/i.test(item.address ?? "")) {
+        console.log("[DirectoryMap] Nueva Vizcaya entry", {
+          id: item.id,
+          location: item.location,
+          address: item.address,
+          maps_link: item.maps_link,
+          parsedFromUrl: parsed,
+          geocodedFallback: fallback,
+          finalCoords: coords,
+        });
+      }
       if (coords) result.push({ ...item, coords });
     });
     return result;
@@ -143,32 +156,54 @@ export default function DirectoryMapView({
     const pending = items.filter(
       (i) => !extractCoordsFromUrl(i.maps_link) && geocoded[i.id] === undefined
     );
+    console.log(
+      "[DirectoryMap] geocoding pending count:",
+      pending.length,
+      pending.map((p) => ({ id: p.id, location: p.location, maps_link: p.maps_link }))
+    );
     if (pending.length === 0) return;
 
     let cancelled = false;
     (async () => {
       for (const item of pending) {
         const q = [item.address, item.location].filter(Boolean).join(", ");
-        if (!q) continue;
+        if (!q) {
+          console.warn("[DirectoryMap] skip geocode — empty query", { id: item.id });
+          continue;
+        }
+        const fullQuery = q + ", Philippines";
         try {
-          const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(
-            q + ", Philippines"
-          )}`;
+          const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(fullQuery)}`;
+          console.log("[DirectoryMap] geocoding →", { id: item.id, location: item.location, query: fullQuery });
           const res = await fetch(url, { headers: { Accept: "application/json" } });
-          if (!res.ok) continue;
+          if (!res.ok) {
+            console.warn("[DirectoryMap] geocode HTTP error", { id: item.id, status: res.status });
+            continue;
+          }
           const data = (await res.json()) as Array<{ lat: string; lon: string }>;
           if (cancelled) return;
+          console.log("[DirectoryMap] geocode result", {
+            id: item.id,
+            location: item.location,
+            resultCount: data.length,
+            raw: data[0],
+          });
           if (data.length > 0) {
             const lat = parseFloat(data[0].lat);
             const lng = parseFloat(data[0].lon);
             if (!isNaN(lat) && !isNaN(lng)) {
+              console.log("[DirectoryMap] geocode ✓ saved", { id: item.id, location: item.location, lat, lng });
               setGeocoded((prev) => ({ ...prev, [item.id]: { lat, lng } }));
+            } else {
+              console.warn("[DirectoryMap] geocode parse failed", { id: item.id, raw: data[0] });
             }
+          } else {
+            console.warn("[DirectoryMap] geocode ✗ no results", { id: item.id, query: fullQuery });
           }
           // Be polite to Nominatim's 1 req/sec policy
           await new Promise((r) => setTimeout(r, 1100));
-        } catch {
-          /* ignore */
+        } catch (err) {
+          console.error("[DirectoryMap] geocode threw", { id: item.id, err });
         }
       }
     })();
