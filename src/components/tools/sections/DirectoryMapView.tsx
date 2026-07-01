@@ -269,8 +269,8 @@ export default function DirectoryMapView({
         {/* User location marker */}
         {userLocation && (
           <Marker position={[userLocation.lat, userLocation.lng]} icon={icons.user}>
-            <Tooltip direction="top" offset={[0, -8]} className="location-pin-hover">
-              <div className="lph-title">Your Location</div>
+            <Tooltip permanent direction="top" offset={[0, -8]} className="location-pin-label">
+              Your Location
             </Tooltip>
           </Marker>
         )}
@@ -288,13 +288,6 @@ export default function DirectoryMapView({
             {/* Permanent gold name label (hidden at low zoom via CSS) */}
             <Tooltip permanent direction="bottom" offset={[0, 4]} className="location-pin-label">
               {item.location || "Unknown Location"}
-            </Tooltip>
-            {/* Hover tooltip with key details */}
-            <Tooltip direction="top" offset={[0, -36]} className="location-pin-hover" sticky>
-              <div className="lph-title">{item.location || "Unknown Location"}</div>
-              {item.sites && <div className="lph-meta">{item.sites}</div>}
-              {item.address && <div className="lph-meta">{item.address}</div>}
-              {item.operating_hours && <div className="lph-meta">🕒 {item.operating_hours}</div>}
             </Tooltip>
           </Marker>
         ))}
