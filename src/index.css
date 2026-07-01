@@ -239,7 +239,7 @@ All colors MUST be HSL.
 .leaflet-tooltip.location-pin-label::before {
   display: none;
 }
-/* Hide permanent name labels at low zoom to prevent overlap */
-.leaflet-container.map-zoom-low .leaflet-tooltip.location-pin-label {
-  display: none;
+/* Collision-detection hides overlapping labels via JS */
+.leaflet-tooltip.location-pin-label.label-hidden {
+  display: none !important;
 }
