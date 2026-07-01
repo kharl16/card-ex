@@ -243,31 +243,3 @@ All colors MUST be HSL.
 .leaflet-container.map-zoom-low .leaflet-tooltip.location-pin-label {
   display: none;
 }
-/* Hover detail tooltip */
-.leaflet-tooltip.location-pin-hover {
-  background: hsl(220 6% 4% / 0.95);
-  border: 1px solid hsl(45 72% 53% / 0.6);
-  color: hsl(0 0% 98%);
-  font-size: 0.72rem;
-  padding: 6px 10px;
-  border-radius: 8px;
-  backdrop-filter: blur(8px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
-  max-width: 240px;
-  white-space: normal;
-  line-height: 1.35;
-}
-.leaflet-tooltip.location-pin-hover::before {
-  border-top-color: hsl(45 72% 53% / 0.6);
-}
-.leaflet-tooltip.location-pin-hover .lph-title {
-  color: hsl(45 72% 53%);
-  font-weight: 700;
-  font-size: 0.78rem;
-  margin-bottom: 2px;
-}
-.leaflet-tooltip.location-pin-hover .lph-meta {
-  color: hsl(0 0% 75%);
-  font-size: 0.68rem;
-  margin-top: 3px;
-}
