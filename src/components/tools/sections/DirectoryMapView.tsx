@@ -263,6 +263,8 @@ export default function DirectoryMapView({
         />
         
         <MapBoundsHandler locations={locationsWithCoords} userLocation={userLocation} />
+        <MapZoomClass threshold={11} />
+
 
         {/* User location marker */}
         {userLocation && (
