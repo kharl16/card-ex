@@ -269,8 +269,8 @@ export default function DirectoryMapView({
         {/* User location marker */}
         {userLocation && (
           <Marker position={[userLocation.lat, userLocation.lng]} icon={icons.user}>
-            <Tooltip direction="top" offset={[0, -8]} className="location-pin-hover">
-              <div className="lph-title">Your Location</div>
+            <Tooltip permanent direction="top" offset={[0, -8]} className="location-pin-label">
+              Your Location
             </Tooltip>
           </Marker>
         )}
