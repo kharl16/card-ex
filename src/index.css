@@ -216,3 +216,26 @@ All colors MUST be HSL.
     transition: none;
   }
 }
+
+/* Leaflet map pin labels */
+.leaflet-tooltip.location-pin-label {
+  background: hsl(220 6% 4% / 0.85);
+  border: 1px solid hsl(45 72% 53% / 0.4);
+  color: hsl(45 72% 53%);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+.leaflet-tooltip.location-pin-label.leaflet-tooltip-bottom::before {
+  border-bottom-color: hsl(45 72% 53% / 0.4);
+}
+.leaflet-tooltip.location-pin-label.leaflet-tooltip-left::before {
+  border-left-color: hsl(45 72% 53% / 0.4);
+}
+.leaflet-tooltip.location-pin-label.leaflet-tooltip-right::before {
+  border-right-color: hsl(45 72% 53% / 0.4);
+}
