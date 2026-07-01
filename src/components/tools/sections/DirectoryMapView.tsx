@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Phone, Navigation, Facebook, Clock, Route, MapPin, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { MapPin } from "lucide-react";
+
 
 // Fix for default marker icons in react-leaflet - use a flag to avoid running multiple times
 const fixLeafletIcons = () => {
