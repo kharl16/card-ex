@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Button } from "@/components/ui/button";
@@ -302,6 +302,9 @@ export default function DirectoryMapView({
                 </div>
               </div>
             </Popup>
+            <Tooltip permanent direction="bottom" offset={[0, 4]} className="location-pin-label">
+              {item.location || "Unknown Location"}
+            </Tooltip>
           </Marker>
         ))}
       </MapContainer>
