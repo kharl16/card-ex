@@ -302,6 +302,9 @@ export default function DirectoryMapView({
                 </div>
               </div>
             </Popup>
+            <Tooltip permanent direction="bottom" offset={[0, 4]} className="location-pin-label">
+              {item.location || "Unknown Location"}
+            </Tooltip>
           </Marker>
         ))}
       </MapContainer>
