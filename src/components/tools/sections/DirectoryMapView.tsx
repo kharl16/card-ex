@@ -79,6 +79,24 @@ function MapBoundsHandler({ locations, userLocation }: { locations: LocationWith
   return null;
 }
 
+// Toggles a CSS class on the map container based on zoom level so we can
+// hide permanent name labels at low zoom (prevents label overlap/cutoff).
+function MapZoomClass({ threshold = 11 }: { threshold?: number }) {
+  const map = useMapEvents({
+    zoomend: () => {
+      const el = map.getContainer();
+      if (map.getZoom() < threshold) el.classList.add("map-zoom-low");
+      else el.classList.remove("map-zoom-low");
+    },
+  });
+  useEffect(() => {
+    const el = map.getContainer();
+    if (map.getZoom() < threshold) el.classList.add("map-zoom-low");
+    else el.classList.remove("map-zoom-low");
+  }, [map, threshold]);
+  return null;
+}
+
 export default function DirectoryMapView({
   items,
   userLocation,
