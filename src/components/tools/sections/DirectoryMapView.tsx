@@ -79,21 +79,72 @@ function MapBoundsHandler({ locations, userLocation }: { locations: LocationWith
   return null;
 }
 
-// Toggles a CSS class on the map container based on zoom level so we can
-// hide permanent name labels at low zoom (prevents label overlap/cutoff).
-function MapZoomClass({ threshold = 11 }: { threshold?: number }) {
-  const map = useMapEvents({
-    zoomend: () => {
-      const el = map.getContainer();
-      if (map.getZoom() < threshold) el.classList.add("map-zoom-low");
-      else el.classList.remove("map-zoom-low");
-    },
-  });
+// Collision detection: after any zoom/move/render, iterate all permanent
+// name labels, compute their on-screen bounding rects, and greedily hide any
+// that overlap a previously-kept label. Runs on zoomend, moveend, and after
+// tooltip DOM mutations so newly-added labels are included.
+function LabelCollisionHandler() {
+  const map = useMap();
+
   useEffect(() => {
-    const el = map.getContainer();
-    if (map.getZoom() < threshold) el.classList.add("map-zoom-low");
-    else el.classList.remove("map-zoom-low");
-  }, [map, threshold]);
+    const container = map.getContainer();
+
+    const resolve = () => {
+      const labels = Array.from(
+        container.querySelectorAll<HTMLElement>(".leaflet-tooltip.location-pin-label")
+      );
+      // First, show everything so we can measure true rects.
+      labels.forEach((el) => el.classList.remove("label-hidden"));
+      // Sort by vertical position (top-most first) for stable priority.
+      labels.sort((a, b) => {
+        const ra = a.getBoundingClientRect();
+        const rb = b.getBoundingClientRect();
+        return ra.top - rb.top || ra.left - rb.left;
+      });
+      const kept: DOMRect[] = [];
+      const pad = 2;
+      labels.forEach((el) => {
+        const r = el.getBoundingClientRect();
+        const overlaps = kept.some(
+          (k) =>
+            !(
+              r.right + pad < k.left ||
+              r.left > k.right + pad ||
+              r.bottom + pad < k.top ||
+              r.top > k.bottom + pad
+            )
+        );
+        if (overlaps) {
+          el.classList.add("label-hidden");
+        } else {
+          kept.push(r);
+        }
+      });
+    };
+
+    let raf = 0;
+    const schedule = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(resolve);
+    };
+
+    map.on("zoomend moveend layeradd layerremove", schedule);
+    // Observe tooltip pane so newly-attached labels also get processed.
+    const pane = container.querySelector(".leaflet-tooltip-pane");
+    const observer = pane
+      ? new MutationObserver(schedule)
+      : null;
+    if (pane && observer) observer.observe(pane, { childList: true, subtree: true });
+
+    schedule();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      map.off("zoomend moveend layeradd layerremove", schedule);
+      observer?.disconnect();
+    };
+  }, [map]);
+
   return null;
 }
 
