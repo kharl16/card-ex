@@ -289,13 +289,6 @@ export default function DirectoryMapView({
             <Tooltip permanent direction="bottom" offset={[0, 4]} className="location-pin-label">
               {item.location || "Unknown Location"}
             </Tooltip>
-            {/* Hover tooltip with key details */}
-            <Tooltip direction="top" offset={[0, -36]} className="location-pin-hover" sticky>
-              <div className="lph-title">{item.location || "Unknown Location"}</div>
-              {item.sites && <div className="lph-meta">{item.sites}</div>}
-              {item.address && <div className="lph-meta">{item.address}</div>}
-              {item.operating_hours && <div className="lph-meta">🕒 {item.operating_hours}</div>}
-            </Tooltip>
           </Marker>
         ))}
       </MapContainer>
