@@ -314,7 +314,7 @@ export default function DirectoryMapView({
         />
         
         <MapBoundsHandler locations={locationsWithCoords} userLocation={userLocation} />
-        <MapZoomClass threshold={11} />
+        <LabelCollisionHandler />
 
 
         {/* User location marker */}
