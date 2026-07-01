@@ -85,7 +85,7 @@ export default function DirectoryMapView({
   onSelectEntry,
   extractCoordsFromUrl,
 }: DirectoryMapViewProps) {
-  const [selectedMarker, setSelectedMarker] = useState<DirectoryEntry | null>(null);
+  // No internal detail sheet — clicking a pin opens the parent detail modal directly.
 
   useEffect(() => {
     fixLeafletIcons();
