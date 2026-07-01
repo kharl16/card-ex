@@ -249,59 +249,32 @@ export default function DirectoryMapView({
         {/* User location marker */}
         {userLocation && (
           <Marker position={[userLocation.lat, userLocation.lng]} icon={icons.user}>
-            <Popup>
-              <div className="text-center font-medium">Your Location</div>
-            </Popup>
+            <Tooltip direction="top" offset={[0, -8]} className="location-pin-hover">
+              <div className="lph-title">Your Location</div>
+            </Tooltip>
           </Marker>
         )}
 
-        {/* Branch markers */}
+        {/* Branch markers — click opens parent detail modal directly */}
         {locationsWithCoords.map((item) => (
           <Marker
             key={item.id}
             position={[item.coords.lat, item.coords.lng]}
             icon={icons.gold}
             eventHandlers={{
-              click: () => setSelectedMarker(item),
+              click: () => onSelectEntry(item),
             }}
           >
-            <Popup>
-              <div className="min-w-[200px] max-w-[280px]">
-                <h4 className="font-semibold text-sm mb-1">{item.location}</h4>
-                {item.sites && (
-                  <span className="inline-block text-xs px-2 py-0.5 bg-muted rounded-full mb-2">
-                    {item.sites}
-                  </span>
-                )}
-                {item.address && (
-                  <p className="text-xs text-muted-foreground mb-2">{item.address}</p>
-                )}
-                {item.operating_hours && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                    <Clock className="w-3 h-3" />
-                    {item.operating_hours}
-                  </div>
-                )}
-                <div className="flex gap-2 mt-2">
-                  <button
-                    onClick={() => onSelectEntry(item)}
-                    className="flex-1 px-3 py-1.5 text-xs font-medium bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-                  >
-                    View Details
-                  </button>
-                  {item.maps_link && (
-                    <button
-                      onClick={() => handleGetDirections(item)}
-                      className="px-3 py-1.5 text-xs font-medium border border-border rounded-lg hover:bg-muted transition-colors"
-                    >
-                      <Route className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </Popup>
+            {/* Permanent gold name label (hidden at low zoom via CSS) */}
             <Tooltip permanent direction="bottom" offset={[0, 4]} className="location-pin-label">
               {item.location || "Unknown Location"}
+            </Tooltip>
+            {/* Hover tooltip with key details */}
+            <Tooltip direction="top" offset={[0, -36]} className="location-pin-hover" sticky>
+              <div className="lph-title">{item.location || "Unknown Location"}</div>
+              {item.sites && <div className="lph-meta">{item.sites}</div>}
+              {item.address && <div className="lph-meta">{item.address}</div>}
+              {item.operating_hours && <div className="lph-meta">🕒 {item.operating_hours}</div>}
             </Tooltip>
           </Marker>
         ))}
@@ -315,85 +288,6 @@ export default function DirectoryMapView({
             <span>
               {itemsWithoutCoords} location{itemsWithoutCoords !== 1 ? "s" : ""} not shown (no map coordinates)
             </span>
-          </div>
-        </div>
-      )}
-
-      {/* Selected marker card (mobile-friendly bottom sheet style) */}
-      {selectedMarker && (
-        <div className="absolute bottom-0 left-0 right-0 z-[1000] p-3 sm:p-4 animate-slide-up">
-          <div className="bg-card border border-border rounded-xl shadow-lg p-4 relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2 h-8 w-8"
-              onClick={() => setSelectedMarker(null)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-
-            <div className="flex gap-3">
-              <div className={cn(
-                "w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center",
-                "bg-gradient-to-br from-primary/20 to-primary/5",
-                "border border-primary/20"
-              )}>
-                <MapPin className="w-5 h-5 text-primary" />
-              </div>
-
-              <div className="flex-1 min-w-0 pr-6">
-                <h4 className="font-semibold text-foreground truncate">
-                  {selectedMarker.location || "Unknown Location"}
-                </h4>
-                {selectedMarker.address && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {selectedMarker.address}
-                  </p>
-                )}
-                {selectedMarker.sites && (
-                  <Badge variant="secondary" className="text-xs mt-1">
-                    {selectedMarker.sites}
-                  </Badge>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              {selectedMarker.phone_1 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-10 gap-1"
-                  onClick={() => window.open(`tel:${selectedMarker.phone_1}`, "_self")}
-                >
-                  <Phone className="w-4 h-4" />
-                  <span className="hidden sm:inline">Call</span>
-                </Button>
-              )}
-              {selectedMarker.maps_link && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-10 gap-1"
-                  onClick={() => handleGetDirections(selectedMarker)}
-                >
-                  <Route className="w-4 h-4" />
-                  <span className="hidden sm:inline">Directions</span>
-                </Button>
-              )}
-              <Button
-                variant="default"
-                size="sm"
-                className="h-10 gap-1 bg-primary text-primary-foreground"
-                onClick={() => {
-                  onSelectEntry(selectedMarker);
-                  setSelectedMarker(null);
-                }}
-              >
-                <Navigation className="w-4 h-4" />
-                <span className="hidden sm:inline">Details</span>
-              </Button>
-            </div>
           </div>
         </div>
       )}
