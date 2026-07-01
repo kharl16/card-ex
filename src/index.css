@@ -217,25 +217,57 @@ All colors MUST be HSL.
   }
 }
 
-/* Leaflet map pin labels */
+/* Leaflet map pin labels (permanent name badge) */
 .leaflet-tooltip.location-pin-label {
-  background: hsl(220 6% 4% / 0.85);
-  border: 1px solid hsl(45 72% 53% / 0.4);
+  background: hsl(220 6% 4% / 0.9);
+  border: 1px solid hsl(45 72% 53% / 0.5);
   color: hsl(45 72% 53%);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 2px 7px;
   border-radius: 6px;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
 }
-.leaflet-tooltip.location-pin-label.leaflet-tooltip-bottom::before {
-  border-bottom-color: hsl(45 72% 53% / 0.4);
+.leaflet-tooltip.location-pin-label::before {
+  display: none;
 }
-.leaflet-tooltip.location-pin-label.leaflet-tooltip-left::before {
-  border-left-color: hsl(45 72% 53% / 0.4);
+/* Hide permanent name labels at low zoom to prevent overlap */
+.leaflet-container.map-zoom-low .leaflet-tooltip.location-pin-label {
+  display: none;
 }
-.leaflet-tooltip.location-pin-label.leaflet-tooltip-right::before {
-  border-right-color: hsl(45 72% 53% / 0.4);
+/* Hover detail tooltip */
+.leaflet-tooltip.location-pin-hover {
+  background: hsl(220 6% 4% / 0.95);
+  border: 1px solid hsl(45 72% 53% / 0.6);
+  color: hsl(0 0% 98%);
+  font-size: 0.72rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+  max-width: 240px;
+  white-space: normal;
+  line-height: 1.35;
+}
+.leaflet-tooltip.location-pin-hover::before {
+  border-top-color: hsl(45 72% 53% / 0.6);
+}
+.leaflet-tooltip.location-pin-hover .lph-title {
+  color: hsl(45 72% 53%);
+  font-weight: 700;
+  font-size: 0.78rem;
+  margin-bottom: 2px;
+}
+.leaflet-tooltip.location-pin-hover .lph-meta {
+  color: hsl(0 0% 75%);
+  font-size: 0.68rem;
+  margin-top: 3px;
 }
