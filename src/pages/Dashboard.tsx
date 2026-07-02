@@ -415,37 +415,33 @@ export default function Dashboard() {
       {/* Desktop / Tablet dock nav */}
       <DashboardDock />
 
+      {/* Sticky Deep Search — always visible while scrolling */}
+      <div className="sticky top-0 z-40 border-b border-amber-400/20 bg-background/85 backdrop-blur-xl">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3">
+          <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/10 via-background/70 to-background/60 px-2.5 py-2 sm:px-4 sm:py-3 shadow-[0_6px_24px_-12px_rgba(212,175,55,0.5)]">
+            <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="relative inline-flex h-2 w-2 shrink-0">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400/70" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" />
+                </span>
+                <span className="text-[11px] sm:text-sm font-semibold uppercase tracking-[0.16em] text-amber-300/90 truncate">
+                  Deep Search
+                </span>
+              </div>
+              <span className="hidden md:inline text-[11px] text-muted-foreground truncate">
+                Locator · Videos · Resources · Gallery · Tools
+              </span>
+            </div>
+            <GlobalSearch />
+          </div>
+        </div>
+      </div>
+
       <main className="container mx-auto px-4 py-6 space-y-6 overflow-hidden">
         {/* Welcome + Quote */}
         <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
-          {/* Prominent Deep Search — highlighted so users always find it */}
-          <div className="relative">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute -inset-[2px] rounded-[28px] bg-[conic-gradient(from_0deg,rgba(212,175,55,0.0),rgba(212,175,55,0.55),rgba(212,175,55,0.0),rgba(212,175,55,0.55),rgba(212,175,55,0.0))] opacity-70 blur-[6px] animate-[spin_9s_linear_infinite]"
-            />
-            <div className="relative rounded-[26px] border border-amber-400/40 bg-gradient-to-br from-amber-500/10 via-background/70 to-background/60 p-3 sm:p-4 shadow-[0_10px_40px_-10px_rgba(212,175,55,0.35)] backdrop-blur-xl">
-              <div className="mb-2 flex items-center justify-between gap-2 px-1">
-                <div className="flex items-center gap-2">
-                  <span className="relative inline-flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400/70" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-400" />
-                  </span>
-                  <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.18em] text-amber-300/90">
-                    Deep Search
-                  </span>
-                </div>
-                <span className="hidden sm:inline text-[11px] text-muted-foreground">
-                  Locator · Videos · Resources · Gallery · Tools
-                </span>
-              </div>
-              <GlobalSearch />
-              <p className="mt-2 px-1 text-[11px] sm:text-xs text-muted-foreground">
-                Type any keyword to instantly find anything across your entire dashboard.
-              </p>
-            </div>
-          </div>
           <MotivationalQuote />
         </div>
 
