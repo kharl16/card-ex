@@ -419,7 +419,33 @@ export default function Dashboard() {
         {/* Welcome + Quote */}
         <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
-          <GlobalSearch />
+          {/* Prominent Deep Search — highlighted so users always find it */}
+          <div className="relative">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-[2px] rounded-[28px] bg-[conic-gradient(from_0deg,rgba(212,175,55,0.0),rgba(212,175,55,0.55),rgba(212,175,55,0.0),rgba(212,175,55,0.55),rgba(212,175,55,0.0))] opacity-70 blur-[6px] animate-[spin_9s_linear_infinite]"
+            />
+            <div className="relative rounded-[26px] border border-amber-400/40 bg-gradient-to-br from-amber-500/10 via-background/70 to-background/60 p-3 sm:p-4 shadow-[0_10px_40px_-10px_rgba(212,175,55,0.35)] backdrop-blur-xl">
+              <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                <div className="flex items-center gap-2">
+                  <span className="relative inline-flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400/70" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-400" />
+                  </span>
+                  <span className="text-xs sm:text-sm font-semibold uppercase tracking-[0.18em] text-amber-300/90">
+                    Deep Search
+                  </span>
+                </div>
+                <span className="hidden sm:inline text-[11px] text-muted-foreground">
+                  Locator · Videos · Resources · Gallery · Tools
+                </span>
+              </div>
+              <GlobalSearch />
+              <p className="mt-2 px-1 text-[11px] sm:text-xs text-muted-foreground">
+                Type any keyword to instantly find anything across your entire dashboard.
+              </p>
+            </div>
+          </div>
           <MotivationalQuote />
         </div>
 
