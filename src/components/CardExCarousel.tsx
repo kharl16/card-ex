@@ -112,7 +112,10 @@ const getCarouselImageTransform = (carouselKind: CarouselKind, width: number) =>
   width,
   height: carouselKind === "packages" ? Math.round(width * 0.75) : width,
   resize: "contain" as const,
-  quality: 80,
+  // Testimonies are text-heavy screenshots — keep quality high but serve as WebP
+  // so 25+ large PNGs (often 3000×3000+) don't blow past mobile bandwidth budgets.
+  quality: carouselKind === "testimonies" ? 82 : 80,
+  format: "webp" as const,
 });
 
 // ============== ROULETTE MODE ==============
