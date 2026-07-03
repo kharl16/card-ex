@@ -112,7 +112,10 @@ const getCarouselImageTransform = (carouselKind: CarouselKind, width: number) =>
   width,
   height: carouselKind === "packages" ? Math.round(width * 0.75) : width,
   resize: "contain" as const,
-  quality: 80,
+  // Testimonies are text-heavy screenshots — keep quality high but serve as WebP
+  // so 25+ large PNGs (often 3000×3000+) don't blow past mobile bandwidth budgets.
+  quality: carouselKind === "testimonies" ? 82 : 80,
+  format: "webp" as const,
 });
 
 // ============== ROULETTE MODE ==============
@@ -298,7 +301,7 @@ function RouletteMode({
                         aria-label={img.alt || `View image ${logicalIndex + 1}`}
                       >
                         <img
-                          src={cdnImage(img.url, getCarouselImageTransform(carouselKind, 800))}
+                          src={cdnImage(img.url, getCarouselImageTransform(carouselKind, carouselKind === "testimonies" ? 1200 : 800))}
                           alt={img.alt ?? ""}
                           className="h-full w-full object-contain"
                           draggable={false}
