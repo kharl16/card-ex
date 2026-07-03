@@ -301,7 +301,7 @@ function RouletteMode({
                         aria-label={img.alt || `View image ${logicalIndex + 1}`}
                       >
                         <img
-                          src={cdnImage(img.url, getCarouselImageTransform(carouselKind, 800))}
+                          src={cdnImage(img.url, getCarouselImageTransform(carouselKind, carouselKind === "testimonies" ? 1200 : 800))}
                           alt={img.alt ?? ""}
                           className="h-full w-full object-contain"
                           draggable={false}
