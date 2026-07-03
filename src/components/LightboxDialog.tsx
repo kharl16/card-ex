@@ -245,26 +245,32 @@ export default function LightboxDialog({
               </>
             )}
 
-            {/* Image — touch pan with 1 finger when zoomed (callback ref attaches native listeners) */}
+            {/* Image — touch pan with 1 finger when zoomed (callback ref attaches native listeners).
+                Uses viewport-relative caps (vw/vh) instead of max-w/h-full because percentage
+                max-height doesn't resolve inside a scrollable flex-col parent, which caused the
+                image to render at its intrinsic size and get cropped by overflow-hidden. */}
             <div
               ref={panContainerRef}
-              className="w-full h-full flex flex-col items-center overflow-y-auto"
+              className="absolute inset-0 flex items-center justify-center overflow-hidden"
               style={{ touchAction: zoomLevel > 1 ? "none" : "pan-y" }}
             >
-              <div className="flex-1 flex items-center justify-center w-full p-8 min-h-0">
-                {currentImage && (
-                  <img
-                    src={cdnImage(currentImage.url, { width: 1600, quality: 85 })}
-                    alt={currentImage.alt ?? ""}
-                    className="max-w-full max-h-full object-contain"
-                    style={{
-                      transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
-                      willChange: "transform",
-                    }}
-                    draggable={false}
-                  />
-                )}
-              </div>
+              {currentImage && (
+                <img
+                  src={cdnImage(currentImage.url, { width: 1600, quality: 85, format: "webp" })}
+                  alt={currentImage.alt ?? ""}
+                  className="block object-contain select-none"
+                  style={{
+                    maxWidth: "calc(95vw - 4rem)",
+                    maxHeight: "calc(95vh - 4rem)",
+                    width: "auto",
+                    height: "auto",
+                    transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
+                    transformOrigin: "center center",
+                    willChange: "transform",
+                  }}
+                  draggable={false}
+                />
+              )}
             </div>
 
             {/* Caption, SRP, Description & Counter — fixed position to ensure visibility */}
