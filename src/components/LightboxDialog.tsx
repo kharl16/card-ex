@@ -253,31 +253,37 @@ export default function LightboxDialog({
               </>
             )}
 
-            {/* Image — touch pan with 1 finger when zoomed (callback ref attaches native listeners).
-                Uses viewport-relative caps (vw/vh) instead of max-w/h-full because percentage
-                max-height doesn't resolve inside a scrollable flex-col parent, which caused the
-                image to render at its intrinsic size and get cropped by overflow-hidden. */}
+            {/* Image — fixed aspect-ratio wrapper sized to viewport so the image
+                always fits fully regardless of container height. Aspect ratio is
+                measured from the natural dimensions once the image loads; SafeImage
+                shows a skeleton until then and an error state for corrupt/oversized files. */}
             <div
               ref={panContainerRef}
               className="absolute inset-0 flex items-center justify-center overflow-hidden"
               style={{ touchAction: zoomLevel > 1 ? "none" : "pan-y" }}
             >
               {currentImage && (
-                <img
-                  src={cdnImage(currentImage.url, { width: 1600, quality: 85, format: "webp" })}
-                  alt={currentImage.alt ?? ""}
-                  className="block object-contain select-none"
+                <div
+                  className="relative"
                   style={{
+                    aspectRatio: String(aspect),
                     maxWidth: "calc(95vw - 4rem)",
                     maxHeight: "calc(95vh - 4rem)",
-                    width: "auto",
-                    height: "auto",
+                    // Prefer width, but let aspect-ratio drive height; both maxes clamp overflow.
+                    width: aspect >= 1 ? "calc(95vw - 4rem)" : "auto",
+                    height: aspect < 1 ? "calc(95vh - 4rem)" : "auto",
                     transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
                     transformOrigin: "center center",
                     willChange: "transform",
                   }}
-                  draggable={false}
-                />
+                >
+                  <SafeImage
+                    src={cdnImage(currentImage.url, { width: 1600, quality: 85, format: "webp" })}
+                    alt={currentImage.alt ?? ""}
+                    onDimensions={({ width, height }) => setAspect(width / height)}
+                    imgClassName="select-none"
+                  />
+                </div>
               )}
             </div>
 
