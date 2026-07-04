@@ -6,6 +6,7 @@ import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
 import type { LightboxImage } from "@/hooks/useLightbox";
 import { cdnImage } from "@/lib/cdnImage";
+import SafeImage from "@/components/SafeImage";
 
 export interface LightboxDialogProps {
   open: boolean;
@@ -45,8 +46,15 @@ export default function LightboxDialog({
 }: LightboxDialogProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  // Aspect ratio of the currently-loaded image; defaults to 1 until measured.
+  const [aspect, setAspect] = useState<number>(1);
   const panStart = useRef<{ x: number; y: number } | null>(null);
   const panOrigin = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Reset aspect when the image changes so we don't briefly show the wrong ratio.
+  useEffect(() => {
+    setAspect(1);
+  }, [currentImage?.url]);
 
   // Download current image
   const handleDownload = useCallback(async () => {
