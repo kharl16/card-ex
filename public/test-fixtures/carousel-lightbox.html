@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carousel + Lightbox Fixture</title>
+    <style>
+      html, body { margin: 0; padding: 0; background: #000; color: #fff; font-family: system-ui, sans-serif; overflow-x: hidden; }
+      .grid { display: grid; grid-template-columns: 1fr; gap: 24px; padding: 16px; }
+      .slide {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: #111;
+        overflow: hidden;
+        border-radius: 8px;
+      }
+      .slide img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+      .lightbox {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.95);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        z-index: 50;
+      }
+      .lightbox.open { display: flex; }
+      .lightbox .wrapper {
+        position: relative;
+        max-width: calc(95vw - 4rem);
+        max-height: calc(95vh - 4rem);
+      }
+      .lightbox .wrapper img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      .label { position: absolute; top: 4px; left: 4px; font-size: 12px; background: rgba(0,0,0,.6); padding: 2px 6px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <div id="grid" class="grid" data-testid="carousel-grid"></div>
+    <div id="lightbox" class="lightbox" data-testid="lightbox">
+      <div class="wrapper" id="lb-wrapper" data-testid="lightbox-wrapper">
+        <img id="lb-img" alt="" data-testid="lightbox-image" />
+      </div>
+    </div>
+    <script>
+      // Generate solid-color SVG data URIs at various aspect ratios so we can
+      // assert layout without depending on network images.
+      function svgDataUri(w, h, color) {
+        const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}' viewBox='0 0 ${w} ${h}'><rect width='100%' height='100%' fill='${color}'/><text x='50%' y='50%' fill='white' font-size='${Math.min(w,h)/6}' text-anchor='middle' dominant-baseline='central'>${w}x${h}</text></svg>`;
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+      }
+      const cases = [
+        { label: 'portrait-tall', w: 1080, h: 1920, color: '#3b82f6' },
+        { label: 'square', w: 1200, h: 1200, color: '#10b981' },
+        { label: 'landscape-wide', w: 2400, h: 1000, color: '#f59e0b' },
+        { label: 'ultra-tall', w: 600, h: 2400, color: '#ef4444' },
+        { label: 'ultra-wide', w: 3200, h: 800, color: '#a855f7' },
+      ];
+      const grid = document.getElementById('grid');
+      cases.forEach((c, i) => {
+        const slide = document.createElement('div');
+        slide.className = 'slide';
+        slide.dataset.testid = 'carousel-slide';
+        slide.dataset.label = c.label;
+        slide.innerHTML =
+          `<span class="label">${c.label}</span>` +
+          `<img alt="${c.label}" src="${svgDataUri(c.w, c.h, c.color)}" data-nw="${c.w}" data-nh="${c.h}" />`;
+        slide.addEventListener('click', () => openLightbox(c));
+        grid.appendChild(slide);
+      });
+      const lb = document.getElementById('lightbox');
+      const lbImg = document.getElementById('lb-img');
+      const lbWrap = document.getElementById('lb-wrapper');
+      function openLightbox(c) {
+        lbImg.src = svgDataUri(c.w, c.h, c.color);
+        lbImg.dataset.nw = c.w; lbImg.dataset.nh = c.h;
+        lbImg.dataset.label = c.label;
+        lbImg.onload = () => {
+          const aspect = c.w / c.h;
+          lbWrap.style.aspectRatio = String(aspect);
+          if (aspect >= 1) { lbWrap.style.width = 'calc(95vw - 4rem)'; lbWrap.style.height = 'auto'; }
+          else { lbWrap.style.height = 'calc(95vh - 4rem)'; lbWrap.style.width = 'auto'; }
+          lb.classList.add('open');
+        };
+      }
+      lb.addEventListener('click', (e) => { if (e.target === lb) lb.classList.remove('open'); });
+    </script>
+  </body>
+</html>
