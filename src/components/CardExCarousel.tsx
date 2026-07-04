@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import type { CarouselKind } from "@/lib/share";
 import { cdnImage } from "@/lib/cdnImage";
+import SafeImage from "@/components/SafeImage";
 
 // Types
 export type CardExCarouselMode = "roulette" | "ring3d" | "flat";
@@ -300,11 +301,9 @@ function RouletteMode({
                         onClick={() => handleImageClick(logicalIndex)}
                         aria-label={img.alt || `View image ${logicalIndex + 1}`}
                       >
-                        <img
+                        <SafeImage
                           src={cdnImage(img.url, getCarouselImageTransform(carouselKind, carouselKind === "testimonies" ? 1200 : 800))}
                           alt={img.alt ?? ""}
-                          className="h-full w-full object-contain"
-                          draggable={false}
                           loading={Math.abs(logicalIndex - Math.round(logicalCenter)) > 1 ? "lazy" : "eager"}
                           decoding="async"
                         />
@@ -579,11 +578,9 @@ function FlatMode({
                       onClick={() => handleImageClick(index)}
                       aria-label={item.alt || `View image ${index + 1}`}
                     >
-                      <img
+                      <SafeImage
                         src={cdnImage(item.url, getCarouselImageTransform(carouselKind, 480))}
                         alt={item.alt ?? ""}
-                        className="h-full w-full object-contain"
-                        draggable={false}
                         loading="lazy"
                         decoding="async"
                       />
