@@ -76,6 +76,8 @@ const AnimatedRoutes = () => {
         <Route path="/auth/callback" element={<PageTransition><AuthCallback /></PageTransition>} />
         <Route path="/auth/confirm" element={<PageTransition><AuthConfirm /></PageTransition>} />
         <Route path="/oauth/consent" element={<PageTransition><OAuthConsent /></PageTransition>} />
+        <Route path="/.lovable/oauth/consent" element={<PageTransition><OAuthConsent /></PageTransition>} />
+
         <Route path="/auth/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route
           path="/onboarding"
