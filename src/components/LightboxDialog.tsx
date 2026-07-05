@@ -278,7 +278,7 @@ export default function LightboxDialog({
                   }}
                 >
                   <SafeImage
-                    src={cdnImage(currentImage.url, { width: 1600, quality: 85, format: "webp" })}
+                    src={cdnImage(currentImage.url, { width: 1600, quality: 90, format: "origin" })}
                     alt={currentImage.alt ?? ""}
                     onDimensions={({ width, height }) => setAspect(width / height)}
                     imgClassName="select-none"
