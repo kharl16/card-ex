@@ -109,15 +109,28 @@ const imageSizeConfig = {
 const getCarouselSlideAspectRatio = (carouselKind: CarouselKind) =>
   carouselKind === "packages" ? "4 / 3" : "1 / 1";
 
-const getCarouselImageTransform = (carouselKind: CarouselKind, width: number) => ({
-  width,
-  height: carouselKind === "packages" ? Math.round(width * 0.75) : width,
-  resize: "contain" as const,
-  // Testimonies are text-heavy screenshots — keep quality high but serve as WebP
-  // so 25+ large PNGs (often 3000×3000+) don't blow past mobile bandwidth budgets.
-  quality: carouselKind === "testimonies" ? 82 : 80,
-  format: "webp" as const,
-});
+const getCarouselImageTransform = (carouselKind: CarouselKind, width: number) => {
+  // Testimonies are text-heavy screenshots with mixed source ratios. Always
+  // bound both axes and request contain; Supabase width-only transforms can
+  // preserve the original height while shrinking width, corrupting aspect ratio.
+  if (carouselKind === "testimonies") {
+    return {
+      width,
+      height: width,
+      resize: "contain" as const,
+      quality: 88,
+      format: "webp" as const,
+    };
+  }
+
+  return {
+    width,
+    height: carouselKind === "packages" ? Math.round(width * 0.75) : width,
+    resize: "contain" as const,
+    quality: 80,
+    format: "webp" as const,
+  };
+};
 
 // ============== ROULETTE MODE ==============
 interface RouletteModeProps {
