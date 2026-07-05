@@ -110,14 +110,16 @@ const getCarouselSlideAspectRatio = (carouselKind: CarouselKind) =>
   carouselKind === "packages" ? "4 / 3" : "1 / 1";
 
 const getCarouselImageTransform = (carouselKind: CarouselKind, width: number) => {
-  // Testimonies are text-heavy screenshots with mixed source ratios. Supplying
-  // both width and height to the CDN can create a square derivative, so keep
-  // testimony transforms width-only and let CSS object-contain do the fitting.
+  // Testimonies are text-heavy screenshots with mixed source ratios. Always
+  // bound both axes and request contain; Supabase width-only transforms can
+  // preserve the original height while shrinking width, corrupting aspect ratio.
   if (carouselKind === "testimonies") {
     return {
       width,
+      height: width,
+      resize: "contain" as const,
       quality: 88,
-      format: "origin" as const,
+      format: "webp" as const,
     };
   }
 
