@@ -17,6 +17,9 @@ Aspect ratios to cover for each device:
 - Portrait tall (e.g. 1080 × 1920 phone screenshot)
 - Square (1:1, e.g. testimony PNG)
 - Landscape wide (e.g. 2400 × 1000 banner)
+- Real testimony regression pair:
+  - `Insomnia_-_Constipation.JPG`: landscape JPEG, ~1.44:1
+  - `Rosacea_Skin_Disease.png`: square PNG, 1:1
 - Ultra-tall infographic (≥ 3:1 height:width)
 - Corrupted / broken URL (should show `Image unavailable` state, not crash)
 - 60+ megapixel image (should show error state, not blow up layout)
@@ -43,3 +46,10 @@ Aspect ratios to cover for each device:
 - Skeleton visible only briefly; no flash of wrong aspect ratio.
 - Broken and oversized images degrade to a clean error tile.
 - No horizontal scroll introduced at any viewport.
+
+## Regression note
+
+Supabase image transforms must include both `width` and `height` with
+`resize=contain` for testimony previews and lightbox images. Width-only
+transforms can return incorrect intrinsic dimensions for large square PNG
+testimonies, causing the selected preview to use the wrong wrapper ratio.
