@@ -343,9 +343,34 @@ function FilesPageContent() {
         </div>
       </header>
 
+      {/* Reorder banner */}
+      {reorderMode && (
+        <div className="container mx-auto px-4 pt-3">
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs">
+            <div className="flex items-center gap-2">
+              <Move className="h-3.5 w-3.5 text-primary" />
+              <span className="text-foreground">
+                {isResourceAdmin
+                  ? "Drag any tile to rearrange. Changes save automatically."
+                  : "Drag to preview a new order (only admins can save it for everyone)."}
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 text-xs"
+              onClick={() => { setReorderMode(false); setLocalOrder(null); }}
+              disabled={savingOrder}
+            >
+              Done
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Content grid */}
       <main className="container mx-auto px-4 py-4">
-        {filteredFiles.length === 0 ? (
+        {displayFiles.length === 0 ? (
           <div className="text-center py-16">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
             <p className="text-base text-muted-foreground mb-3">No files found</p>
@@ -354,21 +379,34 @@ function FilesPageContent() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
-            {filteredFiles.map((file) => (
-              <ResourceCard
-                key={file.id}
-                resource={file}
-                compact
-                isFavorite={isFavorite("file", String(file.id))}
-                onToggleFavorite={() => toggleFavorite("file", String(file.id))}
-                onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
-                onClick={() => handleFileClick(file)}
-              />
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={displayFiles.map((f) => f.id)}
+              strategy={rectSortingStrategy}
+            >
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
+                {displayFiles.map((file) => (
+                  <SortableTile key={file.id} file={file} disabled={!reorderMode}>
+                    <ResourceCard
+                      resource={file}
+                      compact
+                      isFavorite={isFavorite("file", String(file.id))}
+                      onToggleFavorite={() => toggleFavorite("file", String(file.id))}
+                      onLogEvent={(eventType) => logEvent("file", String(file.id), eventType)}
+                      onClick={() => handleFileClick(file)}
+                    />
+                  </SortableTile>
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </main>
+
 
       {/* Lightbox preview */}
       <FilePreviewDialog
