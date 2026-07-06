@@ -66,7 +66,7 @@ export function useResourceData(): UseResourceDataReturn {
         trainingRes,
         favoritesRes,
       ] = await Promise.all([
-        supabase.from("files_repository").select("*").eq("company_id", activeCompanyId).order("folder_name").order("file_name"),
+        supabase.from("files_repository").select("*").eq("company_id", activeCompanyId).order("sort_order", { ascending: true, nullsFirst: false }).order("folder_name").order("file_name"),
         supabase.from("ambassadors_library").select("*").eq("company_id", activeCompanyId).order("endorser"),
         supabase.from("iam_links").select("*").eq("company_id", activeCompanyId).order("name"),
         supabase.from("ways_13").select("*").eq("company_id", activeCompanyId),
