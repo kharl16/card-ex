@@ -301,13 +301,14 @@ function FilesPageContent() {
           {/* Expanded filters */}
           {showFilters && (
             <div className="flex items-center gap-2 mb-3">
-              <Select value={sortBy} onValueChange={(v) => setSortBy(v as "name" | "newest")}>
-                <SelectTrigger className="w-[100px] h-8 text-xs">
+              <Select value={sortBy} onValueChange={(v) => setSortBy(v as "name" | "newest" | "custom")}>
+                <SelectTrigger className="w-[110px] h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="name">A-Z</SelectItem>
                   <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
                 </SelectContent>
               </Select>
               {hasActiveFilters && (
