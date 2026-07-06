@@ -121,11 +121,27 @@ function FilesPageContent() {
     }
     if (sortBy === "name") {
       result.sort((a, b) => a.file_name.localeCompare(b.file_name));
-    } else {
+    } else if (sortBy === "newest") {
       result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else {
+      // custom: use sort_order (nulls last), fallback to name
+      result.sort((a, b) => {
+        const ao = a.sort_order ?? Number.MAX_SAFE_INTEGER;
+        const bo = b.sort_order ?? Number.MAX_SAFE_INTEGER;
+        if (ao !== bo) return ao - bo;
+        return a.file_name.localeCompare(b.file_name);
+      });
     }
     return result;
   }, [files, searchTerm, selectedFolder, sortBy]);
+
+  // Local override while reordering, so UI stays snappy before refetch
+  const displayFiles = reorderMode && localOrder ? localOrder : filteredFiles;
+
+  // Reset local order whenever the underlying filtered list changes
+  useEffect(() => {
+    setLocalOrder(null);
+  }, [filteredFiles]);
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -135,9 +151,60 @@ function FilesPageContent() {
   const hasActiveFilters = searchTerm || selectedFolder !== "all";
 
   const handleFileClick = useCallback((file: FileResource) => {
+    if (reorderMode) return;
     logEvent("file", String(file.id), "view");
     setPreviewFile(file);
-  }, [logEvent]);
+  }, [logEvent, reorderMode]);
+
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const current = localOrder ?? filteredFiles;
+    const oldIndex = current.findIndex((f) => f.id === active.id);
+    const newIndex = current.findIndex((f) => f.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+
+    const reordered = arrayMove(current, oldIndex, newIndex);
+    setLocalOrder(reordered);
+
+    // Persist sort_order (admins only)
+    if (!isResourceAdmin) {
+      toast({
+        title: "Reorder saved locally",
+        description: "Only resource admins can save the new order for everyone.",
+      });
+      return;
+    }
+
+    setSavingOrder(true);
+    try {
+      // Assign sort_order in steps of 10 for future insertions
+      const updates = reordered.map((file, idx) =>
+        supabase
+          .from("files_repository")
+          .update({ sort_order: (idx + 1) * 10 })
+          .eq("id", file.id)
+      );
+      const results = await Promise.all(updates);
+      const firstErr = results.find((r) => r.error);
+      if (firstErr?.error) throw firstErr.error;
+      // Auto-switch sort mode to custom so user sees the new order
+      setSortBy("custom");
+      await refetch();
+      toast({ title: "Order saved" });
+    } catch (err: unknown) {
+      console.error("Failed to save order:", err);
+      toast({
+        title: "Couldn't save order",
+        description: err instanceof Error ? err.message : "Please try again.",
+        variant: "destructive",
+      });
+      setLocalOrder(null);
+    } finally {
+      setSavingOrder(false);
+    }
+  }, [filteredFiles, isResourceAdmin, localOrder, refetch]);
 
   if (loading) {
     return (
