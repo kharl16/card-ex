@@ -29,6 +29,7 @@ export interface FileResource {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  sort_order?: number | null;
 }
 
 export interface DirectoryEntry {
