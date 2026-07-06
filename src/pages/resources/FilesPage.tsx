@@ -34,12 +34,51 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+interface SortableTileProps {
+  file: FileResource;
+  disabled?: boolean;
+  children: React.ReactNode;
+}
+
+function SortableTile({ file, disabled, children }: SortableTileProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: file.id, disabled });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn("relative", isDragging && "z-50 opacity-80 scale-105")}
+    >
+      {children}
+      {!disabled && (
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          aria-label={`Drag ${file.file_name}`}
+          className="absolute top-1 left-1 z-20 p-1.5 rounded-md bg-background/80 backdrop-blur border border-border/60 shadow-sm cursor-grab active:cursor-grabbing touch-none hover:bg-background"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-3.5 w-3.5 text-foreground" />
+        </button>
+      )}
+    </div>
+  );
+}
+
 function FilesPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"name" | "newest">("name");
+  const [sortBy, setSortBy] = useState<"name" | "newest" | "custom">("name");
   const [showFilters, setShowFilters] = useState(false);
+  const [reorderMode, setReorderMode] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
+  const [localOrder, setLocalOrder] = useState<FileResource[] | null>(null);
+  const [savingOrder, setSavingOrder] = useState(false);
   useSearchQueryParam(setSearchTerm);
 
   // Read folder from URL query param on mount
@@ -51,7 +90,14 @@ function FilesPageContent() {
     }
   }, []);
 
-  const { files, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
+  const { files, loading, toggleFavorite, logEvent, isFavorite, refetch } = useResourceData();
+  const { isResourceAdmin } = useResources();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const folderNames = useMemo(() => {
     const names = new Set<string>();
