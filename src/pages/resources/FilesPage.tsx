@@ -249,6 +249,24 @@ function FilesPageContent() {
             </div>
             <div className="flex items-center gap-1.5">
               <Button
+                variant={reorderMode ? "default" : "ghost"}
+                size="icon"
+                className="h-9 w-9"
+                onClick={() => {
+                  setReorderMode((v) => {
+                    const next = !v;
+                    if (next) setSortBy("custom");
+                    setLocalOrder(null);
+                    return next;
+                  });
+                }}
+                aria-label={reorderMode ? "Done reordering" : "Reorder files"}
+                title={reorderMode ? "Done reordering" : "Drag to reorder"}
+                disabled={savingOrder}
+              >
+                <Move className="h-4 w-4" />
+              </Button>
+              <Button
                 variant={showFilters ? "default" : "ghost"}
                 size="icon"
                 className="h-9 w-9"
