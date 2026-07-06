@@ -1,17 +1,38 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, X, FileText, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, Search, X, FileText, SlidersHorizontal, GripVertical, Move } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ResourcesProvider } from "@/contexts/ResourcesContext";
+import { ResourcesProvider, useResources } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
 import { ResourceCard } from "@/components/resources/ResourceCard";
 import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
 import type { FileResource } from "@/types/resources";
 import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  sortableKeyboardCoordinates,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 function FilesPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
