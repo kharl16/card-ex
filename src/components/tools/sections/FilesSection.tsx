@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Download, Share2, Play, FolderOpen, Eye, ArrowLeft } from "lucide-react";
+import { Play, FolderOpen, ArrowLeft } from "lucide-react";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
+import type { FileResource } from "@/types/resources";
+
 
 interface FileItem {
   id: number;
