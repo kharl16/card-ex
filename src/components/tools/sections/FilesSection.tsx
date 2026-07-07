@@ -34,6 +34,7 @@ interface ResourceFolder {
   folder_name: string;
   images: string | null;
   is_active: boolean;
+  min_sort: number;
 }
 
 interface FilesSectionProps {
