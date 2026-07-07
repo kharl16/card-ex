@@ -354,34 +354,34 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
 
   // ── Folder grid view ──
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 min-w-0 overflow-x-hidden">
       {filteredFolders.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-lg text-muted-foreground">No resource folders available yet</p>
+          <p className="text-base text-muted-foreground">No resource folders available yet</p>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 min-w-0">
         {filteredFolders.map((folder) => (
           <button
             key={folder.id}
             onClick={() => setActiveFolder(folder)}
             className={cn(
-              "relative rounded-2xl overflow-hidden aspect-[4/3]",
-              "bg-card border border-border/50 shadow-md",
+              "relative rounded-xl overflow-hidden aspect-square",
+              "bg-card border border-border/40 shadow-sm",
               "hover:shadow-lg hover:border-primary/30 transition-all text-left group"
             )}
           >
             {folder.images ? (
-              <img src={folder.images} alt={folder.folder_name} className="w-full h-full object-contain bg-black" />
+              <img src={folder.images} alt={folder.folder_name} className="w-full h-full object-contain bg-black/90" loading="lazy" referrerPolicy="no-referrer" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                <FolderOpen className="w-12 h-12 text-primary/40" />
+                <FolderOpen className="w-10 h-10 text-primary/40" />
               </div>
             )}
 
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 pt-8">
-              <h3 className="text-sm font-semibold text-white line-clamp-2">{folder.folder_name}</h3>
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
+              <h3 className="text-[11px] font-semibold text-white line-clamp-2 drop-shadow-lg">{folder.folder_name}</h3>
             </div>
           </button>
         ))}
@@ -389,3 +389,4 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
     </div>
   );
 }
+
