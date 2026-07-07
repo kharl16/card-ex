@@ -85,26 +85,36 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
       // Read from the same source as the Dashboard Resources Hub
       const { data, error } = await supabase
         .from("files_repository")
-        .select("folder_name, images")
+        .select("folder_name, images, sort_order")
         .eq("is_active", true);
       if (error) throw error;
 
       const folderMap = new Map<string, ResourceFolder>();
       (data || []).forEach((row: any) => {
         const name = row.folder_name;
-        if (name && !folderMap.has(name)) {
+        if (!name) return;
+        const sortVal = row.sort_order ?? Number.MAX_SAFE_INTEGER;
+        const existing = folderMap.get(name);
+        if (!existing) {
           folderMap.set(name, {
             id: name,
             folder_name: name,
             images: row.images || null,
             is_active: true,
+            min_sort: sortVal,
           });
+        } else {
+          if (sortVal < existing.min_sort) {
+            existing.min_sort = sortVal;
+            if (row.images) existing.images = row.images;
+          }
         }
       });
 
-      const folderList = Array.from(folderMap.values()).sort((a, b) =>
-        a.folder_name.localeCompare(b.folder_name)
-      );
+      const folderList = Array.from(folderMap.values()).sort((a, b) => {
+        if (a.min_sort !== b.min_sort) return a.min_sort - b.min_sort;
+        return a.folder_name.localeCompare(b.folder_name);
+      });
       setFolders(folderList);
     } catch (err) {
       console.error("Error fetching folders:", err);
@@ -112,6 +122,23 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
       setLoading(false);
     }
   };
+
+  const fetchItems = async (folderName: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("files_repository")
+        .select("*")
+        .eq("folder_name", folderName)
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true, nullsFirst: false })
+        .order("file_name", { ascending: true });
+      if (error) throw error;
+      setItems((data || []).map(mapRow));
+    } catch (err) {
+      console.error("Error fetching files:", err);
+    }
+  };
+
 
   const fetchItems = async (folderName: string) => {
     try {
