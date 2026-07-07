@@ -186,112 +186,62 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
   // ── Inside a folder ──
   if (activeFolder) {
     return (
-      <div className="space-y-4">
-        <Button variant="ghost" className="gap-2 -ml-2" onClick={handleBackToFolders}>
+      <div className="space-y-3 min-w-0 overflow-x-hidden">
+        <Button variant="ghost" size="sm" className="gap-2 -ml-2 h-8" onClick={handleBackToFolders}>
           <ArrowLeft className="w-4 h-4" /> Back to Folders
         </Button>
 
-        <h2 className="text-xl font-bold text-foreground">{activeFolder.folder_name}</h2>
+        <h2 className="text-base font-bold text-foreground truncate">{activeFolder.folder_name}</h2>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 min-w-0">
           {filteredItems.map((item) => {
             const thumbnail = getThumbnail(item.images);
             return (
-              <div
+              <button
                 key={item.id}
+                onClick={() => setSelectedFile(item)}
                 className={cn(
-                  "rounded-2xl overflow-hidden relative",
-                  "bg-card border border-border/50 shadow-md",
+                  "group relative overflow-hidden rounded-xl aspect-square text-left",
+                  "bg-card border border-border/40 shadow-sm",
                   "hover:shadow-lg hover:border-primary/30 transition-all"
                 )}
               >
-                <div
-                  className="relative aspect-square bg-black cursor-pointer"
-                  onClick={() => setSelectedFile(item)}
-                >
-                  {thumbnail ? (
-                    <img
-                      src={thumbnail}
-                      alt={item.file_name}
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                      <FolderOpen className="w-12 h-12 text-primary/50" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-3 space-y-2">
-                  <h4 className="font-semibold text-foreground text-sm line-clamp-2 min-h-[40px]">
-                    {item.file_name}
-                  </h4>
-
-                  <div className="flex gap-2">
-                    {item.drive_link_download && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 h-10 gap-1 text-xs"
-                        onClick={() => window.open(item.drive_link_download!, "_blank")}
-                      >
-                        <Download className="w-4 h-4" />
-                        Download
-                      </Button>
-                    )}
-                    {item.drive_link_share && !item.drive_link_download && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 h-10 gap-1 text-xs"
-                        onClick={() => window.open(item.drive_link_share!, "_blank")}
-                      >
-                        <Eye className="w-4 h-4" />
-                        View
-                      </Button>
-                    )}
-                    {item.view_video_url && (
-                      <Button
-                        size="sm"
-                        className="flex-1 h-10 gap-1 text-xs"
-                        onClick={() => window.open(item.view_video_url!, "_blank")}
-                      >
-                        <Play className="w-4 h-4" />
-                        Watch
-                      </Button>
-                    )}
-                    {!item.drive_link_download && !item.drive_link_share && !item.view_video_url && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1 h-10 gap-1 text-xs"
-                        onClick={() => setSelectedFile(item)}
-                      >
-                        <Eye className="w-4 h-4" />
-                        View
-                      </Button>
-                    )}
+                {thumbnail ? (
+                  <img
+                    src={thumbnail}
+                    alt={item.file_name}
+                    className="w-full h-full object-contain bg-black/90"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                    <FolderOpen className="w-8 h-8 text-primary/50" />
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full h-8 gap-1 text-xs text-muted-foreground"
-                    onClick={() => handleShareFile(item)}
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    Share
-                  </Button>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80" />
+                {item.view_video_url && (
+                  <div className="absolute top-1.5 left-1.5 bg-black/50 backdrop-blur-md rounded-full p-1 border border-white/10">
+                    <Play className="h-3 w-3 text-white fill-white" />
+                  </div>
+                )}
+                <div className="absolute bottom-0 inset-x-0 p-2">
+                  <h3 className="font-medium text-white text-[11px] leading-snug line-clamp-2 drop-shadow-lg">
+                    {item.file_name}
+                  </h3>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
 
         {filteredItems.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground">No resources in this folder yet</p>
+            <p className="text-base text-muted-foreground">No resources in this folder yet</p>
           </div>
         )}
+
+
 
         {/* Detail Modal */}
         <Dialog open={!!selectedFile} onOpenChange={() => setSelectedFile(null)}>
