@@ -140,21 +140,6 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
   };
 
 
-  const fetchItems = async (folderName: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("files_repository")
-        .select("*")
-        .eq("folder_name", folderName)
-        .eq("is_active", true)
-        .order("file_name", { ascending: true });
-      if (error) throw error;
-      setItems((data || []).map(mapRow));
-    } catch (err) {
-      console.error("Error fetching files:", err);
-    }
-  };
-
   const filteredFolders = folders.filter(
     (f) => !searchQuery || f.folder_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
