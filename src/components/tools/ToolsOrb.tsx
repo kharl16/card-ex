@@ -22,6 +22,7 @@ import ToolsDrawer from "./ToolsDrawer";
 import ToolsOrbCustomizer from "./ToolsOrbCustomizer";
 import ToolsAuthDialog from "./ToolsAuthDialog";
 import { useToolsAuth } from "@/hooks/useToolsAuth";
+import { useBackButtonClose } from "@/hooks/useBackButtonClose";
 import { toast } from "sonner";
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
@@ -74,6 +75,9 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
   const [initialized, setInitialized] = useState(false);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const routeItems = useMemo(() => new Set(["prospects"]), []);
+
+  // Hardware/browser back button closes the radial menu first.
+  useBackButtonClose(isOpen, () => setIsOpen(false));
 
   // Deep-link: open drawer to a specific tool when URL has ?tool=...
   // Consumed exactly once per mount — back/forward nav won't re-trigger because

@@ -14,6 +14,7 @@ import LinksSection from "./sections/LinksSection";
 import FilesSection from "./sections/FilesSection";
 import DirectorySection from "./sections/DirectorySection";
 import PresentationsSection from "./sections/PresentationsSection";
+import { useBackButtonClose } from "@/hooks/useBackButtonClose";
 
 import BulkImportExportDialog from "./admin/BulkImportExportDialog";
 import { cn } from "@/lib/utils";
@@ -68,6 +69,9 @@ export default function ToolsDrawer({
   const isMobile = lockedMobile ?? isMobileLive;
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+
+  // Hardware/browser back button closes the drawer instead of leaving the page.
+  useBackButtonClose(open, () => onOpenChange(false));
 
   useEffect(() => {
     if (open) {

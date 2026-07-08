@@ -15,6 +15,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useBackButtonClose } from "@/hooks/useBackButtonClose";
 import { useEffect, useRef } from "react";
 
 interface DashboardOrbItem {
@@ -50,6 +51,9 @@ export function DashboardOrb() {
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
+
+  // Hardware/browser back button closes the radial menu instead of navigating away.
+  useBackButtonClose(isOpen, () => setIsOpen(false));
 
   const motionX = useMotionValue(0);
   const motionY = useMotionValue(0);
