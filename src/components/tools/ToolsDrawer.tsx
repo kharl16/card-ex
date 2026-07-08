@@ -14,6 +14,7 @@ import LinksSection from "./sections/LinksSection";
 import FilesSection from "./sections/FilesSection";
 import DirectorySection from "./sections/DirectorySection";
 import PresentationsSection from "./sections/PresentationsSection";
+import { useBackButtonClose } from "@/hooks/useBackButtonClose";
 
 import BulkImportExportDialog from "./admin/BulkImportExportDialog";
 import { cn } from "@/lib/utils";
