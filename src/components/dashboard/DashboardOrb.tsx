@@ -52,6 +52,9 @@ export function DashboardOrb() {
   const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
 
+  // Hardware/browser back button closes the radial menu instead of navigating away.
+  useBackButtonClose(isOpen, () => setIsOpen(false));
+
   const motionX = useMotionValue(0);
   const motionY = useMotionValue(0);
   const springConfig = { stiffness: 900, damping: 60 };
