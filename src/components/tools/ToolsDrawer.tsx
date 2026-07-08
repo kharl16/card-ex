@@ -70,6 +70,9 @@ export default function ToolsDrawer({
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
 
+  // Hardware/browser back button closes the drawer instead of leaving the page.
+  useBackButtonClose(open, () => onOpenChange(false));
+
   useEffect(() => {
     if (open) {
       setLockedMobile(isMobileLive);
