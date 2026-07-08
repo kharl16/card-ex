@@ -39,11 +39,18 @@ export function useBackButtonClose(isOpen: boolean, onClose: () => void) {
     return () => {
       window.removeEventListener("popstate", handler);
       if (!poppedByBack) {
-        try {
-          suppressPopCount++;
-          window.history.back();
-        } catch {
-          suppressPopCount = Math.max(0, suppressPopCount - 1);
+        // Only rewind if we're still sitting on the overlay entry we pushed.
+        // If the app navigated (e.g. clicking a menu item), the overlay entry
+        // is no longer current and calling history.back() would undo that
+        // navigation.
+        const state = window.history.state as { __lovableOverlay?: boolean } | null;
+        if (state?.__lovableOverlay) {
+          try {
+            suppressPopCount++;
+            window.history.back();
+          } catch {
+            suppressPopCount = Math.max(0, suppressPopCount - 1);
+          }
         }
       }
     };
