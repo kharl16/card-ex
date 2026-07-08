@@ -15,6 +15,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useBackButtonClose } from "@/hooks/useBackButtonClose";
 import { useEffect, useRef } from "react";
 
 interface DashboardOrbItem {
