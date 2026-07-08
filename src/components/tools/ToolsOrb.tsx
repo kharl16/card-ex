@@ -22,6 +22,7 @@ import ToolsDrawer from "./ToolsDrawer";
 import ToolsOrbCustomizer from "./ToolsOrbCustomizer";
 import ToolsAuthDialog from "./ToolsAuthDialog";
 import { useToolsAuth } from "@/hooks/useToolsAuth";
+import { useBackButtonClose } from "@/hooks/useBackButtonClose";
 import { toast } from "sonner";
 
 const ICON_MAP: Record<string, React.ComponentType<any>> = {
