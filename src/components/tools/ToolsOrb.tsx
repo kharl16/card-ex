@@ -76,6 +76,9 @@ export default function ToolsOrb({ mode = "public", containerRef, cardOwnerId }:
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const routeItems = useMemo(() => new Set(["prospects"]), []);
 
+  // Hardware/browser back button closes the radial menu first.
+  useBackButtonClose(isOpen, () => setIsOpen(false));
+
   // Deep-link: open drawer to a specific tool when URL has ?tool=...
   // Consumed exactly once per mount — back/forward nav won't re-trigger because
   // we strip the param AND latch deepLinkConsumedRef.
