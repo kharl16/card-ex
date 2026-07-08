@@ -6,17 +6,31 @@ import { useEffect } from "react";
  * navigating away from the page. Mirrors native mobile app behavior.
  *
  * If the overlay is closed by app UI (not the back button), the pushed
- * history entry is silently consumed on cleanup.
+ * history entry is silently consumed on cleanup — and any resulting popstate
+ * is suppressed so sibling overlays don't misinterpret it as a back press.
  */
+
+// Module-level counter of pending programmatic history.back() calls that
+// should NOT trigger overlay-close handlers. Shared across all overlays.
+let suppressPopCount = 0;
+
+export function shouldSuppressOverlayPop(): boolean {
+  if (suppressPopCount > 0) {
+    suppressPopCount--;
+    return true;
+  }
+  return false;
+}
+
 export function useBackButtonClose(isOpen: boolean, onClose: () => void) {
   useEffect(() => {
     if (!isOpen) return;
 
     let poppedByBack = false;
-    // Tag the pushed entry so we can identify it if needed.
     window.history.pushState({ __lovableOverlay: true }, "");
 
     const handler = () => {
+      if (shouldSuppressOverlayPop()) return;
       poppedByBack = true;
       onClose();
     };
@@ -25,12 +39,11 @@ export function useBackButtonClose(isOpen: boolean, onClose: () => void) {
     return () => {
       window.removeEventListener("popstate", handler);
       if (!poppedByBack) {
-        // Overlay closed via UI — silently pop the extra history entry
-        // so the back stack stays clean.
         try {
+          suppressPopCount++;
           window.history.back();
         } catch {
-          // no-op
+          suppressPopCount = Math.max(0, suppressPopCount - 1);
         }
       }
     };
