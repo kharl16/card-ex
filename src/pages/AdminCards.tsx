@@ -325,9 +325,28 @@ function AdminCardRow({
             <DialogFooter>
               <Button
                 variant="outline"
-                onClick={() => {
-                  navigator.clipboard.writeText(loginInfoText);
-                  toast.success("Login info copied to clipboard");
+                onClick={async () => {
+                  let ok = false;
+                  try {
+                    await navigator.clipboard.writeText(loginInfoText);
+                    ok = true;
+                  } catch {
+                    try {
+                      const ta = document.createElement("textarea");
+                      ta.value = loginInfoText;
+                      ta.style.position = "fixed";
+                      ta.style.opacity = "0";
+                      document.body.appendChild(ta);
+                      ta.focus();
+                      ta.select();
+                      ok = document.execCommand("copy");
+                      document.body.removeChild(ta);
+                    } catch {
+                      ok = false;
+                    }
+                  }
+                  if (ok) toast.success("Login info copied to clipboard");
+                  else toast.error("Could not copy — please select and copy manually");
                 }}
               >
                 <Copy className="mr-2 h-4 w-4" />
