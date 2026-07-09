@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -103,6 +103,17 @@ function generateReferralCode(): string {
   return code;
 }
 
+async function copyTextToClipboard(text: string): Promise<boolean> {
+  if (!navigator.clipboard?.writeText) return false;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Admin Card Row Component with payment controls
 function AdminCardRow({
   card,
@@ -130,6 +141,7 @@ function AdminCardRow({
   const { data: plans } = useCardPlans();
   const defaultPlan = plans?.find((p) => p.code === "ESSENTIAL") || plans?.[0];
   const [loginInfoOpen, setLoginInfoOpen] = useState(false);
+  const loginInfoRef = useRef<HTMLPreElement>(null);
 
   const cardSlug = card.custom_slug || card.slug || "";
   const cardLink = card.custom_slug
@@ -313,7 +325,7 @@ function AdminCardRow({
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3">
-              <pre className="whitespace-pre-wrap rounded-md border bg-muted/40 p-3 text-xs font-mono text-foreground">
+              <pre ref={loginInfoRef} className="whitespace-pre-wrap rounded-md border bg-muted/40 p-3 text-xs font-mono text-foreground select-text">
 {loginInfoText}
               </pre>
               {!ownerEmail && (
@@ -326,27 +338,21 @@ function AdminCardRow({
               <Button
                 variant="outline"
                 onClick={async () => {
-                  let ok = false;
-                  try {
-                    await navigator.clipboard.writeText(loginInfoText);
-                    ok = true;
-                  } catch {
-                    try {
-                      const ta = document.createElement("textarea");
-                      ta.value = loginInfoText;
-                      ta.style.position = "fixed";
-                      ta.style.opacity = "0";
-                      document.body.appendChild(ta);
-                      ta.focus();
-                      ta.select();
-                      ok = document.execCommand("copy");
-                      document.body.removeChild(ta);
-                    } catch {
-                      ok = false;
-                    }
+                  const copied = await copyTextToClipboard(loginInfoText);
+
+                  if (copied) {
+                    toast.success("Login info copied to clipboard");
+                    return;
                   }
-                  if (ok) toast.success("Login info copied to clipboard");
-                  else toast.error("Could not copy — please select and copy manually");
+
+                  const selection = window.getSelection();
+                  const range = document.createRange();
+                  if (loginInfoRef.current && selection) {
+                    range.selectNodeContents(loginInfoRef.current);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                  }
+                  toast.error("Copy is blocked here — the login info is selected for manual copy");
                 }}
               >
                 <Copy className="mr-2 h-4 w-4" />
