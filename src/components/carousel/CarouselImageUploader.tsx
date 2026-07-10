@@ -349,25 +349,18 @@ export default function CarouselImageUploader({
 
     for (const { blob, fileName } of processedBlobs) {
       try {
-        const fileExt = fileName.split(".").pop() || "jpg";
-        const uniqueFileName = `${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `${ownerId}/${cardId}/${carouselKey}/${uniqueFileName}`;
-
         totalOriginalSize += blob.size;
-        totalCompressedSize += blob.size;
 
-        const { error: uploadError } = await supabase.storage
-          .from("cardex-products")
-          .upload(filePath, blob, { cacheControl: "31536000", upsert: false });
+        const { publicUrl, optimizedBytes } = await uploadOptimizedFile(blob, {
+          bucket: "cardex-products",
+          folder: `${ownerId}/${cardId}/${carouselKey}`,
+          kind: "carousel",
+        });
 
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from("cardex-products")
-          .getPublicUrl(filePath);
+        totalCompressedSize += optimizedBytes;
 
         newImages.push({
-          url: urlData.publicUrl,
+          url: publicUrl,
           alt: fileName.replace(/\.[^/.]+$/, ""),
           order: images.length + newImages.length,
         });

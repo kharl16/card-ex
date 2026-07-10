@@ -85,33 +85,20 @@ export default function ProductImageUploader({
         try {
           // Use edited blob if available, otherwise original file
           const fileToUpload = pending.editedBlob || pending.file;
-          const fileExt = pending.file.name.split(".").pop();
-          const fileName = `${crypto.randomUUID()}.${fileExt}`;
-          const filePath = `${ownerId}/${cardId}/${fileName}`;
 
           setUploadProgress((prev) => ({ ...prev, [i]: 30 }));
 
-          // Upload to storage
-          const { error: uploadError } = await supabase.storage.from("cardex-products").upload(filePath, fileToUpload, {
-            cacheControl: "31536000",
-            upsert: false,
+          const { publicUrl } = await uploadOptimizedFile(fileToUpload, {
+            bucket: "cardex-products",
+            folder: `${ownerId}/${cardId}`,
+            kind: "product",
           });
-
-          if (uploadError) {
-            console.error("Upload error:", uploadError);
-            throw new Error(`Failed to upload ${pending.file.name}`);
-          }
-
-          setUploadProgress((prev) => ({ ...prev, [i]: 60 }));
-
-          // Get public URL
-          const { data: urlData } = supabase.storage.from("cardex-products").getPublicUrl(filePath);
 
           setUploadProgress((prev) => ({ ...prev, [i]: 100 }));
 
           // Add to uploaded images array (will be saved to JSONB column)
           uploadedImages.push({
-            image_url: urlData.publicUrl,
+            image_url: publicUrl,
             alt_text: pending.altText.trim() || null,
             description: pending.description.trim() || null,
             sort_order: currentSort++,
