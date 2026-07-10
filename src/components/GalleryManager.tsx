@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import ProductRingCarousel from './ProductRingCarousel';
 import GlobalProductsManager from './GlobalProductsManager';
+import { uploadOptimizedFile } from '@/lib/images';
 
 type ImgRow = { id: string; url: string; sort_index: number };
 
@@ -122,15 +123,12 @@ export default function GalleryManager({ cardId }: { cardId: string }) {
     const urls: string[] = [];
     for (const f of list) {
       try {
-        const path = `${cardId}/${Date.now()}-${f.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
-        const up = await supabase.storage.from('card-images').upload(path, f, { upsert: false });
-        
-        if (up.error) {
-          toast.error('Storage bucket "card-images" missing or not public. Using URLs instead.');
-          break;
-        }
-        const pub = supabase.storage.from('card-images').getPublicUrl(path);
-        urls.push(pub.data.publicUrl);
+        const { publicUrl } = await uploadOptimizedFile(f, {
+          bucket: "card-images",
+          folder: cardId,
+          kind: "carousel",
+        });
+        urls.push(publicUrl);
       } catch (e: any) {
         toast.error(String(e?.message || e));
         break;
@@ -138,6 +136,7 @@ export default function GalleryManager({ cardId }: { cardId: string }) {
     }
     if (urls.length) await addUrls(urls);
   }
+
 
   async function remove(id: string, url: string) {
     setSaving(true);

@@ -1,3 +1,4 @@
+import { uploadOptimizedFile } from "@/lib/images";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -63,14 +64,12 @@ export default function BulkCoverReplaceTool() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${user.id}/bulk-banners/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage
-        .from("media")
-        .upload(path, file, { cacheControl: "31536000", upsert: false, contentType: file.type });
-      if (error) throw error;
-      const { data: urlData } = supabase.storage.from("media").getPublicUrl(path);
-      setBannerUrl(urlData.publicUrl);
+      const { publicUrl } = await uploadOptimizedFile(file, {
+        bucket: "media",
+        folder: `${user.id}/bulk-banners`,
+        kind: "cover",
+      });
+      setBannerUrl(publicUrl);
       toast.success("Banner uploaded");
     } catch (e: any) {
       toast.error(e.message || "Upload failed");
@@ -78,6 +77,7 @@ export default function BulkCoverReplaceTool() {
       setUploading(false);
     }
   }
+
 
   async function runPreview() {
     if (!trimmedCompany) {

@@ -1,3 +1,4 @@
+import { uploadOptimizedFile } from "@/lib/images";
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,17 +65,19 @@ export default function AdminGlobalPackages() {
       toast.error("Max file size is 10MB");
       return null;
     }
-    const path = `global-packages/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
-    const { error } = await supabase.storage.from("media").upload(path, file, {
-      cacheControl: "31536000",
-      upsert: false,
-    });
-    if (error) {
-      toast.error(`Upload failed: ${error.message}`);
+    try {
+      const { publicUrl } = await uploadOptimizedFile(file, {
+        bucket: "media",
+        folder: "global-packages",
+        kind: "package",
+      });
+      return publicUrl;
+    } catch (e: any) {
+      toast.error(`Upload failed: ${e.message || e}`);
       return null;
     }
-    return supabase.storage.from("media").getPublicUrl(path).data.publicUrl;
   }
+
 
   async function addRow(url: string, caption: string) {
     if (!user || !activeCompanyId) return;
