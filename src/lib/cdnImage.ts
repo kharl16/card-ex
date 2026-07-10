@@ -22,6 +22,12 @@ export type CdnImageOptions = {
   format?: "origin" | "webp" | "avif";
 };
 
+/**
+ * @deprecated Import `getRenderUrl` / `<Img>` from `@/lib/images` instead.
+ * `cdnImage` accepts arbitrary widths/heights, which multiplies the number of
+ * distinct Supabase image-transform URLs and inflates cost at scale. The
+ * ImageService restricts callers to a small, cached set of preset sizes.
+ */
 export function cdnImage(
   url: string | null | undefined,
   opts: CdnImageOptions = {}
