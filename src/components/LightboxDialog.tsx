@@ -5,7 +5,7 @@ import { ZoomIn, ZoomOut, X, Download, Share2, ChevronLeft, ChevronRight } from 
 import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
 import type { LightboxImage } from "@/hooks/useLightbox";
-import { cdnImage } from "@/lib/cdnImage";
+import { getOriginalUrl } from "@/lib/images";
 import SafeImage from "@/components/SafeImage";
 
 export interface LightboxDialogProps {
@@ -278,13 +278,11 @@ export default function LightboxDialog({
                   }}
                 >
                   <SafeImage
-                    src={cdnImage(currentImage.url, {
-                      width: 1600,
-                      height: 1600,
-                      resize: "contain",
-                      quality: 90,
-                      format: "webp",
-                    })}
+                    // Reuse the already-loaded image URL — do NOT request a
+                    // fresh transform when the user opens/zooms the lightbox.
+                    // Zoom is pure CSS transform below; only downloads hit the
+                    // original via getOriginalUrl().
+                    src={getOriginalUrl(currentImage.url)}
                     alt={currentImage.alt ?? ""}
                     onDimensions={({ width, height }) => setAspect(width / height)}
                     imgClassName="select-none"
