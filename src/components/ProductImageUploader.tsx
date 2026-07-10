@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Upload, X, Edit } from "lucide-react";
 import ImageEditorDialog from "./ImageEditorDialog";
 import type { CardProductImage } from "@/lib/theme";
+import { uploadOptimizedFile } from "@/lib/images";
 
 interface ProductImageUploaderProps {
   cardId: string;
