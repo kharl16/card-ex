@@ -7,6 +7,8 @@ import { Upload, X, Loader2, Crop, Maximize2, Minimize2, AlertTriangle } from "l
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import EnhancedImageEditorDialog, { type ImageType } from "./media/EnhancedImageEditorDialog";
+import { optimizeForUpload } from "@/lib/images/optimizeForUpload";
+import { IMMUTABLE_CACHE_CONTROL, type ImageKind } from "@/lib/images/presets";
 
 interface ImageUploadProps {
   value: string | null;
@@ -91,15 +93,25 @@ export function ImageUpload({
         return;
       }
 
-      const timestamp = Date.now();
-      const basePath = folderPrefix ? `${folderPrefix}/${user.id}` : `${user.id}`;
-      const fileName = `${basePath}/${timestamp}.jpg`;
+      // Map editor image type -> preset kind. Covers detected labels; anything
+      // else falls back to the closest preset ("carousel" for generic images).
+      const kind: ImageKind =
+        detectedImageType === "avatar" || detectedImageType === "logo" || detectedImageType === "cover"
+          ? detectedImageType
+          : "carousel";
 
-      const { data, error } = await supabase.storage.from(bucket).upload(fileName, blob, {
-        cacheControl: "31536000",
-        upsert: false,
-        contentType: "image/jpeg",
+      const optimized = await optimizeForUpload(blob, { kind });
+
+      const basePath = folderPrefix ? `${folderPrefix}/${user.id}` : `${user.id}`;
+      const fileName = `${basePath}/${kind}/${optimized.contentHash}.${optimized.extension}`;
+
+      const { data, error } = await supabase.storage.from(bucket).upload(fileName, optimized.blob, {
+        cacheControl: IMMUTABLE_CACHE_CONTROL,
+        upsert: true,
+        contentType: optimized.mime,
       });
+
+      URL.revokeObjectURL(optimized.previewUrl);
 
       if (error) {
         throw error;
