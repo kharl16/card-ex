@@ -9,9 +9,6 @@ import {
 
 const IMAGE_FIT_NO_CROP = "fill" as const;
 const COVER_ASPECT_RATIO = "2.43 / 1";
-const COVER_RENDER_WIDTH = 1600;
-const COVER_RENDER_HEIGHT = Math.round(COVER_RENDER_WIDTH / 2.43);
-const SQUARE_RENDER_SIZE = 320;
 
 /**
  * Crossfade-only rotator for the company logo: opacity transition between
@@ -58,7 +55,7 @@ function LogoCrossfade({
     };
   }, [safe.length, autoPlayMs]);
   if (safe.length === 0) return null;
-  const cdnFit = fit === "contain" ? "contain" : fit === "cover" ? "cover" : "fill";
+  
   return (
     <div className="relative h-full w-full overflow-hidden p-0 bg-black/40">
       {letterbox && safe[active] && (
