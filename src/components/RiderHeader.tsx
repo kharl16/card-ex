@@ -64,7 +64,7 @@ function LogoCrossfade({
       {letterbox && safe[active] && (
         <img
           aria-hidden
-          src={cdnImage(safe[active].url, { width: Math.max(64, Math.round(width / 4)), height: Math.max(32, Math.round(height / 4)), resize: "cover", quality: 40 })}
+          src={getRenderUrl(safe[active].url, kind)}
           alt=""
           className="absolute inset-0 block h-full w-full max-w-none scale-110"
           style={{ objectFit: "cover", objectPosition: "center", filter: "blur(24px) saturate(1.1) brightness(0.7)" }}
@@ -74,12 +74,7 @@ function LogoCrossfade({
       {safe.map((item, idx) => (
         <img
           key={`${item.url}-${idx}`}
-          src={cdnImage(item.url, {
-            width,
-            height,
-            resize: cdnFit,
-            quality: 80,
-          })}
+          src={getRenderUrl(item.url, kind)}
           alt={item.alt || alt}
           decoding="async"
           loading={eager && idx === 0 ? "eager" : "lazy"}
