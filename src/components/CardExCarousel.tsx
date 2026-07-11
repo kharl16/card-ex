@@ -15,7 +15,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import type { CarouselKind } from "@/lib/share";
-import { cdnImage } from "@/lib/cdnImage";
+import { getRenderUrl } from "@/lib/images";
+import type { ImageKind } from "@/lib/images";
 import SafeImage from "@/components/SafeImage";
 
 // Types
