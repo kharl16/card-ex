@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { cdnImage } from "@/lib/cdnImage";
+import { getRenderUrl } from "@/lib/images";
+import type { ImageKind } from "@/lib/images";
 import {
   parseImageCarousels,
   resolveSlot,
