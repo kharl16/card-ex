@@ -205,7 +205,7 @@ export default function BulkCoverReplaceTool() {
 
         {bannerUrl && (
           <div className="overflow-hidden rounded-lg border">
-            <img src={bannerUrl} alt="Banner preview" className="max-h-48 w-full object-cover" />
+            <img src={getRenderUrl(bannerUrl, "cover")} alt="Banner preview" loading="lazy" decoding="async" className="max-h-48 w-full object-cover" />
           </div>
         )}
 
