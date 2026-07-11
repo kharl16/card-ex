@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ZoomIn, ZoomOut, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getRenderUrl } from "@/lib/images";
 
 type CarouselImage = {
   id: string;
@@ -303,7 +304,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
                     className="h-full w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
                     onClick={() => openLightbox(logicalIndex)}
                   >
-                    <img src={img.url} alt={img.alt ?? ""} className="h-full w-full object-contain" />
+                    <img src={getRenderUrl(img.url, "product")} alt={img.alt ?? ""} loading="lazy" decoding="async" className="h-full w-full object-contain" />
                   </div>
                 </div>
               );
@@ -404,7 +405,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
             {/* Image */}
             <div className="w-full h-full overflow-auto flex items-center justify-center p-8">
               <img
-                src={baseImages[lightboxIndex]?.url}
+                src={getRenderUrl(baseImages[lightboxIndex]?.url, "product")}
                 alt={baseImages[lightboxIndex]?.alt ?? ""}
                 className="max-w-full max-h-full object-contain transition-transform duration-200"
                 style={{ transform: `scale(${zoomLevel})` }}

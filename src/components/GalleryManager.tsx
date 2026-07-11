@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import ProductRingCarousel from './ProductRingCarousel';
 import GlobalProductsManager from './GlobalProductsManager';
-import { uploadOptimizedFile } from '@/lib/images';
+import { uploadOptimizedFile, getRenderUrl } from '@/lib/images';
 
 type ImgRow = { id: string; url: string; sort_index: number };
 
@@ -240,7 +240,7 @@ export default function GalleryManager({ cardId }: { cardId: string }) {
               onDragOver={onDragOver}
               onDrop={() => onDrop(i)}
             >
-              <img src={r.url} alt="" className="h-32 w-full rounded object-cover" />
+              <img src={getRenderUrl(r.url, "carousel", "thumb")} alt="" loading="lazy" decoding="async" className="h-32 w-full rounded object-cover" />
               <span className="absolute left-3 top-3 rounded bg-black/70 px-2 py-1 text-xs text-white">
                 #{i + 1}
               </span>
