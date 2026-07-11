@@ -43,7 +43,7 @@ export default function KenBurnsRotator({
   background,
   staticMotion = false,
   altFallback,
-  cdnWidth,
+  kind,
 }: KenBurnsRotatorProps) {
   const safeItems = useMemo(
     () => items.filter((it) => it && typeof it.url === "string" && it.url),
@@ -117,7 +117,7 @@ export default function KenBurnsRotator({
         return (
           <img
             key={`${item.url}-${idx}`}
-            src={cdnWidth ? cdnImage(item.url, { width: Math.round(cdnWidth * 2), quality: 80 }) : item.url}
+            src={kind ? getRenderUrl(item.url, kind) : item.url}
             alt={item.alt || altFallback || `Image ${idx + 1}`}
             decoding="async"
             loading={idx === 0 ? "eager" : "lazy"}
