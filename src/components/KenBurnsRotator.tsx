@@ -23,9 +23,8 @@ interface KenBurnsRotatorProps {
   staticMotion?: boolean;
   /** Optional alt fallback used when item.alt is missing. */
   altFallback?: string;
-  /** Optional CDN-resize hint in CSS pixels. The helper requests a slightly
-   *  larger image to look crisp on retina screens. */
-  cdnWidth?: number;
+  /** Optional preset kind — routes through ImageService. */
+  kind?: ImageKind;
 }
 
 /**
