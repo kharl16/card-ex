@@ -223,7 +223,7 @@ export default function AdminGlobalPackages() {
           {rows.map((r, i) => (
             <div key={r.id} className="rounded-xl border border-border bg-card p-3 space-y-2">
               <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
-                <img src={r.url} alt={r.caption ?? ""} className="h-full w-full object-cover" />
+                <img src={getRenderUrl(r.url, "package", "thumb")} alt={r.caption ?? ""} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 {!r.is_active && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs font-medium text-white">
                     HIDDEN GLOBALLY
