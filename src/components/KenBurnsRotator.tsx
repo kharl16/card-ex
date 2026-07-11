@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { cdnImage } from "@/lib/cdnImage";
+import { getRenderUrl } from "@/lib/images";
+import type { ImageKind } from "@/lib/images";
 
 export interface KenBurnsItem {
   url: string;
