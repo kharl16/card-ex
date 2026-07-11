@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import ProductRingCarousel from './ProductRingCarousel';
 import GlobalProductsManager from './GlobalProductsManager';
-import { uploadOptimizedFile } from '@/lib/images';
+import { uploadOptimizedFile, getRenderUrl } from '@/lib/images';
 
 type ImgRow = { id: string; url: string; sort_index: number };
 
