@@ -179,8 +179,7 @@ export default function RiderHeader({
               items={cover.items}
               autoPlayMs={cover.autoPlayMs}
               alt={`${name || "Profile"} cover photo`}
-              width={COVER_RENDER_WIDTH}
-              height={COVER_RENDER_HEIGHT}
+              kind="cover"
               eager
               fit="contain"
               letterbox
@@ -229,6 +228,7 @@ export default function RiderHeader({
                   items={avatar.items}
                   autoPlayMs={avatar.autoPlayMs}
                   alt={name || "Profile"}
+                  kind="avatar"
                   eager
                 />
               )}
@@ -253,6 +253,7 @@ export default function RiderHeader({
               items={logo.items}
               autoPlayMs={logo.autoPlayMs}
               alt={`${name || "Card"} company logo`}
+              kind="logo"
             />
           </div>
         )}
