@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ZoomIn, ZoomOut, X, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getRenderUrl } from "@/lib/images";
 
 type CarouselImage = {
   id: string;
