@@ -15,7 +15,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import type { CarouselKind } from "@/lib/share";
-import { cdnImage } from "@/lib/cdnImage";
+import { getRenderUrl } from "@/lib/images";
+import type { ImageKind } from "@/lib/images";
 import SafeImage from "@/components/SafeImage";
 
 // Types
@@ -109,27 +110,10 @@ const imageSizeConfig = {
 const getCarouselSlideAspectRatio = (carouselKind: CarouselKind) =>
   carouselKind === "packages" ? "4 / 3" : "1 / 1";
 
-const getCarouselImageTransform = (carouselKind: CarouselKind, width: number) => {
-  // Testimonies are text-heavy screenshots with mixed source ratios. Always
-  // bound both axes and request contain; Supabase width-only transforms can
-  // preserve the original height while shrinking width, corrupting aspect ratio.
-  if (carouselKind === "testimonies") {
-    return {
-      width,
-      height: width,
-      resize: "contain" as const,
-      quality: 88,
-      format: "webp" as const,
-    };
-  }
-
-  return {
-    width,
-    height: carouselKind === "packages" ? Math.round(width * 0.75) : width,
-    resize: "contain" as const,
-    quality: 80,
-    format: "webp" as const,
-  };
+const kindToImageKind = (carouselKind: CarouselKind): ImageKind => {
+  if (carouselKind === "packages") return "package";
+  if (carouselKind === "testimonies") return "testimony";
+  return "product";
 };
 
 // ============== ROULETTE MODE ==============
@@ -315,7 +299,7 @@ function RouletteMode({
                         aria-label={img.alt || `View image ${logicalIndex + 1}`}
                       >
                         <SafeImage
-                          src={cdnImage(img.url, getCarouselImageTransform(carouselKind, carouselKind === "testimonies" ? 1200 : 800))}
+                          src={getRenderUrl(img.url, kindToImageKind(carouselKind))}
                           alt={img.alt ?? ""}
                           loading={Math.abs(logicalIndex - Math.round(logicalCenter)) > 1 ? "lazy" : "eager"}
                           decoding="async"
@@ -592,7 +576,7 @@ function FlatMode({
                       aria-label={item.alt || `View image ${index + 1}`}
                     >
                       <SafeImage
-                        src={cdnImage(item.url, getCarouselImageTransform(carouselKind, 480))}
+                        src={getRenderUrl(item.url, kindToImageKind(carouselKind))}
                         alt={item.alt ?? ""}
                         loading="lazy"
                         decoding="async"

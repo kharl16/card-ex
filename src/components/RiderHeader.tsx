@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { cdnImage } from "@/lib/cdnImage";
+import { getRenderUrl } from "@/lib/images";
+import type { ImageKind } from "@/lib/images";
 import {
   parseImageCarousels,
   resolveSlot,
@@ -8,9 +9,6 @@ import {
 
 const IMAGE_FIT_NO_CROP = "fill" as const;
 const COVER_ASPECT_RATIO = "2.43 / 1";
-const COVER_RENDER_WIDTH = 1600;
-const COVER_RENDER_HEIGHT = Math.round(COVER_RENDER_WIDTH / 2.43);
-const SQUARE_RENDER_SIZE = 320;
 
 /**
  * Crossfade-only rotator for the company logo: opacity transition between
@@ -20,20 +18,18 @@ function LogoCrossfade({
   items,
   autoPlayMs = 5000,
   alt,
-  width = SQUARE_RENDER_SIZE,
-  height = SQUARE_RENDER_SIZE,
   eager = false,
   fit = "fill",
   letterbox = false,
+  kind,
 }: {
   items: { url: string; alt?: string }[];
   autoPlayMs?: number;
   alt: string;
-  width?: number;
-  height?: number;
   eager?: boolean;
   fit?: "fill" | "contain" | "cover";
   letterbox?: boolean;
+  kind: ImageKind;
 }) {
   const safe = items.filter((it) => it && typeof it.url === "string" && it.url);
   const [active, setActive] = useState(0);
@@ -59,13 +55,13 @@ function LogoCrossfade({
     };
   }, [safe.length, autoPlayMs]);
   if (safe.length === 0) return null;
-  const cdnFit = fit === "contain" ? "contain" : fit === "cover" ? "cover" : "fill";
+  
   return (
     <div className="relative h-full w-full overflow-hidden p-0 bg-black/40">
       {letterbox && safe[active] && (
         <img
           aria-hidden
-          src={cdnImage(safe[active].url, { width: Math.max(64, Math.round(width / 4)), height: Math.max(32, Math.round(height / 4)), resize: "cover", quality: 40 })}
+          src={getRenderUrl(safe[active].url, kind)}
           alt=""
           className="absolute inset-0 block h-full w-full max-w-none scale-110"
           style={{ objectFit: "cover", objectPosition: "center", filter: "blur(24px) saturate(1.1) brightness(0.7)" }}
@@ -75,12 +71,7 @@ function LogoCrossfade({
       {safe.map((item, idx) => (
         <img
           key={`${item.url}-${idx}`}
-          src={cdnImage(item.url, {
-            width,
-            height,
-            resize: cdnFit,
-            quality: 80,
-          })}
+          src={getRenderUrl(item.url, kind)}
           alt={item.alt || alt}
           decoding="async"
           loading={eager && idx === 0 ? "eager" : "lazy"}
@@ -185,8 +176,7 @@ export default function RiderHeader({
               items={cover.items}
               autoPlayMs={cover.autoPlayMs}
               alt={`${name || "Profile"} cover photo`}
-              width={COVER_RENDER_WIDTH}
-              height={COVER_RENDER_HEIGHT}
+              kind="cover"
               eager
               fit="contain"
               letterbox
@@ -235,6 +225,7 @@ export default function RiderHeader({
                   items={avatar.items}
                   autoPlayMs={avatar.autoPlayMs}
                   alt={name || "Profile"}
+                  kind="avatar"
                   eager
                 />
               )}
@@ -259,6 +250,7 @@ export default function RiderHeader({
               items={logo.items}
               autoPlayMs={logo.autoPlayMs}
               alt={`${name || "Card"} company logo`}
+              kind="logo"
             />
           </div>
         )}

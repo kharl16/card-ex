@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
-import { cdnImage } from "@/lib/cdnImage";
+import { getRenderUrl } from "@/lib/images";
+import type { ImageKind } from "@/lib/images";
 
 export interface KenBurnsItem {
   url: string;
@@ -22,9 +23,8 @@ interface KenBurnsRotatorProps {
   staticMotion?: boolean;
   /** Optional alt fallback used when item.alt is missing. */
   altFallback?: string;
-  /** Optional CDN-resize hint in CSS pixels. The helper requests a slightly
-   *  larger image to look crisp on retina screens. */
-  cdnWidth?: number;
+  /** Optional preset kind — routes through ImageService. */
+  kind?: ImageKind;
 }
 
 /**
@@ -43,7 +43,7 @@ export default function KenBurnsRotator({
   background,
   staticMotion = false,
   altFallback,
-  cdnWidth,
+  kind,
 }: KenBurnsRotatorProps) {
   const safeItems = useMemo(
     () => items.filter((it) => it && typeof it.url === "string" && it.url),
@@ -117,7 +117,7 @@ export default function KenBurnsRotator({
         return (
           <img
             key={`${item.url}-${idx}`}
-            src={cdnWidth ? cdnImage(item.url, { width: Math.round(cdnWidth * 2), quality: 80 }) : item.url}
+            src={kind ? getRenderUrl(item.url, kind) : item.url}
             alt={item.alt || altFallback || `Image ${idx + 1}`}
             decoding="async"
             loading={idx === 0 ? "eager" : "lazy"}
