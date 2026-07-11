@@ -21,20 +21,18 @@ function LogoCrossfade({
   items,
   autoPlayMs = 5000,
   alt,
-  width = SQUARE_RENDER_SIZE,
-  height = SQUARE_RENDER_SIZE,
   eager = false,
   fit = "fill",
   letterbox = false,
+  kind,
 }: {
   items: { url: string; alt?: string }[];
   autoPlayMs?: number;
   alt: string;
-  width?: number;
-  height?: number;
   eager?: boolean;
   fit?: "fill" | "contain" | "cover";
   letterbox?: boolean;
+  kind: ImageKind;
 }) {
   const safe = items.filter((it) => it && typeof it.url === "string" && it.url);
   const [active, setActive] = useState(0);
