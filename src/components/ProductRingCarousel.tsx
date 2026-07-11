@@ -405,7 +405,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
             {/* Image */}
             <div className="w-full h-full overflow-auto flex items-center justify-center p-8">
               <img
-                src={baseImages[lightboxIndex]?.url}
+                src={getRenderUrl(baseImages[lightboxIndex]?.url, "product")}
                 alt={baseImages[lightboxIndex]?.alt ?? ""}
                 className="max-w-full max-h-full object-contain transition-transform duration-200"
                 style={{ transform: `scale(${zoomLevel})` }}
