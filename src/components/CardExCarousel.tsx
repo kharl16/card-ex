@@ -299,7 +299,7 @@ function RouletteMode({
                         aria-label={img.alt || `View image ${logicalIndex + 1}`}
                       >
                         <SafeImage
-                          src={cdnImage(img.url, getCarouselImageTransform(carouselKind, carouselKind === "testimonies" ? 1200 : 800))}
+                          src={getRenderUrl(img.url, kindToImageKind(carouselKind))}
                           alt={img.alt ?? ""}
                           loading={Math.abs(logicalIndex - Math.round(logicalCenter)) > 1 ? "lazy" : "eager"}
                           decoding="async"
@@ -576,7 +576,7 @@ function FlatMode({
                       aria-label={item.alt || `View image ${index + 1}`}
                     >
                       <SafeImage
-                        src={cdnImage(item.url, getCarouselImageTransform(carouselKind, 480))}
+                        src={getRenderUrl(item.url, kindToImageKind(carouselKind))}
                         alt={item.alt ?? ""}
                         loading="lazy"
                         decoding="async"
