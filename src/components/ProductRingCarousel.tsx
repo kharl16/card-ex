@@ -304,7 +304,7 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
                     className="h-full w-full overflow-hidden rounded-2xl bg-transparent flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80"
                     onClick={() => openLightbox(logicalIndex)}
                   >
-                    <img src={img.url} alt={img.alt ?? ""} className="h-full w-full object-contain" />
+                    <img src={getRenderUrl(img.url, "product")} alt={img.alt ?? ""} loading="lazy" decoding="async" className="h-full w-full object-contain" />
                   </div>
                 </div>
               );
