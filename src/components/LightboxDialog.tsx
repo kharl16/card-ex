@@ -356,20 +356,8 @@ export default function LightboxDialog({
                   </div>
                 </div>
               )}
-
-                  <SafeImage
-                    // Reuse the already-loaded image URL — do NOT request a
-                    // fresh transform when the user opens/zooms the lightbox.
-                    // Zoom is pure CSS transform below; only downloads hit the
-                    // original via getOriginalUrl().
-                    src={getOriginalUrl(currentImage.url)}
-                    alt={currentImage.alt ?? ""}
-                    onDimensions={({ width, height }) => setAspect(width / height)}
-                    imgClassName="select-none"
-                  />
-                </div>
-              )}
             </div>
+
 
             {/* Caption, SRP, Description & Counter — fixed position to ensure visibility */}
             <div className="fixed bottom-0 left-0 right-0 z-[60] pointer-events-none flex flex-col items-center gap-1 pb-4">
