@@ -199,7 +199,7 @@ export default function LightboxDialog({
           const absX = Math.abs(dx);
           const absY = Math.abs(dy);
           // Horizontal swipe: dominant X, min distance, reasonable time
-          if (absX > 50 && absX > absY * 1.5 && dt < 800) {
+          if (absX > 30 && absX > absY * 1.2 && dt < 600) {
             if (dx < 0) onNextRef.current();
             else onPrevRef.current();
           }
