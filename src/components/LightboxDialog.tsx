@@ -302,7 +302,7 @@ export default function LightboxDialog({
             <div
               ref={panContainerRef}
               className="absolute inset-0 flex items-center justify-center overflow-hidden"
-              style={{ touchAction: zoomLevel > 1 ? "none" : "pan-y" }}
+              style={{ touchAction: "none" }}
             >
               {currentImage && (
                 <div
