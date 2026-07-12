@@ -100,6 +100,15 @@ export default function LightboxDialog({
   // Track pinch-to-zoom gesture
   const pinchStartDist = useRef<number | null>(null);
   const pinchStartZoom = useRef<number>(1);
+  // Two-finger pan midpoint tracking
+  const twoFingerStart = useRef<{ x: number; y: number } | null>(null);
+  // One-finger swipe tracking for image navigation
+  const swipeStart = useRef<{ x: number; y: number; t: number } | null>(null);
+
+  // Latest nav callbacks for native listeners
+  const onNextRef = useRef(onNext);
+  const onPrevRef = useRef(onPrev);
+  useEffect(() => { onNextRef.current = onNext; onPrevRef.current = onPrev; }, [onNext, onPrev]);
 
   // Cleanup ref for native listeners
   const cleanupRef = useRef<(() => void) | null>(null);
@@ -116,41 +125,73 @@ export default function LightboxDialog({
 
     const getDistance = (t1: Touch, t2: Touch) =>
       Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    const getMidpoint = (t1: Touch, t2: Touch) => ({
+      x: (t1.clientX + t2.clientX) / 2,
+      y: (t1.clientY + t2.clientY) / 2,
+    });
 
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
         pinchStartDist.current = getDistance(e.touches[0], e.touches[1]);
         pinchStartZoom.current = zoomLevelRef.current;
-        panStart.current = null;
+        twoFingerStart.current = getMidpoint(e.touches[0], e.touches[1]);
+        panOrigin.current = { x: panOffsetRef.current.x, y: panOffsetRef.current.y };
+        swipeStart.current = null;
         return;
       }
       if (e.touches.length === 1) {
-        panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        panOrigin.current = { x: panOffsetRef.current.x, y: panOffsetRef.current.y };
+        // One finger = swipe to change image (no panning)
+        swipeStart.current = {
+          x: e.touches[0].clientX,
+          y: e.touches[0].clientY,
+          t: Date.now(),
+        };
       }
     };
 
     const onTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2 && pinchStartDist.current !== null) {
         e.preventDefault();
+        // Pinch zoom
         const dist = getDistance(e.touches[0], e.touches[1]);
         const scale = dist / pinchStartDist.current;
         const newZoom = Math.min(3, Math.max(0.5, pinchStartZoom.current * scale));
         setZoomLevel(newZoom);
+        // Two-finger pan
+        if (twoFingerStart.current) {
+          const mid = getMidpoint(e.touches[0], e.touches[1]);
+          const dx = mid.x - twoFingerStart.current.x;
+          const dy = mid.y - twoFingerStart.current.y;
+          setPanOffset({ x: panOrigin.current.x + dx, y: panOrigin.current.y + dy });
+        }
         return;
       }
-      if (e.touches.length === 1 && panStart.current) {
-        e.preventDefault();
-        const dx = e.touches[0].clientX - panStart.current.x;
-        const dy = e.touches[0].clientY - panStart.current.y;
-        setPanOffset({ x: panOrigin.current.x + dx, y: panOrigin.current.y + dy });
-      }
+      // One-finger move: intentionally do nothing (let the browser handle vertical scroll if any)
     };
 
     const onTouchEnd = (e: TouchEvent) => {
-      if (e.touches.length < 2) pinchStartDist.current = null;
-      if (e.touches.length === 0) panStart.current = null;
+      if (e.touches.length < 2) {
+        pinchStartDist.current = null;
+        twoFingerStart.current = null;
+      }
+      // Detect one-finger swipe on release
+      if (e.touches.length === 0 && swipeStart.current) {
+        const t = e.changedTouches[0];
+        if (t) {
+          const dx = t.clientX - swipeStart.current.x;
+          const dy = t.clientY - swipeStart.current.y;
+          const dt = Date.now() - swipeStart.current.t;
+          const absX = Math.abs(dx);
+          const absY = Math.abs(dy);
+          // Horizontal swipe: dominant X, min distance, reasonable time
+          if (absX > 50 && absX > absY * 1.5 && dt < 800) {
+            if (dx < 0) onNextRef.current();
+            else onPrevRef.current();
+          }
+        }
+        swipeStart.current = null;
+      }
     };
 
     el.addEventListener("touchstart", onTouchStart, { passive: false });
@@ -163,6 +204,7 @@ export default function LightboxDialog({
       el.removeEventListener("touchend", onTouchEnd);
     };
   }, [setZoomLevel]);
+
 
   return (
     <>
@@ -260,7 +302,7 @@ export default function LightboxDialog({
             <div
               ref={panContainerRef}
               className="absolute inset-0 flex items-center justify-center overflow-hidden"
-              style={{ touchAction: zoomLevel > 1 ? "none" : "pan-y" }}
+              style={{ touchAction: "none" }}
             >
               {currentImage && (
                 <div
