@@ -333,6 +333,30 @@ export default function LightboxDialog({
                     willChange: "transform",
                   }}
                 >
+                  <div
+                    key={currentImage.url}
+                    className={
+                      slideDir === "next"
+                        ? "lightbox-slide-next h-full w-full"
+                        : slideDir === "prev"
+                        ? "lightbox-slide-prev h-full w-full"
+                        : "lightbox-slide-in h-full w-full"
+                    }
+                  >
+                    <SafeImage
+                      // Reuse the already-loaded image URL — do NOT request a
+                      // fresh transform when the user opens/zooms the lightbox.
+                      // Zoom is pure CSS transform below; only downloads hit the
+                      // original via getOriginalUrl().
+                      src={getOriginalUrl(currentImage.url)}
+                      alt={currentImage.alt ?? ""}
+                      onDimensions={({ width, height }) => setAspect(width / height)}
+                      imgClassName="select-none"
+                    />
+                  </div>
+                </div>
+              )}
+
                   <SafeImage
                     // Reuse the already-loaded image URL — do NOT request a
                     // fresh transform when the user opens/zooms the lightbox.
