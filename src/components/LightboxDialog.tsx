@@ -48,13 +48,27 @@ export default function LightboxDialog({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   // Aspect ratio of the currently-loaded image; defaults to 1 until measured.
   const [aspect, setAspect] = useState<number>(1);
+  // Direction of the last navigation (for slide-transition effect)
+  const [slideDir, setSlideDir] = useState<"next" | "prev" | "none">("none");
+  const prevIndexRef = useRef(index);
   const panStart = useRef<{ x: number; y: number } | null>(null);
   const panOrigin = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Detect nav direction when index changes so we can animate accordingly
+  useEffect(() => {
+    if (index === prevIndexRef.current) return;
+    const forward =
+      (index > prevIndexRef.current && !(prevIndexRef.current === 0 && index === count - 1)) ||
+      (prevIndexRef.current === count - 1 && index === 0);
+    setSlideDir(forward ? "next" : "prev");
+    prevIndexRef.current = index;
+  }, [index, count]);
 
   // Reset aspect when the image changes so we don't briefly show the wrong ratio.
   useEffect(() => {
     setAspect(1);
   }, [currentImage?.url]);
+
 
   // Download current image
   const handleDownload = useCallback(async () => {
