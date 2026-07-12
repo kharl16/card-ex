@@ -48,13 +48,27 @@ export default function LightboxDialog({
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   // Aspect ratio of the currently-loaded image; defaults to 1 until measured.
   const [aspect, setAspect] = useState<number>(1);
+  // Direction of the last navigation (for slide-transition effect)
+  const [slideDir, setSlideDir] = useState<"next" | "prev" | "none">("none");
+  const prevIndexRef = useRef(index);
   const panStart = useRef<{ x: number; y: number } | null>(null);
   const panOrigin = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Detect nav direction when index changes so we can animate accordingly
+  useEffect(() => {
+    if (index === prevIndexRef.current) return;
+    const forward =
+      (index > prevIndexRef.current && !(prevIndexRef.current === 0 && index === count - 1)) ||
+      (prevIndexRef.current === count - 1 && index === 0);
+    setSlideDir(forward ? "next" : "prev");
+    prevIndexRef.current = index;
+  }, [index, count]);
 
   // Reset aspect when the image changes so we don't briefly show the wrong ratio.
   useEffect(() => {
     setAspect(1);
   }, [currentImage?.url]);
+
 
   // Download current image
   const handleDownload = useCallback(async () => {
@@ -185,7 +199,7 @@ export default function LightboxDialog({
           const absX = Math.abs(dx);
           const absY = Math.abs(dy);
           // Horizontal swipe: dominant X, min distance, reasonable time
-          if (absX > 50 && absX > absY * 1.5 && dt < 800) {
+          if (absX > 30 && absX > absY * 1.2 && dt < 600) {
             if (dx < 0) onNextRef.current();
             else onPrevRef.current();
           }
@@ -319,19 +333,31 @@ export default function LightboxDialog({
                     willChange: "transform",
                   }}
                 >
-                  <SafeImage
-                    // Reuse the already-loaded image URL — do NOT request a
-                    // fresh transform when the user opens/zooms the lightbox.
-                    // Zoom is pure CSS transform below; only downloads hit the
-                    // original via getOriginalUrl().
-                    src={getOriginalUrl(currentImage.url)}
-                    alt={currentImage.alt ?? ""}
-                    onDimensions={({ width, height }) => setAspect(width / height)}
-                    imgClassName="select-none"
-                  />
+                  <div
+                    key={currentImage.url}
+                    className={
+                      slideDir === "next"
+                        ? "lightbox-slide-next h-full w-full"
+                        : slideDir === "prev"
+                        ? "lightbox-slide-prev h-full w-full"
+                        : "lightbox-slide-in h-full w-full"
+                    }
+                  >
+                    <SafeImage
+                      // Reuse the already-loaded image URL — do NOT request a
+                      // fresh transform when the user opens/zooms the lightbox.
+                      // Zoom is pure CSS transform below; only downloads hit the
+                      // original via getOriginalUrl().
+                      src={getOriginalUrl(currentImage.url)}
+                      alt={currentImage.alt ?? ""}
+                      onDimensions={({ width, height }) => setAspect(width / height)}
+                      imgClassName="select-none"
+                    />
+                  </div>
                 </div>
               )}
             </div>
+
 
             {/* Caption, SRP, Description & Counter — fixed position to ensure visibility */}
             <div className="fixed bottom-0 left-0 right-0 z-[60] pointer-events-none flex flex-col items-center gap-1 pb-4">
