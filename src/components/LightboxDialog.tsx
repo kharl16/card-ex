@@ -1,14 +1,65 @@
 import React, { useCallback, useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, X, Download, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { ZoomIn, ZoomOut, X, Download, Share2, ChevronLeft, ChevronRight, Gauge } from "lucide-react";
 import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
 import type { LightboxImage } from "@/hooks/useLightbox";
 import { getOriginalUrl } from "@/lib/images";
 import SafeImage from "@/components/SafeImage";
 import { preloadImage } from "@/lib/images/lightboxPreloadCache";
-import { useLightboxTransitionPref } from "@/hooks/useLightboxTransitionPref";
+import {
+  useLightboxTransitionPref,
+  LIGHTBOX_SPEED_PRESETS,
+} from "@/hooks/useLightboxTransitionPref";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+function LightboxSpeedControl() {
+  const { transitionMs, setTransitionMs } = useLightboxTransitionPref();
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="bg-black/60 hover:bg-black/80 text-white rounded-full"
+          aria-label="Transition speed"
+          title="Transition speed"
+        >
+          <Gauge className="h-5 w-5" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-48 p-2">
+        <p className="px-2 pb-1 pt-1 text-xs uppercase tracking-wide text-muted-foreground">
+          Transition speed
+        </p>
+        <div className="flex flex-col">
+          {LIGHTBOX_SPEED_PRESETS.map((preset) => {
+            const active = preset.value === transitionMs;
+            return (
+              <button
+                key={preset.value}
+                type="button"
+                onClick={() => setTransitionMs(preset.value)}
+                className={
+                  "flex items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-accent " +
+                  (active ? "bg-accent font-medium" : "")
+                }
+              >
+                <span>{preset.label}</span>
+                <span className="text-xs text-muted-foreground">{preset.value}ms</span>
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export interface LightboxDialogProps {
   open: boolean;
