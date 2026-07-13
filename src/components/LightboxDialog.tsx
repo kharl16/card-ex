@@ -25,6 +25,10 @@ export interface LightboxDialogProps {
   onClose: () => void;
   /** The PUBLIC card URL - must be https://tagex.app/c/{slug}, never editor URL */
   shareUrl?: string;
+  /** All images (for neighbor preloading). Optional — falls back to currentImage only. */
+  images?: LightboxImage[];
+  /** Slide/fade transition duration in ms. Default 180. */
+  transitionMs?: number;
 }
 
 export default function LightboxDialog({
