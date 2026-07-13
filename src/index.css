@@ -244,22 +244,35 @@ All colors MUST be HSL.
   display: none !important;
 }
 
-/* Lightbox mobile-gallery style transitions */
+/* Lightbox mobile-gallery style transitions.
+   Speed is controlled by --lightbox-transition-ms (set inline on the element)
+   with a snappy default. Direction-aware slides + fade for direct opens. */
+:root {
+  --lightbox-transition-ms: 180ms;
+  --lightbox-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
 @keyframes lightbox-slide-next {
-  from { transform: translateX(24%); opacity: 0; }
+  from { transform: translateX(28%); opacity: 0; }
   to   { transform: translateX(0);   opacity: 1; }
 }
 @keyframes lightbox-slide-prev {
-  from { transform: translateX(-24%); opacity: 0; }
+  from { transform: translateX(-28%); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }
 }
 @keyframes lightbox-fade-in {
   from { opacity: 0; transform: scale(0.98); }
   to   { opacity: 1; transform: scale(1); }
 }
-.lightbox-slide-next { animation: lightbox-slide-next 180ms cubic-bezier(0.22, 0.61, 0.36, 1); }
-.lightbox-slide-prev { animation: lightbox-slide-prev 180ms cubic-bezier(0.22, 0.61, 0.36, 1); }
-.lightbox-slide-in   { animation: lightbox-fade-in 160ms ease-out; }
+.lightbox-slide-next { animation: lightbox-slide-next var(--lightbox-transition-ms) var(--lightbox-ease); }
+.lightbox-slide-prev { animation: lightbox-slide-prev var(--lightbox-transition-ms) var(--lightbox-ease); }
+.lightbox-slide-in   { animation: lightbox-fade-in calc(var(--lightbox-transition-ms) - 20ms) ease-out; }
 @media (prefers-reduced-motion: reduce) {
-  .lightbox-slide-next, .lightbox-slide-prev, .lightbox-slide-in { animation: none; }
+  .lightbox-slide-next,
+  .lightbox-slide-prev,
+  .lightbox-slide-in {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
 }
+
