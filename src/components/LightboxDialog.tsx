@@ -75,6 +75,29 @@ export default function LightboxDialog({
     setAspect(1);
   }, [currentImage?.url]);
 
+  // Preload neighboring images so swipe/arrow navigation feels instant.
+  useEffect(() => {
+    if (!open || !images || images.length < 2) return;
+    const neighbors = [
+      images[(index + 1) % images.length],
+      images[(index - 1 + images.length) % images.length],
+    ];
+    const preloaded: HTMLImageElement[] = [];
+    for (const img of neighbors) {
+      if (!img?.url) continue;
+      const el = new Image();
+      el.decoding = "async";
+      el.src = getOriginalUrl(img.url);
+      preloaded.push(el);
+    }
+    return () => {
+      // Drop references so browser can GC if needed
+      preloaded.length = 0;
+    };
+  }, [open, images, index]);
+
+
+
 
   // Download current image
   const handleDownload = useCallback(async () => {
