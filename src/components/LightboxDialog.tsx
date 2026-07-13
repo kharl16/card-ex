@@ -345,8 +345,9 @@ export default function LightboxDialog({
             <div
               ref={panContainerRef}
               className="absolute inset-0 flex items-center justify-center overflow-hidden"
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ["--lightbox-transition-ms" as string]: `${transitionMs}ms` }}
             >
+
               {currentImage && (
                 <div
                   className="relative"
