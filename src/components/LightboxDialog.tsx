@@ -47,6 +47,8 @@ export default function LightboxDialog({
   onDownload,
   onClose,
   shareUrl,
+  images,
+  transitionMs = 180,
 }: LightboxDialogProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
