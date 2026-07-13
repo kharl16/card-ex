@@ -25,6 +25,10 @@ export interface LightboxDialogProps {
   onClose: () => void;
   /** The PUBLIC card URL - must be https://tagex.app/c/{slug}, never editor URL */
   shareUrl?: string;
+  /** All images (for neighbor preloading). Optional — falls back to currentImage only. */
+  images?: LightboxImage[];
+  /** Slide/fade transition duration in ms. Default 180. */
+  transitionMs?: number;
 }
 
 export default function LightboxDialog({
@@ -43,6 +47,8 @@ export default function LightboxDialog({
   onDownload,
   onClose,
   shareUrl,
+  images,
+  transitionMs = 180,
 }: LightboxDialogProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
@@ -68,6 +74,29 @@ export default function LightboxDialog({
   useEffect(() => {
     setAspect(1);
   }, [currentImage?.url]);
+
+  // Preload neighboring images so swipe/arrow navigation feels instant.
+  useEffect(() => {
+    if (!open || !images || images.length < 2) return;
+    const neighbors = [
+      images[(index + 1) % images.length],
+      images[(index - 1 + images.length) % images.length],
+    ];
+    const preloaded: HTMLImageElement[] = [];
+    for (const img of neighbors) {
+      if (!img?.url) continue;
+      const el = new Image();
+      el.decoding = "async";
+      el.src = getOriginalUrl(img.url);
+      preloaded.push(el);
+    }
+    return () => {
+      // Drop references so browser can GC if needed
+      preloaded.length = 0;
+    };
+  }, [open, images, index]);
+
+
 
 
   // Download current image
@@ -316,8 +345,9 @@ export default function LightboxDialog({
             <div
               ref={panContainerRef}
               className="absolute inset-0 flex items-center justify-center overflow-hidden"
-              style={{ touchAction: "none" }}
+              style={{ touchAction: "none", ["--lightbox-transition-ms" as string]: `${transitionMs}ms` }}
             >
+
               {currentImage && (
                 <div
                   className="relative"

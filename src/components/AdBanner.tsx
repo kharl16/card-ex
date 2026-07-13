@@ -335,7 +335,9 @@ export default function AdBanner({ banner, accentColor = "#D4AF37" }: AdBannerPr
         onPrev={lightbox.prevImage}
         onDownload={lightbox.handleDownload}
         onClose={lightbox.closeLightbox}
+        images={lightboxImages}
       />
+
     </>
   );
 }

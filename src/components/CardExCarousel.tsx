@@ -381,7 +381,9 @@ function RouletteMode({
           onDownload={lightbox.handleDownload}
           onClose={lightbox.closeLightbox}
           shareUrl={shareUrl}
+          images={lightboxImages}
         />
+
       </div>
     </SpotlightStage>
   );
@@ -626,7 +628,9 @@ function FlatMode({
           onDownload={lightbox.handleDownload}
           onClose={lightbox.closeLightbox}
           shareUrl={shareUrl}
+          images={lightboxImages}
         />
+
       </div>
     </SpotlightStage>
   );
