@@ -7,6 +7,8 @@ import ShareModal from "@/components/carousel/ShareModal";
 import type { LightboxImage } from "@/hooks/useLightbox";
 import { getOriginalUrl } from "@/lib/images";
 import SafeImage from "@/components/SafeImage";
+import { preloadImage } from "@/lib/images/lightboxPreloadCache";
+import { useLightboxTransitionPref } from "@/hooks/useLightboxTransitionPref";
 
 export interface LightboxDialogProps {
   open: boolean;
@@ -48,8 +50,11 @@ export default function LightboxDialog({
   onClose,
   shareUrl,
   images,
-  transitionMs = 180,
+  transitionMs,
 }: LightboxDialogProps) {
+  // Persisted user preference; explicit prop still wins when provided.
+  const { transitionMs: prefTransitionMs } = useLightboxTransitionPref();
+  const effectiveTransitionMs = transitionMs ?? prefTransitionMs;
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   // Aspect ratio of the currently-loaded image; defaults to 1 until measured.
@@ -75,26 +80,21 @@ export default function LightboxDialog({
     setAspect(1);
   }, [currentImage?.url]);
 
-  // Preload neighboring images so swipe/arrow navigation feels instant.
+  // Preload the current + neighboring images through a module-level LRU cache
+  // so entries stay warm across lightbox opens. The current image gets a
+  // high fetch-priority hint; neighbors use low so they don't contend on
+  // slow networks but are still prefetched.
   useEffect(() => {
-    if (!open || !images || images.length < 2) return;
-    const neighbors = [
-      images[(index + 1) % images.length],
-      images[(index - 1 + images.length) % images.length],
-    ];
-    const preloaded: HTMLImageElement[] = [];
-    for (const img of neighbors) {
-      if (!img?.url) continue;
-      const el = new Image();
-      el.decoding = "async";
-      el.src = getOriginalUrl(img.url);
-      preloaded.push(el);
+    if (!open) return;
+    if (currentImage?.url) {
+      preloadImage(getOriginalUrl(currentImage.url), "high");
     }
-    return () => {
-      // Drop references so browser can GC if needed
-      preloaded.length = 0;
-    };
-  }, [open, images, index]);
+    if (!images || images.length < 2) return;
+    const next = images[(index + 1) % images.length];
+    const prev = images[(index - 1 + images.length) % images.length];
+    if (next?.url) preloadImage(getOriginalUrl(next.url), "low");
+    if (prev?.url) preloadImage(getOriginalUrl(prev.url), "low");
+  }, [open, images, index, currentImage?.url]);
 
 
 
