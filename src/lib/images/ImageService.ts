@@ -35,6 +35,14 @@ export function getRenderUrl(
   variant: RenderVariant = "default"
 ): string {
   if (!url) return "";
+  // Avatars and logos are already capped at 600x600 / 400KB by the uploader,
+  // so hitting the Supabase image-transform CDN adds no visible quality and
+  // wastes a billable "unique origin image" transformation. Serve the origin
+  // directly for these kinds — the browser still caches it aggressively via
+  // the immutable Cache-Control we set at upload time.
+  if (kind === "avatar" || kind === "logo") {
+    return url;
+  }
   const size = RENDER_PRESETS[kind][variant];
   // format=origin preserves PNG transparency; the CDN still serves WebP when
   // the browser advertises support via Accept: image/webp.
@@ -46,6 +54,7 @@ export function getRenderUrl(
     format: "origin",
   });
 }
+
 
 /**
  * Optional 1x/2x srcset built ONLY from preset sizes. Never emits arbitrary
