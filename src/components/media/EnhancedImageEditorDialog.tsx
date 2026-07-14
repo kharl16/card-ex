@@ -118,14 +118,12 @@ const EnhancedImageEditorDialog: React.FC<EnhancedImageEditorDialogProps> = ({
       }
     };
     
-    // Add cache-busting for Supabase storage URLs to avoid CORS caching issues
-    if (imageSrc.includes('supabase.co') && !imageSrc.includes('?')) {
-      img.src = `${imageSrc}?t=${Date.now()}`;
-    } else if (imageSrc.includes('supabase.co') && !imageSrc.includes('t=')) {
-      img.src = `${imageSrc}&t=${Date.now()}`;
-    } else {
-      img.src = imageSrc;
-    }
+    // Load the image as-is. We intentionally do NOT append a `?t=Date.now()`
+    // cache-buster here: it defeats CDN caching and — if the URL ever points
+    // at Supabase's /render/image/ endpoint — creates a brand-new billable
+    // "unique origin image" transformation on every editor open.
+    img.src = imageSrc;
+
   }, [open, imageSrc]);
 
   // Apply brightness and contrast manually via pixel manipulation
