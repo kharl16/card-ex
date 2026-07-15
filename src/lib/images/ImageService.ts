@@ -44,6 +44,31 @@ export function getRenderUrl(
     return url;
   }
   const size = RENDER_PRESETS[kind][variant];
+  // Safeguard: if the URL is already a Supabase image-transform URL
+  // (/render/image/public/) or already carries transform params (width/height/
+  // quality/resize/format), do NOT re-wrap it. Re-wrapping with a different
+  // preset would mint a second billable unique-origin transformation for the
+  // same source image, defeating the whole point of the preset system.
+  if (url.includes("/storage/v1/render/image/public/")) {
+    return url;
+  }
+  try {
+    const q = url.split("?")[1];
+    if (q) {
+      const params = new URLSearchParams(q);
+      if (
+        params.has("width") ||
+        params.has("height") ||
+        params.has("quality") ||
+        params.has("resize") ||
+        params.has("format")
+      ) {
+        return url;
+      }
+    }
+  } catch {
+    // fall through to normal transform
+  }
   // format=origin preserves PNG transparency; the CDN still serves WebP when
   // the browser advertises support via Accept: image/webp.
   return internalCdn(url, {
@@ -54,6 +79,7 @@ export function getRenderUrl(
     format: "origin",
   });
 }
+
 
 
 /**
