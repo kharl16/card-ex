@@ -1,4 +1,5 @@
-import React, { useCallback, useState, useRef, useEffect } from "react";
+import React, { useCallback, useState, useRef, useEffect, useMemo } from "react";
+import { motion, useMotionValue, animate, useReducedMotion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ZoomIn, ZoomOut, X, Download, Share2, ChevronLeft, ChevronRight, Gauge } from "lucide-react";
@@ -84,6 +85,51 @@ export interface LightboxDialogProps {
   transitionMs?: number;
 }
 
+/** Render one slide with the current pan/zoom transform applied. */
+function LightboxSlide({
+  image,
+  panOffset,
+  zoomLevel,
+  onDimensions,
+  isActive,
+}: {
+  image?: LightboxImage;
+  panOffset: { x: number; y: number };
+  zoomLevel: number;
+  onDimensions?: (d: { width: number; height: number }) => void;
+  isActive: boolean;
+}) {
+  if (!image) return <div className="w-full h-full" aria-hidden />;
+  return (
+    <div className="w-full h-full flex items-center justify-center pointer-events-none">
+      <div
+        className="relative pointer-events-auto"
+        style={
+          isActive
+            ? {
+                maxWidth: "calc(95vw - 4rem)",
+                maxHeight: "calc(95vh - 4rem)",
+                transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
+                transformOrigin: "center center",
+                willChange: "transform",
+              }
+            : {
+                maxWidth: "calc(95vw - 4rem)",
+                maxHeight: "calc(95vh - 4rem)",
+              }
+        }
+      >
+        <SafeImage
+          src={getOriginalUrl(image.url)}
+          alt={image.alt ?? ""}
+          onDimensions={onDimensions}
+          imgClassName="select-none max-h-[calc(95vh-4rem)] max-w-[calc(95vw-4rem)] w-auto h-auto object-contain"
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function LightboxDialog({
   open,
   onOpenChange,
@@ -103,61 +149,40 @@ export default function LightboxDialog({
   images,
   transitionMs,
 }: LightboxDialogProps) {
-  // Persisted user preference; explicit prop still wins when provided.
-  const { transitionMs: prefTransitionMs } = useLightboxTransitionPref();
+  const { transitionMs: prefTransitionMs, spring } = useLightboxTransitionPref();
   const effectiveTransitionMs = transitionMs ?? prefTransitionMs;
+  const prefersReducedMotion = useReducedMotion();
+
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-  // Aspect ratio of the currently-loaded image; defaults to 1 until measured.
   const [aspect, setAspect] = useState<number>(1);
-  // Direction of the last navigation (for slide-transition effect)
-  const [slideDir, setSlideDir] = useState<"next" | "prev" | "none">("none");
-  const prevIndexRef = useRef(index);
   const panStart = useRef<{ x: number; y: number } | null>(null);
   const panOrigin = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  // Detect nav direction when index changes so we can animate accordingly
-  useEffect(() => {
-    if (index === prevIndexRef.current) return;
-    const forward =
-      (index > prevIndexRef.current && !(prevIndexRef.current === 0 && index === count - 1)) ||
-      (prevIndexRef.current === count - 1 && index === 0);
-    setSlideDir(forward ? "next" : "prev");
-    prevIndexRef.current = index;
-  }, [index, count]);
-
-  // Reset aspect when the image changes so we don't briefly show the wrong ratio.
+  // Reset aspect when the image changes
   useEffect(() => {
     setAspect(1);
   }, [currentImage?.url]);
 
-  // Preload the current + neighboring images through a module-level LRU cache
-  // so entries stay warm across lightbox opens. The current image gets a
-  // high fetch-priority hint; neighbors use low so they don't contend on
-  // slow networks but are still prefetched.
+  // Preload current + ±2 neighbors through the module-level LRU cache
   useEffect(() => {
     if (!open) return;
-    if (currentImage?.url) {
-      preloadImage(getOriginalUrl(currentImage.url), "high");
-    }
+    if (currentImage?.url) preloadImage(getOriginalUrl(currentImage.url), "high");
     if (!images || images.length < 2) return;
-    const next = images[(index + 1) % images.length];
-    const prev = images[(index - 1 + images.length) % images.length];
-    if (next?.url) preloadImage(getOriginalUrl(next.url), "low");
-    if (prev?.url) preloadImage(getOriginalUrl(prev.url), "low");
+    for (const offset of [1, -1, 2, -2]) {
+      const target = images[((index + offset) % images.length + images.length) % images.length];
+      if (target?.url) {
+        preloadImage(getOriginalUrl(target.url), Math.abs(offset) === 1 ? "low" : "auto");
+      }
+    }
   }, [open, images, index, currentImage?.url]);
 
-
-
-
-  // Download current image
   const handleDownload = useCallback(async () => {
     if (!currentImage?.url) return;
     await downloadSingleImage(currentImage.url);
     onDownload();
   }, [currentImage, onDownload]);
 
-  // Share current image
   const handleShare = useCallback(async () => {
     if (!currentImage?.url) return;
     const result = await shareSingleImage({
@@ -166,57 +191,72 @@ export default function LightboxDialog({
       text: currentImage.shareText || "Check out this image from Card-Ex",
       url: shareUrl,
     });
-    if (result.showModal) {
-      setShareModalOpen(true);
-    }
+    if (result.showModal) setShareModalOpen(true);
   }, [currentImage, shareUrl]);
 
   const resetPan = useCallback(() => setPanOffset({ x: 0, y: 0 }), []);
-
-  // Reset zoom + pan together
   const handleResetZoom = useCallback(() => {
     onResetZoom();
     resetPan();
   }, [onResetZoom, resetPan]);
-
   const handleZoomOut = useCallback(() => {
     onZoomOut();
     if (zoomLevel <= 1.5) resetPan();
   }, [onZoomOut, zoomLevel, resetPan]);
 
-  // Refs so native event listeners always see the latest values
+  // ─── Framer Motion drag track ────────────────────────────────────
+  // Track holds three slides: [prev, current, next] each 100% wide.
+  // x=0 shows current; x=-W shows next; x=+W shows prev.
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const x = useMotionValue(0);
+  const [trackW, setTrackW] = useState<number>(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1024
+  );
   const zoomLevelRef = useRef(zoomLevel);
   useEffect(() => { zoomLevelRef.current = zoomLevel; }, [zoomLevel]);
 
+  // Measure the track width for correct drag/commit distances
+  useEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      const w = trackRef.current?.clientWidth ?? window.innerWidth;
+      setTrackW(w);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("orientationchange", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measure);
+    };
+  }, [open]);
+
+  // Snap x back to 0 whenever the current index changes from the outside
+  // (button, keyboard, or after a commit). No animation — the new "current"
+  // slide is already what the user was looking at during the drag.
+  useEffect(() => {
+    x.set(0);
+  }, [index, x]);
+
+  const prev = useMemo(() => {
+    if (!images || images.length < 2) return undefined;
+    return images[((index - 1) % images.length + images.length) % images.length];
+  }, [images, index]);
+  const next = useMemo(() => {
+    if (!images || images.length < 2) return undefined;
+    return images[(index + 1) % images.length];
+  }, [images, index]);
+
+  // Pinch/two-finger detection: disable drag while a second touch is down
+  const pinchingRef = useRef(false);
+  const pinchStartDist = useRef<number | null>(null);
+  const pinchStartZoom = useRef<number>(1);
+  const twoFingerStart = useRef<{ x: number; y: number } | null>(null);
   const panOffsetRef = useRef(panOffset);
   useEffect(() => { panOffsetRef.current = panOffset; }, [panOffset]);
 
-  // Track pinch-to-zoom gesture
-  const pinchStartDist = useRef<number | null>(null);
-  const pinchStartZoom = useRef<number>(1);
-  // Two-finger pan midpoint tracking
-  const twoFingerStart = useRef<{ x: number; y: number } | null>(null);
-  // One-finger swipe tracking for image navigation
-  const swipeStart = useRef<{ x: number; y: number; t: number } | null>(null);
-
-  // Latest nav callbacks for native listeners
-  const onNextRef = useRef(onNext);
-  const onPrevRef = useRef(onPrev);
-  useEffect(() => { onNextRef.current = onNext; onPrevRef.current = onPrev; }, [onNext, onPrev]);
-
-  // Cleanup ref for native listeners
-  const cleanupRef = useRef<(() => void) | null>(null);
-
-  // Callback ref: attaches native touch listeners the moment the DOM node mounts
-  const panContainerRef = useCallback((el: HTMLDivElement | null) => {
-    // Always clean up previous listeners
-    if (cleanupRef.current) {
-      cleanupRef.current();
-      cleanupRef.current = null;
-    }
-
-    if (!el) return;
-
+  const stageRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return () => {};
     const getDistance = (t1: Touch, t2: Touch) =>
       Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
     const getMidpoint = (t1: Touch, t2: Touch) => ({
@@ -227,78 +267,70 @@ export default function LightboxDialog({
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
+        pinchingRef.current = true;
         pinchStartDist.current = getDistance(e.touches[0], e.touches[1]);
         pinchStartZoom.current = zoomLevelRef.current;
         twoFingerStart.current = getMidpoint(e.touches[0], e.touches[1]);
         panOrigin.current = { x: panOffsetRef.current.x, y: panOffsetRef.current.y };
-        swipeStart.current = null;
-        return;
-      }
-      if (e.touches.length === 1) {
-        // One finger = swipe to change image (no panning)
-        swipeStart.current = {
-          x: e.touches[0].clientX,
-          y: e.touches[0].clientY,
-          t: Date.now(),
-        };
       }
     };
-
     const onTouchMove = (e: TouchEvent) => {
       if (e.touches.length === 2 && pinchStartDist.current !== null) {
         e.preventDefault();
-        // Pinch zoom
         const dist = getDistance(e.touches[0], e.touches[1]);
         const scale = dist / pinchStartDist.current;
         const newZoom = Math.min(3, Math.max(0.5, pinchStartZoom.current * scale));
         setZoomLevel(newZoom);
-        // Two-finger pan
         if (twoFingerStart.current) {
           const mid = getMidpoint(e.touches[0], e.touches[1]);
           const dx = mid.x - twoFingerStart.current.x;
           const dy = mid.y - twoFingerStart.current.y;
           setPanOffset({ x: panOrigin.current.x + dx, y: panOrigin.current.y + dy });
         }
-        return;
       }
-      // One-finger move: intentionally do nothing (let the browser handle vertical scroll if any)
     };
-
     const onTouchEnd = (e: TouchEvent) => {
       if (e.touches.length < 2) {
         pinchStartDist.current = null;
         twoFingerStart.current = null;
-      }
-      // Detect one-finger swipe on release
-      if (e.touches.length === 0 && swipeStart.current) {
-        const t = e.changedTouches[0];
-        if (t) {
-          const dx = t.clientX - swipeStart.current.x;
-          const dy = t.clientY - swipeStart.current.y;
-          const dt = Date.now() - swipeStart.current.t;
-          const absX = Math.abs(dx);
-          const absY = Math.abs(dy);
-          // Horizontal swipe: dominant X, min distance, reasonable time
-          if (absX > 30 && absX > absY * 1.2 && dt < 600) {
-            if (dx < 0) onNextRef.current();
-            else onPrevRef.current();
-          }
-        }
-        swipeStart.current = null;
+        // small delay so framer-motion's drag doesn't grab the tail of pinch
+        setTimeout(() => { pinchingRef.current = false; }, 30);
       }
     };
-
     el.addEventListener("touchstart", onTouchStart, { passive: false });
     el.addEventListener("touchmove", onTouchMove, { passive: false });
     el.addEventListener("touchend", onTouchEnd, { passive: true });
-
-    cleanupRef.current = () => {
+    return () => {
       el.removeEventListener("touchstart", onTouchStart);
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
     };
   }, [setZoomLevel]);
 
+  // Commit helper: animate to target then step index and reset x.
+  const commitNav = useCallback(
+    (dir: "next" | "prev") => {
+      const target = dir === "next" ? -trackW : trackW;
+      const doStep = () => {
+        if (dir === "next") onNext(); else onPrev();
+        // x reset happens via the [index] effect above
+      };
+      if (prefersReducedMotion || effectiveTransitionMs === 0) {
+        doStep();
+        return;
+      }
+      animate(x, target, { ...spring, onComplete: doStep });
+    },
+    [trackW, onNext, onPrev, spring, prefersReducedMotion, effectiveTransitionMs, x]
+  );
+
+  const springBack = useCallback(() => {
+    if (prefersReducedMotion) { x.set(0); return; }
+    animate(x, 0, spring);
+  }, [x, spring, prefersReducedMotion]);
+
+  // Drag is only enabled at zoom = 1, when we have >1 images, and not during pinch
+  const canDrag = count > 1 && zoomLevel === 1 && !pinchingRef.current;
 
   return (
     <>
@@ -318,62 +350,35 @@ export default function LightboxDialog({
 
             {/* Zoom + Download + Share controls */}
             <div className="absolute top-4 left-4 z-20 flex gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleZoomOut}
-                disabled={zoomLevel <= 0.5}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
-                aria-label="Zoom out"
-              >
+              <Button variant="ghost" size="icon" onClick={handleZoomOut} disabled={zoomLevel <= 0.5}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom out">
                 <ZoomOut className="h-5 w-5" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleResetZoom}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
-                aria-label="Reset zoom"
-              >
+              <Button variant="ghost" size="icon" onClick={handleResetZoom}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Reset zoom">
                 1:1
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onZoomIn}
-                disabled={zoomLevel >= 3}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
-                aria-label="Zoom in"
-              >
+              <Button variant="ghost" size="icon" onClick={onZoomIn} disabled={zoomLevel >= 3}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom in">
                 <ZoomIn className="h-5 w-5" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleDownload}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
-                aria-label="Download image"
-              >
+              <Button variant="ghost" size="icon" onClick={handleDownload}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Download image">
                 <Download className="h-5 w-5" />
               </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleShare}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full"
-                aria-label="Share image"
-              >
+              <Button variant="ghost" size="icon" onClick={handleShare}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Share image">
                 <Share2 className="h-5 w-5" />
               </Button>
               <LightboxSpeedControl />
             </div>
 
-            {/* Navigation arrows */}
+            {/* Navigation arrows — use commitNav so buttons feel identical to swipes */}
             {count > 1 && (
               <>
                 <button
                   type="button"
-                  onClick={onPrev}
+                  onClick={() => commitNav("prev")}
                   className="absolute left-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white shadow-lg hover:bg-black/80 active:scale-95"
                   aria-label="Previous image"
                 >
@@ -381,7 +386,7 @@ export default function LightboxDialog({
                 </button>
                 <button
                   type="button"
-                  onClick={onNext}
+                  onClick={() => commitNav("next")}
                   className="absolute right-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white shadow-lg hover:bg-black/80 active:scale-95"
                   aria-label="Next image"
                 >
@@ -390,58 +395,56 @@ export default function LightboxDialog({
               </>
             )}
 
-            {/* Image — fixed aspect-ratio wrapper sized to viewport so the image
-                always fits fully regardless of container height. Aspect ratio is
-                measured from the natural dimensions once the image loads; SafeImage
-                shows a skeleton until then and an error state for corrupt/oversized files. */}
+            {/* Stage — handles pinch/zoom via native touch listeners, and hosts the
+                framer-motion drag track for one-finger horizontal swipe navigation. */}
             <div
-              ref={panContainerRef}
-              className="absolute inset-0 flex items-center justify-center overflow-hidden"
-              style={{ touchAction: "none", ["--lightbox-transition-ms" as string]: `${effectiveTransitionMs}ms` }}
+              ref={stageRef}
+              className="absolute inset-0 overflow-hidden"
+              style={{ touchAction: canDrag ? "pan-y" : "none" }}
             >
-
-              {currentImage && (
-                <div
-                  className="relative"
-                  style={{
-                    aspectRatio: String(aspect),
-                    maxWidth: "calc(95vw - 4rem)",
-                    maxHeight: "calc(95vh - 4rem)",
-                    // Prefer width, but let aspect-ratio drive height; both maxes clamp overflow.
-                    width: aspect >= 1 ? "calc(95vw - 4rem)" : "auto",
-                    height: aspect < 1 ? "calc(95vh - 4rem)" : "auto",
-                    transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
-                    transformOrigin: "center center",
-                    willChange: "transform",
+              <div ref={trackRef} className="relative w-full h-full">
+                <motion.div
+                  className="absolute inset-0 flex"
+                  style={{ x, width: `${trackW * 3}px`, left: `-${trackW}px` }}
+                  drag={canDrag ? "x" : false}
+                  dragElastic={0.18}
+                  dragMomentum={false}
+                  dragConstraints={{ left: -trackW, right: trackW }}
+                  onDragEnd={(_, info) => {
+                    const offset = info.offset.x;
+                    const velocity = info.velocity.x;
+                    const distanceThreshold = trackW * 0.22;
+                    const velocityThreshold = 500;
+                    const goNext = offset < -distanceThreshold || velocity < -velocityThreshold;
+                    const goPrev = offset > distanceThreshold || velocity > velocityThreshold;
+                    if (goNext) commitNav("next");
+                    else if (goPrev) commitNav("prev");
+                    else springBack();
                   }}
                 >
-                  <div
-                    key={currentImage.url}
-                    className={
-                      slideDir === "next"
-                        ? "lightbox-slide-next h-full w-full"
-                        : slideDir === "prev"
-                        ? "lightbox-slide-prev h-full w-full"
-                        : "lightbox-slide-in h-full w-full"
-                    }
-                  >
-                    <SafeImage
-                      // Reuse the already-loaded image URL — do NOT request a
-                      // fresh transform when the user opens/zooms the lightbox.
-                      // Zoom is pure CSS transform below; only downloads hit the
-                      // original via getOriginalUrl().
-                      src={getOriginalUrl(currentImage.url)}
-                      alt={currentImage.alt ?? ""}
+                  {/* prev slide */}
+                  <div style={{ width: trackW }} className="h-full flex items-center justify-center">
+                    <LightboxSlide image={prev} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} />
+                  </div>
+                  {/* current slide */}
+                  <div style={{ width: trackW }} className="h-full flex items-center justify-center">
+                    <LightboxSlide
+                      image={currentImage}
+                      panOffset={panOffset}
+                      zoomLevel={zoomLevel}
+                      isActive
                       onDimensions={({ width, height }) => setAspect(width / height)}
-                      imgClassName="select-none"
                     />
                   </div>
-                </div>
-              )}
+                  {/* next slide */}
+                  <div style={{ width: trackW }} className="h-full flex items-center justify-center">
+                    <LightboxSlide image={next} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} />
+                  </div>
+                </motion.div>
+              </div>
             </div>
 
-
-            {/* Caption, SRP, Description & Counter — fixed position to ensure visibility */}
+            {/* Caption, SRP, Description & Counter */}
             <div className="fixed bottom-0 left-0 right-0 z-[60] pointer-events-none flex flex-col items-center gap-1 pb-4">
               {(currentImage?.shareText || currentImage?.alt || currentImage?.description || currentImage?.srp) && (
                 <div className="w-full max-w-lg px-4 space-y-0 text-center pointer-events-auto max-h-[40vh] overflow-y-auto">
