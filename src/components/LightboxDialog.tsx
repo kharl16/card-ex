@@ -100,32 +100,28 @@ function LightboxSlide({
   isActive: boolean;
 }) {
   if (!image) return <div className="w-full h-full" aria-hidden />;
+  const transformStyle = isActive
+    ? {
+        transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
+        transformOrigin: "center center" as const,
+        willChange: "transform" as const,
+      }
+    : undefined;
   return (
     <div className="w-full h-full flex items-center justify-center pointer-events-none">
-      <div
-        className="relative pointer-events-auto"
-        style={
-          isActive
-            ? {
-                maxWidth: "calc(95vw - 4rem)",
-                maxHeight: "calc(95vh - 4rem)",
-                transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
-                transformOrigin: "center center",
-                willChange: "transform",
-              }
-            : {
-                maxWidth: "calc(95vw - 4rem)",
-                maxHeight: "calc(95vh - 4rem)",
-              }
-        }
-      >
-        <SafeImage
-          src={getOriginalUrl(image.url)}
-          alt={image.alt ?? ""}
-          onDimensions={onDimensions}
-          imgClassName="select-none max-h-[calc(95vh-4rem)] max-w-[calc(95vw-4rem)] w-auto h-auto object-contain"
-        />
-      </div>
+      <img
+        src={getOriginalUrl(image.url)}
+        alt={image.alt ?? ""}
+        draggable={false}
+        onLoad={(e) => {
+          const el = e.currentTarget;
+          if (el.naturalWidth && el.naturalHeight) {
+            onDimensions?.({ width: el.naturalWidth, height: el.naturalHeight });
+          }
+        }}
+        className="pointer-events-auto select-none object-contain max-w-[calc(95vw-4rem)] max-h-[calc(95vh-4rem)] w-auto h-auto"
+        style={transformStyle}
+      />
     </div>
   );
 }
