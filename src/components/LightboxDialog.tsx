@@ -329,7 +329,9 @@ export default function LightboxDialog({
   }, [x, spring, prefersReducedMotion]);
 
   // Drag is only enabled at zoom = 1, when we have >1 images, and not during pinch
-  const canDrag = count > 1 && zoomLevel === 1 && !pinchingRef.current;
+  // Allow swipe-to-navigate whenever we're not zoomed above 1x (with tolerance
+  // for pinch float precision) and no active two-finger gesture is in flight.
+  const canDrag = count > 1 && zoomLevel <= 1.01 && !pinching;
 
   return (
     <>
