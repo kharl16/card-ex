@@ -2,7 +2,8 @@ import React, { useCallback, useState, useRef, useEffect, useMemo } from "react"
 import { motion, useMotionValue, animate, useReducedMotion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, X, Download, Share2, ChevronLeft, ChevronRight, Gauge } from "lucide-react";
+import { ZoomIn, ZoomOut, Download, Share2, ChevronLeft, ChevronRight, Gauge } from "lucide-react";
+import { CloseButton3D } from "@/components/ui/close-button-3d";
 import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
 import type { LightboxImage } from "@/hooks/useLightbox";
@@ -339,15 +340,12 @@ export default function LightboxDialog({
         <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30">
           <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
             {/* Close button */}
-            <Button
-              variant="ghost"
-              size="icon"
+            <CloseButton3D
+              variant="prominent"
               onClick={onClose}
-              className="absolute top-4 right-4 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full"
-              aria-label="Close lightbox"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+              className="absolute top-4 right-4 z-20"
+              label="Close lightbox"
+            />
 
             {/* Zoom + Download + Share controls */}
             <div className="absolute top-4 left-4 z-20 flex gap-2">

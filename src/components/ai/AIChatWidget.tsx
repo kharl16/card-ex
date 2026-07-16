@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, X, Send, Loader2, Bot, User } from "lucide-react";
+import { MessageCircle, Send, Loader2, Bot, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CloseButton3D } from "@/components/ui/close-button-3d";
 import ReactMarkdown from "react-markdown";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -219,12 +220,13 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
                 <p className="text-[10px] text-white/70">Ask me anything</p>
               </div>
             </div>
-            <button
+            <CloseButton3D
+              variant="subtle"
+              iconSize="h-4 w-4"
+              className="h-8 w-8"
               onClick={() => setOpen(false)}
-              className="rounded-full p-1 text-white/80 hover:bg-white/20 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
+              label="Close chat"
+            />
           </div>
 
           {/* Messages area */}
