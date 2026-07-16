@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ZoomIn, ZoomOut, X, Download } from "lucide-react";
+import { ZoomIn, ZoomOut, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CloseButton3D } from "@/components/ui/close-button-3d";
 import { getRenderUrl } from "@/lib/images";
 
 type CarouselImage = {
@@ -334,14 +335,12 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
         <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-emerald-500/30">
           <div className="relative w-full h-full flex items-center justify-center">
             {/* Close button */}
-            <Button
-              variant="ghost"
-              size="icon"
+            <CloseButton3D
+              variant="prominent"
               onClick={closeLightbox}
-              className="absolute top-4 right-4 z-20 bg-black/60 hover:bg-black/80 text-white rounded-full"
-            >
-              <X className="h-5 w-5" />
-            </Button>
+              className="absolute top-4 right-4 z-20"
+              label="Close lightbox"
+            />
 
             {/* Zoom + Download controls */}
             <div className="absolute top-4 left-4 z-20 flex gap-2">
