@@ -243,7 +243,9 @@ export default function LightboxDialog({
     return images[(index + 1) % images.length];
   }, [images, index]);
 
-  // Pinch/two-finger detection: disable drag while a second touch is down
+  // Pinch/two-finger detection: disable drag while a second touch is down.
+  // Must be state (not a ref) so that clearing it re-renders and re-enables drag.
+  const [pinching, setPinching] = useState(false);
   const pinchingRef = useRef(false);
   const pinchStartDist = useRef<number | null>(null);
   const pinchStartZoom = useRef<number>(1);
@@ -264,6 +266,7 @@ export default function LightboxDialog({
       if (e.touches.length === 2) {
         e.preventDefault();
         pinchingRef.current = true;
+        setPinching(true);
         pinchStartDist.current = getDistance(e.touches[0], e.touches[1]);
         pinchStartZoom.current = zoomLevelRef.current;
         twoFingerStart.current = getMidpoint(e.touches[0], e.touches[1]);
@@ -290,7 +293,7 @@ export default function LightboxDialog({
         pinchStartDist.current = null;
         twoFingerStart.current = null;
         // small delay so framer-motion's drag doesn't grab the tail of pinch
-        setTimeout(() => { pinchingRef.current = false; }, 30);
+        setTimeout(() => { pinchingRef.current = false; setPinching(false); }, 30);
       }
     };
     el.addEventListener("touchstart", onTouchStart, { passive: false });
@@ -326,7 +329,9 @@ export default function LightboxDialog({
   }, [x, spring, prefersReducedMotion]);
 
   // Drag is only enabled at zoom = 1, when we have >1 images, and not during pinch
-  const canDrag = count > 1 && zoomLevel === 1 && !pinchingRef.current;
+  // Allow swipe-to-navigate whenever we're not zoomed above 1x (with tolerance
+  // for pinch float precision) and no active two-finger gesture is in flight.
+  const canDrag = count > 1 && zoomLevel <= 1.01 && !pinching;
 
   return (
     <>
