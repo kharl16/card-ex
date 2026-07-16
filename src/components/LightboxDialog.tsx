@@ -293,7 +293,7 @@ export default function LightboxDialog({
         pinchStartDist.current = null;
         twoFingerStart.current = null;
         // small delay so framer-motion's drag doesn't grab the tail of pinch
-        setTimeout(() => { pinchingRef.current = false; }, 30);
+        setTimeout(() => { pinchingRef.current = false; setPinching(false); }, 30);
       }
     };
     el.addEventListener("touchstart", onTouchStart, { passive: false });
