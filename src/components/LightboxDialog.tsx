@@ -243,7 +243,9 @@ export default function LightboxDialog({
     return images[(index + 1) % images.length];
   }, [images, index]);
 
-  // Pinch/two-finger detection: disable drag while a second touch is down
+  // Pinch/two-finger detection: disable drag while a second touch is down.
+  // Must be state (not a ref) so that clearing it re-renders and re-enables drag.
+  const [pinching, setPinching] = useState(false);
   const pinchingRef = useRef(false);
   const pinchStartDist = useRef<number | null>(null);
   const pinchStartZoom = useRef<number>(1);
