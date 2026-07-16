@@ -266,6 +266,7 @@ export default function LightboxDialog({
       if (e.touches.length === 2) {
         e.preventDefault();
         pinchingRef.current = true;
+        setPinching(true);
         pinchStartDist.current = getDistance(e.touches[0], e.touches[1]);
         pinchStartZoom.current = zoomLevelRef.current;
         twoFingerStart.current = getMidpoint(e.touches[0], e.touches[1]);
