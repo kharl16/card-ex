@@ -291,12 +291,12 @@ export default function DirectoryMapView({
   const itemsWithoutCoords = items.length - locationsWithCoords.length;
 
   const handleGetDirections = (entry: DirectoryEntry) => {
-    if (entry.maps_link) {
-      const navUrl = entry.maps_link.includes("?")
-        ? `${entry.maps_link}&dir_action=navigate`
-        : `${entry.maps_link}?dir_action=navigate`;
-      window.open(navUrl, "_blank");
-    }
+    const url = getDirectionsUrl({
+      mapsLink: entry.maps_link,
+      address: entry.address,
+      location: entry.location,
+    });
+    if (url) window.open(url, "_blank", "noopener,noreferrer");
   };
 
   return (
