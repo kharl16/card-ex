@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { DirectoryEntry, EventType } from "@/types/resources";
 import { useState } from "react";
+import { getViewOnMapsUrl, openInNewTab } from "@/lib/mapsUrl";
 
 interface DirectoryCardProps {
   entry: DirectoryEntry;
