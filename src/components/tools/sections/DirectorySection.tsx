@@ -831,7 +831,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                         variant="outline"
                         size="sm"
                         className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                        onClick={() => window.open(item.maps_link!, "_blank")}
+                        onClick={() => handleViewOnMaps(item)}
                       >
                         <Navigation className="w-4 h-4 flex-shrink-0" />
                         <span className="hidden xxs:inline">Maps</span>
