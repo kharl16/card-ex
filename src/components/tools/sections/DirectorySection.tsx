@@ -30,6 +30,7 @@ import {
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
+import { getDirectionsUrl, getViewOnMapsUrl, openInNewTab } from "@/lib/mapsUrl";
 
 // Lazy load the map component to reduce initial bundle size
 const DirectoryMapView = lazy(() => import("./DirectoryMapView"));
