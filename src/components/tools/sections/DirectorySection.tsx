@@ -1051,7 +1051,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                   <Button
                     variant="outline"
                     className="flex-1 h-12 gap-2"
-                    onClick={() => window.open(selectedEntry.maps_link!, "_blank")}
+                    onClick={() => handleViewOnMaps(selectedEntry)}
                   >
                     <Navigation className="w-5 h-5" />
                     View on Maps
