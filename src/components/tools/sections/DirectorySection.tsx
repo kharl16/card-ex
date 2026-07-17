@@ -30,6 +30,7 @@ import {
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
 import { cn } from "@/lib/utils";
+import { getDirectionsUrl, getViewOnMapsUrl, openInNewTab } from "@/lib/mapsUrl";
 
 // Lazy load the map component to reduce initial bundle size
 const DirectoryMapView = lazy(() => import("./DirectoryMapView"));
@@ -340,46 +341,29 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   };
 
   const handleGetDirections = (entry: DirectoryEntry) => {
-    // Build a navigation URL that works across platforms
-    // Priority: use maps_link if available, otherwise construct from address
-    let destination = "";
-
-    if (entry.maps_link) {
-      const mapsUrl = entry.maps_link;
-
-      if (mapsUrl.includes("google.com/maps") || mapsUrl.includes("goo.gl/maps")) {
-        const navUrl = mapsUrl.includes("?") ? `${mapsUrl}&dir_action=navigate` : `${mapsUrl}?dir_action=navigate`;
-        window.open(navUrl, "_blank");
-        return;
-      }
-
-      window.open(mapsUrl, "_blank");
-      return;
-    }
-
-    if (entry.address) destination = encodeURIComponent(entry.address);
-    else if (entry.location) destination = encodeURIComponent(entry.location);
-
-    if (!destination) {
+    const url = getDirectionsUrl({
+      mapsLink: entry.maps_link,
+      address: entry.address,
+      location: entry.location,
+    });
+    if (!url) {
       toast.error("No address available for directions");
       return;
     }
+    openInNewTab(url);
+  };
 
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(userAgent);
-    const isAndroid = /android/.test(userAgent);
-
-    let directionsUrl: string;
-
-    if (isIOS) {
-      directionsUrl = `maps://maps.apple.com/?daddr=${destination}&dirflg=d`;
-    } else if (isAndroid) {
-      directionsUrl = `google.navigation:q=${destination}`;
-    } else {
-      directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
+  const handleViewOnMaps = (entry: DirectoryEntry) => {
+    const url = getViewOnMapsUrl({
+      mapsLink: entry.maps_link,
+      address: entry.address,
+      location: entry.location,
+    });
+    if (!url) {
+      toast.error("No map location available");
+      return;
     }
-
-    window.open(directionsUrl, "_blank");
+    openInNewTab(url);
   };
 
   // Handle geolocation request
@@ -847,7 +831,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                         variant="outline"
                         size="sm"
                         className="h-10 sm:h-11 px-1.5 xxs:px-2 sm:px-3 gap-1 sm:gap-2 rounded-lg sm:rounded-xl text-xs sm:text-sm justify-center"
-                        onClick={() => window.open(item.maps_link!, "_blank")}
+                        onClick={() => handleViewOnMaps(item)}
                       >
                         <Navigation className="w-4 h-4 flex-shrink-0" />
                         <span className="hidden xxs:inline">Maps</span>
@@ -1067,7 +1051,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
                   <Button
                     variant="outline"
                     className="flex-1 h-12 gap-2"
-                    onClick={() => window.open(selectedEntry.maps_link!, "_blank")}
+                    onClick={() => handleViewOnMaps(selectedEntry)}
                   >
                     <Navigation className="w-5 h-5" />
                     View on Maps
