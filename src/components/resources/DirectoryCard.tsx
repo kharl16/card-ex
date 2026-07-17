@@ -28,9 +28,14 @@ export function DirectoryCard({
   };
 
   const handleMaps = () => {
-    if (entry.maps_link) {
+    const url = getViewOnMapsUrl({
+      mapsLink: entry.maps_link,
+      address: entry.address,
+      location: entry.location,
+    });
+    if (url) {
       onLogEvent("open_maps");
-      window.open(entry.maps_link, "_blank");
+      openInNewTab(url);
     }
   };
 
