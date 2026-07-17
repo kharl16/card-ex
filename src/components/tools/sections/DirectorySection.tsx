@@ -340,46 +340,29 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   };
 
   const handleGetDirections = (entry: DirectoryEntry) => {
-    // Build a navigation URL that works across platforms
-    // Priority: use maps_link if available, otherwise construct from address
-    let destination = "";
-
-    if (entry.maps_link) {
-      const mapsUrl = entry.maps_link;
-
-      if (mapsUrl.includes("google.com/maps") || mapsUrl.includes("goo.gl/maps")) {
-        const navUrl = mapsUrl.includes("?") ? `${mapsUrl}&dir_action=navigate` : `${mapsUrl}?dir_action=navigate`;
-        window.open(navUrl, "_blank");
-        return;
-      }
-
-      window.open(mapsUrl, "_blank");
-      return;
-    }
-
-    if (entry.address) destination = encodeURIComponent(entry.address);
-    else if (entry.location) destination = encodeURIComponent(entry.location);
-
-    if (!destination) {
+    const url = getDirectionsUrl({
+      mapsLink: entry.maps_link,
+      address: entry.address,
+      location: entry.location,
+    });
+    if (!url) {
       toast.error("No address available for directions");
       return;
     }
+    openInNewTab(url);
+  };
 
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isIOS = /iphone|ipad|ipod/.test(userAgent);
-    const isAndroid = /android/.test(userAgent);
-
-    let directionsUrl: string;
-
-    if (isIOS) {
-      directionsUrl = `maps://maps.apple.com/?daddr=${destination}&dirflg=d`;
-    } else if (isAndroid) {
-      directionsUrl = `google.navigation:q=${destination}`;
-    } else {
-      directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&travelmode=driving`;
+  const handleViewOnMaps = (entry: DirectoryEntry) => {
+    const url = getViewOnMapsUrl({
+      mapsLink: entry.maps_link,
+      address: entry.address,
+      location: entry.location,
+    });
+    if (!url) {
+      toast.error("No map location available");
+      return;
     }
-
-    window.open(directionsUrl, "_blank");
+    openInNewTab(url);
   };
 
   // Handle geolocation request
