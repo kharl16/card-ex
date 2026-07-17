@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Tooltip, useMap } from "react-leaflet"
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapPin } from "lucide-react";
+import { getDirectionsUrl } from "@/lib/mapsUrl";
 
 
 // Fix for default marker icons in react-leaflet - use a flag to avoid running multiple times
