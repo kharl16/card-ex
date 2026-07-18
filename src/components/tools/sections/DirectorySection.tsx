@@ -694,7 +694,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         <div className="grid gap-4 w-full">
           {filteredItems.map((item) => {
             const itemWithDistance = item as DirectoryEntryWithDistance;
-            const hasDistance = sortByNearest && itemWithDistance.distance !== undefined;
+            const hasDistance = sortMode === "nearest" && itemWithDistance.distance !== undefined;
 
             return (
               <div
