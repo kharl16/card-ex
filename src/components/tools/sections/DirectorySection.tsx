@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, ReactNode, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, ReactNode, useCallback, lazy, Suspense, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
