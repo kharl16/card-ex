@@ -369,14 +369,8 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     openInNewTab(url);
   };
 
-  // Handle geolocation request
-  const handleSortByNearest = useCallback(() => {
-    if (sortByNearest) {
-      setSortByNearest(false);
-      setUserLocation(null);
-      return;
-    }
-
+  // Request device location for distance-based sorting
+  const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setGeoError("Geolocation is not supported by your browser");
       toast.error("Geolocation is not supported by your browser");
@@ -392,7 +386,6 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         });
-        setSortByNearest(true);
         setGeoLoading(false);
         toast.success("Sorting by nearest location");
       },
@@ -415,7 +408,28 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         maximumAge: 60000, // Cache for 1 minute
       },
     );
-  }, [sortByNearest]);
+  }, []);
+
+  // Handle sort mode changes
+  const handleSortModeChange = useCallback(
+    (mode: SortMode) => {
+      setSortMode(mode);
+      if (mode === "nearest") {
+        if (!userLocation) {
+          requestLocation();
+        }
+      }
+    },
+    [userLocation, requestLocation],
+  );
+
+  // Auto-request location once on mount when nearest is the default
+  useEffect(() => {
+    if (sortMode === "nearest" && !userLocation && !geoLoading && !autoLocationRequested.current && navigator.geolocation) {
+      autoLocationRequested.current = true;
+      requestLocation();
+    }
+  }, [sortMode, userLocation, geoLoading, requestLocation]);
 
   useEffect(() => {
     if (activeCompanyId) fetchItems();
