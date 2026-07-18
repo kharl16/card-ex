@@ -633,31 +633,39 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           </Button>
         </div>
 
-        {/* Sort by Nearest Button */}
-        <Button
-          variant={sortByNearest ? "default" : "outline"}
-          size="sm"
-          className={cn("flex-1 gap-2 h-11", sortByNearest && "bg-primary text-primary-foreground")}
-          onClick={handleSortByNearest}
-          disabled={geoLoading}
-        >
-          {geoLoading ? (
-            <>
+        {/* Sort Mode Toggle: Nearest | Alphabetical */}
+        <div className="flex rounded-lg border border-border overflow-hidden flex-1">
+          <Button
+            variant={sortMode === "nearest" ? "default" : "ghost"}
+            size="sm"
+            className={cn(
+              "flex-1 gap-2 h-11 rounded-none",
+              sortMode === "nearest" && "bg-primary text-primary-foreground",
+            )}
+            onClick={() => handleSortModeChange("nearest")}
+            disabled={geoLoading}
+          >
+            {geoLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="hidden sm:inline">Getting location...</span>
-            </>
-          ) : sortByNearest ? (
-            <>
+            ) : (
               <Locate className="w-4 h-4" />
-              <span className="truncate">Nearest • Reset</span>
-            </>
-          ) : (
-            <>
-              <Locate className="w-4 h-4" />
-              <span className="truncate">Sort by nearest</span>
-            </>
-          )}
-        </Button>
+            )}
+            <span className="truncate">Nearest</span>
+          </Button>
+          <Button
+            variant={sortMode === "alphabetical" ? "default" : "ghost"}
+            size="sm"
+            className={cn(
+              "flex-1 gap-2 h-11 rounded-none border-l border-border",
+              sortMode === "alphabetical" && "bg-primary text-primary-foreground",
+            )}
+            onClick={() => handleSortModeChange("alphabetical")}
+            disabled={geoLoading}
+          >
+            <ArrowDownAZ className="w-4 h-4" />
+            <span className="truncate">A-Z</span>
+          </Button>
+        </div>
       </div>
 
       {/* Map View */}
