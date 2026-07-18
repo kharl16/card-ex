@@ -273,9 +273,11 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
   // Geolocation state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [sortByNearest, setSortByNearest] = useState(false);
+  type SortMode = "nearest" | "alphabetical";
+  const [sortMode, setSortMode] = useState<SortMode>("nearest");
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const autoLocationRequested = useRef(false);
 
   const handleShareBranch = async (entry: DirectoryEntry) => {
     const shareTitle = entry.location || "Branch Details";
