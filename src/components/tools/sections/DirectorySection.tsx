@@ -492,7 +492,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       return matchesSearch && matchesSite;
     });
 
-    if (sortByNearest && userLocation) {
+    if (sortMode === "nearest" && userLocation) {
       const itemsWithDistance: DirectoryEntryWithDistance[] = result.map((item) => {
         const coords = extractCoordsFromUrl(item.maps_link);
         let distance: number | undefined;
@@ -514,8 +514,9 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       return itemsWithDistance;
     }
 
-    return result;
-  }, [items, searchQuery, activeTab, sortByNearest, userLocation]);
+    // Default alphabetical order (also used when nearest is selected but location is unavailable)
+    return result.sort((a, b) => (a.location || "").localeCompare(b.location || ""));
+  }, [items, searchQuery, activeTab, sortMode, userLocation]);
 
   if (loading) {
     return <ToolsSkeleton type="list" count={4} />;
