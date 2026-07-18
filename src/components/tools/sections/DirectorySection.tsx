@@ -541,7 +541,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   }
 
   return (
-    <div className="space-y-4 w-full max-w-full overflow-x-hidden">
+    <div className="space-y-4 w-full max-w-full [overflow-x:clip]" style={{ transform: "none" }}>
       {/* Admin Add Button */}
       {isAdmin && (
         <Button onClick={handleAdd} className="w-full max-w-full gap-2 overflow-hidden">
