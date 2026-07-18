@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, ReactNode, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, ReactNode, useCallback, lazy, Suspense, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +26,7 @@ import {
   List,
   Map,
   ArrowLeft,
+  ArrowDownAZ,
 } from "lucide-react";
 import { toast } from "sonner";
 import ToolsSkeleton from "../ToolsSkeleton";
@@ -272,9 +273,11 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
   // Geolocation state
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [sortByNearest, setSortByNearest] = useState(false);
+  type SortMode = "nearest" | "alphabetical";
+  const [sortMode, setSortMode] = useState<SortMode>("nearest");
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
+  const autoLocationRequested = useRef(false);
 
   const handleShareBranch = async (entry: DirectoryEntry) => {
     const shareTitle = entry.location || "Branch Details";
@@ -366,14 +369,8 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
     openInNewTab(url);
   };
 
-  // Handle geolocation request
-  const handleSortByNearest = useCallback(() => {
-    if (sortByNearest) {
-      setSortByNearest(false);
-      setUserLocation(null);
-      return;
-    }
-
+  // Request device location for distance-based sorting
+  const requestLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setGeoError("Geolocation is not supported by your browser");
       toast.error("Geolocation is not supported by your browser");
@@ -389,7 +386,6 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         });
-        setSortByNearest(true);
         setGeoLoading(false);
         toast.success("Sorting by nearest location");
       },
@@ -412,7 +408,28 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         maximumAge: 60000, // Cache for 1 minute
       },
     );
-  }, [sortByNearest]);
+  }, []);
+
+  // Handle sort mode changes
+  const handleSortModeChange = useCallback(
+    (mode: SortMode) => {
+      setSortMode(mode);
+      if (mode === "nearest") {
+        if (!userLocation) {
+          requestLocation();
+        }
+      }
+    },
+    [userLocation, requestLocation],
+  );
+
+  // Auto-request location once on mount when nearest is the default
+  useEffect(() => {
+    if (sortMode === "nearest" && !userLocation && !geoLoading && !autoLocationRequested.current && navigator.geolocation) {
+      autoLocationRequested.current = true;
+      requestLocation();
+    }
+  }, [sortMode, userLocation, geoLoading, requestLocation]);
 
   useEffect(() => {
     if (activeCompanyId) fetchItems();
@@ -475,7 +492,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       return matchesSearch && matchesSite;
     });
 
-    if (sortByNearest && userLocation) {
+    if (sortMode === "nearest" && userLocation) {
       const itemsWithDistance: DirectoryEntryWithDistance[] = result.map((item) => {
         const coords = extractCoordsFromUrl(item.maps_link);
         let distance: number | undefined;
@@ -497,8 +514,9 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       return itemsWithDistance;
     }
 
-    return result;
-  }, [items, searchQuery, activeTab, sortByNearest, userLocation]);
+    // Default alphabetical order (also used when nearest is selected but location is unavailable)
+    return result.sort((a, b) => (a.location || "").localeCompare(b.location || ""));
+  }, [items, searchQuery, activeTab, sortMode, userLocation]);
 
   if (loading) {
     return <ToolsSkeleton type="list" count={4} />;
@@ -615,31 +633,39 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
           </Button>
         </div>
 
-        {/* Sort by Nearest Button */}
-        <Button
-          variant={sortByNearest ? "default" : "outline"}
-          size="sm"
-          className={cn("flex-1 gap-2 h-11", sortByNearest && "bg-primary text-primary-foreground")}
-          onClick={handleSortByNearest}
-          disabled={geoLoading}
-        >
-          {geoLoading ? (
-            <>
+        {/* Sort Mode Toggle: Nearest | Alphabetical */}
+        <div className="flex rounded-lg border border-border overflow-hidden flex-1">
+          <Button
+            variant={sortMode === "nearest" ? "default" : "ghost"}
+            size="sm"
+            className={cn(
+              "flex-1 gap-2 h-11 rounded-none",
+              sortMode === "nearest" && "bg-primary text-primary-foreground",
+            )}
+            onClick={() => handleSortModeChange("nearest")}
+            disabled={geoLoading}
+          >
+            {geoLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="hidden sm:inline">Getting location...</span>
-            </>
-          ) : sortByNearest ? (
-            <>
+            ) : (
               <Locate className="w-4 h-4" />
-              <span className="truncate">Nearest • Reset</span>
-            </>
-          ) : (
-            <>
-              <Locate className="w-4 h-4" />
-              <span className="truncate">Sort by nearest</span>
-            </>
-          )}
-        </Button>
+            )}
+            <span className="truncate">Nearest</span>
+          </Button>
+          <Button
+            variant={sortMode === "alphabetical" ? "default" : "ghost"}
+            size="sm"
+            className={cn(
+              "flex-1 gap-2 h-11 rounded-none border-l border-border",
+              sortMode === "alphabetical" && "bg-primary text-primary-foreground",
+            )}
+            onClick={() => handleSortModeChange("alphabetical")}
+            disabled={geoLoading}
+          >
+            <ArrowDownAZ className="w-4 h-4" />
+            <span className="truncate">A-Z</span>
+          </Button>
+        </div>
       </div>
 
       {/* Map View */}
@@ -668,7 +694,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         <div className="grid gap-4 w-full">
           {filteredItems.map((item) => {
             const itemWithDistance = item as DirectoryEntryWithDistance;
-            const hasDistance = sortByNearest && itemWithDistance.distance !== undefined;
+            const hasDistance = sortMode === "nearest" && itemWithDistance.distance !== undefined;
 
             return (
               <div
