@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,9 @@ export default function ToolsDrawer({
 }: ToolsDrawerProps) {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobileLive = useIsMobile();
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   // Lock the layout (Drawer vs Sheet) when open to prevent orientation changes
   // from unmounting the active container and losing state (e.g. video playback).
   const [lockedMobile, setLockedMobile] = useState<boolean | null>(null);
@@ -87,6 +89,48 @@ export default function ToolsDrawer({
       onSectionChange(null);
     }
   }, [open]);
+
+  // Reset horizontal scroll/transform whenever the user returns to this
+  // drawer — e.g. tapping back from an external Maps tab, closing a detail
+  // dialog, or navigating via the router. Fixes the mobile "cropped left
+  // side" bug caused by stale scrollLeft / transform values on the
+  // scroll container and drawer content.
+  useEffect(() => {
+    if (!open) return;
+
+    const resetScroll = () => {
+      const el = scrollContainerRef.current;
+      if (el) {
+        el.scrollLeft = 0;
+        (el.style as any).transform = "none";
+      }
+      // Also reset any parent scrollable ancestors that might drift.
+      document.querySelectorAll<HTMLElement>("[data-tools-drawer-root]").forEach((node) => {
+        node.scrollLeft = 0;
+        node.style.transform = "none";
+      });
+    };
+
+    resetScroll();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") resetScroll();
+    };
+    const onPageShow = () => resetScroll();
+    const onFocus = () => resetScroll();
+    const onPopState = () => resetScroll();
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onPageShow);
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [open, activeSection, location.pathname, location.key]);
 
   const handleBack = () => {
     // Close the drawer entirely so the user returns to the Card View
@@ -166,7 +210,14 @@ export default function ToolsDrawer({
     }
 
     return (
-      <div className="flex flex-col h-full w-full max-w-full overflow-x-hidden">
+      <div
+        data-tools-drawer-root
+        className="flex flex-col h-full w-full max-w-full overflow-x-hidden"
+        style={{
+          paddingLeft: "env(safe-area-inset-left, 0px)",
+          paddingRight: "env(safe-area-inset-right, 0px)",
+        }}
+      >
         <div className="sticky top-0 z-10 bg-background border-b p-4 space-y-3 w-full max-w-full overflow-x-hidden">
           <div className="flex items-center gap-3">
             <Button
@@ -205,11 +256,13 @@ export default function ToolsDrawer({
 
         <div
           ref={(el) => {
+            scrollContainerRef.current = el;
             // Defensive: some mobile browsers preserve a stray scrollLeft
             // after the user opens Maps / a nested Dialog and taps back.
             // Force horizontal reset on mount and whenever the section changes.
             if (el && el.scrollLeft !== 0) el.scrollLeft = 0;
           }}
+          data-testid="tools-drawer-scroll"
           className="flex-1 overflow-y-auto [overflow-x:clip] [scrollbar-gutter:stable]"
           style={{ transform: "none" }}
         >
