@@ -62,7 +62,9 @@ export default function ToolsDrawer({
 }: ToolsDrawerProps) {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const isMobileLive = useIsMobile();
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   // Lock the layout (Drawer vs Sheet) when open to prevent orientation changes
   // from unmounting the active container and losing state (e.g. video playback).
   const [lockedMobile, setLockedMobile] = useState<boolean | null>(null);
