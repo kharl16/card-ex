@@ -210,7 +210,14 @@ export default function ToolsDrawer({
     }
 
     return (
-      <div className="flex flex-col h-full w-full max-w-full overflow-x-hidden">
+      <div
+        data-tools-drawer-root
+        className="flex flex-col h-full w-full max-w-full overflow-x-hidden"
+        style={{
+          paddingLeft: "env(safe-area-inset-left, 0px)",
+          paddingRight: "env(safe-area-inset-right, 0px)",
+        }}
+      >
         <div className="sticky top-0 z-10 bg-background border-b p-4 space-y-3 w-full max-w-full overflow-x-hidden">
           <div className="flex items-center gap-3">
             <Button
@@ -249,11 +256,13 @@ export default function ToolsDrawer({
 
         <div
           ref={(el) => {
+            scrollContainerRef.current = el;
             // Defensive: some mobile browsers preserve a stray scrollLeft
             // after the user opens Maps / a nested Dialog and taps back.
             // Force horizontal reset on mount and whenever the section changes.
             if (el && el.scrollLeft !== 0) el.scrollLeft = 0;
           }}
+          data-testid="tools-drawer-scroll"
           className="flex-1 overflow-y-auto [overflow-x:clip] [scrollbar-gutter:stable]"
           style={{ transform: "none" }}
         >
