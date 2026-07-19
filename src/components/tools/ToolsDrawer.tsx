@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
@@ -65,12 +65,82 @@ export default function ToolsDrawer({
   const location = useLocation();
   const isMobileLive = useIsMobile();
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const mobileDrawerContentRef = useRef<HTMLDivElement | null>(null);
   // Lock the layout (Drawer vs Sheet) when open to prevent orientation changes
   // from unmounting the active container and losing state (e.g. video playback).
   const [lockedMobile, setLockedMobile] = useState<boolean | null>(null);
   const isMobile = lockedMobile ?? isMobileLive;
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+
+  const resetDrawerViewport = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    const vv = window.visualViewport;
+    const viewportLeft = vv?.offsetLeft ?? 0;
+    const viewportWidth = vv?.width ?? window.innerWidth;
+
+    const normalizeTransformX = (node: HTMLElement) => {
+      node.style.setProperty("translate", "0 0");
+
+      const transform = node.style.transform || window.getComputedStyle(node).transform;
+      if (!transform || transform === "none") return;
+
+      try {
+        const matrix = new DOMMatrix(transform);
+        if (Math.abs(matrix.m41) > 0.5) {
+          matrix.m41 = 0;
+          node.style.transform = matrix.toString();
+        }
+      } catch {
+        if (/translate(?:3d|X)?\(\s*-/.test(transform)) {
+          node.style.transform = "translate3d(0px, 0px, 0px)";
+        }
+      }
+    };
+
+    const resetNow = () => {
+      document.documentElement.scrollLeft = 0;
+      document.body.scrollLeft = 0;
+
+      const nodes = new Set<HTMLElement>();
+      if (scrollContainerRef.current) nodes.add(scrollContainerRef.current);
+      if (mobileDrawerContentRef.current) nodes.add(mobileDrawerContentRef.current);
+      document
+        .querySelectorAll<HTMLElement>(
+          "[data-tools-drawer-content], [data-tools-drawer-root], [data-testid='tools-drawer-scroll']",
+        )
+        .forEach((node) => nodes.add(node));
+
+      nodes.forEach((node) => {
+        node.scrollLeft = 0;
+        node.style.setProperty("box-sizing", "border-box");
+        node.style.setProperty("max-width", "100%");
+        node.style.setProperty("overflow-x", "clip");
+
+        if (node.dataset.toolsDrawerContent === "true") {
+          // Android Chrome can restore the visual viewport slightly offset after
+          // repeatedly opening Google Maps and using the phone back button. Keep
+          // Vaul's drawer pinned to the current visual viewport, not a stale one.
+          node.style.setProperty("left", `${viewportLeft}px`, "important");
+          node.style.setProperty("right", "auto", "important");
+          node.style.setProperty("width", `${viewportWidth}px`, "important");
+          node.style.setProperty("max-width", `${viewportWidth}px`, "important");
+          normalizeTransformX(node);
+        } else {
+          node.style.transform = "none";
+        }
+      });
+    };
+
+    resetNow();
+    requestAnimationFrame(() => {
+      resetNow();
+      requestAnimationFrame(resetNow);
+    });
+    window.setTimeout(resetNow, 80);
+    window.setTimeout(resetNow, 250);
+  }, []);
 
   // Hardware/browser back button closes the drawer instead of leaving the page.
   useBackButtonClose(open, () => onOpenChange(false));
@@ -90,47 +160,43 @@ export default function ToolsDrawer({
     }
   }, [open]);
 
-  // Reset horizontal scroll/transform whenever the user returns to this
-  // drawer — e.g. tapping back from an external Maps tab, closing a detail
-  // dialog, or navigating via the router. Fixes the mobile "cropped left
-  // side" bug caused by stale scrollLeft / transform values on the
-  // scroll container and drawer content.
+  // Reset horizontal scroll/viewport position whenever the user returns to
+  // this drawer — especially Android Chrome returning from Google Maps via
+  // the phone back button repeatedly. This targets the Vaul drawer content,
+  // the inner scroll area, and browser visualViewport drift.
   useEffect(() => {
     if (!open) return;
 
-    const resetScroll = () => {
-      const el = scrollContainerRef.current;
-      if (el) {
-        el.scrollLeft = 0;
-        (el.style as any).transform = "none";
-      }
-      // Also reset any parent scrollable ancestors that might drift.
-      document.querySelectorAll<HTMLElement>("[data-tools-drawer-root]").forEach((node) => {
-        node.scrollLeft = 0;
-        node.style.transform = "none";
-      });
-    };
-
-    resetScroll();
+    resetDrawerViewport();
 
     const onVisibility = () => {
-      if (document.visibilityState === "visible") resetScroll();
+      if (document.visibilityState === "visible") resetDrawerViewport();
     };
-    const onPageShow = () => resetScroll();
-    const onFocus = () => resetScroll();
-    const onPopState = () => resetScroll();
+    const onPageShow = () => resetDrawerViewport();
+    const onFocus = () => resetDrawerViewport();
+    const onPopState = () => resetDrawerViewport();
+    const onResize = () => resetDrawerViewport();
 
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pageshow", onPageShow);
     window.addEventListener("focus", onFocus);
     window.addEventListener("popstate", onPopState);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    const vv = window.visualViewport;
+    vv?.addEventListener("resize", onResize);
+    vv?.addEventListener("scroll", onResize);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pageshow", onPageShow);
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("popstate", onPopState);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+      vv?.removeEventListener("resize", onResize);
+      vv?.removeEventListener("scroll", onResize);
     };
-  }, [open, activeSection, location.pathname, location.key]);
+  }, [open, activeSection, location.pathname, location.key, resetDrawerViewport]);
 
   const handleBack = () => {
     // Close the drawer entirely so the user returns to the Card View
@@ -282,14 +348,29 @@ export default function ToolsDrawer({
     <>
       {isMobile ? (
         <Drawer open={open} onOpenChange={onOpenChange}>
-          <DrawerContent className="h-[90vh] max-h-[90vh]">
-            <div className="h-full overflow-hidden flex flex-col">
+          <DrawerContent
+            ref={(el) => {
+              mobileDrawerContentRef.current = el;
+              if (el) resetDrawerViewport();
+            }}
+            data-tools-drawer-content="true"
+            className="h-[90dvh] max-h-[90dvh] w-[100dvw] max-w-[100dvw] left-0 right-auto overflow-x-hidden"
+            style={{
+              left: 0,
+              right: "auto",
+              width: "100dvw",
+              maxWidth: "100dvw",
+              paddingLeft: "env(safe-area-inset-left, 0px)",
+              paddingRight: "env(safe-area-inset-right, 0px)",
+            }}
+          >
+            <div data-tools-drawer-root className="h-full w-full max-w-full overflow-hidden flex flex-col" style={{ transform: "none" }}>
               {!activeSection && (
                 <DrawerHeader className="border-b">
                   <DrawerTitle className="sr-only">Tools Hub</DrawerTitle>
                 </DrawerHeader>
               )}
-              <div className="flex-1 overflow-y-auto overflow-x-hidden">
+              <div className="flex-1 overflow-y-auto [overflow-x:clip] w-full max-w-full">
                 {renderContent()}
               </div>
             </div>
