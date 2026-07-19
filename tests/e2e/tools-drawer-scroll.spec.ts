@@ -15,7 +15,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Tools Drawer — mobile scroll reset", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test("drawer scroll container starts and returns to x=0 after Maps/detail navigation", async ({ page }) => {
+  test("drawer scroll container starts and returns to x=0 after repeated Maps/detail navigation", async ({ page }) => {
     // Inline harness mimicking the drawer's scroll container + safe-area padding.
     await page.setContent(`
       <!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
@@ -25,6 +25,7 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
           position:fixed;inset:0;display:flex;flex-direction:column;
           padding-left:env(safe-area-inset-left,0px);
           padding-right:env(safe-area-inset-right,0px);
+          left:0;right:auto;width:100dvw;max-width:100dvw;
           background:#0b0b0c;color:#fff;
         }
         #scroll{
@@ -35,7 +36,7 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
         a{color:gold}
       </style></head>
       <body>
-        <div id="drawer" data-tools-drawer-root>
+        <div id="drawer" data-tools-drawer-content="true" data-tools-drawer-root>
           <div id="scroll" data-testid="tools-drawer-scroll">
             <div id="content">
               <h1>Branches</h1>
@@ -50,10 +51,25 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
         <script>
           // Simulate the production reset listeners (mirrors ToolsDrawer effect)
           function resetScroll(){
+            document.documentElement.scrollLeft = 0;
+            document.body.scrollLeft = 0;
+            const vv = window.visualViewport;
+            const viewportLeft = vv?.offsetLeft ?? 0;
+            const viewportWidth = vv?.width ?? window.innerWidth;
             const el = document.getElementById('scroll');
             if (el){ el.scrollLeft = 0; el.style.transform = 'none'; }
-            document.querySelectorAll('[data-tools-drawer-root]').forEach(n => {
-              n.scrollLeft = 0; n.style.transform = 'none';
+            document.querySelectorAll('[data-tools-drawer-content], [data-tools-drawer-root]').forEach(n => {
+              n.scrollLeft = 0;
+              n.style.overflowX = 'clip';
+              if (n.dataset.toolsDrawerContent === 'true') {
+                n.style.left = viewportLeft + 'px';
+                n.style.right = 'auto';
+                n.style.width = viewportWidth + 'px';
+                n.style.maxWidth = viewportWidth + 'px';
+                n.style.transform = 'matrix(1, 0, 0, 1, 0, 0)';
+              } else {
+                n.style.transform = 'none';
+              }
             });
           }
           document.addEventListener('visibilitychange', () => {
@@ -77,25 +93,40 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
     // Baseline: starts at 0.
     await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
 
-    // Simulate the drift a browser leaves behind after a nested navigation.
-    await scroll.evaluate((el) => { el.scrollLeft = 220; });
-    expect(await scroll.evaluate((el) => el.scrollLeft)).toBe(220);
+    const drawer = page.locator('[data-tools-drawer-content="true"]');
 
-    // Trigger a "return from Maps" — page becomes hidden then visible.
-    await page.evaluate(() => {
-      Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "hidden" });
-      document.dispatchEvent(new Event("visibilitychange"));
-      Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "visible" });
-      document.dispatchEvent(new Event("visibilitychange"));
-      window.dispatchEvent(new Event("pageshow"));
-    });
+    // Simulate the drift Android Chrome can leave behind after repeatedly
+    // opening Google Maps and returning with the phone back button.
+    for (let i = 0; i < 3; i += 1) {
+      await scroll.evaluate((el) => { el.scrollLeft = 220; });
+      await drawer.evaluate((el: HTMLElement) => {
+        el.style.left = '-28px';
+        el.style.width = 'calc(100dvw + 28px)';
+        el.style.transform = 'matrix(1, 0, 0, 1, -28, 0)';
+      });
+      expect(await scroll.evaluate((el) => el.scrollLeft)).toBe(220);
 
-    await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
+      // Trigger a "return from Maps" — page becomes hidden then visible and
+      // focus/pageshow/popstate fire in different orders depending on device.
+      await page.evaluate(() => {
+        Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "hidden" });
+        document.dispatchEvent(new Event("visibilitychange"));
+        Object.defineProperty(document, "visibilityState", { configurable: true, get: () => "visible" });
+        document.dispatchEvent(new Event("visibilitychange"));
+        window.dispatchEvent(new Event("focus"));
+        window.dispatchEvent(new Event("pageshow"));
+        window.dispatchEvent(new PopStateEvent("popstate"));
+      });
+
+      await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
+      await expect.poll(async () => drawer.evaluate((el) => Math.round(el.getBoundingClientRect().left))).toBe(0);
+    }
 
     // Simulate opening + closing a detail dialog (popstate path).
     await scroll.evaluate((el) => { el.scrollLeft = 180; });
     await page.click("#detail");
     await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
+    await expect.poll(async () => drawer.evaluate((el) => Math.round(el.getBoundingClientRect().left))).toBe(0);
 
     // Safe-area padding is honored (env() returns 0 in headless but the
     // style property is still applied — asserts the fix is wired up).
