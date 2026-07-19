@@ -90,6 +90,48 @@ export default function ToolsDrawer({
     }
   }, [open]);
 
+  // Reset horizontal scroll/transform whenever the user returns to this
+  // drawer — e.g. tapping back from an external Maps tab, closing a detail
+  // dialog, or navigating via the router. Fixes the mobile "cropped left
+  // side" bug caused by stale scrollLeft / transform values on the
+  // scroll container and drawer content.
+  useEffect(() => {
+    if (!open) return;
+
+    const resetScroll = () => {
+      const el = scrollContainerRef.current;
+      if (el) {
+        el.scrollLeft = 0;
+        (el.style as any).transform = "none";
+      }
+      // Also reset any parent scrollable ancestors that might drift.
+      document.querySelectorAll<HTMLElement>("[data-tools-drawer-root]").forEach((node) => {
+        node.scrollLeft = 0;
+        node.style.transform = "none";
+      });
+    };
+
+    resetScroll();
+
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") resetScroll();
+    };
+    const onPageShow = () => resetScroll();
+    const onFocus = () => resetScroll();
+    const onPopState = () => resetScroll();
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onPageShow);
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("popstate", onPopState);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("popstate", onPopState);
+    };
+  }, [open, activeSection, location.pathname, location.key]);
+
   const handleBack = () => {
     // Close the drawer entirely so the user returns to the Card View
     // instead of the intermediate Tools Hub tile listing.
