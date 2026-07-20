@@ -210,9 +210,16 @@ interface DirectoryEntryWithDistance extends DirectoryEntry {
 interface DirectorySectionProps {
   searchQuery: string;
   onClearSearch?: () => void;
+  /**
+   * Called right before we open Google Maps in a new tab. Used by the Tools
+   * Orb drawer to close itself first, mirroring the dashboard Locator flow
+   * (which has no drawer wrapper and therefore never suffers the Android
+   * "cropped left side" viewport drift on back-navigation from Maps).
+   */
+  onExternalNavigate?: () => void;
 }
 
-export default function DirectorySection({ searchQuery, onClearSearch }: DirectorySectionProps) {
+export default function DirectorySection({ searchQuery, onClearSearch, onExternalNavigate }: DirectorySectionProps) {
   const { isAdmin } = useAuth();
   const { activeCompanyId } = useActiveCompany();
   const [items, setItems] = useState<DirectoryEntry[]>([]);
@@ -353,6 +360,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       toast.error("No address available for directions");
       return;
     }
+    onExternalNavigate?.();
     openInNewTab(url);
   };
 
@@ -366,6 +374,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       toast.error("No map location available");
       return;
     }
+    onExternalNavigate?.();
     openInNewTab(url);
   };
 
