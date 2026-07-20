@@ -360,6 +360,7 @@ export default function DirectorySection({ searchQuery, onClearSearch, onExterna
       toast.error("No address available for directions");
       return;
     }
+    onExternalNavigate?.();
     openInNewTab(url);
   };
 
@@ -373,6 +374,7 @@ export default function DirectorySection({ searchQuery, onClearSearch, onExterna
       toast.error("No map location available");
       return;
     }
+    onExternalNavigate?.();
     openInNewTab(url);
   };
 
