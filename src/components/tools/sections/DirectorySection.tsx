@@ -210,16 +210,10 @@ interface DirectoryEntryWithDistance extends DirectoryEntry {
 interface DirectorySectionProps {
   searchQuery: string;
   onClearSearch?: () => void;
-  /**
-   * Called right before we open Google Maps in a new tab. Used by the Tools
-   * Orb drawer to close itself first, mirroring the dashboard Locator flow
-   * (which has no drawer wrapper and therefore never suffers the Android
-   * "cropped left side" viewport drift on back-navigation from Maps).
-   */
-  onExternalNavigate?: () => void;
 }
 
-export default function DirectorySection({ searchQuery, onClearSearch, onExternalNavigate }: DirectorySectionProps) {
+export default function DirectorySection({ searchQuery, onClearSearch }: DirectorySectionProps) {
+
   const { isAdmin } = useAuth();
   const { activeCompanyId } = useActiveCompany();
   const [items, setItems] = useState<DirectoryEntry[]>([]);
@@ -350,6 +344,9 @@ export default function DirectorySection({ searchQuery, onClearSearch, onExterna
     }
   };
 
+  // Maps navigation matches the dashboard /locator flow 1:1 — open in a new
+  // tab via openInNewTab so the phone back button returns to the card app's
+  // existing history entry (drawer stays put, no extra history manipulation).
   const handleGetDirections = (entry: DirectoryEntry) => {
     const url = getDirectionsUrl({
       mapsLink: entry.maps_link,
@@ -360,7 +357,6 @@ export default function DirectorySection({ searchQuery, onClearSearch, onExterna
       toast.error("No address available for directions");
       return;
     }
-    onExternalNavigate?.();
     openInNewTab(url);
   };
 
@@ -374,9 +370,9 @@ export default function DirectorySection({ searchQuery, onClearSearch, onExterna
       toast.error("No map location available");
       return;
     }
-    onExternalNavigate?.();
     openInNewTab(url);
   };
+
 
   // Request device location for distance-based sorting
   const requestLocation = useCallback(() => {
