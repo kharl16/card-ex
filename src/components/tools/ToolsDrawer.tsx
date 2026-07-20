@@ -336,7 +336,7 @@ export default function ToolsDrawer({
             {activeSection === "trainings" && <TrainingsSection searchQuery={searchQuery} />}
             {activeSection === "links" && <LinksSection searchQuery={searchQuery} showDiscTest initialTool={initialTool ?? null} deepLinkActive={!!initialTool} />}
             {activeSection === "files" && <FilesSection searchQuery={searchQuery} />}
-            {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} onExternalNavigate={() => onOpenChange(false)} />}
+            {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} />}
             {activeSection === "presentations" && <PresentationsSection searchQuery={searchQuery} />}
           </div>
         </div>
