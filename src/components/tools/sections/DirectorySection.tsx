@@ -287,7 +287,11 @@ export default function DirectorySection({ searchQuery, onClearSearch, resetToke
     const root = branchRootRef.current;
     if (!root) return;
 
-    const nodes = [root, ...Array.from(root.querySelectorAll<HTMLElement>("[data-branch-reset], *"))];
+    root.querySelectorAll<HTMLElement>("*").forEach((node) => {
+      if (node.scrollLeft !== 0) node.scrollLeft = 0;
+    });
+
+    const nodes = [root, ...Array.from(root.querySelectorAll<HTMLElement>("[data-branch-reset]"))];
     nodes.forEach((node) => {
       node.scrollLeft = 0;
       node.style.setProperty("translate", "0 0");
@@ -759,6 +763,7 @@ export default function DirectorySection({ searchQuery, onClearSearch, resetToke
             return (
               <div
                 key={item.id}
+                data-branch-reset="card"
                 className={cn(
                   "rounded-2xl relative w-full overflow-hidden",
                   "bg-card border border-border/50 shadow-sm",
