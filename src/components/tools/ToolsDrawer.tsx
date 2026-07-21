@@ -72,6 +72,9 @@ export default function ToolsDrawer({
   const isMobile = lockedMobile ?? isMobileLive;
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  const [mapsReturnResetKey, setMapsReturnResetKey] = useState(0);
+  const mapsReturnGuardRef = useRef(false);
+  const lastMapsReturnResetAtRef = useRef(0);
 
   const resetDrawerViewport = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -163,6 +166,29 @@ export default function ToolsDrawer({
     window.setTimeout(resetNow, 250);
   }, []);
 
+  const armMapsReturnGuard = useCallback(() => {
+    mapsReturnGuardRef.current = true;
+    lastMapsReturnResetAtRef.current = 0;
+    setMapsReturnResetKey((key) => key + 1);
+    resetDrawerViewport();
+  }, [resetDrawerViewport]);
+
+  const resetAfterPotentialMapsReturn = useCallback(() => {
+    resetDrawerViewport();
+    if (!mapsReturnGuardRef.current) return;
+
+    const now = Date.now();
+    if (now - lastMapsReturnResetAtRef.current > 120) {
+      lastMapsReturnResetAtRef.current = now;
+      setMapsReturnResetKey((key) => key + 1);
+      window.dispatchEvent(new CustomEvent("cardex:external-map-return", { detail: { source: "tools-drawer" } }));
+    }
+
+    requestAnimationFrame(resetDrawerViewport);
+    window.setTimeout(resetDrawerViewport, 80);
+    window.setTimeout(resetDrawerViewport, 250);
+  }, [resetDrawerViewport]);
+
   // Hardware/browser back button closes the drawer instead of leaving the page.
   useBackButtonClose(open, () => onOpenChange(false));
 
@@ -171,6 +197,8 @@ export default function ToolsDrawer({
       setLockedMobile(isMobileLive);
     } else {
       setLockedMobile(null);
+      mapsReturnGuardRef.current = false;
+      lastMapsReturnResetAtRef.current = 0;
     }
   }, [open]);
 
@@ -191,13 +219,13 @@ export default function ToolsDrawer({
     resetDrawerViewport();
 
     const onVisibility = () => {
-      if (document.visibilityState === "visible") resetDrawerViewport();
+      if (document.visibilityState === "visible") resetAfterPotentialMapsReturn();
     };
-    const onPageShow = () => resetDrawerViewport();
-    const onFocus = () => resetDrawerViewport();
-    const onPopState = () => resetDrawerViewport();
+    const onPageShow = () => resetAfterPotentialMapsReturn();
+    const onFocus = () => resetAfterPotentialMapsReturn();
+    const onPopState = () => resetAfterPotentialMapsReturn();
     const onResize = () => resetDrawerViewport();
-    const onExternalMapOpen = () => resetDrawerViewport();
+    const onExternalMapOpen = () => armMapsReturnGuard();
 
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pageshow", onPageShow);
@@ -220,7 +248,7 @@ export default function ToolsDrawer({
       vv?.removeEventListener("resize", onResize);
       vv?.removeEventListener("scroll", onResize);
     };
-  }, [open, activeSection, location.pathname, location.key, resetDrawerViewport]);
+  }, [open, activeSection, location.pathname, location.key, resetDrawerViewport, resetAfterPotentialMapsReturn, armMapsReturnGuard]);
 
   const handleBack = () => {
     // Close the drawer entirely so the user returns to the Card View
@@ -356,11 +384,14 @@ export default function ToolsDrawer({
           className="flex-1 overflow-y-auto [overflow-x:clip] [scrollbar-gutter:stable]"
           style={{ transform: "none" }}
         >
-          <div className="p-4 w-full max-w-full [overflow-x:clip]">
+          <div
+            key={activeSection === "directory" ? `directory-reset-${mapsReturnResetKey}` : activeSection || "tools-section"}
+            className="p-4 w-full max-w-full [overflow-x:clip]"
+          >
             {activeSection === "trainings" && <TrainingsSection searchQuery={searchQuery} />}
             {activeSection === "links" && <LinksSection searchQuery={searchQuery} showDiscTest initialTool={initialTool ?? null} deepLinkActive={!!initialTool} />}
             {activeSection === "files" && <FilesSection searchQuery={searchQuery} />}
-            {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} />}
+            {activeSection === "directory" && <DirectorySection searchQuery={searchQuery} onClearSearch={() => setSearchQuery("")} resetToken={mapsReturnResetKey} />}
             {activeSection === "presentations" && <PresentationsSection searchQuery={searchQuery} />}
           </div>
         </div>
