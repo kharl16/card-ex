@@ -89,13 +89,15 @@ export default function SharedCard() {
   const loadSharedCard = async () => {
     if (!code) return;
 
-    // Get share link
-    const { data: shareLink, error: shareLinkError } = await supabase
-      .from("share_links" as any)
-      .select("card_id, is_active")
-      .eq("code", code)
-      .single() as { data: ShareLinkData | null; error: any };
+    // Resolve share link via SECURITY DEFINER RPC that only returns a row
+    // when the caller supplies the exact code (prevents enumeration).
+    const { data: shareLinkRows, error: shareLinkError } = await supabase
+      .rpc("get_share_link_by_code" as any, { p_code: code }) as {
+        data: ShareLinkData[] | null;
+        error: any;
+      };
 
+    const shareLink = shareLinkRows?.[0];
     if (shareLinkError || !shareLink || !shareLink.is_active) {
       setLoading(false);
       return;
