@@ -76,9 +76,13 @@ export default function ToolsDrawer({
   const resetDrawerViewport = useCallback(() => {
     if (typeof window === "undefined") return;
 
-    const vv = window.visualViewport;
-    const viewportLeft = vv?.offsetLeft ?? 0;
-    const viewportWidth = vv?.width ?? window.innerWidth;
+    // Match the dashboard /locator behavior: pin horizontally to the layout
+    // viewport, not the visual viewport. Android Chrome can return a stale or
+    // negative visualViewport.offsetLeft after leaving Google Maps and pressing
+    // the phone back button 2–3 times; applying that offset is what crops the
+    // Branch drawer's left edge.
+    const viewportLeft = 0;
+    const viewportWidth = window.innerWidth;
 
     const normalizeTransformX = (node: HTMLElement) => {
       node.style.setProperty("translate", "0 0");
@@ -119,9 +123,9 @@ export default function ToolsDrawer({
         node.style.setProperty("overflow-x", "clip");
 
         if (node.dataset.toolsDrawerContent === "true") {
-          // Android Chrome can restore the visual viewport slightly offset after
-          // repeatedly opening Google Maps and using the phone back button. Keep
-          // Vaul's drawer pinned to the current visual viewport, not a stale one.
+          // Android Chrome can restore visualViewport slightly offset after
+          // repeatedly opening Google Maps and using the phone back button.
+          // Ignore that horizontal offset and keep the drawer pinned at x=0.
           node.style.setProperty("left", `${viewportLeft}px`, "important");
           node.style.setProperty("right", "auto", "important");
           node.style.setProperty("width", `${viewportWidth}px`, "important");
@@ -347,7 +351,7 @@ export default function ToolsDrawer({
   return (
     <>
       {isMobile ? (
-        <Drawer open={open} onOpenChange={onOpenChange}>
+        <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
           <DrawerContent
             ref={(el) => {
               mobileDrawerContentRef.current = el;

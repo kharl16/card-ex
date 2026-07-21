@@ -53,9 +53,11 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
           function resetScroll(){
             document.documentElement.scrollLeft = 0;
             document.body.scrollLeft = 0;
-            const vv = window.visualViewport;
-            const viewportLeft = vv?.offsetLeft ?? 0;
-            const viewportWidth = vv?.width ?? window.innerWidth;
+            // Production behavior: ignore horizontal visualViewport offsets.
+            // Android Chrome can report a stale/negative offset after returning
+            // from Google Maps; applying it crops the left side of Branches.
+            const viewportLeft = 0;
+            const viewportWidth = window.innerWidth;
             const el = document.getElementById('scroll');
             if (el){ el.scrollLeft = 0; el.style.transform = 'none'; }
             document.querySelectorAll('[data-tools-drawer-content], [data-tools-drawer-root]').forEach(n => {
