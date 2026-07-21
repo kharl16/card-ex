@@ -76,9 +76,13 @@ export default function ToolsDrawer({
   const resetDrawerViewport = useCallback(() => {
     if (typeof window === "undefined") return;
 
-    const vv = window.visualViewport;
-    const viewportLeft = vv?.offsetLeft ?? 0;
-    const viewportWidth = vv?.width ?? window.innerWidth;
+    // Match the dashboard /locator behavior: pin horizontally to the layout
+    // viewport, not the visual viewport. Android Chrome can return a stale or
+    // negative visualViewport.offsetLeft after leaving Google Maps and pressing
+    // the phone back button 2–3 times; applying that offset is what crops the
+    // Branch drawer's left edge.
+    const viewportLeft = 0;
+    const viewportWidth = window.innerWidth;
 
     const normalizeTransformX = (node: HTMLElement) => {
       node.style.setProperty("translate", "0 0");
@@ -108,27 +112,44 @@ export default function ToolsDrawer({
       if (mobileDrawerContentRef.current) nodes.add(mobileDrawerContentRef.current);
       document
         .querySelectorAll<HTMLElement>(
-          "[data-tools-drawer-content], [data-tools-drawer-root], [data-testid='tools-drawer-scroll']",
+          [
+            "[data-tools-drawer-content]",
+            "[data-tools-drawer-root]",
+            "[data-tools-drawer-scroll]",
+            "[data-testid='tools-drawer-scroll']",
+            "[data-vaul-drawer-wrapper]",
+          ].join(", "),
         )
         .forEach((node) => nodes.add(node));
+
+      // Also clear scrollLeft on every nested element inside the drawer. The
+      // cropped Branch screen was caused by a nested mobile scroll layer keeping
+      // a horizontal scroll offset after returning from Google Maps, while the
+      // top-level drawer itself was already back at x=0.
+      mobileDrawerContentRef.current
+        ?.querySelectorAll<HTMLElement>("*")
+        .forEach((node) => {
+          if (node.scrollLeft !== 0) node.scrollLeft = 0;
+        });
 
       nodes.forEach((node) => {
         node.scrollLeft = 0;
         node.style.setProperty("box-sizing", "border-box");
         node.style.setProperty("max-width", "100%");
         node.style.setProperty("overflow-x", "clip");
+        node.style.setProperty("touch-action", "pan-y");
 
         if (node.dataset.toolsDrawerContent === "true") {
-          // Android Chrome can restore the visual viewport slightly offset after
-          // repeatedly opening Google Maps and using the phone back button. Keep
-          // Vaul's drawer pinned to the current visual viewport, not a stale one.
+          // Android Chrome can restore visualViewport slightly offset after
+          // repeatedly opening Google Maps and using the phone back button.
+          // Ignore that horizontal offset and keep the drawer pinned at x=0.
           node.style.setProperty("left", `${viewportLeft}px`, "important");
           node.style.setProperty("right", "auto", "important");
           node.style.setProperty("width", `${viewportWidth}px`, "important");
           node.style.setProperty("max-width", `${viewportWidth}px`, "important");
           normalizeTransformX(node);
         } else {
-          node.style.transform = "none";
+          normalizeTransformX(node);
         }
       });
     };
@@ -176,6 +197,7 @@ export default function ToolsDrawer({
     const onFocus = () => resetDrawerViewport();
     const onPopState = () => resetDrawerViewport();
     const onResize = () => resetDrawerViewport();
+    const onExternalMapOpen = () => resetDrawerViewport();
 
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pageshow", onPageShow);
@@ -183,6 +205,7 @@ export default function ToolsDrawer({
     window.addEventListener("popstate", onPopState);
     window.addEventListener("resize", onResize);
     window.addEventListener("orientationchange", onResize);
+    window.addEventListener("cardex:external-map-open", onExternalMapOpen);
     const vv = window.visualViewport;
     vv?.addEventListener("resize", onResize);
     vv?.addEventListener("scroll", onResize);
@@ -193,6 +216,7 @@ export default function ToolsDrawer({
       window.removeEventListener("popstate", onPopState);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
+      window.removeEventListener("cardex:external-map-open", onExternalMapOpen);
       vv?.removeEventListener("resize", onResize);
       vv?.removeEventListener("scroll", onResize);
     };
@@ -347,14 +371,14 @@ export default function ToolsDrawer({
   return (
     <>
       {isMobile ? (
-        <Drawer open={open} onOpenChange={onOpenChange}>
+        <Drawer open={open} onOpenChange={onOpenChange} shouldScaleBackground={false}>
           <DrawerContent
             ref={(el) => {
               mobileDrawerContentRef.current = el;
               if (el) resetDrawerViewport();
             }}
             data-tools-drawer-content="true"
-            className="h-[90dvh] max-h-[90dvh] w-[100dvw] max-w-[100dvw] left-0 right-auto overflow-x-hidden"
+            className="h-[90dvh] max-h-[90dvh] w-[100dvw] max-w-[100dvw] left-0 right-auto overflow-x-hidden overscroll-x-none touch-pan-y transform-none"
             style={{
               left: 0,
               right: "auto",
@@ -364,13 +388,13 @@ export default function ToolsDrawer({
               paddingRight: "env(safe-area-inset-right, 0px)",
             }}
           >
-            <div data-tools-drawer-root className="h-full w-full max-w-full overflow-hidden flex flex-col" style={{ transform: "none" }}>
+            <div data-tools-drawer-root className="h-full w-full max-w-full overflow-hidden overscroll-x-none touch-pan-y flex flex-col" style={{ transform: "none" }}>
               {!activeSection && (
                 <DrawerHeader className="border-b">
                   <DrawerTitle className="sr-only">Tools Hub</DrawerTitle>
                 </DrawerHeader>
               )}
-              <div className="flex-1 overflow-y-auto [overflow-x:clip] w-full max-w-full">
+              <div data-tools-drawer-scroll="outer" className="flex-1 overflow-y-auto [overflow-x:clip] overscroll-x-none touch-pan-y w-full max-w-full">
                 {renderContent()}
               </div>
             </div>

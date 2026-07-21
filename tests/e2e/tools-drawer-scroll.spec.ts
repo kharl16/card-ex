@@ -28,8 +28,10 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
           left:0;right:auto;width:100dvw;max-width:100dvw;
           background:#0b0b0c;color:#fff;
         }
+        #outerScroll,
         #scroll{
           flex:1;overflow-y:auto;overflow-x:clip;transform:none;
+          touch-action:pan-y;overscroll-behavior-x:none;
         }
         #content{width:100%;max-width:100%;padding:16px}
         .row{white-space:nowrap;overflow-x:auto;padding:8px 0}
@@ -37,14 +39,16 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
       </style></head>
       <body>
         <div id="drawer" data-tools-drawer-content="true" data-tools-drawer-root>
-          <div id="scroll" data-testid="tools-drawer-scroll">
-            <div id="content">
-              <h1>Branches</h1>
-              <div class="row" id="wideRow">
-                ${Array.from({ length: 40 }).map((_, i) => `<span style="display:inline-block;width:120px">Item ${i}</span>`).join("")}
+          <div id="outerScroll" data-tools-drawer-scroll="outer">
+            <div id="scroll" data-testid="tools-drawer-scroll" data-tools-drawer-scroll="inner">
+              <div id="content">
+                <h1>Branches</h1>
+                <div class="row" id="wideRow">
+                  ${Array.from({ length: 40 }).map((_, i) => `<span style="display:inline-block;width:120px">Item ${i}</span>`).join("")}
+                </div>
+                <a id="mapsLink" href="about:blank" target="_blank" rel="noopener">Maps</a>
+                <button id="detail">Open Detail</button>
               </div>
-              <a id="mapsLink" href="about:blank" target="_blank" rel="noopener">Maps</a>
-              <button id="detail">Open Detail</button>
             </div>
           </div>
         </div>
@@ -53,14 +57,18 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
           function resetScroll(){
             document.documentElement.scrollLeft = 0;
             document.body.scrollLeft = 0;
-            const vv = window.visualViewport;
-            const viewportLeft = vv?.offsetLeft ?? 0;
-            const viewportWidth = vv?.width ?? window.innerWidth;
-            const el = document.getElementById('scroll');
-            if (el){ el.scrollLeft = 0; el.style.transform = 'none'; }
-            document.querySelectorAll('[data-tools-drawer-content], [data-tools-drawer-root]').forEach(n => {
+            // Production behavior: ignore horizontal visualViewport offsets.
+            // Android Chrome can report a stale/negative offset after returning
+            // from Google Maps; applying it crops the left side of Branches.
+            const viewportLeft = 0;
+            const viewportWidth = window.innerWidth;
+            document.querySelectorAll('[data-tools-drawer-content] *').forEach(n => {
+              n.scrollLeft = 0;
+            });
+            document.querySelectorAll('[data-tools-drawer-content], [data-tools-drawer-root], [data-tools-drawer-scroll]').forEach(n => {
               n.scrollLeft = 0;
               n.style.overflowX = 'clip';
+              n.style.touchAction = 'pan-y';
               if (n.dataset.toolsDrawerContent === 'true') {
                 n.style.left = viewportLeft + 'px';
                 n.style.right = 'auto';
@@ -78,6 +86,7 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
           window.addEventListener('pageshow', resetScroll);
           window.addEventListener('focus', resetScroll);
           window.addEventListener('popstate', resetScroll);
+          window.addEventListener('cardex:external-map-open', resetScroll);
 
           // Detail dialog stand-in: uses history so popstate fires on close.
           document.getElementById('detail').addEventListener('click', () => {
@@ -89,6 +98,7 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
     `);
 
     const scroll = page.locator('[data-testid="tools-drawer-scroll"]');
+    const outerScroll = page.locator('[data-tools-drawer-scroll="outer"]');
 
     // Baseline: starts at 0.
     await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
@@ -99,6 +109,7 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
     // opening Google Maps and returning with the phone back button.
     for (let i = 0; i < 3; i += 1) {
       await scroll.evaluate((el) => { el.scrollLeft = 220; });
+      await outerScroll.evaluate((el) => { el.scrollLeft = 180; });
       await drawer.evaluate((el: HTMLElement) => {
         el.style.left = '-28px';
         el.style.width = 'calc(100dvw + 28px)';
@@ -119,13 +130,16 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
       });
 
       await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
+      await expect.poll(async () => outerScroll.evaluate((el) => el.scrollLeft)).toBe(0);
       await expect.poll(async () => drawer.evaluate((el) => Math.round(el.getBoundingClientRect().left))).toBe(0);
     }
 
     // Simulate opening + closing a detail dialog (popstate path).
     await scroll.evaluate((el) => { el.scrollLeft = 180; });
+    await outerScroll.evaluate((el) => { el.scrollLeft = 160; });
     await page.click("#detail");
     await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
+    await expect.poll(async () => outerScroll.evaluate((el) => el.scrollLeft)).toBe(0);
     await expect.poll(async () => drawer.evaluate((el) => Math.round(el.getBoundingClientRect().left))).toBe(0);
 
     // Safe-area padding is honored (env() returns 0 in headless but the

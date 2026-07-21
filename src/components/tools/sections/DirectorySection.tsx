@@ -357,6 +357,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       toast.error("No address available for directions");
       return;
     }
+    window.dispatchEvent(new Event("cardex:external-map-open"));
     openInNewTab(url);
   };
 
@@ -370,6 +371,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       toast.error("No map location available");
       return;
     }
+    window.dispatchEvent(new Event("cardex:external-map-open"));
     openInNewTab(url);
   };
 
