@@ -42,12 +42,12 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
           <div id="outerScroll" data-tools-drawer-scroll="outer">
             <div id="scroll" data-testid="tools-drawer-scroll" data-tools-drawer-scroll="inner">
               <div id="content">
-              <h1>Branches</h1>
-              <div class="row" id="wideRow">
-                ${Array.from({ length: 40 }).map((_, i) => `<span style="display:inline-block;width:120px">Item ${i}</span>`).join("")}
-              </div>
-              <a id="mapsLink" href="about:blank" target="_blank" rel="noopener">Maps</a>
-              <button id="detail">Open Detail</button>
+                <h1>Branches</h1>
+                <div class="row" id="wideRow">
+                  ${Array.from({ length: 40 }).map((_, i) => `<span style="display:inline-block;width:120px">Item ${i}</span>`).join("")}
+                </div>
+                <a id="mapsLink" href="about:blank" target="_blank" rel="noopener">Maps</a>
+                <button id="detail">Open Detail</button>
               </div>
             </div>
           </div>
@@ -98,7 +98,7 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
     `);
 
     const scroll = page.locator('[data-testid="tools-drawer-scroll"]');
-      const outerScroll = page.locator('[data-tools-drawer-scroll="outer"]');
+    const outerScroll = page.locator('[data-tools-drawer-scroll="outer"]');
 
     // Baseline: starts at 0.
     await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
@@ -109,7 +109,7 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
     // opening Google Maps and returning with the phone back button.
     for (let i = 0; i < 3; i += 1) {
       await scroll.evaluate((el) => { el.scrollLeft = 220; });
-        await outerScroll.evaluate((el) => { el.scrollLeft = 180; });
+      await outerScroll.evaluate((el) => { el.scrollLeft = 180; });
       await drawer.evaluate((el: HTMLElement) => {
         el.style.left = '-28px';
         el.style.width = 'calc(100dvw + 28px)';
@@ -130,15 +130,16 @@ test.describe("Tools Drawer — mobile scroll reset", () => {
       });
 
       await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
+      await expect.poll(async () => outerScroll.evaluate((el) => el.scrollLeft)).toBe(0);
       await expect.poll(async () => drawer.evaluate((el) => Math.round(el.getBoundingClientRect().left))).toBe(0);
     }
 
     // Simulate opening + closing a detail dialog (popstate path).
     await scroll.evaluate((el) => { el.scrollLeft = 180; });
-      await outerScroll.evaluate((el) => { el.scrollLeft = 160; });
+    await outerScroll.evaluate((el) => { el.scrollLeft = 160; });
     await page.click("#detail");
     await expect.poll(async () => scroll.evaluate((el) => el.scrollLeft)).toBe(0);
-      await expect.poll(async () => outerScroll.evaluate((el) => el.scrollLeft)).toBe(0);
+    await expect.poll(async () => outerScroll.evaluate((el) => el.scrollLeft)).toBe(0);
     await expect.poll(async () => drawer.evaluate((el) => Math.round(el.getBoundingClientRect().left))).toBe(0);
 
     // Safe-area padding is honored (env() returns 0 in headless but the
