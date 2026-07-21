@@ -3294,6 +3294,13 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["resource_role"]
       }
+      get_share_link_by_code: {
+        Args: { p_code: string }
+        Returns: {
+          card_id: string
+          is_active: boolean
+        }[]
+      }
       get_user_referral_stats: {
         Args: { p_user_id: string }
         Returns: {
