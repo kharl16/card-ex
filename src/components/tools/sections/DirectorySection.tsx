@@ -210,14 +210,17 @@ interface DirectoryEntryWithDistance extends DirectoryEntry {
 interface DirectorySectionProps {
   searchQuery: string;
   onClearSearch?: () => void;
+  resetToken?: number;
 }
 
-export default function DirectorySection({ searchQuery, onClearSearch }: DirectorySectionProps) {
+export default function DirectorySection({ searchQuery, onClearSearch, resetToken = 0 }: DirectorySectionProps) {
 
   const { isAdmin } = useAuth();
   const { activeCompanyId } = useActiveCompany();
   const [items, setItems] = useState<DirectoryEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const branchRootRef = useRef<HTMLDivElement | null>(null);
+  const [branchLayoutResetKey, setBranchLayoutResetKey] = useState(0);
 
   type TabId = "all" | "branches" | "luzon" | "visayas" | "mindanao" | "international";
 
@@ -279,6 +282,34 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState<string | null>(null);
   const autoLocationRequested = useRef(false);
+
+  const resetBranchContainers = useCallback(() => {
+    const root = branchRootRef.current;
+    if (!root) return;
+
+    root.querySelectorAll<HTMLElement>("*").forEach((node) => {
+      if (node.scrollLeft !== 0) node.scrollLeft = 0;
+    });
+
+    const nodes = [root, ...Array.from(root.querySelectorAll<HTMLElement>("[data-branch-reset]"))];
+    nodes.forEach((node) => {
+      node.scrollLeft = 0;
+      node.style.setProperty("translate", "0 0");
+      node.style.setProperty("transform", "none");
+      node.style.setProperty("max-width", "100%");
+      node.style.setProperty("box-sizing", "border-box");
+      node.style.setProperty("overflow-x", "clip");
+      node.style.setProperty("touch-action", "pan-y");
+    });
+  }, []);
+
+  const forceBranchRerenderAndReset = useCallback(() => {
+    setBranchLayoutResetKey((key) => key + 1);
+    resetBranchContainers();
+    requestAnimationFrame(resetBranchContainers);
+    window.setTimeout(resetBranchContainers, 80);
+    window.setTimeout(resetBranchContainers, 250);
+  }, [resetBranchContainers]);
 
   const handleShareBranch = async (entry: DirectoryEntry) => {
     const shareTitle = entry.location || "Branch Details";
@@ -358,6 +389,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       return;
     }
     window.dispatchEvent(new Event("cardex:external-map-open"));
+    forceBranchRerenderAndReset();
     openInNewTab(url);
   };
 
@@ -372,8 +404,27 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       return;
     }
     window.dispatchEvent(new Event("cardex:external-map-open"));
+    forceBranchRerenderAndReset();
     openInNewTab(url);
   };
+
+  useEffect(() => {
+    if (resetToken > 0) forceBranchRerenderAndReset();
+  }, [resetToken, forceBranchRerenderAndReset]);
+
+  useEffect(() => {
+    const onMapsReturn = () => forceBranchRerenderAndReset();
+    window.addEventListener("cardex:external-map-return", onMapsReturn);
+    window.addEventListener("pageshow", onMapsReturn);
+    window.addEventListener("focus", onMapsReturn);
+    window.addEventListener("popstate", onMapsReturn);
+    return () => {
+      window.removeEventListener("cardex:external-map-return", onMapsReturn);
+      window.removeEventListener("pageshow", onMapsReturn);
+      window.removeEventListener("focus", onMapsReturn);
+      window.removeEventListener("popstate", onMapsReturn);
+    };
+  }, [forceBranchRerenderAndReset]);
 
 
   // Request device location for distance-based sorting
@@ -548,7 +599,13 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
   }
 
   return (
-    <div className="space-y-4 w-full max-w-full [overflow-x:clip]" style={{ transform: "none" }}>
+    <div
+      key={`branch-layout-${branchLayoutResetKey}`}
+      ref={branchRootRef}
+      data-branch-reset="root"
+      className="space-y-4 w-full max-w-full [overflow-x:clip] overscroll-x-none touch-pan-y"
+      style={{ transform: "none", translate: "0 0" }}
+    >
       {/* Admin Add Button */}
       {isAdmin && (
         <Button onClick={handleAdd} className="w-full max-w-full gap-2 overflow-hidden">
@@ -571,8 +628,8 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       )}
 
       {/* ✅ FIXED: Category tabs rendered as a real 2-column grid (always visible, no kick-out) */}
-      <div className="w-full max-w-full">
-        <div className="grid grid-cols-2 gap-2 w-full max-w-full">
+      <div data-branch-reset="tabs-wrap" className="w-full max-w-full [overflow-x:clip]">
+        <div data-branch-reset="tabs-grid" className="grid grid-cols-2 gap-2 w-full max-w-full [overflow-x:clip]">
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -614,9 +671,9 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
       </div>
 
       {/* View Mode Toggle + Sort by Nearest */}
-      <div className="flex gap-2">
+      <div data-branch-reset="controls" className="flex gap-2 w-full max-w-full [overflow-x:clip]">
         {/* List/Map Toggle */}
-        <div className="flex rounded-lg border border-border overflow-hidden">
+        <div className="flex rounded-lg border border-border overflow-hidden min-w-0">
           <Button
             variant={viewMode === "list" ? "default" : "ghost"}
             size="sm"
@@ -641,7 +698,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
         </div>
 
         {/* Sort Mode Toggle: Nearest | Alphabetical */}
-        <div className="flex rounded-lg border border-border overflow-hidden flex-1">
+        <div className="flex rounded-lg border border-border overflow-hidden flex-1 min-w-0">
           <Button
             variant={sortMode === "nearest" ? "default" : "ghost"}
             size="sm"
@@ -698,7 +755,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
 
       {/* Directory Cards (List View) */}
       {viewMode === "list" && (
-        <div className="grid gap-4 w-full">
+        <div data-branch-reset="cards-grid" className="grid gap-4 w-full max-w-full [overflow-x:clip]">
           {filteredItems.map((item) => {
             const itemWithDistance = item as DirectoryEntryWithDistance;
             const hasDistance = sortMode === "nearest" && itemWithDistance.distance !== undefined;
@@ -706,6 +763,7 @@ export default function DirectorySection({ searchQuery, onClearSearch }: Directo
             return (
               <div
                 key={item.id}
+                data-branch-reset="card"
                 className={cn(
                   "rounded-2xl relative w-full overflow-hidden",
                   "bg-card border border-border/50 shadow-sm",
