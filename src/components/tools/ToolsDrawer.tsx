@@ -118,7 +118,6 @@ export default function ToolsDrawer({
             "[data-tools-drawer-scroll]",
             "[data-testid='tools-drawer-scroll']",
             "[data-vaul-drawer-wrapper]",
-            "#root",
           ].join(", "),
         )
         .forEach((node) => nodes.add(node));
