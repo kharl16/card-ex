@@ -40,7 +40,10 @@ const ICON_MAP: Record<string, React.ComponentType<any>> = {
   Brain,
 };
 
-const ROUTE_ITEMS = new Set(["prospects"]);
+const ROUTE_ITEMS = new Set(["prospects", "directory"]);
+const ROUTE_OVERRIDES: Record<string, string> = {
+  directory: "/locator",
+};
 
 interface ToolsDrawerProps {
   open: boolean;
@@ -289,7 +292,7 @@ export default function ToolsDrawer({
                   onClick={() => {
                     if (ROUTE_ITEMS.has(item.id)) {
                       onOpenChange(false);
-                      navigate(item.route);
+                      navigate(ROUTE_OVERRIDES[item.id] ?? item.route);
                     } else {
                       onSectionChange(item.id);
                     }
