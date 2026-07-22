@@ -292,7 +292,7 @@ export default function ToolsDrawer({
                   onClick={() => {
                     if (ROUTE_ITEMS.has(item.id)) {
                       onOpenChange(false);
-                      navigate(item.route);
+                      navigate(ROUTE_OVERRIDES[item.id] ?? item.route);
                     } else {
                       onSectionChange(item.id);
                     }
