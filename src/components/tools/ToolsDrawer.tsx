@@ -76,8 +76,55 @@ export default function ToolsDrawer({
   const [searchQuery, setSearchQuery] = useState("");
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [mapsReturnResetKey, setMapsReturnResetKey] = useState(0);
+  const mapsReturnResetKeyRef = useRef(0);
   const mapsReturnGuardRef = useRef(false);
   const lastMapsReturnResetAtRef = useRef(0);
+
+  const logMapsReturnReset = useCallback((reason: string, nextToken: number) => {
+    if (typeof window === "undefined") return;
+
+    const drawer = mobileDrawerContentRef.current ?? document.querySelector<HTMLElement>("[data-tools-drawer-content='true']");
+    const branchRoot = document.querySelector<HTMLElement>("[data-branch-reset]");
+    const drawerRect = drawer?.getBoundingClientRect();
+    const branchRect = branchRoot?.getBoundingClientRect();
+
+    console.info("[Card-Ex Maps Return Reset]", {
+      reason,
+      token: nextToken,
+      activeSection,
+      path: window.location.pathname,
+      visibility: document.visibilityState,
+      viewport: {
+        innerWidth: window.innerWidth,
+        visualWidth: window.visualViewport?.width ?? null,
+        visualOffsetLeft: window.visualViewport?.offsetLeft ?? null,
+      },
+      drawer: drawer
+        ? {
+            left: Math.round(drawerRect?.left ?? 0),
+            width: Math.round(drawerRect?.width ?? 0),
+            scrollLeft: drawer.scrollLeft,
+            transform: window.getComputedStyle(drawer).transform,
+          }
+        : null,
+      branch: branchRoot
+        ? {
+            left: Math.round(branchRect?.left ?? 0),
+            width: Math.round(branchRect?.width ?? 0),
+            scrollLeft: branchRoot.scrollLeft,
+            transform: window.getComputedStyle(branchRoot).transform,
+          }
+        : null,
+    });
+  }, [activeSection]);
+
+  const triggerMapsReturnReset = useCallback((reason: string) => {
+    mapsReturnResetKeyRef.current += 1;
+    const nextToken = mapsReturnResetKeyRef.current;
+    logMapsReturnReset(reason, nextToken);
+    setMapsReturnResetKey(nextToken);
+    return nextToken;
+  }, [logMapsReturnReset]);
 
   const resetDrawerViewport = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -172,9 +219,9 @@ export default function ToolsDrawer({
   const armMapsReturnGuard = useCallback(() => {
     mapsReturnGuardRef.current = true;
     lastMapsReturnResetAtRef.current = 0;
-    setMapsReturnResetKey((key) => key + 1);
+    triggerMapsReturnReset("external-map-open");
     resetDrawerViewport();
-  }, [resetDrawerViewport]);
+  }, [resetDrawerViewport, triggerMapsReturnReset]);
 
   const resetAfterPotentialMapsReturn = useCallback(() => {
     resetDrawerViewport();
@@ -183,8 +230,8 @@ export default function ToolsDrawer({
     const now = Date.now();
     if (now - lastMapsReturnResetAtRef.current > 120) {
       lastMapsReturnResetAtRef.current = now;
-      setMapsReturnResetKey((key) => key + 1);
-      window.dispatchEvent(new CustomEvent("cardex:external-map-return", { detail: { source: "tools-drawer" } }));
+      const resetToken = triggerMapsReturnReset("potential-map-return");
+      window.dispatchEvent(new CustomEvent("cardex:external-map-return", { detail: { source: "tools-drawer", resetToken } }));
     }
 
     requestAnimationFrame(resetDrawerViewport);
