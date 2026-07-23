@@ -1,0 +1,206 @@
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { ExternalLink } from "lucide-react";
+import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import { supabase } from "@/integrations/supabase/client";
+
+interface FloatingTagexButtonProps {
+  referralCode?: string | null;
+  cardId?: string;
+  storageKey?: string;
+}
+
+const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v1";
+const EDGE_PADDING = 12;
+const DRAG_THRESHOLD = 6; // px before considered a drag (suppress click)
+
+const getDefaultPos = (width: number, height: number) => {
+  if (typeof window === "undefined") return { x: 16, y: 100 };
+  const isMobile = window.innerWidth < 640;
+  const right = isMobile ? 16 : 32;
+  // Float above the fixed Save Contact bar on mobile, clear of the bottom edge on desktop
+  const bottom = isMobile ? 110 : 32;
+  return {
+    x: window.innerWidth - width - right,
+    y: window.innerHeight - height - bottom,
+  };
+};
+
+const clampPos = (x: number, y: number, width: number, height: number) => {
+  if (typeof window === "undefined") return { x, y };
+  return {
+    x: Math.max(EDGE_PADDING, Math.min(window.innerWidth - width - EDGE_PADDING, x)),
+    y: Math.max(EDGE_PADDING, Math.min(window.innerHeight - height - EDGE_PADDING, y)),
+  };
+};
+
+export default function FloatingTagexButton({
+  referralCode,
+  cardId,
+  storageKey = STORAGE_KEY_DEFAULT,
+}: FloatingTagexButtonProps) {
+  const buttonRef = useRef<HTMLAnchorElement>(null);
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [size, setSize] = useState({ width: 180, height: 48 });
+  const dragStateRef = useRef<{ startX: number; startY: number; origX: number; origY: number; moved: boolean } | null>(null);
+
+  // Measure the rendered pill size so clamping is accurate
+  useEffect(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setSize({ width: rect.width, height: rect.height });
+    }
+  }, []);
+
+  // Hydrate position from localStorage / defaults
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
+          setPos(clampPos(parsed.x, parsed.y, size.width, size.height));
+          return;
+        }
+      }
+    } catch {}
+    setPos(getDefaultPos(size.width, size.height));
+  }, [storageKey, size.width, size.height]);
+
+  // Re-clamp on resize / orientation change
+  useEffect(() => {
+    const onResize = () => {
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setSize({ width: rect.width, height: rect.height });
+      }
+      setPos((p) => (p ? clampPos(p.x, p.y, size.width, size.height) : getDefaultPos(size.width, size.height)));
+    };
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, [size.width, size.height]);
+
+  const persist = useCallback(
+    (next: { x: number; y: number }) => {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {}
+    },
+    [storageKey]
+  );
+
+  const onPointerDown = (e: React.PointerEvent<HTMLAnchorElement>) => {
+    if (!pos) return;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    dragStateRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      origX: pos.x,
+      origY: pos.y,
+      moved: false,
+    };
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
+    const st = dragStateRef.current;
+    if (!st) return;
+    const dx = e.clientX - st.startX;
+    const dy = e.clientY - st.startY;
+    if (!st.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+    if (!st.moved) {
+      st.moved = true;
+      setDragging(true);
+    }
+    const next = clampPos(st.origX + dx, st.origY + dy, size.width, size.height);
+    setPos(next);
+  };
+
+  const onPointerUp = (e: React.PointerEvent<HTMLAnchorElement>) => {
+    const st = dragStateRef.current;
+    dragStateRef.current = null;
+    try {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    if (st?.moved && pos) {
+      persist(pos);
+      setTimeout(() => setDragging(false), 0);
+    } else {
+      setDragging(false);
+    }
+  };
+
+  const href = referralCode ? `/signup?ref=${encodeURIComponent(referralCode)}` : "https://tagex.app";
+
+  const handleClick = () => {
+    if (dragging) return;
+    if (cardId) {
+      supabase.functions
+        .invoke("track-card-event", { body: { card_id: cardId, kind: "cta_click" } })
+        .catch((err) => console.error("Failed to track tagex CTA click:", err));
+    }
+  };
+
+  if (!pos) return null;
+
+  return (
+    <a
+      ref={buttonRef}
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Get your own Card-Ex at tagex.app (drag to move)"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={() => {
+        dragStateRef.current = null;
+        setDragging(false);
+      }}
+      onClick={(e) => {
+        if (dragging) {
+          e.preventDefault();
+          return;
+        }
+        handleClick();
+      }}
+      style={{
+        position: "fixed",
+        left: pos.x,
+        top: pos.y,
+        touchAction: "none",
+        cursor: dragging ? "grabbing" : "grab",
+        transition: dragging ? "none" : "transform 150ms ease, box-shadow 150ms ease",
+      }}
+      className={[
+        "z-40",
+        "inline-flex items-center gap-2",
+        "rounded-full",
+        "bg-card/70 backdrop-blur-xl",
+        "border border-[hsl(var(--primary))]/40",
+        "shadow-lg shadow-black/50",
+        "pl-2 pr-4 py-2",
+        "text-sm font-semibold",
+        "text-[hsl(var(--primary))]",
+        "hover:scale-105 hover:shadow-xl hover:shadow-[hsl(var(--primary))]/20",
+        "active:scale-95",
+        "select-none",
+        "group",
+      ].join(" ")}
+    >
+      <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-[hsl(var(--primary))]/10 ring-1 ring-[hsl(var(--primary))]/30">
+        <img
+          src={CardExLogo}
+          alt=""
+          className="h-5 w-5 object-contain"
+        />
+      </span>
+      <span className="whitespace-nowrap tracking-wide">Get Card-Ex</span>
+      <ExternalLink className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 transition-opacity" />
+      <span className="sr-only">Opens in a new tab</span>
+    </a>
+  );
+}
