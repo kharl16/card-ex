@@ -38,8 +38,11 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
   return (
     <div className="space-y-0.5">
       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">Dashboard</p>
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-        {greeting}, <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{name}</span>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl break-words">
+        {greeting},{" "}
+        <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent break-words">
+          {name}
+        </span>
       </h1>
       {cards.length > 0 && (
         <p className="text-sm text-muted-foreground">
