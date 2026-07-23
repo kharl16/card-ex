@@ -353,7 +353,7 @@ export function DashboardOrb() {
             {isOpen ? (
               <X className="w-6 h-6 text-primary" strokeWidth={2.5} />
             ) : (
-              <LayoutGrid className="w-6 h-6 text-primary" strokeWidth={2} />
+              <img src={CardExLogo} alt="Card-Ex" className="w-7 h-7 object-contain" draggable={false} />
             )}
           </motion.div>
         </div>
