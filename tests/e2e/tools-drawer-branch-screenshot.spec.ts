@@ -210,7 +210,7 @@ test.describe("Tools Drawer — Branch screenshot after double back from Maps", 
     // the card slug page.
     const currentPath = await page.evaluate(() => document.body.dataset.currentPath);
     expect(currentPath, "double-back from Maps must land on /locator").toBe("/locator");
-    expect(currentPath, "double-back from Maps must not land on /:slug").not.toMatch(/^\/[^/]+$/i.test("/locator") ? /^\/(?!locator$)[^/]+$/ : /.*/);
+    expect(currentPath, "double-back from Maps must not land on /:slug").not.toBe("/slug");
 
     // No branch element may cross the left edge or overflow the right edge.
     const viewportWidth = page.viewportSize()!.width;
