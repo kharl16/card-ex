@@ -10,7 +10,7 @@ import { getPublicCardUrl } from "@/lib/cardUrl";
 import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
 import { Plus, Download, CalendarDays, Users, MapPin } from "lucide-react";
-import ToolsOrb from "@/components/tools/ToolsOrb";
+import FloatingTagexButton from "@/components/FloatingTagexButton";
 import AIChatWidget from "@/components/ai/AIChatWidget";
 import AppointmentBookingDialog from "@/components/appointments/AppointmentBookingDialog";
 import { Link } from "react-router-dom";
@@ -388,7 +388,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         cardOwnerName={card.full_name}
         accentColor={theme?.primary || "#D4AF37"}
       />
-      <ToolsOrb mode="public" cardOwnerId={card?.user_id} />
+      <FloatingTagexButton referralCode={ownerReferralCode} cardId={card.id} />
 
       {bookingEnabled && card && (
         <AppointmentBookingDialog

@@ -1,55 +1,49 @@
-# Modern Swipe/Transition Upgrade for Lightbox Carousels
+Plan: Replace the public-card Tools Orb with a persistent, branded tagex.app promo button
 
-Goal: make the click-to-open lightbox feel like a native iOS/Android photo gallery — finger-tracking swipes, spring physics, edge resistance, and crisp visual polish — across all 4 carousels that use `LightboxDialog`.
+Current state
+- `src/pages/PublicCard.tsx` renders `<ToolsOrb mode="public" cardOwnerId={card?.user_id} />` as a floating orb on every public card.
+- The user considers this redundant because the same tools live in the dashboard.
+- A fixed "Save Contact" bar already sits at the bottom of the public card.
+- The owner’s referral code is already fetched in `PublicCard.tsx` via `get_referral_code_for_user` and used by the "Create your own Card-Ex" CTA.
 
-## What's there today
-- `LightboxDialog.tsx` handles one-finger horizontal swipe → next/prev (threshold-based, no live tracking).
-- Slide-in animation runs *after* index changes via CSS classes (`lightbox-slide-next/prev/in`) with a fixed duration from `useLightboxTransitionPref`.
-- Two-finger = pinch zoom + pan. Preload cache warms neighbors.
-- No drag-follow, no rubber-band at ends, no velocity-based commit.
+Goal
+Remove the public-card Tools Orb and add a very obvious, on-brand floating button that links visitors to tagex.app (with the owner’s referral code when available), without overlapping the Save Contact bar or breaking mobile layout.
 
-## What "best-in-class" looks like
-1. **Finger-tracked drag** — image follows the finger 1:1 during a one-finger horizontal drag; neighbors are visible off-screen at the edges.
-2. **Spring release** — on release, decide by distance + velocity (Framer Motion-style):
-   - past ~25% width OR flick velocity > 500 px/s → commit to next/prev with spring settle
-   - otherwise → spring back to center
-3. **Edge resistance** — at first/last image (non-loop), drag resistance grows (rubber-band, ~0.35 factor) so the boundary is felt but not blocked. Loop mode keeps free travel.
-4. **Direction-aware, physically correct** — the incoming slide is always the one on the side you're pulling from; no post-hoc guess based on index diff.
-5. **Neighbor preview during drag** — render prev + current + next in a translated track so the user sees the next photo appear as they pull. Uses the existing preload cache so bitmaps are already decoded.
-6. **Zoom-aware gesture routing** — when `zoomLevel > 1`, one-finger drag pans within the image (today it's dead); horizontal swipe-to-navigate only fires at zoom = 1. Two-finger still = pinch + pan.
-7. **Reduced-motion respect** — snap without spring when `prefers-reduced-motion: reduce`.
-8. **Speed presets stay** — the Gauge popover keeps working; "Instant/Fast/Default/Smooth/Cinematic" now maps to spring stiffness, not just a CSS duration.
-9. **Keyboard + arrow buttons** — animate through the same spring path so all inputs feel identical.
-10. **Consistency across all 4 carousels** — `CardExCarousel`, `VideoCarousel` cover taps, `Carousel3DRing`, `ProductRingCarousel` all funnel through `LightboxDialog`, so the upgrade lands everywhere by editing one component.
+Changes
+1. Remove the Tools Orb from public cards
+   - Delete the `<ToolsOrb mode="public" cardOwnerId={card?.user_id} />` line in `src/pages/PublicCard.tsx`.
+   - Remove the unused `ToolsOrb` import from `PublicCard.tsx`.
 
-## Technical approach
-- Add `framer-motion` (already in the project) `motion.div` track containing `[prev, current, next]` slides, each sized to the viewport slot.
-- Use `useMotionValue` for `x`; `drag="x"` with `dragElastic` per rubber-band rule; `onDragEnd` reads `offset.x` + `velocity.x` and calls `animate(x, targetX, { type: "spring", stiffness, damping })`.
-- After the spring resolves on a commit, swap the index and reset `x` to 0 without animation (identity trick — no flash because the new "current" slide is already what the user was looking at).
-- Preserve pinch handling by disabling `drag` when a second touch lands (`onTouchStart` sets a `pinching` flag, cleared on `touchend`).
-- Map speed preset → spring config:
-  - Instant: `{ stiffness: 800, damping: 60 }`
-  - Fast: `{ stiffness: 500, damping: 45 }`
-  - Default: `{ stiffness: 350, damping: 38 }`
-  - Smooth: `{ stiffness: 220, damping: 32 }`
-  - Cinematic: `{ stiffness: 140, damping: 28 }`
-- Remove the current `lightbox-slide-*` CSS classes (or keep for reduced-motion fallback only).
-- Keep the existing preload cache; extend to preload +2/-2 for smoother chains during fast flicks.
+2. Create a floating tagex.app promo button
+   - Build a new small component `src/components/FloatingTagexButton.tsx`.
+   - It will be a fixed, draggable-or-static floating pill (follow the existing `DraggableShareFab` pointer-event pattern for touch safety, but keep it simpler as a single pill/button rather than a radial menu).
+   - Label: "Get Card-Ex" or "tagex.app" with a small Card-Ex logo/icon.
+   - Link target: `/signup?ref={ownerReferralCode}` if a referral code exists; otherwise `https://tagex.app`.
+   - Open in a new tab so the visitor can return to the card easily.
+   - Position it in the bottom-right corner, above the Save Contact bar on mobile and above the bottom safe area on devices with rounded corners.
+   - Style: glassmorphism with gold accent (`bg-card/60`, `backdrop-blur-xl`, `ring-1 ring-primary/40`, gold text/icon, shadow-lg). Match the existing luxury premium theme.
 
-## Files to touch
-- `src/components/LightboxDialog.tsx` — replace swipe/animate section with motion track + spring commit; route zoom-aware gestures.
-- `src/hooks/useLightboxTransitionPref.ts` — extend presets to return `{ ms, spring }`.
-- `src/index.css` — drop or gate slide classes behind `prefers-reduced-motion`.
-- `src/lib/images/lightboxPreloadCache.ts` — small tweak to preload ±2 neighbors.
+3. Integrate the button in `PublicCard.tsx`
+   - Render `<FloatingTagexButton referralCode={ownerReferralCode} />` near the bottom of the public card layout, outside the `max-w-2xl` content wrapper so it floats relative to the viewport.
+   - Keep the existing "Create your own Card-Ex" bottom CTA as well; the floating button is the prominent, always-visible entry point.
 
-No changes to the individual carousel components — they already delegate to `LightboxDialog`.
+4. Mobile/safe-area considerations
+   - Add `pb-safe` / `pr-safe` padding or explicit `env(safe-area-inset-*)` offsets so the button is not clipped by notches or rounded corners.
+   - Ensure z-index ordering places it below the Save Contact bar (z-50) but above the card content (z-40 is fine).
+   - Prevent horizontal overflow: keep the button within `max-w-[100vw]` and clamp on resize.
 
-## Out of scope
-- Redesigning the toolbar, captions, or the carousel thumbnails themselves.
-- Changing video lightbox (`VideoFullscreenDialog`) — separate component with its own player.
-- Adding new gestures (pull-to-dismiss, double-tap-zoom) unless you want them — say the word and I'll fold them in.
+5. Optional analytics hook
+   - Track a `cta_click` event via the existing `track-card-event` edge function when the button is clicked, so the card owner can see how many visitors clicked through to tagex.app.
 
-## Optional add-ons (say yes/no)
-- **Pull-down-to-dismiss** with backdrop fade (very iOS Photos).
-- **Double-tap to zoom** at the tap point.
-- **Haptic feedback** on commit (via `navigator.vibrate(8)` where supported).
+6. Verification
+   - Build the project and run a quick Playwright check on a public card route to confirm:
+     - The Tools Orb is gone.
+     - The new floating tagex.app button is visible and not clipped on mobile/tablet/desktop.
+     - It links to the referral signup when a referral code is present.
+     - The Save Contact bar remains fully accessible.
+
+Technical details
+- Existing file to edit: `src/pages/PublicCard.tsx`
+- New file: `src/components/FloatingTagexButton.tsx`
+- No backend changes needed; the referral code already exists in `PublicCard` state.
+- Keep the change scoped to the public card view only; do not affect the dashboard Tools Orb.
