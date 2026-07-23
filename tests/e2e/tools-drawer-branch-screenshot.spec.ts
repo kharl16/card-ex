@@ -66,6 +66,13 @@ test.describe("Tools Drawer — Branch screenshot after double back from Maps", 
           let branchResetKey = 0;
           const branchRoot = document.getElementById('branchRoot');
 
+          // Simulate the Tools Orb "Branches" tile routing to /locator (same as
+          // the dashboard Locator entry). The phone back button from Maps must
+          // return here, not to the card slug page.
+          const pathStack = ['/locator'];
+          const syncPath = () => { document.body.dataset.currentPath = pathStack[pathStack.length - 1]; };
+          syncPath();
+
           function normalize(node){
             node.scrollLeft = 0;
             node.style.translate = '0 0';
@@ -120,14 +127,20 @@ test.describe("Tools Drawer — Branch screenshot after double back from Maps", 
           window.addEventListener('cardex:external-map-open', armMapsReturnGuard);
           window.addEventListener('pageshow', resetAfterPotentialMapsReturn);
           window.addEventListener('focus', resetAfterPotentialMapsReturn);
-          window.addEventListener('popstate', resetAfterPotentialMapsReturn);
+          window.addEventListener('popstate', () => {
+            // Pop simulated router path (mimics phone back button).
+            if (pathStack.length > 1) pathStack.pop();
+            syncPath();
+            resetAfterPotentialMapsReturn();
+          });
           document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') resetAfterPotentialMapsReturn();
           });
 
           document.getElementById('mapsButton').addEventListener('click', () => {
             window.dispatchEvent(new Event('cardex:external-map-open'));
-            history.pushState({ maps: true }, '', '#maps');
+            pathStack.push('/locator/maps');
+            syncPath();
           });
         </script>
       </body></html>
