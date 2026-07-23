@@ -353,7 +353,12 @@ export function DashboardOrb() {
             {isOpen ? (
               <X className="w-6 h-6 text-primary" strokeWidth={2.5} />
             ) : (
-              <img src={CardExLogo} alt="Card-Ex" className="w-7 h-7 object-contain" draggable={false} />
+              <img
+                src={CardExLogo}
+                alt="Card-Ex"
+                draggable={false}
+                className="w-full h-full rounded-full object-cover pointer-events-none select-none"
+              />
             )}
           </motion.div>
         </div>
