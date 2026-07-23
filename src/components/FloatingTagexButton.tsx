@@ -16,11 +16,12 @@ const DRAG_THRESHOLD = 6; // px before considered a drag (suppress click)
 const getDefaultPos = (width: number, height: number) => {
   if (typeof window === "undefined") return { x: 16, y: 100 };
   const isMobile = window.innerWidth < 640;
-  const right = isMobile ? 16 : 32;
+  // Place on the bottom-left to avoid the existing Share FAB on the bottom-right
+  const left = isMobile ? 16 : 32;
   // Float above the fixed Save Contact bar on mobile, clear of the bottom edge on desktop
   const bottom = isMobile ? 110 : 32;
   return {
-    x: window.innerWidth - width - right,
+    x: left,
     y: window.innerHeight - height - bottom,
   };
 };
@@ -52,29 +53,37 @@ export default function FloatingTagexButton({
     }
   }, []);
 
-  // Hydrate position from localStorage / defaults
+  // Measure the rendered pill size as soon as it appears and whenever the window changes
+  const measureSize = useCallback(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setSize({ width: rect.width, height: rect.height });
+      return { width: rect.width, height: rect.height };
+    }
+    return size;
+  }, [size]);
+
+  // Hydrate position from localStorage / defaults after the first paint
   useEffect(() => {
+    const currentSize = measureSize();
     try {
       const raw = localStorage.getItem(storageKey);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
-          setPos(clampPos(parsed.x, parsed.y, size.width, size.height));
+          setPos(clampPos(parsed.x, parsed.y, currentSize.width, currentSize.height));
           return;
         }
       }
     } catch {}
-    setPos(getDefaultPos(size.width, size.height));
-  }, [storageKey, size.width, size.height]);
+    setPos(getDefaultPos(currentSize.width, currentSize.height));
+  }, [storageKey, measureSize]);
 
-  // Re-clamp on resize / orientation change
+  // Re-clamp and re-measure on resize / orientation change
   useEffect(() => {
     const onResize = () => {
-      if (buttonRef.current) {
-        const rect = buttonRef.current.getBoundingClientRect();
-        setSize({ width: rect.width, height: rect.height });
-      }
-      setPos((p) => (p ? clampPos(p.x, p.y, size.width, size.height) : getDefaultPos(size.width, size.height)));
+      const currentSize = measureSize();
+      setPos((p) => (p ? clampPos(p.x, p.y, currentSize.width, currentSize.height) : getDefaultPos(currentSize.width, currentSize.height)));
     };
     window.addEventListener("resize", onResize);
     window.addEventListener("orientationchange", onResize);
@@ -82,7 +91,7 @@ export default function FloatingTagexButton({
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
     };
-  }, [size.width, size.height]);
+  }, [measureSize]);
 
   const persist = useCallback(
     (next: { x: number; y: number }) => {
@@ -178,6 +187,7 @@ export default function FloatingTagexButton({
       className={[
         "z-40",
         "inline-flex items-center gap-2",
+        "min-w-fit",
         "rounded-full",
         "bg-card/70 backdrop-blur-xl",
         "border border-[hsl(var(--primary))]/40",
