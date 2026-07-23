@@ -42,7 +42,7 @@ export default function DirectoryCategoryChips({
               )}
             >
               {/* Icon + Label */}
-              <span className="flex items-center gap-2 min-w-0 overflow-hidden flex-1">
+              <span className="flex items-center gap-2 min-w-0 overflow-hidden">
 
                 {cat.icon && (
                   <span className={cn(
