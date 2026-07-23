@@ -42,11 +42,11 @@ export default function FloatingTagexButton({
   const buttonRef = useRef<HTMLAnchorElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [size, setSize] = useState({ width: 180, height: 48 });
+  const [size, setSize] = useState({ width: 210, height: 48 });
+  const [visible, setVisible] = useState(false);
   const dragStateRef = useRef<{ startX: number; startY: number; origX: number; origY: number; moved: boolean } | null>(null);
 
-
-  // Measure the rendered pill size as soon as it appears and whenever the window changes
+  // Measure the rendered pill size whenever it is in the DOM
   const measureSize = useCallback(() => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
@@ -56,7 +56,8 @@ export default function FloatingTagexButton({
     return size;
   }, [size]);
 
-  // Hydrate position from localStorage / defaults after the first paint
+  // Hydrate position from localStorage / defaults after the first paint.
+  // The button is rendered with opacity-0 until pos is set so its real size can be measured.
   useEffect(() => {
     const currentSize = measureSize();
     try {
@@ -65,11 +66,13 @@ export default function FloatingTagexButton({
         const parsed = JSON.parse(raw);
         if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
           setPos(clampPos(parsed.x, parsed.y, currentSize.width, currentSize.height));
+          setVisible(true);
           return;
         }
       }
     } catch {}
     setPos(getDefaultPos(currentSize.width, currentSize.height));
+    setVisible(true);
   }, [storageKey, measureSize]);
 
   // Re-clamp and re-measure on resize / orientation change
