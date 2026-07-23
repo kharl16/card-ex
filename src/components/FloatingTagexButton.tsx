@@ -45,13 +45,6 @@ export default function FloatingTagexButton({
   const [size, setSize] = useState({ width: 180, height: 48 });
   const dragStateRef = useRef<{ startX: number; startY: number; origX: number; origY: number; moved: boolean } | null>(null);
 
-  // Measure the rendered pill size so clamping is accurate
-  useEffect(() => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setSize({ width: rect.width, height: rect.height });
-    }
-  }, []);
 
   // Measure the rendered pill size as soon as it appears and whenever the window changes
   const measureSize = useCallback(() => {
