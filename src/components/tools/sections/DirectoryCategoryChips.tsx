@@ -33,7 +33,7 @@ export default function DirectoryCategoryChips({
               onClick={() => onChange(cat.id)}
               className={cn(
                 "w-full min-w-0 h-12 rounded-xl px-3 box-border",
-                "flex items-center justify-between gap-2",
+                "flex items-center justify-start gap-2",
                 "border-2 bg-background/60 backdrop-blur-sm",
                 "text-sm font-semibold transition-all duration-200",
                 active
@@ -42,7 +42,8 @@ export default function DirectoryCategoryChips({
               )}
             >
               {/* Icon + Label */}
-              <span className="flex items-center gap-2 min-w-0 overflow-hidden">
+              <span className="flex items-center gap-2 min-w-0 overflow-hidden flex-1">
+
                 {cat.icon && (
                   <span className={cn(
                     "shrink-0 w-4 h-4",
