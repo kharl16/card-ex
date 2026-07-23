@@ -639,7 +639,7 @@ export default function DirectorySection({ searchQuery, onClearSearch, resetToke
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   "w-full min-w-0",
-                  "flex items-center justify-between gap-2",
+                  "flex items-center justify-start gap-2",
                   "rounded-xl border px-3 py-2.5",
                   "transition-all",
                   isActive
@@ -647,16 +647,16 @@ export default function DirectorySection({ searchQuery, onClearSearch, resetToke
                     : "bg-card text-foreground border-border/60 hover:border-primary/30 hover:bg-muted/30",
                 )}
               >
-                <span className="flex items-center gap-2 min-w-0">
+                <span className="flex items-center gap-2 min-w-0 overflow-hidden">
                   <span className={cn("shrink-0", isActive ? "text-primary-foreground" : "text-primary")}>
                     {tab.icon}
                   </span>
-                  <span className="font-semibold text-sm truncate">{tab.label}</span>
+                  <span className="font-semibold text-sm truncate min-w-0">{tab.label}</span>
                 </span>
 
                 <span
                   className={cn(
-                    "shrink-0 text-xs rounded-full px-2 py-0.5 border",
+                    "shrink-0 text-xs rounded-full px-2 py-0.5 border tabular-nums",
                     isActive
                       ? "bg-primary-foreground/15 text-primary-foreground border-primary-foreground/20"
                       : "bg-muted/30 text-muted-foreground border-border/50",
@@ -664,6 +664,7 @@ export default function DirectorySection({ searchQuery, onClearSearch, resetToke
                 >
                   {tabCounts[tab.id]}
                 </span>
+
               </button>
             );
           })}
