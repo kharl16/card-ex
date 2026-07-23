@@ -15,6 +15,7 @@ import {
   LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CardExLogo from "@/assets/Card-Ex-Big.png";
 import { useBackButtonClose } from "@/hooks/useBackButtonClose";
 import { useEffect, useRef } from "react";
 
