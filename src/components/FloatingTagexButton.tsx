@@ -149,7 +149,7 @@ export default function FloatingTagexButton({
     }
   };
 
-  if (!pos) return null;
+  const effectivePos = pos || getDefaultPos(size.width, size.height);
 
   return (
     <a
@@ -158,6 +158,7 @@ export default function FloatingTagexButton({
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Get your own Card-Ex at tagex.app (drag to move)"
+      aria-hidden={!visible}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -174,11 +175,13 @@ export default function FloatingTagexButton({
       }}
       style={{
         position: "fixed",
-        left: pos.x,
-        top: pos.y,
+        left: effectivePos.x,
+        top: effectivePos.y,
         touchAction: "none",
         cursor: dragging ? "grabbing" : "grab",
-        transition: dragging ? "none" : "transform 150ms ease, box-shadow 150ms ease",
+        transition: dragging ? "none" : "transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease",
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? "auto" : "none",
       }}
       className={[
         "z-40",
