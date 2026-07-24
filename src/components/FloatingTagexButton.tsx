@@ -9,7 +9,7 @@ interface FloatingTagexButtonProps {
   storageKey?: string;
 }
 
-const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v2";
+const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v3";
 const EDGE_PADDING = 12;
 const DRAG_THRESHOLD = 6; // px before considered a drag (suppress click)
 
@@ -188,11 +188,11 @@ export default function FloatingTagexButton({
         "rounded-full",
         "bg-card/80 backdrop-blur-xl",
         "border border-[hsl(var(--primary))]",
-        "shadow-[0_0_12px_hsl(var(--primary)_/_0.55),0_0_24px_hsl(var(--primary)_/_0.35),0_4px_12px_rgba(0,0,0,0.5)]",
+        "animate-tile-glow-pulse",
         "pl-1.5 pr-3 py-1",
         "text-xs font-semibold",
         "text-[hsl(var(--primary))]",
-        "hover:scale-105 hover:shadow-[0_0_16px_hsl(var(--primary)_/_0.7),0_0_32px_hsl(var(--primary)_/_0.45),0_6px_16px_rgba(0,0,0,0.55)]",
+        "hover:scale-105",
         "active:scale-95",
         "select-none",
         "group",
