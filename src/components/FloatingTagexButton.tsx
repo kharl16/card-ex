@@ -39,7 +39,7 @@ export default function FloatingTagexButton({
   const buttonRef = useRef<HTMLAnchorElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [size, setSize] = useState({ width: 210, height: 48 });
+  const [size, setSize] = useState({ width: 150, height: 32 });
   const [visible, setVisible] = useState(false);
   const dragStateRef = useRef<{ startX: number; startY: number; origX: number; origY: number; moved: boolean } | null>(null);
 
@@ -183,30 +183,30 @@ export default function FloatingTagexButton({
       }}
       className={[
         "z-40",
-        "inline-flex items-center gap-2",
+        "inline-flex items-center gap-1.5",
         "min-w-fit",
         "rounded-full",
-        "bg-card/70 backdrop-blur-xl",
-        "border border-[hsl(var(--primary))]/40",
-        "shadow-lg shadow-black/50",
-        "pl-2 pr-4 py-2",
-        "text-sm font-semibold",
+        "bg-card/80 backdrop-blur-xl",
+        "border border-[hsl(var(--primary))]",
+        "shadow-[0_0_12px_hsl(var(--primary)_/_0.55),0_0_24px_hsl(var(--primary)_/_0.35),0_4px_12px_rgba(0,0,0,0.5)]",
+        "pl-1.5 pr-3 py-1",
+        "text-xs font-semibold",
         "text-[hsl(var(--primary))]",
-        "hover:scale-105 hover:shadow-xl hover:shadow-[hsl(var(--primary))]/20",
+        "hover:scale-105 hover:shadow-[0_0_16px_hsl(var(--primary)_/_0.7),0_0_32px_hsl(var(--primary)_/_0.45),0_6px_16px_rgba(0,0,0,0.55)]",
         "active:scale-95",
         "select-none",
         "group",
       ].join(" ")}
     >
-      <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-[hsl(var(--primary))]/10 ring-1 ring-[hsl(var(--primary))]/30">
+      <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[hsl(var(--primary))]/10 ring-1 ring-[hsl(var(--primary))]/40">
         <img
           src={CardExLogo}
           alt=""
-          className="h-5 w-5 object-contain"
+          className="h-3.5 w-3.5 object-contain"
         />
       </span>
       <span className="whitespace-nowrap tracking-wide">Tools Vault</span>
-      <ExternalLink className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 transition-opacity" />
+      <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
       <span className="sr-only">Opens in a new tab</span>
     </a>
   );
