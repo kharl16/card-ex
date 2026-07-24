@@ -155,7 +155,7 @@ export default function FloatingTagexButton({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Get your own Card-Ex at tagex.app (drag to move)"
+      aria-label="Open Tools Vault (drag to move)"
       aria-hidden={!visible}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
