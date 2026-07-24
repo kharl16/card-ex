@@ -135,7 +135,8 @@ export default function FloatingTagexButton({
     }
   };
 
-  const href = referralCode ? `/signup?ref=${encodeURIComponent(referralCode)}` : "https://tagex.app";
+  // Always go to the dashboard; unauthenticated visitors get prompted to log in there.
+  const href = "/dashboard";
 
   const handleClick = () => {
     if (dragging) return;
