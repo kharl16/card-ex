@@ -9,21 +9,18 @@ interface FloatingTagexButtonProps {
   storageKey?: string;
 }
 
-const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v1";
+const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v2";
 const EDGE_PADDING = 12;
 const DRAG_THRESHOLD = 6; // px before considered a drag (suppress click)
 
 const getDefaultPos = (width: number, height: number) => {
   if (typeof window === "undefined") return { x: 16, y: 100 };
   const isMobile = window.innerWidth < 640;
-  // Place on the bottom-left to avoid the existing Share FAB on the bottom-right
-  const left = isMobile ? 16 : 32;
-  // Float above the fixed Save Contact bar on mobile, clear of the bottom edge on desktop
-  const bottom = isMobile ? 110 : 32;
-  return {
-    x: left,
-    y: window.innerHeight - height - bottom,
-  };
+  // Centered horizontally: sits between the profile photo (left) and company logo (right)
+  const x = Math.max(EDGE_PADDING, (window.innerWidth - width) / 2);
+  // Just below the cover photo area
+  const y = isMobile ? 150 : 190;
+  return { x, y };
 };
 
 const clampPos = (x: number, y: number, width: number, height: number) => {
