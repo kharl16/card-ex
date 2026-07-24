@@ -39,7 +39,7 @@ export default function FloatingTagexButton({
   const buttonRef = useRef<HTMLAnchorElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [dragging, setDragging] = useState(false);
-  const [size, setSize] = useState({ width: 210, height: 48 });
+  const [size, setSize] = useState({ width: 150, height: 32 });
   const [visible, setVisible] = useState(false);
   const dragStateRef = useRef<{ startX: number; startY: number; origX: number; origY: number; moved: boolean } | null>(null);
 
