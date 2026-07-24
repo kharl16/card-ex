@@ -205,7 +205,7 @@ export default function FloatingTagexButton({
           className="h-5 w-5 object-contain"
         />
       </span>
-      <span className="whitespace-nowrap tracking-wide">Get Card-Ex</span>
+      <span className="whitespace-nowrap tracking-wide">Tools Vault</span>
       <ExternalLink className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 transition-opacity" />
       <span className="sr-only">Opens in a new tab</span>
     </a>
