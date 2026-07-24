@@ -9,7 +9,7 @@ interface FloatingTagexButtonProps {
   storageKey?: string;
 }
 
-const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v2";
+const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v3";
 const EDGE_PADDING = 12;
 const DRAG_THRESHOLD = 6; // px before considered a drag (suppress click)
 
