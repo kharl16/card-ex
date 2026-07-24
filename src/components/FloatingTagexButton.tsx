@@ -9,21 +9,18 @@ interface FloatingTagexButtonProps {
   storageKey?: string;
 }
 
-const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v1";
+const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v2";
 const EDGE_PADDING = 12;
 const DRAG_THRESHOLD = 6; // px before considered a drag (suppress click)
 
 const getDefaultPos = (width: number, height: number) => {
   if (typeof window === "undefined") return { x: 16, y: 100 };
   const isMobile = window.innerWidth < 640;
-  // Place on the bottom-left to avoid the existing Share FAB on the bottom-right
-  const left = isMobile ? 16 : 32;
-  // Float above the fixed Save Contact bar on mobile, clear of the bottom edge on desktop
-  const bottom = isMobile ? 110 : 32;
-  return {
-    x: left,
-    y: window.innerHeight - height - bottom,
-  };
+  // Centered horizontally: sits between the profile photo (left) and company logo (right)
+  const x = Math.max(EDGE_PADDING, (window.innerWidth - width) / 2);
+  // Just below the cover photo area
+  const y = isMobile ? 150 : 190;
+  return { x, y };
 };
 
 const clampPos = (x: number, y: number, width: number, height: number) => {
@@ -138,7 +135,8 @@ export default function FloatingTagexButton({
     }
   };
 
-  const href = referralCode ? `/signup?ref=${encodeURIComponent(referralCode)}` : "https://tagex.app";
+  // Always go to the dashboard; unauthenticated visitors get prompted to log in there.
+  const href = "/dashboard";
 
   const handleClick = () => {
     if (dragging) return;
@@ -157,7 +155,7 @@ export default function FloatingTagexButton({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Get your own Card-Ex at tagex.app (drag to move)"
+      aria-label="Open Tools Vault (drag to move)"
       aria-hidden={!visible}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -207,7 +205,7 @@ export default function FloatingTagexButton({
           className="h-5 w-5 object-contain"
         />
       </span>
-      <span className="whitespace-nowrap tracking-wide">Get Card-Ex</span>
+      <span className="whitespace-nowrap tracking-wide">Tools Vault</span>
       <ExternalLink className="h-3.5 w-3.5 opacity-70 group-hover:opacity-100 transition-opacity" />
       <span className="sr-only">Opens in a new tab</span>
     </a>
