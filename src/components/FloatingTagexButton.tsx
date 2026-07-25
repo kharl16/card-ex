@@ -12,12 +12,12 @@ interface FloatingTagexButtonProps {
   containerRef?: React.RefObject<HTMLElement>;
 }
 
-const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v4";
+const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v5";
 const EDGE_PADDING = 12;
 const DRAG_THRESHOLD = 6; // px before considered a drag (suppress click)
-// Clearance below the cover photo: the avatar/logo row straddles the cover bottom
-// (half of a 96–112px tile) so we need ~56px + breathing room.
-const COVER_CLEARANCE = 76;
+// Small gap below the cover photo so the pill sits just under the bottom border
+// without touching it, while still staying clear of the avatar/logo row.
+const COVER_CLEARANCE = 16;
 
 const getCoverBottom = (): number | null => {
   if (typeof document === "undefined") return null;
