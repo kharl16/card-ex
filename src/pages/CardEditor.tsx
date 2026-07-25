@@ -1148,8 +1148,8 @@ export default function CardEditor() {
                     ) : undefined
                   }
                 />
-                {/* ToolsOrb inside preview */}
-                <ToolsOrb mode="preview" containerRef={previewContainerRef} />
+                {/* Tools Vault pill preview */}
+                <FloatingTagexButton variant="preview" containerRef={previewContainerRef} />
               </div>
             </CardContent>
           </Card>
