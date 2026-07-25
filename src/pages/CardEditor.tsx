@@ -43,7 +43,7 @@ import { ChangeTemplateDialog } from "@/components/templates/ChangeTemplateDialo
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublishLimit } from "@/hooks/usePublishLimit";
 import { getPublicCardUrl } from "@/lib/cardUrl";
-import ToolsOrb from "@/components/tools/ToolsOrb";
+import FloatingTagexButton from "@/components/FloatingTagexButton";
 // Editor section components
 import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
 import { SectionNavigator } from "@/components/editor/SectionNavigator";
