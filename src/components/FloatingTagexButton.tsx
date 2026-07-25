@@ -7,19 +7,33 @@ interface FloatingTagexButtonProps {
   referralCode?: string | null;
   cardId?: string;
   storageKey?: string;
+  /** Render statically inside a preview container instead of fixed to the viewport */
+  variant?: "fixed" | "preview";
+  containerRef?: React.RefObject<HTMLElement>;
 }
 
-const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v3";
+const STORAGE_KEY_DEFAULT = "tagex_fab_pos_v4";
 const EDGE_PADDING = 12;
 const DRAG_THRESHOLD = 6; // px before considered a drag (suppress click)
+// Clearance below the cover photo: the avatar/logo row straddles the cover bottom
+// (half of a 96–112px tile) so we need ~56px + breathing room.
+const COVER_CLEARANCE = 76;
+
+const getCoverBottom = (): number | null => {
+  if (typeof document === "undefined") return null;
+  const cover = document.querySelector("[data-card-cover]") as HTMLElement | null;
+  if (!cover) return null;
+  return cover.getBoundingClientRect().bottom;
+};
 
 const getDefaultPos = (width: number, height: number) => {
   if (typeof window === "undefined") return { x: 16, y: 100 };
   const isMobile = window.innerWidth < 640;
   // Centered horizontally: sits between the profile photo (left) and company logo (right)
   const x = Math.max(EDGE_PADDING, (window.innerWidth - width) / 2);
-  // Just below the cover photo area
-  const y = isMobile ? 150 : 190;
+  const coverBottom = getCoverBottom();
+  const fallback = isMobile ? 230 : 280;
+  const y = coverBottom != null ? coverBottom + COVER_CLEARANCE : fallback;
   return { x, y };
 };
 
@@ -31,17 +45,46 @@ const clampPos = (x: number, y: number, width: number, height: number) => {
   };
 };
 
+const pillClasses = [
+  "inline-flex items-center gap-1.5",
+  "min-w-fit",
+  "rounded-full",
+  "bg-card/80 backdrop-blur-xl",
+  "border border-[hsl(var(--primary))]",
+  "animate-tile-glow-pulse",
+  "pl-1.5 pr-3 py-1",
+  "text-xs font-semibold",
+  "text-[hsl(var(--primary))]",
+  "select-none",
+  "group",
+].join(" ");
+
+const PillContent = () => (
+  <>
+    <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[hsl(var(--primary))]/10 ring-1 ring-[hsl(var(--primary))]/40">
+      <img src={CardExLogo} alt="" className="h-3.5 w-3.5 object-contain" />
+    </span>
+    <span className="whitespace-nowrap tracking-wide">Tools Vault</span>
+    <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+  </>
+);
+
 export default function FloatingTagexButton({
   referralCode,
   cardId,
   storageKey = STORAGE_KEY_DEFAULT,
+  variant = "fixed",
+  containerRef,
 }: FloatingTagexButtonProps) {
   const buttonRef = useRef<HTMLAnchorElement>(null);
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
   const [dragging, setDragging] = useState(false);
   const [size, setSize] = useState({ width: 150, height: 32 });
   const [visible, setVisible] = useState(false);
+  const [previewTop, setPreviewTop] = useState<number | null>(null);
   const dragStateRef = useRef<{ startX: number; startY: number; origX: number; origY: number; moved: boolean } | null>(null);
+
+  const isPreview = variant === "preview";
 
   // Measure the rendered pill size whenever it is in the DOM
   const measureSize = useCallback(() => {
@@ -53,9 +96,29 @@ export default function FloatingTagexButton({
     return size;
   }, [size]);
 
-  // Hydrate position from localStorage / defaults after the first paint.
-  // The button is rendered with opacity-0 until pos is set so its real size can be measured.
+  // Preview mode: position just below the cover inside the preview container
   useEffect(() => {
+    if (!isPreview) return;
+    const compute = () => {
+      const container = containerRef?.current;
+      const cover = container?.querySelector("[data-card-cover]") as HTMLElement | null;
+      if (!container || !cover) return;
+      const top = cover.getBoundingClientRect().bottom - container.getBoundingClientRect().top + COVER_CLEARANCE;
+      setPreviewTop(top);
+      setVisible(true);
+    };
+    compute();
+    const id = window.setTimeout(compute, 300);
+    window.addEventListener("resize", compute);
+    return () => {
+      window.clearTimeout(id);
+      window.removeEventListener("resize", compute);
+    };
+  }, [isPreview, containerRef]);
+
+  // Hydrate position from localStorage / defaults after the first paint.
+  useEffect(() => {
+    if (isPreview) return;
     const currentSize = measureSize();
     try {
       const raw = localStorage.getItem(storageKey);
@@ -68,12 +131,21 @@ export default function FloatingTagexButton({
         }
       }
     } catch {}
+    // Cover image may still be loading — recompute shortly after mount.
     setPos(getDefaultPos(currentSize.width, currentSize.height));
     setVisible(true);
-  }, [storageKey, measureSize]);
+    const id = window.setTimeout(() => {
+      try {
+        if (localStorage.getItem(storageKey)) return;
+      } catch {}
+      setPos(getDefaultPos(currentSize.width, currentSize.height));
+    }, 500);
+    return () => window.clearTimeout(id);
+  }, [storageKey, measureSize, isPreview]);
 
   // Re-clamp and re-measure on resize / orientation change
   useEffect(() => {
+    if (isPreview) return;
     const onResize = () => {
       const currentSize = measureSize();
       setPos((p) => (p ? clampPos(p.x, p.y, currentSize.width, currentSize.height) : getDefaultPos(currentSize.width, currentSize.height)));
@@ -84,7 +156,7 @@ export default function FloatingTagexButton({
       window.removeEventListener("resize", onResize);
       window.removeEventListener("orientationchange", onResize);
     };
-  }, [measureSize]);
+  }, [measureSize, isPreview]);
 
   const persist = useCallback(
     (next: { x: number; y: number }) => {
@@ -147,6 +219,20 @@ export default function FloatingTagexButton({
     }
   };
 
+  if (isPreview) {
+    return (
+      <div
+        className="pointer-events-none absolute left-1/2 z-40 -translate-x-1/2"
+        style={{ top: previewTop ?? 0, opacity: previewTop != null ? 1 : 0 }}
+        aria-hidden="true"
+      >
+        <span className={pillClasses}>
+          <PillContent />
+        </span>
+      </div>
+    );
+  }
+
   const effectivePos = pos || getDefaultPos(size.width, size.height);
 
   return (
@@ -181,32 +267,9 @@ export default function FloatingTagexButton({
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? "auto" : "none",
       }}
-      className={[
-        "z-40",
-        "inline-flex items-center gap-1.5",
-        "min-w-fit",
-        "rounded-full",
-        "bg-card/80 backdrop-blur-xl",
-        "border border-[hsl(var(--primary))]",
-        "animate-tile-glow-pulse",
-        "pl-1.5 pr-3 py-1",
-        "text-xs font-semibold",
-        "text-[hsl(var(--primary))]",
-        "hover:scale-105",
-        "active:scale-95",
-        "select-none",
-        "group",
-      ].join(" ")}
+      className={["z-40", pillClasses, "hover:scale-105", "active:scale-95"].join(" ")}
     >
-      <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[hsl(var(--primary))]/10 ring-1 ring-[hsl(var(--primary))]/40">
-        <img
-          src={CardExLogo}
-          alt=""
-          className="h-3.5 w-3.5 object-contain"
-        />
-      </span>
-      <span className="whitespace-nowrap tracking-wide">Tools Vault</span>
-      <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
+      <PillContent />
       <span className="sr-only">Opens in a new tab</span>
     </a>
   );

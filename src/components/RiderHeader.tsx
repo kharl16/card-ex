@@ -153,6 +153,7 @@ export default function RiderHeader({
     <div className="relative mt-0 mb-4 w-full max-w-full overflow-x-clip overflow-y-visible z-30">
       {/* Cover image: exact frame, no carousel/zoom */}
       <div
+        data-card-cover
         className="relative block w-full max-w-full overflow-visible p-0"
         style={{
           aspectRatio: COVER_ASPECT_RATIO,

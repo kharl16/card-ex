@@ -43,7 +43,7 @@ import { ChangeTemplateDialog } from "@/components/templates/ChangeTemplateDialo
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublishLimit } from "@/hooks/usePublishLimit";
 import { getPublicCardUrl } from "@/lib/cardUrl";
-import ToolsOrb from "@/components/tools/ToolsOrb";
+import FloatingTagexButton from "@/components/FloatingTagexButton";
 // Editor section components
 import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordion";
 import { SectionNavigator } from "@/components/editor/SectionNavigator";
@@ -1148,8 +1148,8 @@ export default function CardEditor() {
                     ) : undefined
                   }
                 />
-                {/* ToolsOrb inside preview */}
-                <ToolsOrb mode="preview" containerRef={previewContainerRef} />
+                {/* Tools Vault pill preview */}
+                <FloatingTagexButton variant="preview" containerRef={previewContainerRef} />
               </div>
             </CardContent>
           </Card>
