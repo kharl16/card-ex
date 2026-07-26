@@ -562,7 +562,17 @@ export default function Dashboard() {
           onOpenChange={setShareDialogOpen}
         />
       )}
+      <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
+        <DialogContent className="sm:max-w-[640px]">
+          <DialogHeader>
+            <DialogTitle>Your Stats</DialogTitle>
+            <DialogDescription>Total views, published cards, leads and this week's activity.</DialogDescription>
+          </DialogHeader>
+          <AnimatedStatsCards cards={cards} />
+        </DialogContent>
+      </Dialog>
       <NewCardDialog open={newCardDialogOpen} onOpenChange={setNewCardDialogOpen} profileName={profile?.full_name} />
+
       <AdminTemplateManager open={templateManagerOpen} onOpenChange={setTemplateManagerOpen} />
       <MyTemplatesManager open={myTemplatesOpen} onOpenChange={setMyTemplatesOpen} />
       {selectedCardForDuplicate && (
