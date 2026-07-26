@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { CreditCard, Palette, ListTree } from "lucide-react";
+import { CreditCard, Palette, ListTree, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -70,6 +70,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<any>(null);
   const [cardViewsMap, setCardViewsMap] = useState<Record<string, number>>({});
   const [referralsExpanded, setReferralsExpanded] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const [impersonatedEmail, setImpersonatedEmail] = useState<string | null>(null);
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -445,8 +446,20 @@ export default function Dashboard() {
           <MotivationalQuote />
         </div>
 
-        {/* Stats */}
-        {!loading && <AnimatedStatsCards cards={cards} />}
+        {/* Stats moved into "More" to declutter the dashboard */}
+        {!loading && (
+          <div className="flex justify-start">
+            <Button
+              variant="outline"
+              onClick={() => setStatsOpen(true)}
+              className="h-11 gap-2 rounded-xl border-border/50 text-sm font-semibold"
+            >
+              <BarChart3 className="h-4 w-4 text-primary" />
+              More
+            </Button>
+          </div>
+        )}
+
 
         {/* Referral Commissions Dashboard */}
         {!loading && profile?.id && (
@@ -549,7 +562,17 @@ export default function Dashboard() {
           onOpenChange={setShareDialogOpen}
         />
       )}
+      <Dialog open={statsOpen} onOpenChange={setStatsOpen}>
+        <DialogContent className="sm:max-w-[640px]">
+          <DialogHeader>
+            <DialogTitle>Your Stats</DialogTitle>
+            <DialogDescription>Total views, published cards, leads and this week's activity.</DialogDescription>
+          </DialogHeader>
+          <AnimatedStatsCards cards={cards} />
+        </DialogContent>
+      </Dialog>
       <NewCardDialog open={newCardDialogOpen} onOpenChange={setNewCardDialogOpen} profileName={profile?.full_name} />
+
       <AdminTemplateManager open={templateManagerOpen} onOpenChange={setTemplateManagerOpen} />
       <MyTemplatesManager open={myTemplatesOpen} onOpenChange={setMyTemplatesOpen} />
       {selectedCardForDuplicate && (
