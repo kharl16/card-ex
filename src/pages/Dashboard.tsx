@@ -445,8 +445,20 @@ export default function Dashboard() {
           <MotivationalQuote />
         </div>
 
-        {/* Stats */}
-        {!loading && <AnimatedStatsCards cards={cards} />}
+        {/* Stats moved into "More" to declutter the dashboard */}
+        {!loading && (
+          <div className="flex justify-start">
+            <Button
+              variant="outline"
+              onClick={() => setStatsOpen(true)}
+              className="h-11 gap-2 rounded-xl border-border/50 text-sm font-semibold"
+            >
+              <BarChart3 className="h-4 w-4 text-primary" />
+              More
+            </Button>
+          </div>
+        )}
+
 
         {/* Referral Commissions Dashboard */}
         {!loading && profile?.id && (
