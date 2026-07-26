@@ -277,10 +277,11 @@ export default function FloatingTagexButton({
         transition: dragging ? "none" : "transform 150ms ease, box-shadow 150ms ease, opacity 150ms ease",
         opacity: visible ? 1 : 0,
         pointerEvents: visible ? "auto" : "none",
+        boxShadow: "0 0 10px hsl(var(--primary) / 0.25), inset 0 0 4px hsl(var(--primary) / 0.06)",
       }}
       className={["z-40", pillClasses, "hover:scale-105", "active:scale-95"].join(" ")}
     >
-      <PillContent />
+      <PillContent isDragging={dragging} />
       <span className="sr-only">Opens in a new tab</span>
     </a>
   );
