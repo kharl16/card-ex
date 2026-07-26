@@ -51,7 +51,7 @@ const pillClasses = [
   "rounded-full",
   "bg-card/80 backdrop-blur-xl",
   "border border-[hsl(var(--primary))]",
-  "animate-tile-glow-pulse",
+  "relative overflow-visible",
   "pl-1.5 pr-3 py-1",
   "text-xs font-semibold",
   "text-[hsl(var(--primary))]",
@@ -59,8 +59,15 @@ const pillClasses = [
   "group",
 ].join(" ");
 
-const PillContent = () => (
+const PillContent = ({ isDragging = false }: { isDragging?: boolean }) => (
   <>
+    {!isDragging && (
+      <span
+        className="pointer-events-none absolute inset-0 -z-10 rounded-full animate-ping bg-primary/15"
+        style={{ animationDuration: "2.5s" }}
+        aria-hidden="true"
+      />
+    )}
     <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[hsl(var(--primary))]/10 ring-1 ring-[hsl(var(--primary))]/40">
       <img src={CardExLogo} alt="" className="h-3.5 w-3.5 object-contain" />
     </span>
