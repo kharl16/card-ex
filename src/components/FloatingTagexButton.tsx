@@ -230,7 +230,11 @@ export default function FloatingTagexButton({
     return (
       <div
         className="pointer-events-none absolute left-1/2 z-40 -translate-x-1/2"
-        style={{ top: previewTop ?? 0, opacity: previewTop != null ? 1 : 0 }}
+        style={{
+          top: previewTop ?? 0,
+          opacity: previewTop != null ? 1 : 0,
+          boxShadow: "0 0 10px hsl(var(--primary) / 0.25), inset 0 0 4px hsl(var(--primary) / 0.06)",
+        }}
         aria-hidden="true"
       >
         <span className={pillClasses}>
