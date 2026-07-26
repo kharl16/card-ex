@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { CreditCard, Palette, ListTree } from "lucide-react";
+import { CreditCard, Palette, ListTree, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -70,6 +70,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<any>(null);
   const [cardViewsMap, setCardViewsMap] = useState<Record<string, number>>({});
   const [referralsExpanded, setReferralsExpanded] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
   const [impersonatedEmail, setImpersonatedEmail] = useState<string | null>(null);
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
