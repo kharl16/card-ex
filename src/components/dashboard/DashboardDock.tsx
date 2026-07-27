@@ -20,11 +20,13 @@ const mainTabs = [
   { icon: BookOpen, label: "Resources", path: "/resources" },
 ];
 
-const moreTabs = [
+type MoreTab = { icon: typeof LayoutDashboard; label: string; path: string; action?: string };
+
+const moreTabs: MoreTab[] = [
   { icon: Wrench, label: "Tools", path: "/tools" },
   { icon: Users, label: "Leads", path: "/dashboard/leads" },
   { icon: CalendarDays, label: "Appointments", path: "/dashboard/appointments" },
-  { icon: BarChart3, label: "Stats", path: "/dashboard", action: "stats" as const },
+  { icon: BarChart3, label: "Stats", path: "/dashboard", action: "stats" },
   { icon: BarChart3, label: "Gallery", path: "/gallery" },
 ];
 
