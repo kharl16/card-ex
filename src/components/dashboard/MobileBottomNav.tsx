@@ -8,6 +8,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+interface MobileBottomNavProps {
+  onOpenStats?: () => void;
+}
+
 const mainTabs = [
   { icon: LayoutDashboard, label: "Home", path: "/dashboard" },
   { icon: MapPin, label: "Locator", path: "/locator" },
@@ -16,14 +20,17 @@ const mainTabs = [
   { icon: MoreHorizontal, label: "More", path: "__more__" },
 ];
 
-const moreTabs = [
+type MoreTab = { icon: typeof LayoutDashboard; label: string; path: string; action?: string };
+
+const moreTabs: MoreTab[] = [
   { icon: Wrench, label: "Tools", path: "/tools" },
   { icon: Users, label: "Leads", path: "/dashboard/leads" },
   { icon: CalendarDays, label: "Appts", path: "/dashboard/appointments" },
+  { icon: BarChart3, label: "Stats", path: "/dashboard", action: "stats" },
   { icon: BarChart3, label: "Gallery", path: "/gallery" },
 ];
 
-export function MobileBottomNav() {
+export function MobileBottomNav({ onOpenStats }: MobileBottomNavProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -47,9 +54,16 @@ export function MobileBottomNav() {
                 <PopoverContent side="top" align="end" className="w-44 p-2">
                   {moreTabs.map((m) => (
                     <button
-                      key={m.path}
+                      key={m.path + (m.action || "")}
                       className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-                      onClick={() => { setMoreOpen(false); navigate(m.path); }}
+                      onClick={() => {
+                        setMoreOpen(false);
+                        if (m.action === "stats") {
+                          onOpenStats?.();
+                        } else {
+                          navigate(m.path);
+                        }
+                      }}
                     >
                       <m.icon className="h-4 w-4 text-muted-foreground" />
                       {m.label}
