@@ -445,6 +445,7 @@ export default function Dashboard() {
         <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
           <MotivationalQuote />
+          <DashboardQuadrantTiles onOpenStats={() => setStatsOpen(true)} />
         </div>
 
 
