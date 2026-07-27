@@ -28,6 +28,9 @@ const tiles: Tile[] = [
     icon: MapPin,
     path: "/locator",
     color: "from-emerald-500/20 to-emerald-500/5",
+    iconBg: "bg-emerald-500/15",
+    iconColor: "text-emerald-400",
+    ringColor: "shadow-emerald-500/30",
   },
   {
     id: "videos",
@@ -35,6 +38,9 @@ const tiles: Tile[] = [
     icon: PlayCircle,
     path: "/dashboard/videos",
     color: "from-rose-500/20 to-rose-500/5",
+    iconBg: "bg-rose-500/15",
+    iconColor: "text-rose-400",
+    ringColor: "shadow-rose-500/30",
   },
   {
     id: "resources",
@@ -42,6 +48,9 @@ const tiles: Tile[] = [
     icon: BookOpen,
     path: "/resources",
     color: "from-amber-500/20 to-amber-500/5",
+    iconBg: "bg-amber-500/15",
+    iconColor: "text-amber-400",
+    ringColor: "shadow-amber-500/30",
   },
   {
     id: "more",
@@ -49,6 +58,9 @@ const tiles: Tile[] = [
     icon: MoreHorizontal,
     action: "more",
     color: "from-primary/20 to-primary/5",
+    iconBg: "bg-primary/15",
+    iconColor: "text-primary",
+    ringColor: "shadow-primary/30",
   },
 ];
 
