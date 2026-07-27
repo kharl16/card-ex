@@ -119,13 +119,13 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
             {/* colorful icon ring */}
             <div
               className={cn(
-                "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 transition-transform group-hover:scale-105 sm:h-14 sm:w-14",
+                "relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-white/10 transition-transform group-hover:scale-105 sm:h-20 sm:w-20",
                 tile.iconBg,
                 tile.iconColor,
-                "shadow-[0_0_20px_-4px_currentColor]"
+                "shadow-[0_0_24px_-3px_currentColor]"
               )}
             >
-              <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
+              <Icon className="h-9 w-9 sm:h-11 sm:w-11" />
             </div>
 
             <span className="relative z-10 w-full truncate text-center text-[13px] font-semibold leading-tight text-foreground sm:text-sm">
