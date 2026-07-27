@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, PlayCircle, BookOpen, MoreHorizontal, Wrench, Users, CalendarDays, BarChart3, LayoutGrid } from "lucide-react";
-import { cn } from "@lib/utils";
+import { cn } from "@/lib/utils";
 import {
   Popover,
   PopoverContent,
