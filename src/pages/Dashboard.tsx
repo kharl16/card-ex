@@ -51,6 +51,7 @@ import { ReferralsFeed } from "@/components/dashboard/ReferralsFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
 import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
+import { DashboardQuadrantTiles } from "@/components/dashboard/DashboardQuadrantTiles";
 import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
 import { GlobalSearch } from "@/components/dashboard/GlobalSearch";
 import { ProgressTracker } from "@/components/dashboard/ProgressTracker";
