@@ -52,11 +52,15 @@ const tiles: Tile[] = [
   },
 ];
 
-const moreItems = [
+type MoreItem =
+  | { icon: typeof Wrench; label: string; path: string; action?: never }
+  | { icon: typeof BarChart3; label: string; action: "stats"; path?: never };
+
+const moreItems: MoreItem[] = [
   { icon: Wrench, label: "Tools", path: "/tools" },
   { icon: Users, label: "Leads", path: "/dashboard/leads" },
   { icon: CalendarDays, label: "Appointments", path: "/dashboard/appointments" },
-  { icon: BarChart3, label: "Stats", action: "stats" as const },
+  { icon: BarChart3, label: "Stats", action: "stats" },
   { icon: LayoutGrid, label: "Gallery", path: "/gallery" },
 ];
 
