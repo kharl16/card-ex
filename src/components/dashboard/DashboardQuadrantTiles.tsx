@@ -52,9 +52,12 @@ const tiles: Tile[] = [
   },
 ];
 
-type MoreItem =
-  | { icon: typeof MapPin; label: string; path: string; action?: never }
-  | { icon: typeof MapPin; label: string; action: "stats"; path?: never };
+interface MoreItem {
+  icon: typeof MapPin;
+  label: string;
+  path?: string;
+  action?: "stats";
+}
 
 const moreItems: MoreItem[] = [
   { icon: Wrench, label: "Tools", path: "/tools" },
