@@ -9,6 +9,10 @@ import {
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface DashboardDockProps {
+  onOpenStats?: () => void;
+}
+
 const mainTabs = [
   { icon: LayoutDashboard, label: "Home", path: "/dashboard" },
   { icon: MapPin, label: "Locator", path: "/locator" },
@@ -20,6 +24,7 @@ const moreTabs = [
   { icon: Wrench, label: "Tools", path: "/tools" },
   { icon: Users, label: "Leads", path: "/dashboard/leads" },
   { icon: CalendarDays, label: "Appointments", path: "/dashboard/appointments" },
+  { icon: BarChart3, label: "Stats", path: "/dashboard", action: "stats" as const },
   { icon: BarChart3, label: "Gallery", path: "/gallery" },
 ];
 
@@ -30,7 +35,7 @@ const adminTabs = [
   { icon: ShieldAlert, label: "OTP Audit", path: "/admin/otp-audit" },
 ];
 
-export function DashboardDock() {
+export function DashboardDock({ onOpenStats }: DashboardDockProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -69,16 +74,23 @@ export function DashboardDock() {
             <PopoverContent side="bottom" align="start" className="w-48 p-2">
               {moreTabs.map((m) => (
                 <button
-                  key={m.path}
+                  key={m.path + (m.action || "")}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                    isActive(m.path)
+                    isActive(m.path) && !m.action
                       ? "text-primary bg-primary/10"
                       : "text-foreground hover:bg-accent"
                   )}
-                  onClick={() => { setMoreOpen(false); navigate(m.path); }}
+                  onClick={() => {
+                    setMoreOpen(false);
+                    if (m.action === "stats") {
+                      onOpenStats?.();
+                    } else {
+                      navigate(m.path);
+                    }
+                  }}
                 >
-                  <m.icon className={cn("h-4 w-4", isActive(m.path) ? "text-primary" : "text-muted-foreground")} />
+                  <m.icon className={cn("h-4 w-4", isActive(m.path) && !m.action ? "text-primary" : "text-muted-foreground")} />
                   {m.label}
                 </button>
               ))}
