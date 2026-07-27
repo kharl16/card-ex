@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { CreditCard, Palette, ListTree, BarChart3 } from "lucide-react";
+import { CreditCard, Palette, ListTree } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -414,7 +414,7 @@ export default function Dashboard() {
       </header>
 
       {/* Desktop / Tablet dock nav */}
-      <DashboardDock />
+      <DashboardDock onOpenStats={() => setStatsOpen(true)} />
 
       {/* Sticky Deep Search — always visible while scrolling */}
       <div className="sticky top-0 z-40 border-b border-amber-400/20 bg-background/85 backdrop-blur-xl">
@@ -446,19 +446,6 @@ export default function Dashboard() {
           <MotivationalQuote />
         </div>
 
-        {/* Stats moved into "More" to declutter the dashboard */}
-        {!loading && (
-          <div className="flex justify-start">
-            <Button
-              variant="outline"
-              onClick={() => setStatsOpen(true)}
-              className="h-11 gap-2 rounded-xl border-border/50 text-sm font-semibold"
-            >
-              <BarChart3 className="h-4 w-4 text-primary" />
-              More
-            </Button>
-          </div>
-        )}
 
 
         {/* Referral Commissions Dashboard */}
@@ -551,7 +538,7 @@ export default function Dashboard() {
       <DashboardOrb />
 
       {/* Mobile bottom navigation */}
-      <MobileBottomNav />
+      <MobileBottomNav onOpenStats={() => setStatsOpen(true)} />
 
       {/* Dialogs */}
       {selectedCardId && (
