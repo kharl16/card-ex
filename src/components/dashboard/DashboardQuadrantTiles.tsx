@@ -97,7 +97,7 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
   };
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-2">
       {tiles.map((tile) => {
         const Icon = tile.icon;
         const isMore = tile.action === "more";
@@ -107,7 +107,7 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
             type="button"
             onClick={() => handleTileClick(tile)}
             className={cn(
-              "group relative flex flex-col items-center justify-center gap-2.5 overflow-hidden rounded-2xl border border-border/40 bg-card/40 px-3 py-5 transition-all",
+              "group relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-border/40 bg-card/40 transition-all",
               "hover:border-primary/40 hover:bg-card/60 active:scale-[0.98]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             )}
@@ -121,9 +121,16 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
               aria-hidden
             />
 
-            {/* icon ring */}
-            <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-primary/20 bg-primary/10 shadow-[0_0_16px_-4px_hsl(var(--primary)/0.35)] transition-transform group-hover:scale-105">
-              <Icon className="h-6 w-6 text-primary" />
+            {/* colorful icon ring */}
+            <div
+              className={cn(
+                "relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 transition-transform group-hover:scale-105",
+                tile.iconBg,
+                tile.ringColor,
+                "shadow-[0_0_20px_-4px_currentColor]"
+              )}
+            >
+              <Icon className={cn("h-7 w-7", tile.iconColor)} />
             </div>
 
             <span className="relative z-10 text-sm font-semibold text-foreground">
