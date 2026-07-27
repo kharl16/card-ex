@@ -102,7 +102,7 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
             type="button"
             onClick={() => handleTileClick(tile)}
             className={cn(
-              "group relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-border/40 bg-card/40 transition-all",
+              "group relative flex aspect-[5/4] w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-border/40 bg-card/40 px-2 transition-all",
               "hover:border-primary/40 hover:bg-card/60 active:scale-[0.98]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             )}
@@ -119,16 +119,16 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
             {/* colorful icon ring */}
             <div
               className={cn(
-                "relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 transition-transform group-hover:scale-105",
+                "relative z-10 flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/10 transition-transform group-hover:scale-105 sm:h-14 sm:w-14",
                 tile.iconBg,
                 tile.iconColor,
                 "shadow-[0_0_20px_-4px_currentColor]"
               )}
             >
-              <Icon className="h-7 w-7" />
+              <Icon className="h-6 w-6 sm:h-7 sm:w-7" />
             </div>
 
-            <span className="relative z-10 text-sm font-semibold text-foreground">
+            <span className="relative z-10 w-full truncate text-center text-[13px] font-semibold leading-tight text-foreground sm:text-sm">
               {tile.label}
             </span>
           </button>
@@ -164,11 +164,7 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
           );
         }
 
-        return (
-          <div key={tile.id}>
-            {tileContent}
-          </div>
-        );
+        return <div key={tile.id} className="min-w-0">{tileContent}</div>;
       })}
     </div>
   );
