@@ -19,6 +19,9 @@ interface Tile {
   path?: string;
   action?: "more";
   color: string;
+  iconBg: string;
+  iconColor: string;
+  ringColor: string;
 }
 
 const tiles: Tile[] = [
