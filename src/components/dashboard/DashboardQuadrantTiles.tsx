@@ -21,7 +21,6 @@ interface Tile {
   color: string;
   iconBg: string;
   iconColor: string;
-  ringColor: string;
 }
 
 const tiles: Tile[] = [
