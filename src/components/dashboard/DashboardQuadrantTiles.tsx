@@ -121,11 +121,11 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
               className={cn(
                 "relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 transition-transform group-hover:scale-105",
                 tile.iconBg,
-                tile.ringColor,
+                tile.iconColor,
                 "shadow-[0_0_20px_-4px_currentColor]"
               )}
             >
-              <Icon className={cn("h-7 w-7", tile.iconColor)} />
+              <Icon className="h-7 w-7" />
             </div>
 
             <span className="relative z-10 text-sm font-semibold text-foreground">
