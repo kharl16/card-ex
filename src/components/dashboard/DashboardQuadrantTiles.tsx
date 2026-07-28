@@ -112,15 +112,17 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
             type="button"
             onClick={() => handleTileClick(tile)}
             className={cn(
-              "group relative flex aspect-[5/4] w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-border/40 bg-card/40 px-2 transition-all",
-              "hover:border-primary/40 hover:bg-card/60 active:scale-[0.98]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              "group relative flex aspect-[5/4] w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-border/40 bg-card/40 px-2 transition-all duration-200",
+              "hover:bg-card/60 active:scale-[0.98]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+              tile.hoverBorder,
+              tile.focusRing
             )}
           >
             {/* subtle gradient wash */}
             <div
               className={cn(
-                "absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity group-hover:opacity-100",
+                "absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-200 group-hover:opacity-100",
                 tile.color
               )}
               aria-hidden
@@ -129,13 +131,14 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
             {/* colorful icon ring */}
             <div
               className={cn(
-                "relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-white/10 transition-transform group-hover:scale-105 sm:h-20 sm:w-20",
+                "relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-white/10 transition-all duration-200 group-hover:scale-110 group-focus-visible:scale-110 sm:h-20 sm:w-20",
                 tile.iconBg,
                 tile.iconColor,
-                "shadow-[0_0_24px_-3px_currentColor]"
+                "shadow-[0_0_24px_-3px_currentColor]",
+                "group-hover:shadow-[0_0_40px_-2px_currentColor] group-focus-visible:shadow-[0_0_40px_-2px_currentColor]"
               )}
             >
-              <Icon className="h-9 w-9 sm:h-11 sm:w-11" />
+              <Icon className="h-9 w-9 transition-transform duration-200 group-hover:scale-110 group-focus-visible:scale-110 sm:h-11 sm:w-11" />
             </div>
 
             <span className="relative z-10 w-full truncate text-center text-[13px] font-semibold leading-tight text-foreground sm:text-sm">
