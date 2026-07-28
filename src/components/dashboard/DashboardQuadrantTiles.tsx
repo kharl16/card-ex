@@ -36,6 +36,7 @@ const tiles: Tile[] = [
     icon: MapPin,
     path: "/locator",
     color: "from-emerald-500/20 to-emerald-500/5",
+    auraColor: "150 80% 45%",
     iconBg: "bg-emerald-500/15",
     iconColor: "text-emerald-400",
     hoverBorder: "hover:border-emerald-400/50",
@@ -47,6 +48,7 @@ const tiles: Tile[] = [
     icon: PlayCircle,
     path: "/dashboard/videos",
     color: "from-rose-500/20 to-rose-500/5",
+    auraColor: "340 75% 55%",
     iconBg: "bg-rose-500/15",
     iconColor: "text-rose-400",
     hoverBorder: "hover:border-rose-400/50",
@@ -58,6 +60,7 @@ const tiles: Tile[] = [
     icon: BookOpen,
     path: "/resources",
     color: "from-amber-500/20 to-amber-500/5",
+    auraColor: "38 92% 50%",
     iconBg: "bg-amber-500/15",
     iconColor: "text-amber-400",
     hoverBorder: "hover:border-amber-400/50",
@@ -69,12 +72,14 @@ const tiles: Tile[] = [
     icon: MoreHorizontal,
     action: "more",
     color: "from-primary/20 to-primary/5",
+    auraColor: "45 72% 53%",
     iconBg: "bg-primary/15",
     iconColor: "text-primary",
     hoverBorder: "hover:border-primary/50",
     focusRing: "focus-visible:ring-primary/50",
   },
 ];
+
 
 interface MoreItem {
   icon: typeof MapPin;
