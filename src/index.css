@@ -185,6 +185,56 @@ All colors MUST be HSL.
                   transparent 70%);
   }
 
+  /* Quadrant tile smoke/aura backgrounds */
+  .tile-aura-blob {
+    position: absolute;
+    width: 130%;
+    height: 130%;
+    border-radius: 9999px;
+    background: radial-gradient(circle at center, hsl(var(--aura-color) / 0.22) 0%, transparent 60%);
+    filter: blur(28px);
+    transform-origin: center center;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  .tile-aura-a {
+    animation: tile-aura-drift-a 14s ease-in-out infinite alternate;
+    top: -20%;
+    left: -20%;
+  }
+
+  .tile-aura-b {
+    animation: tile-aura-drift-b 18s ease-in-out infinite alternate;
+    top: 10%;
+    right: -25%;
+  }
+
+  .tile-aura-c {
+    animation: tile-aura-drift-c 22s ease-in-out infinite alternate;
+    bottom: -25%;
+    left: 10%;
+  }
+
+  @keyframes tile-aura-drift-a {
+    0%   { transform: translate(0, 0) scale(1); opacity: 0.45; }
+    50%  { transform: translate(18%, 14%) scale(1.12); opacity: 0.7; }
+    100% { transform: translate(-8%, 22%) scale(0.95); opacity: 0.5; }
+  }
+
+  @keyframes tile-aura-drift-b {
+    0%   { transform: translate(0, 0) scale(1.05); opacity: 0.5; }
+    50%  { transform: translate(-20%, 10%) scale(0.92); opacity: 0.65; }
+    100% { transform: translate(-6%, -18%) scale(1.08); opacity: 0.45; }
+  }
+
+  @keyframes tile-aura-drift-c {
+    0%   { transform: translate(0, 0) scale(0.95); opacity: 0.4; }
+    50%  { transform: translate(14%, -12%) scale(1.1); opacity: 0.6; }
+    100% { transform: translate(-16%, -4%) scale(1); opacity: 0.5; }
+  }
+
+
   .perspective-1200 {
     perspective: 1200px;
   }
@@ -215,7 +265,12 @@ All colors MUST be HSL.
   .cardex-slide-inactive {
     transition: none;
   }
+
+  .tile-aura-blob {
+    animation: none !important;
+  }
 }
+
 
 /* Leaflet map pin labels (permanent name badge) */
 .leaflet-tooltip.location-pin-label {
