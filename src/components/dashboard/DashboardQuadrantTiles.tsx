@@ -71,12 +71,12 @@ const tiles: Tile[] = [
     label: "More",
     icon: MoreHorizontal,
     action: "more",
-    color: "from-primary/20 to-primary/5",
-    auraColor: "45 72% 53%",
-    iconBg: "bg-primary/15",
-    iconColor: "text-primary",
-    hoverBorder: "hover:border-primary/50",
-    focusRing: "focus-visible:ring-primary/50",
+    color: "from-blue-500/20 to-blue-500/5",
+    auraColor: "210 80% 55%",
+    iconBg: "bg-blue-500/15",
+    iconColor: "text-blue-400",
+    hoverBorder: "hover:border-blue-400/50",
+    focusRing: "focus-visible:ring-blue-400/50",
   },
 ];
 
