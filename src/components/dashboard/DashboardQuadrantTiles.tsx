@@ -34,6 +34,8 @@ const tiles: Tile[] = [
     color: "from-emerald-500/20 to-emerald-500/5",
     iconBg: "bg-emerald-500/15",
     iconColor: "text-emerald-400",
+    hoverBorder: "hover:border-emerald-400/50",
+    focusRing: "focus-visible:ring-emerald-400/50",
   },
   {
     id: "videos",
@@ -43,6 +45,8 @@ const tiles: Tile[] = [
     color: "from-rose-500/20 to-rose-500/5",
     iconBg: "bg-rose-500/15",
     iconColor: "text-rose-400",
+    hoverBorder: "hover:border-rose-400/50",
+    focusRing: "focus-visible:ring-rose-400/50",
   },
   {
     id: "resources",
@@ -52,6 +56,8 @@ const tiles: Tile[] = [
     color: "from-amber-500/20 to-amber-500/5",
     iconBg: "bg-amber-500/15",
     iconColor: "text-amber-400",
+    hoverBorder: "hover:border-amber-400/50",
+    focusRing: "focus-visible:ring-amber-400/50",
   },
   {
     id: "more",
@@ -61,6 +67,8 @@ const tiles: Tile[] = [
     color: "from-primary/20 to-primary/5",
     iconBg: "bg-primary/15",
     iconColor: "text-primary",
+    hoverBorder: "hover:border-primary/50",
+    focusRing: "focus-visible:ring-primary/50",
   },
 ];
 
