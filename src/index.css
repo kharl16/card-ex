@@ -265,7 +265,12 @@ All colors MUST be HSL.
   .cardex-slide-inactive {
     transition: none;
   }
+
+  .tile-aura-blob {
+    animation: none !important;
+  }
 }
+
 
 /* Leaflet map pin labels (permanent name badge) */
 .leaflet-tooltip.location-pin-label {
