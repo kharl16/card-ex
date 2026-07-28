@@ -21,11 +21,13 @@ interface Tile {
   path?: string;
   action?: "more";
   color: string;
+  auraColor: string;
   iconBg: string;
   iconColor: string;
   hoverBorder: string;
   focusRing: string;
 }
+
 
 const tiles: Tile[] = [
   {
