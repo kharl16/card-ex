@@ -128,14 +128,27 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
               tile.focusRing
             )}
           >
-            {/* subtle gradient wash */}
+            {/* permanent base gradient wash */}
             <div
               className={cn(
-                "absolute inset-0 bg-gradient-to-br opacity-0 transition-opacity duration-200 group-hover:opacity-100",
+                "absolute inset-0 z-0 bg-gradient-to-br opacity-30",
                 tile.color
               )}
               aria-hidden
             />
+
+            {/* subtle moving smoke/aura */}
+            <TileAuraBackground color={tile.auraColor} />
+
+            {/* hover gradient intensifier */}
+            <div
+              className={cn(
+                "absolute inset-0 z-0 bg-gradient-to-br opacity-0 transition-opacity duration-200 group-hover:opacity-100",
+                tile.color
+              )}
+              aria-hidden
+            />
+
 
             {/* colorful icon ring */}
             <div
