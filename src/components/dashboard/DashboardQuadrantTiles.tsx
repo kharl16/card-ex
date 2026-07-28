@@ -21,6 +21,8 @@ interface Tile {
   color: string;
   iconBg: string;
   iconColor: string;
+  hoverBorder: string;
+  focusRing: string;
 }
 
 const tiles: Tile[] = [
