@@ -58,6 +58,8 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
   const [submitting, setSubmitting] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate | null>(null);
+  const [templateType, setTemplateType] = useState<TemplateType>("card");
+
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
