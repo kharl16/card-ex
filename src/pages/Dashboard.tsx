@@ -536,8 +536,8 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Dashboard floating orb for quick links */}
-      <DashboardOrb />
+      {/* Dashboard floating action button — Create Template from anywhere */}
+      <DashboardOrb onAction={() => setNewCardDialogOpen(true)} label="Create Template" />
 
       {/* Mobile bottom navigation */}
       <MobileBottomNav onOpenStats={() => setStatsOpen(true)} />
