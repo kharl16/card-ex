@@ -120,6 +120,7 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
           <button
             type="button"
             onClick={() => handleTileClick(tile)}
+            style={{ "--aura-color": tile.auraColor } as React.CSSProperties}
             className={cn(
               "group relative flex aspect-[5/4] w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-border/40 bg-card/40 px-2 transition-all duration-200",
               "tile-pulsating-border",
