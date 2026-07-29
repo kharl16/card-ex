@@ -294,6 +294,11 @@ All colors MUST be HSL.
   .tile-aura-blob {
     animation: none !important;
   }
+
+  .tile-pulsating-border::before {
+    animation: none !important;
+    opacity: 0.55;
+  }
 }
 
 
