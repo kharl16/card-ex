@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Layers } from "lucide-react";
+import { Loader2, Sparkles, Layers, IdCard, LayoutTemplate, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { TemplateSelectionModal } from "./TemplateSelectionModal";
@@ -25,6 +25,14 @@ interface NewCardDialogProps {
   onOpenChange: (open: boolean) => void;
   profileName?: string;
 }
+
+type TemplateType = "card" | "landing" | "dashboard";
+
+const TEMPLATE_TYPES: { value: TemplateType; label: string; icon: typeof IdCard; hint: string }[] = [
+  { value: "card", label: "Digital Card", icon: IdCard, hint: "A shareable contact card — the default for most users." },
+  { value: "landing", label: "Landing Page", icon: LayoutTemplate, hint: "A long-scroll page for products, packages, and testimonies." },
+  { value: "dashboard", label: "Team Dashboard", icon: LayoutDashboard, hint: "A directory-style hub for your team or organization." },
+];
 
 const schema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(50),
