@@ -122,6 +122,7 @@ export function DashboardQuadrantTiles({ onOpenStats }: DashboardQuadrantTilesPr
             onClick={() => handleTileClick(tile)}
             className={cn(
               "group relative flex aspect-[5/4] w-full min-w-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-2xl border border-border/40 bg-card/40 px-2 transition-all duration-200",
+              "tile-pulsating-border",
               "hover:bg-card/60 active:scale-[0.98]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               tile.hoverBorder,
