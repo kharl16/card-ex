@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, Layers } from "lucide-react";
+import { Loader2, Sparkles, Layers, IdCard, LayoutTemplate, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { TemplateSelectionModal } from "./TemplateSelectionModal";
@@ -25,6 +25,14 @@ interface NewCardDialogProps {
   onOpenChange: (open: boolean) => void;
   profileName?: string;
 }
+
+type TemplateType = "card" | "landing" | "dashboard";
+
+const TEMPLATE_TYPES: { value: TemplateType; label: string; icon: typeof IdCard; hint: string }[] = [
+  { value: "card", label: "Digital Card", icon: IdCard, hint: "A shareable contact card — the default for most users." },
+  { value: "landing", label: "Landing Page", icon: LayoutTemplate, hint: "A long-scroll page for products, packages, and testimonies." },
+  { value: "dashboard", label: "Team Dashboard", icon: LayoutDashboard, hint: "A directory-style hub for your team or organization." },
+];
 
 const schema = z.object({
   firstName: z.string().trim().min(1, "First name is required").max(50),
@@ -50,6 +58,8 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
   const [submitting, setSubmitting] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<CardTemplate | null>(null);
+  const [templateType, setTemplateType] = useState<TemplateType>("card");
+
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -78,6 +88,7 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
 
   const resetForm = () => {
     setSelectedTemplate(null);
+    setTemplateType("card");
     setErrors({});
     // Keep names/email prefilled for convenience; clear sensitive/per-card fields
     setPhone("");
@@ -157,7 +168,38 @@ export function NewCardDialog({ open, onOpenChange, profileName }: NewCardDialog
         </DialogHeader>
 
         <form onSubmit={onSubmit} className="space-y-4">
+          {/* Template type (defaults to Digital Card) */}
+          <div className="rounded-lg border border-border/50 p-3 bg-background/40">
+            <div className="text-sm font-medium">Template type</div>
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {TEMPLATE_TYPES.map((t) => {
+                const Icon = t.icon;
+                const active = templateType === t.value;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setTemplateType(t.value)}
+                    aria-pressed={active}
+                    className={`flex min-h-[44px] items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                      active
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border/50 text-muted-foreground hover:bg-muted/40"
+                    }`}
+                  >
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-primary" : ""}`} />
+                    <span className="truncate">{t.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {TEMPLATE_TYPES.find((t) => t.value === templateType)?.hint}
+            </p>
+          </div>
+
           {/* Template picker (required) */}
+
           <div className={`rounded-lg border p-3 bg-background/40 ${errors.template ? "border-destructive" : "border-border/50"}`}>
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
