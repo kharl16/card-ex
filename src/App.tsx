@@ -102,6 +102,47 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/dashboard/activity"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DashboardActivity />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/profile"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DashboardProfile />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/settings"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DashboardSettings />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/workspace"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <Workspace />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+
+        <Route
           path="/cards/:id/edit"
           element={
             <PageTransition>
