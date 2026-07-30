@@ -13,6 +13,11 @@ import OAuthConsent from "./pages/OAuthConsent";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import CardEditor from "./pages/CardEditor";
+import DashboardActivity from "./pages/DashboardActivity";
+import DashboardProfile from "./pages/DashboardProfile";
+import DashboardSettings from "./pages/DashboardSettings";
+import Workspace from "./pages/Workspace";
+
 import PublicCard from "./pages/PublicCard";
 import SharedCard from "./pages/SharedCard";
 import CarouselSharePage from "./pages/CarouselSharePage";
