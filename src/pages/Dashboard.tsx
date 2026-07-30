@@ -481,12 +481,6 @@ export default function Dashboard() {
         )}
 
 
-        {/* Quick Actions */}
-        <QuickActions
-          onNewCard={() => setNewCardDialogOpen(true)}
-          onQuickShare={handleQuickShare}
-          hasCards={cards.length > 0}
-        />
 
         {/* Cards section */}
         {loading ? (
