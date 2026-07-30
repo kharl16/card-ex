@@ -568,9 +568,9 @@ export default function Dashboard() {
             disabled: cards.length === 0,
             onSelect: () => {
               if (!cards[0]) return;
-              setDuplicateSourceCard(cards[0]);
-              setDuplicateDialogOpen(true);
+              setSelectedCardForDuplicate(cards[0]);
             },
+
           },
           {
             id: "qr",
