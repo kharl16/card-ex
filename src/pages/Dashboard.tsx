@@ -41,7 +41,9 @@ import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
-import { QuickActions } from "@/components/dashboard/QuickActions";
+import { TodaySummary } from "@/components/dashboard/TodaySummary";
+import { Pencil, Upload, Copy as CopyIcon, QrCode, Share2, FilePlus2 } from "lucide-react";
+
 
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
