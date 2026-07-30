@@ -13,6 +13,11 @@ import OAuthConsent from "./pages/OAuthConsent";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import CardEditor from "./pages/CardEditor";
+import DashboardActivity from "./pages/DashboardActivity";
+import DashboardProfile from "./pages/DashboardProfile";
+import DashboardSettings from "./pages/DashboardSettings";
+import Workspace from "./pages/Workspace";
+
 import PublicCard from "./pages/PublicCard";
 import SharedCard from "./pages/SharedCard";
 import CarouselSharePage from "./pages/CarouselSharePage";
@@ -101,6 +106,47 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
+        <Route
+          path="/dashboard/activity"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DashboardActivity />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/profile"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DashboardProfile />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/settings"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DashboardSettings />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/workspace"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <Workspace />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+
         <Route
           path="/cards/:id/edit"
           element={

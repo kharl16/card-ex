@@ -1,12 +1,22 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
 import { createPortal } from "react-dom";
-import { Plus } from "lucide-react";
+import { Zap, type LucideIcon } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Big.png";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+
+export interface QuickAction {
+  id: string;
+  label: string;
+  description?: string;
+  icon: LucideIcon;
+  onSelect: () => void;
+  disabled?: boolean;
+}
 
 interface DashboardOrbProps {
-  /** Primary action fired on tap (drag does not trigger it). */
-  onAction: () => void;
+  /** Quick actions shown when the orb is tapped. */
+  actions: QuickAction[];
   label?: string;
 }
 
@@ -14,10 +24,11 @@ const ORB_SIZE = 56;
 const MARGIN = 16;
 const POSITION_KEY = "dashboard_orb_position";
 
-export function DashboardOrb({ onAction, label = "Create Template" }: DashboardOrbProps) {
+export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [showLabel, setShowLabel] = useState(true);
+  const [open, setOpen] = useState(false);
 
   const motionX = useMotionValue(0);
   const motionY = useMotionValue(0);
@@ -153,7 +164,7 @@ export function DashboardOrb({ onAction, label = "Create Template" }: DashboardO
           localStorage.setItem(POSITION_KEY, JSON.stringify(pos));
         }}
         onClick={() => {
-          if (!isDragging) onAction();
+          if (!isDragging) setOpen(true);
         }}
         role="button"
         tabIndex={0}
@@ -161,7 +172,7 @@ export function DashboardOrb({ onAction, label = "Create Template" }: DashboardO
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onAction();
+            setOpen(true);
           }
         }}
         style={{
@@ -202,7 +213,7 @@ export function DashboardOrb({ onAction, label = "Create Template" }: DashboardO
             className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md ring-2 ring-background"
             aria-hidden="true"
           >
-            <Plus className="h-3.5 w-3.5" strokeWidth={3} />
+            <Zap className="h-3 w-3" strokeWidth={3} />
           </span>
         </div>
 
@@ -227,5 +238,42 @@ export function DashboardOrb({ onAction, label = "Create Template" }: DashboardO
     </div>
   );
 
-  return typeof document !== "undefined" ? createPortal(fab, document.body) : null;
+  return (
+    <>
+      {typeof document !== "undefined" ? createPortal(fab, document.body) : null}
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>Quick Actions</DialogTitle>
+            <DialogDescription>Create or update something right away.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            {actions.map((action) => (
+              <button
+                key={action.id}
+                type="button"
+                disabled={action.disabled}
+                onClick={() => {
+                  setOpen(false);
+                  action.onSelect();
+                }}
+                className="flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-border/40 bg-card/40 px-4 py-3 text-left transition-all hover:border-primary/40 hover:bg-card/70 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <action.icon className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-foreground">{action.label}</span>
+                  {action.description && (
+                    <span className="block truncate text-xs text-muted-foreground">{action.description}</span>
+                  )}
+                </span>
+              </button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }

@@ -41,7 +41,9 @@ import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
-import { QuickActions } from "@/components/dashboard/QuickActions";
+import { TodaySummary } from "@/components/dashboard/TodaySummary";
+import { Pencil, Upload, Copy as CopyIcon, QrCode, Share2, FilePlus2 } from "lucide-react";
+
 
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
@@ -445,8 +447,10 @@ export default function Dashboard() {
         <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
           <MotivationalQuote />
-          <DashboardQuadrantTiles onOpenStats={() => setStatsOpen(true)} />
+          <TodaySummary cards={cards} />
+          <DashboardQuadrantTiles />
         </div>
+
 
 
 
@@ -477,12 +481,6 @@ export default function Dashboard() {
         )}
 
 
-        {/* Quick Actions */}
-        <QuickActions
-          onNewCard={() => setNewCardDialogOpen(true)}
-          onQuickShare={handleQuickShare}
-          hasCards={cards.length > 0}
-        />
 
         {/* Cards section */}
         {loading ? (
@@ -536,11 +534,66 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Dashboard floating action button — Create Template from anywhere */}
-      <DashboardOrb onAction={() => setNewCardDialogOpen(true)} label="Create Template" />
+      {/* Dashboard floating action button — Quick Actions from anywhere */}
+      <DashboardOrb
+        label="Quick Actions"
+        actions={[
+          {
+            id: "edit-profile",
+            label: "Edit Profile",
+            description: "Update your personal details",
+            icon: Pencil,
+            onSelect: () => navigate("/dashboard/profile"),
+          },
+          {
+            id: "edit-card",
+            label: "Upload Photos / Videos",
+            description: "Open your card editor media",
+            icon: Upload,
+            disabled: cards.length === 0,
+            onSelect: () => cards[0] && navigate(`/cards/${cards[0].id}/edit`),
+          },
+          {
+            id: "create-template",
+            label: "Create Template",
+            description: "Start a new card or template",
+            icon: FilePlus2,
+            onSelect: () => setNewCardDialogOpen(true),
+          },
+          {
+            id: "duplicate",
+            label: "Duplicate Card",
+            description: "Copy an existing card",
+            icon: CopyIcon,
+            disabled: cards.length === 0,
+            onSelect: () => {
+              if (!cards[0]) return;
+              setSelectedCardForDuplicate(cards[0]);
+            },
+
+          },
+          {
+            id: "qr",
+            label: "Download QR / vCard",
+            description: "Share your card offline",
+            icon: QrCode,
+            disabled: cards.length === 0,
+            onSelect: () => cards[0] && navigate(`/cards/${cards[0].id}/edit?section=share`),
+          },
+          {
+            id: "share",
+            label: "Share Card",
+            description: "Send your card link",
+            icon: Share2,
+            disabled: cards.length === 0,
+            onSelect: handleQuickShare,
+          },
+        ]}
+      />
 
       {/* Mobile bottom navigation */}
-      <MobileBottomNav onOpenStats={() => setStatsOpen(true)} />
+      <MobileBottomNav />
+
 
       {/* Dialogs */}
       {selectedCardId && (
