@@ -14,7 +14,11 @@ interface TileTheme {
   auraColor: string;
   iconBg: string;
   iconColor: string;
+  /** Higher-contrast variant used for small text (AA on dark surfaces). */
+  textColor: string;
+  badgeClass: string;
   hoverBorder: string;
+  focusBorder: string;
   focusRing: string;
 }
 
@@ -23,35 +27,48 @@ const themes: Record<string, TileTheme> = {
     color: "from-emerald-500/20 to-emerald-500/5",
     auraColor: "150 80% 45%",
     iconBg: "bg-emerald-500/15",
-    iconColor: "text-emerald-400",
-    hoverBorder: "hover:border-emerald-400/50",
-    focusRing: "focus-visible:ring-emerald-400/50",
+    iconColor: "text-emerald-300",
+    textColor: "text-emerald-200",
+    badgeClass: "bg-emerald-500/25 text-emerald-100",
+    hoverBorder: "hover:border-emerald-400/60",
+    focusBorder: "focus-visible:border-emerald-300",
+    focusRing: "focus-visible:ring-emerald-300",
   },
   videos: {
     color: "from-red-500/20 to-red-500/5",
     auraColor: "0 75% 55%",
     iconBg: "bg-red-500/15",
-    iconColor: "text-red-400",
-    hoverBorder: "hover:border-red-400/50",
-    focusRing: "focus-visible:ring-red-400/50",
+    iconColor: "text-red-300",
+    textColor: "text-red-200",
+    badgeClass: "bg-red-500/25 text-red-100",
+    hoverBorder: "hover:border-red-400/60",
+    focusBorder: "focus-visible:border-red-300",
+    focusRing: "focus-visible:ring-red-300",
   },
   resources: {
     color: "from-amber-500/20 to-amber-500/5",
     auraColor: "38 92% 50%",
     iconBg: "bg-amber-500/15",
-    iconColor: "text-amber-400",
-    hoverBorder: "hover:border-amber-400/50",
-    focusRing: "focus-visible:ring-amber-400/50",
+    iconColor: "text-amber-300",
+    textColor: "text-amber-200",
+    badgeClass: "bg-amber-500/25 text-amber-100",
+    hoverBorder: "hover:border-amber-400/60",
+    focusBorder: "focus-visible:border-amber-300",
+    focusRing: "focus-visible:ring-amber-300",
   },
   workspace: {
     color: "from-blue-500/20 to-blue-500/5",
     auraColor: "210 80% 55%",
     iconBg: "bg-blue-500/15",
-    iconColor: "text-blue-400",
-    hoverBorder: "hover:border-blue-400/50",
-    focusRing: "focus-visible:ring-blue-400/50",
+    iconColor: "text-blue-300",
+    textColor: "text-blue-200",
+    badgeClass: "bg-blue-500/25 text-blue-100",
+    hoverBorder: "hover:border-blue-400/60",
+    focusBorder: "focus-visible:border-blue-300",
+    focusRing: "focus-visible:ring-blue-300",
   },
 };
+
 
 export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
   const navigate = useNavigate();
