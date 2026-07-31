@@ -126,10 +126,29 @@ export function useDashboardTileStats(): DashboardTileStats {
         0
       );
 
+      // True nearest branch by great-circle distance; null unless we know where the user is.
+      const position = await getGrantedPosition();
+      if (cancelled) return;
+
+      let nearestBranch: string | null = null;
+      if (position) {
+        let best = Infinity;
+        for (const entry of (nearestRes.data || []) as any[]) {
+          const coords = extractCoordsFromUrl(entry.maps_link);
+          if (!coords) continue;
+          const d = calculateDistance(position.lat, position.lng, coords.lat, coords.lng);
+          if (d < best) {
+            best = d;
+            nearestBranch = entry.location ?? null;
+          }
+        }
+      }
+
       setStats({
         loading: false,
-        branches: branchesRes.count ?? 0,
-        nearestBranch: nearestRes.data?.[0]?.location ?? null,
+        branches: (nearestRes.data || []).length || (branchesRes.count ?? 0),
+        nearestBranch,
+
         videos: videosRes.count ?? 0,
         newVideos: newVideosRes.count ?? 0,
         resources: (filesRes.count ?? 0) + (linksRes.count ?? 0) + (ambassadorsRes.count ?? 0),
