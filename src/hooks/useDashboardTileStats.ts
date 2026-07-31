@@ -82,7 +82,7 @@ export function useDashboardTileStats(): DashboardTileStats {
         cardsRes,
       ] = await Promise.all([
         supabase.from("directory_entries").select("id", { count: "exact", head: true }).eq("is_active", true),
-        supabase.from("directory_entries").select("location").eq("is_active", true).order("location").limit(1),
+        supabase.from("directory_entries").select("location, maps_link").eq("is_active", true),
         supabase.from("training_items").select("id", { count: "exact", head: true }).eq("is_active", true),
         supabase
           .from("training_items")
