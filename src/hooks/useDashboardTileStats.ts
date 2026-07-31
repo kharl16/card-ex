@@ -1,5 +1,25 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { calculateDistance, extractCoordsFromUrl } from "@/lib/geoDistance";
+
+/** Resolve the user's position only when permission was already granted (no prompt spam). */
+async function getGrantedPosition(): Promise<{ lat: number; lng: number } | null> {
+  if (typeof navigator === "undefined" || !navigator.geolocation) return null;
+  try {
+    const perm = await navigator.permissions?.query({ name: "geolocation" as PermissionName });
+    if (perm && perm.state !== "granted") return null;
+  } catch {
+    return null;
+  }
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => resolve(null),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 }
+    );
+  });
+}
+
 
 export interface DashboardTileStats {
   loading: boolean;
