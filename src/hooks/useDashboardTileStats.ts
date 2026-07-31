@@ -1,5 +1,25 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { calculateDistance, extractCoordsFromUrl } from "@/lib/geoDistance";
+
+/** Resolve the user's position only when permission was already granted (no prompt spam). */
+async function getGrantedPosition(): Promise<{ lat: number; lng: number } | null> {
+  if (typeof navigator === "undefined" || !navigator.geolocation) return null;
+  try {
+    const perm = await navigator.permissions?.query({ name: "geolocation" as PermissionName });
+    if (perm && perm.state !== "granted") return null;
+  } catch {
+    return null;
+  }
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => resolve(null),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 }
+    );
+  });
+}
+
 
 export interface DashboardTileStats {
   loading: boolean;
@@ -62,7 +82,7 @@ export function useDashboardTileStats(): DashboardTileStats {
         cardsRes,
       ] = await Promise.all([
         supabase.from("directory_entries").select("id", { count: "exact", head: true }).eq("is_active", true),
-        supabase.from("directory_entries").select("location").eq("is_active", true).order("location").limit(1),
+        supabase.from("directory_entries").select("location, maps_link").eq("is_active", true),
         supabase.from("training_items").select("id", { count: "exact", head: true }).eq("is_active", true),
         supabase
           .from("training_items")
@@ -106,10 +126,29 @@ export function useDashboardTileStats(): DashboardTileStats {
         0
       );
 
+      // True nearest branch by great-circle distance; null unless we know where the user is.
+      const position = await getGrantedPosition();
+      if (cancelled) return;
+
+      let nearestBranch: string | null = null;
+      if (position) {
+        let best = Infinity;
+        for (const entry of (nearestRes.data || []) as any[]) {
+          const coords = extractCoordsFromUrl(entry.maps_link);
+          if (!coords) continue;
+          const d = calculateDistance(position.lat, position.lng, coords.lat, coords.lng);
+          if (d < best) {
+            best = d;
+            nearestBranch = entry.location ?? null;
+          }
+        }
+      }
+
       setStats({
         loading: false,
-        branches: branchesRes.count ?? 0,
-        nearestBranch: nearestRes.data?.[0]?.location ?? null,
+        branches: (nearestRes.data || []).length || (branchesRes.count ?? 0),
+        nearestBranch,
+
         videos: videosRes.count ?? 0,
         newVideos: newVideosRes.count ?? 0,
         resources: (filesRes.count ?? 0) + (linksRes.count ?? 0) + (ambassadorsRes.count ?? 0),
