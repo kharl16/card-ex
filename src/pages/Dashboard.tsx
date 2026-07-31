@@ -244,12 +244,22 @@ export default function Dashboard() {
     if (!open) { setRenameTargetCard(null); setRenameValue(""); setRenameSaving(false); }
   };
 
+  // The user's main card: prefer a published card, otherwise the oldest one.
+  const primaryCard = useMemo(() => {
+    if (cards.length === 0) return null;
+    const byOldest = [...cards].sort(
+      (a, b) => new Date(a.created_at || "").getTime() - new Date(b.created_at || "").getTime()
+    );
+    return byOldest.find((c) => c.is_published) || byOldest[0];
+  }, [cards]);
+
   const handleQuickShare = () => {
-    if (cards.length > 0) {
-      setSelectedCardId(cards[0].id);
+    if (primaryCard) {
+      setSelectedCardId(primaryCard.id);
       setShareDialogOpen(true);
     }
   };
+
 
   const filteredAndSortedCards = useMemo(() => {
     const list = [...cards];
