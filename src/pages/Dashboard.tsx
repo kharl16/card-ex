@@ -560,8 +560,8 @@ export default function Dashboard() {
             label: "Upload Photos / Videos",
             description: "Open your card editor media",
             icon: Upload,
-            disabled: cards.length === 0,
-            onSelect: () => cards[0] && navigate(`/cards/${cards[0].id}/edit`),
+            disabled: !primaryCard,
+            onSelect: () => primaryCard && navigate(`/cards/${primaryCard.id}/edit`),
           },
           {
             id: "create-template",
@@ -575,10 +575,10 @@ export default function Dashboard() {
             label: "Duplicate Card",
             description: "Copy an existing card",
             icon: CopyIcon,
-            disabled: cards.length === 0,
+            disabled: !primaryCard,
             onSelect: () => {
-              if (!cards[0]) return;
-              setSelectedCardForDuplicate(cards[0]);
+              if (!primaryCard) return;
+              setSelectedCardForDuplicate(primaryCard);
             },
 
           },
@@ -587,19 +587,20 @@ export default function Dashboard() {
             label: "Download QR / vCard",
             description: "Share your card offline",
             icon: QrCode,
-            disabled: cards.length === 0,
-            onSelect: () => cards[0] && navigate(`/cards/${cards[0].id}/edit?section=share`),
+            disabled: !primaryCard,
+            onSelect: () => primaryCard && navigate(`/cards/${primaryCard.id}/edit?section=share`),
           },
           {
             id: "share",
             label: "Share Card",
             description: "Send your card link",
             icon: Share2,
-            disabled: cards.length === 0,
+            disabled: !primaryCard,
             onSelect: handleQuickShare,
           },
         ]}
       />
+
 
       {/* Mobile bottom navigation */}
       <MobileBottomNav />
