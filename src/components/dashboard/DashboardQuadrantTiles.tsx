@@ -114,75 +114,84 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-      {tiles.map((tile) => {
-        const theme = themes[tile.id];
-        const Icon = tile.icon;
+    <nav aria-label="Dashboard sections">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {tiles.map((tile) => {
+          const theme = themes[tile.id];
+          const Icon = tile.icon;
 
-        return (
-          <button
-            key={tile.id}
-            type="button"
-            onClick={() => navigate(tile.path)}
-            style={{ "--aura-color": theme.auraColor } as React.CSSProperties}
-            className={cn(
-              "group relative flex min-h-[132px] w-full min-w-0 flex-col justify-between gap-3 overflow-hidden rounded-3xl border border-border/40 bg-card/40 p-4 text-left backdrop-blur-xl transition-all duration-300",
-              "tile-pulsating-border shadow-lg shadow-black/20",
-              "hover:-translate-y-0.5 hover:bg-card/60 hover:shadow-xl active:scale-[0.99]",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-              theme.hoverBorder,
-              theme.focusRing
-            )}
-          >
-            <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-30", theme.color)} aria-hidden />
-            <TileAuraBackground color={theme.auraColor} />
-            <div
-              className={cn(
-                "absolute inset-0 z-0 bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100",
-                theme.color
-              )}
-              aria-hidden
-            />
-
-            <div className="relative z-10 flex items-start gap-3">
-              <div
+          return (
+            <li key={tile.id} className="min-w-0">
+              <button
+                type="button"
+                onClick={() => navigate(tile.path)}
+                aria-label={`${tile.label}. ${tile.primary}. ${tile.secondary}`}
+                style={{ "--aura-color": theme.auraColor } as React.CSSProperties}
                 className={cn(
-                  "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 transition-transform duration-300 group-hover:scale-110",
-                  theme.iconBg,
-                  theme.iconColor,
-                  "shadow-[0_0_24px_-6px_currentColor]"
+                  "group relative flex min-h-[132px] w-full min-w-0 flex-col justify-between gap-3 overflow-hidden rounded-3xl border border-border/40 bg-card/40 p-4 text-left backdrop-blur-xl transition-all duration-300",
+                  "tile-pulsating-border shadow-lg shadow-black/20",
+                  "hover:-translate-y-0.5 hover:bg-card/60 hover:shadow-xl active:scale-[0.99]",
+                  "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:-translate-y-0.5 focus-visible:bg-card/60",
+                  theme.hoverBorder,
+                  theme.focusBorder,
+                  theme.focusRing
                 )}
               >
-                <Icon className="h-7 w-7" />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="truncate text-base font-bold tracking-tight text-foreground sm:text-lg">
-                    {tile.label}
-                  </h3>
-                  {tile.badge && (
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
-                        theme.iconBg,
-                        theme.iconColor
-                      )}
-                    >
-                      {tile.badge}
-                    </span>
+                <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-30", theme.color)} aria-hidden />
+                <TileAuraBackground color={theme.auraColor} />
+                <div
+                  className={cn(
+                    "absolute inset-0 z-0 bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100",
+                    theme.color
                   )}
+                  aria-hidden
+                />
+
+                <div className="relative z-10 flex items-start gap-3">
+                  <div
+                    className={cn(
+                      "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110",
+                      theme.iconBg,
+                      theme.iconColor,
+                      "shadow-[0_0_24px_-6px_currentColor]"
+                    )}
+                    aria-hidden
+                  >
+                    <Icon className="h-7 w-7" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="truncate text-base font-bold tracking-tight text-foreground sm:text-lg">
+                        {tile.label}
+                      </h3>
+                      {tile.badge && (
+                        <span
+                          className={cn(
+                            "shrink-0 rounded-full border border-white/20 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide",
+                            theme.badgeClass
+                          )}
+                        >
+                          {tile.badge}
+                        </span>
+                      )}
+                    </div>
+                    <p className={cn("truncate text-sm font-semibold", theme.textColor)}>{tile.primary}</p>
+                  </div>
+
+                  <ArrowUpRight
+                    className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground group-focus-visible:text-foreground"
+                    aria-hidden
+                  />
                 </div>
-                <p className={cn("truncate text-sm font-semibold", theme.iconColor)}>{tile.primary}</p>
-              </div>
 
-              <ArrowUpRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground" />
-            </div>
-
-            <p className="relative z-10 truncate text-xs text-muted-foreground">{tile.secondary}</p>
-          </button>
-        );
-      })}
-    </div>
+                <p className="relative z-10 truncate text-xs text-foreground/70">{tile.secondary}</p>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
   );
 }
+
