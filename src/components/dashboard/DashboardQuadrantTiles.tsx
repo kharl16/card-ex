@@ -28,12 +28,12 @@ const themes: Record<string, TileTheme> = {
     focusRing: "focus-visible:ring-emerald-400/50",
   },
   videos: {
-    color: "from-rose-500/20 to-rose-500/5",
-    auraColor: "340 75% 55%",
-    iconBg: "bg-rose-500/15",
-    iconColor: "text-rose-400",
-    hoverBorder: "hover:border-rose-400/50",
-    focusRing: "focus-visible:ring-rose-400/50",
+    color: "from-red-500/20 to-red-500/5",
+    auraColor: "0 75% 55%",
+    iconBg: "bg-red-500/15",
+    iconColor: "text-red-400",
+    hoverBorder: "hover:border-red-400/50",
+    focusRing: "focus-visible:ring-red-400/50",
   },
   resources: {
     color: "from-amber-500/20 to-amber-500/5",
