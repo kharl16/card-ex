@@ -3,6 +3,8 @@ interface TilePhotoBackdropProps {
   src: string;
   /** HSL triplet (e.g. "150 80% 45%") used to tint the texture toward the tile accent. */
   color: string;
+  /** Optional focal point for the background image. Defaults to center. */
+  objectPosition?: string;
 }
 
 /**
@@ -10,7 +12,7 @@ interface TilePhotoBackdropProps {
  * Purely presentational: hidden from a11y, never intercepts pointer events,
  * and always sits under a dark scrim so tile text keeps its contrast.
  */
-export function TilePhotoBackdrop({ src, color }: TilePhotoBackdropProps) {
+export function TilePhotoBackdrop({ src, color, objectPosition = "center" }: TilePhotoBackdropProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
       <img
@@ -20,6 +22,7 @@ export function TilePhotoBackdrop({ src, color }: TilePhotoBackdropProps) {
         height={640}
         loading="lazy"
         decoding="async"
+        style={{ objectPosition }}
         className="h-full w-full object-cover opacity-[0.75] transition-opacity duration-500 group-hover:opacity-90 group-focus-visible:opacity-90"
       />
       {/* Accent tint keeps the photo aligned with the tile colour. */}
