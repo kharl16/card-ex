@@ -153,7 +153,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                 )}
               >
                 <TilePhotoBackdrop src={backdrops[tile.id]} color={theme.auraColor} />
-                <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-20", theme.color)} aria-hidden />
+                <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-[0.08]", theme.color)} aria-hidden />
                 <TileAuraBackground color={theme.auraColor} />
 
                 <div
