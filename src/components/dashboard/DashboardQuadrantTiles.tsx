@@ -74,7 +74,9 @@ const themes: Record<string, TileTheme> = {
     focusRing: "focus-visible:ring-blue-300",
   },
 };
+
 const backdrops: Record<string, string> = {
+
   locator: locatorBackdrop,
   videos: videosBackdrop,
   resources: resourcesBackdrop,
