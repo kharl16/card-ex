@@ -2,7 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, PlayCircle, BookOpen, LayoutGrid, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TileAuraBackground } from "./TileAuraBackground";
+import { TilePhotoBackdrop } from "./TilePhotoBackdrop";
 import { useDashboardTileStats } from "@/hooks/useDashboardTileStats";
+import locatorBackdrop from "@/assets/tiles/tile-locator.jpg";
+import videosBackdrop from "@/assets/tiles/tile-videos.jpg";
+import resourcesBackdrop from "@/assets/tiles/tile-resources.jpg";
+import workspaceBackdrop from "@/assets/tiles/tile-workspace.jpg";
+
 
 interface DashboardQuadrantTilesProps {
   /** Kept for compatibility — Statistics now lives inside Workspace. */
@@ -68,6 +74,15 @@ const themes: Record<string, TileTheme> = {
     focusRing: "focus-visible:ring-blue-300",
   },
 };
+
+const backdrops: Record<string, string> = {
+
+  locator: locatorBackdrop,
+  videos: videosBackdrop,
+  resources: resourcesBackdrop,
+  workspace: workspaceBackdrop,
+};
+
 
 
 export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
@@ -137,8 +152,10 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                   theme.focusRing
                 )}
               >
-                <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-30", theme.color)} aria-hidden />
+                <TilePhotoBackdrop src={backdrops[tile.id]} color={theme.auraColor} />
+                <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-20", theme.color)} aria-hidden />
                 <TileAuraBackground color={theme.auraColor} />
+
                 <div
                   className={cn(
                     "absolute inset-0 z-0 bg-gradient-to-br opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100",
