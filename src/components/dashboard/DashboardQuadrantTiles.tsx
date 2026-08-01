@@ -153,7 +153,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                 )}
               >
                 <TilePhotoBackdrop src={backdrops[tile.id]} color={theme.auraColor} />
-                <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-20", theme.color)} aria-hidden />
+                <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-[0.08]", theme.color)} aria-hidden />
                 <TileAuraBackground color={theme.auraColor} />
 
                 <div
@@ -164,7 +164,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                   aria-hidden
                 />
 
-                <div className="relative z-10 flex items-start gap-3">
+                <div className="relative z-10 flex items-start gap-3 [text-shadow:0_1px_6px_rgba(0,0,0,0.85)]">
                   <div
                     className={cn(
                       "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110",
@@ -202,7 +202,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                   />
                 </div>
 
-                <p className="relative z-10 truncate text-xs text-foreground/70">{tile.secondary}</p>
+                <p className="relative z-10 truncate text-xs text-foreground/80 [text-shadow:0_1px_6px_rgba(0,0,0,0.85)]">{tile.secondary}</p>
               </button>
             </li>
           );

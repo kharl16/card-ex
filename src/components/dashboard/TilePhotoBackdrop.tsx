@@ -20,16 +20,16 @@ export function TilePhotoBackdrop({ src, color }: TilePhotoBackdropProps) {
         height={640}
         loading="lazy"
         decoding="async"
-        className="h-full w-full object-cover opacity-[0.28] transition-opacity duration-500 group-hover:opacity-40 group-focus-visible:opacity-40"
+        className="h-full w-full object-cover opacity-[0.75] transition-opacity duration-500 group-hover:opacity-90 group-focus-visible:opacity-90"
       />
       {/* Accent tint keeps the photo aligned with the tile colour. */}
       <div
-        className="absolute inset-0 mix-blend-overlay opacity-40"
-        style={{ background: `linear-gradient(135deg, hsl(${color} / 0.55), transparent 70%)` }}
+        className="absolute inset-0 mix-blend-overlay opacity-30"
+        style={{ background: `linear-gradient(135deg, hsl(${color} / 0.45), transparent 75%)` }}
       />
-      {/* Scrim: darkest where the icon + copy sit, so contrast is unchanged. */}
-      <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/35" />
-      <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+      {/* Scrim: only behind the text column, so the imagery stays readable. */}
+      <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/25 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-background/65 via-transparent to-transparent" />
     </div>
   );
 }
