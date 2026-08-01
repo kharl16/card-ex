@@ -2,7 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { MapPin, PlayCircle, BookOpen, LayoutGrid, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TileAuraBackground } from "./TileAuraBackground";
+import { TilePhotoBackdrop } from "./TilePhotoBackdrop";
 import { useDashboardTileStats } from "@/hooks/useDashboardTileStats";
+import locatorBackdrop from "@/assets/tiles/tile-locator.jpg";
+import videosBackdrop from "@/assets/tiles/tile-videos.jpg";
+import resourcesBackdrop from "@/assets/tiles/tile-resources.jpg";
+import workspaceBackdrop from "@/assets/tiles/tile-workspace.jpg";
+
 
 interface DashboardQuadrantTilesProps {
   /** Kept for compatibility — Statistics now lives inside Workspace. */
