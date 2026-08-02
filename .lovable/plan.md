@@ -1,27 +1,44 @@
 ## Goal
-Replace the flat color fills behind the 4 dashboard tiles (Locator, Videos, Resources, Workspace) with subtle, content-matched photographic textures — visible but never competing with the text.
+Replace the flat-looking Videos and Workspace tile backdrops with new 3D, depth-rich photographic textures that match the Locator and Resources tiles.
 
-## Imagery (one per tile, dark and moody, 1024x640, generated as project assets)
-- **Locator** — aerial night city grid with faint street lines, deep emerald/teal cast
-- **Videos** — dark studio light streaks / soft film-grain bokeh, deep red cast
-- **Resources** — close-up of stacked book edges / paper texture in shadow, warm amber cast
-- **Workspace** — dark desk surface with faint blueprint grid and glassy panels, cool blue cast
+## Selected directions
+- **Videos**: Film projector close-up — metal reels, lens flare, and light rays cutting through a dark room. Deep red cast, cinematic, volumetric depth.
+- **Workspace**: Modern glass desk at night — laptop, notebook, coffee cup, and city lights reflecting in the surface. Cool blue cast, real depth and reflections.
 
-Each is generated to be already low-contrast and heavily darkened at the source, so the overlay math stays simple.
+## Implementation steps
 
-## Layering per tile (bottom → top)
-1. Photo texture, `object-cover`, opacity ~0.28 (intensity 3 of 5), with a left-to-right dark gradient mask so text sits on the darkest area
-2. Existing color gradient wash (kept, reduced slightly so the photo reads through)
-3. Existing drifting aura
-4. Content + existing color-matched pulsating border (unchanged)
+### 1. Generate new textures
+Generate two dark, moody, low-contrast photographic textures at 1024x640, saved as project assets:
+- `src/assets/tiles/tile-videos.jpg` — projector close-up, deep red/crimson tint, heavy shadows, subtle light rays.
+- `src/assets/tiles/tile-workspace.jpg` — glass desk night scene, cool blue/teal tint, reflections, shallow depth of field.
 
-Text stays on `z-10` with the current contrast-hardened colors; the gradient scrim guarantees the same AA contrast as today.
+Both should be pre-darkened and low-contrast so the existing overlay math (opacity 0.75, scrims, accent tint) keeps text legible without extra tweaks.
 
-## Technical notes
-- New file `src/components/dashboard/TilePhotoBackdrop.tsx` renders the image layer + scrim; takes an `src` and reuses the tile's aura hue for a subtle tint.
-- `DashboardQuadrantTiles.tsx` gets a `backdrop` field per tile in the existing `themes`/tiles config and renders the new layer above the base gradient.
-- Images generated into `src/assets/tiles/` and imported normally; `loading="lazy"`, `decoding="async"`, `aria-hidden`, `pointer-events-none` so there is no a11y or interaction impact.
-- No changes to stats, routing, or business logic.
+### 2. Swap imports and mapping
+Update `src/components/dashboard/DashboardQuadrantTiles.tsx`:
+- Keep Locator and Resources backdrops unchanged.
+- Replace `videosBackdrop` and `workspaceBackdrop` imports to point to the new files.
+- Keep existing `objectPosition="center bottom"` and `objectFit="cover"` for the Videos tile initially; adjust after visual review if the projector base needs different anchoring.
+- Leave Workspace tile at default `center` / `cover`.
 
-## Verification
-Screenshot the dashboard at mobile and desktop widths to confirm the textures read at intensity 3, text stays legible, and no horizontal overflow appears.
+### 3. Visual tuning (if needed)
+After generating, review the tiles in preview. If the new projector image loses the glowing base or the desk reflections feel off, tune:
+- `objectPosition` (e.g., `center 30%`, `center bottom`)
+- `objectFit` only if necessary
+- Avoid changing opacity/scrim values unless contrast actually fails.
+
+### 4. Verification
+Screenshot the dashboard at:
+- Mobile width (375–414 px)
+- Tablet width (768 px)
+- Desktop width (1280+ px)
+
+Confirm:
+- Both new textures read as 3D and match Locator/Resources depth.
+- Text labels, stats, and badges remain fully legible.
+- No horizontal overflow.
+- Pulsating borders and aura effects still render correctly above the photos.
+
+## Out of scope
+- No changes to tile layout, routing, stats, icons, or business logic.
+- No changes to Locator or Resources tiles.
