@@ -5,6 +5,8 @@ interface TilePhotoBackdropProps {
   color: string;
   /** Optional focal point for the background image. Defaults to center. */
   objectPosition?: string;
+  /** How the image fills the tile. "contain" guarantees the whole photo is visible. */
+  objectFit?: "cover" | "contain";
 }
 
 /**

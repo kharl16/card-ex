@@ -155,7 +155,8 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                 <TilePhotoBackdrop
                   src={backdrops[tile.id]}
                   color={theme.auraColor}
-                  objectPosition={tile.id === "videos" ? "center 35%" : "center"}
+                  objectPosition={tile.id === "videos" ? "center bottom" : "center"}
+                  objectFit={tile.id === "videos" ? "contain" : "cover"}
                 />
                 <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-[0.08]", theme.color)} aria-hidden />
                 <TileAuraBackground color={theme.auraColor} />
