@@ -14,7 +14,7 @@ interface TilePhotoBackdropProps {
  * Purely presentational: hidden from a11y, never intercepts pointer events,
  * and always sits under a dark scrim so tile text keeps its contrast.
  */
-export function TilePhotoBackdrop({ src, color, objectPosition = "center" }: TilePhotoBackdropProps) {
+export function TilePhotoBackdrop({ src, color, objectPosition = "center", objectFit = "cover" }: TilePhotoBackdropProps) {
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
       <img
@@ -24,9 +24,10 @@ export function TilePhotoBackdrop({ src, color, objectPosition = "center" }: Til
         height={640}
         loading="lazy"
         decoding="async"
-        style={{ objectPosition }}
-        className="h-full w-full object-cover opacity-[0.75] transition-opacity duration-500 group-hover:opacity-90 group-focus-visible:opacity-90"
+        style={{ objectPosition, objectFit }}
+        className="h-full w-full opacity-[0.75] transition-opacity duration-500 group-hover:opacity-90 group-focus-visible:opacity-90"
       />
+
       {/* Accent tint keeps the photo aligned with the tile colour. */}
       <div
         className="absolute inset-0 mix-blend-overlay opacity-30"
