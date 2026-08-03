@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { DashboardDock } from "@/components/dashboard/DashboardDock";
 import { supabase } from "@/integrations/supabase/client";
+import { OAuthProviderStatus } from "@/components/settings/OAuthProviderStatus";
 
 const links = [
   { label: "Security & devices", description: "Trusted devices, PIN and privacy", icon: Shield, path: "/security" },
@@ -51,6 +52,9 @@ export default function DashboardSettings() {
             <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
           </button>
         ))}
+
+        <OAuthProviderStatus />
+
 
         <Button variant="outline" className="h-12 w-full text-base" onClick={signOut}>
           <LogOut className="mr-2 h-5 w-5" />
