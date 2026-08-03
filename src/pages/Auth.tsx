@@ -368,8 +368,9 @@ export default function Auth() {
                 onClick={handleGoogleSignIn}
                 disabled={loading}
               >
-                <Chrome className="h-4 w-4" />
-                Google
+                <GoogleIcon className="h-4 w-4" />
+                Continue with Google
+
               </Button>
             </TabsContent>
           </Tabs>
