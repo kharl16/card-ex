@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Mail, Chrome, ArrowLeft } from "lucide-react";
+import { Mail, ArrowLeft } from "lucide-react";
+import { GoogleIcon } from "@/components/auth/GoogleIcon";
+
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
 import { SEO } from "@/components/SEO";
