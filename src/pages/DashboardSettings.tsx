@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { DashboardDock } from "@/components/dashboard/DashboardDock";
 import { supabase } from "@/integrations/supabase/client";
+import { OAuthProviderStatus } from "@/components/settings/OAuthProviderStatus";
 
 const links = [
   { label: "Security & devices", description: "Trusted devices, PIN and privacy", icon: Shield, path: "/security" },
