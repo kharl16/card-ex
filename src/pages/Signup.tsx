@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Chrome, Gift } from "lucide-react";
+import { Gift } from "lucide-react";
+import { GoogleIcon } from "@/components/auth/GoogleIcon";
+
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { storeReferralCode, getStoredReferralCode } from "@/hooks/useReferral";
 import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
