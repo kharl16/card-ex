@@ -53,6 +53,9 @@ export default function DashboardSettings() {
           </button>
         ))}
 
+        <OAuthProviderStatus />
+
+
         <Button variant="outline" className="h-12 w-full text-base" onClick={signOut}>
           <LogOut className="mr-2 h-5 w-5" />
           Sign out
