@@ -75,37 +75,103 @@ export function MotivationalQuote() {
     return quotes[idx];
   }, [now, quotes]);
 
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 px-5 py-4">
-      {/* Gold accent line */}
-      <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-primary via-primary/60 to-primary" />
+  const verse = useMemo(() => {
+    const idx =
+      (dayOfYear(now) * 3 + slotIndex(getSlot(now))) % businessBibleVerses.length;
+    return businessBibleVerses[idx];
+  }, [now]);
 
-      <div className="flex items-start gap-3">
-        <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-        <div className="min-w-0">
-          <p className="text-sm font-medium italic leading-relaxed text-foreground/90">
-            "{quote.text}"
-          </p>
-          <p className="mt-1.5 text-xs font-semibold text-primary/70">
-            — {quote.author}
-            {quote.source_url && (
-              <>
-                {" "}
-                <a
-                  href={quote.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-0.5 underline-offset-2 hover:underline text-primary/80 hover:text-primary"
-                  aria-label={`Source for quote by ${quote.author}`}
-                >
-                  source
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-              </>
-            )}
-          </p>
+  // 0 = daily quote, 1 = bible verse
+  const [slide, setSlide] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 40) return;
+    setSlide((s) => (dx < 0 ? Math.min(1, s + 1) : Math.max(0, s - 1)));
+  };
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+      aria-roledescription="carousel"
+    >
+      {/* Gold accent line */}
+      <div className="absolute left-0 top-0 z-10 h-full w-1 bg-gradient-to-b from-primary via-primary/60 to-primary" />
+
+      <div
+        className="flex transition-transform duration-300 ease-out"
+        style={{ transform: `translateX(-${slide * 100}%)` }}
+      >
+        {/* Slide 1 — Daily quote */}
+        <div className="w-full shrink-0 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium italic leading-relaxed text-foreground/90">
+                "{quote.text}"
+              </p>
+              <p className="mt-1.5 text-xs font-semibold text-primary/70">
+                — {quote.author}
+                {quote.source_url && (
+                  <>
+                    {" "}
+                    <a
+                      href={quote.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-0.5 underline-offset-2 hover:underline text-primary/80 hover:text-primary"
+                      aria-label={`Source for quote by ${quote.author}`}
+                    >
+                      source
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
         </div>
+
+        {/* Slide 2 — Bible verse for business */}
+        <div className="w-full shrink-0 px-5 py-4">
+          <div className="flex items-start gap-3">
+            <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium italic leading-relaxed text-foreground/90">
+                "{verse.text}"
+              </p>
+              <p className="mt-1.5 text-xs font-semibold text-primary/70">
+                — {verse.reference}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Dots */}
+      <div className="flex items-center justify-center gap-2 pb-2">
+        {["Daily quote", "Bible verse for business"].map((label, i) => (
+          <button
+            key={label}
+            type="button"
+            onClick={() => setSlide(i)}
+            aria-label={label}
+            aria-current={slide === i}
+            className={`h-2.5 w-2.5 rounded-full transition-colors ${
+              slide === i ? "bg-primary" : "bg-primary/25 hover:bg-primary/50"
+            }`}
+          />
+        ))}
       </div>
     </div>
   );
 }
+
