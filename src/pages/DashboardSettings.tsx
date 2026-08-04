@@ -55,7 +55,7 @@ export default function DashboardSettings() {
           </button>
         ))}
 
-        <OAuthProviderStatus />
+        {isAdmin && <OAuthProviderStatus />}
 
 
         <Button variant="outline" className="h-12 w-full text-base" onClick={signOut}>
