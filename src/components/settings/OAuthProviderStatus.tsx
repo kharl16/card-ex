@@ -23,10 +23,14 @@ function copy(value: string, label: string) {
     .catch(() => toast.error("Copy failed — select and copy manually"));
 }
 
-export function OAuthProviderStatus() {
+export function OAuthProviderStatus({ isAdmin }: { isAdmin: boolean }) {
   const [data, setData] = useState<SettingsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  if (!isAdmin) {
+    return null;
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
