@@ -5,6 +5,7 @@ import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { DashboardDock } from "@/components/dashboard/DashboardDock";
 import { supabase } from "@/integrations/supabase/client";
 import { OAuthProviderStatus } from "@/components/settings/OAuthProviderStatus";
+import { useAuth } from "@/contexts/AuthContext";
 
 const links = [
   { label: "Security & devices", description: "Trusted devices, PIN and privacy", icon: Shield, path: "/security" },
@@ -14,6 +15,7 @@ const links = [
 
 export default function DashboardSettings() {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -53,7 +55,7 @@ export default function DashboardSettings() {
           </button>
         ))}
 
-        <OAuthProviderStatus />
+        {isAdmin && <OAuthProviderStatus isAdmin={isAdmin} />}
 
 
         <Button variant="outline" className="h-12 w-full text-base" onClick={signOut}>
