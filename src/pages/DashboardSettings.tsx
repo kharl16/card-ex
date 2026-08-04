@@ -15,6 +15,7 @@ const links = [
 
 export default function DashboardSettings() {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   const signOut = async () => {
     await supabase.auth.signOut();
