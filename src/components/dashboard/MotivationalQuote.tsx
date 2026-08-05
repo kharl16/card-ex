@@ -3,6 +3,7 @@ import { Sparkles, ExternalLink, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { businessBibleVerses } from "@/data/bibleVerses";
+import { dailyQuotes } from "@/data/dailyQuotes";
 
 
 interface Quote {
@@ -69,11 +70,31 @@ export function MotivationalQuote() {
     };
   }, [activeCompanyId]);
 
+  // Pool of exactly 1,095 quotes = 3 per day for a full year.
+  // Admin-curated DB quotes come first, then the built-in library fills the rest.
+  const quotePool = useMemo<Quote[]>(() => {
+    const seen = new Set<string>();
+    const pool: Quote[] = [];
+    for (const q of quotes) {
+      const k = q.text.trim().toLowerCase();
+      if (seen.has(k) || pool.length >= 1095) continue;
+      seen.add(k);
+      pool.push(q);
+    }
+    for (const q of dailyQuotes) {
+      const k = q.text.trim().toLowerCase();
+      if (seen.has(k) || pool.length >= 1095) continue;
+      seen.add(k);
+      pool.push({ text: q.text, author: q.author, source_url: q.source_url ?? null });
+    }
+    return pool;
+  }, [quotes]);
+
   const quote = useMemo<Quote>(() => {
-    if (quotes.length === 0) return FALLBACK;
-    const idx = (dayOfYear(now) * 3 + slotIndex(getSlot(now))) % quotes.length;
-    return quotes[idx];
-  }, [now, quotes]);
+    if (quotePool.length === 0) return FALLBACK;
+    const idx = (dayOfYear(now) * 3 + slotIndex(getSlot(now))) % quotePool.length;
+    return quotePool[idx];
+  }, [now, quotePool]);
 
   const verse = useMemo(() => {
     const idx =
