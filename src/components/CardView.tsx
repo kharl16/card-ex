@@ -369,8 +369,8 @@ export default function CardView({
 
       {/* Everything below the header – normal stacking, avatar/logo stay above because of z-index in RiderHeader */}
       <div className="relative z-0">
-        {/* Daily inspirational quote (owner opt-in) */}
-        {(card as any).show_daily_quote && (
+        {/* Daily quote + Bible verse (shown unless owner opted out) */}
+        {(card as any).show_daily_quote !== false && (
           <CardDailyQuote accentColor={basePrimary} />
         )}
         {/* Company + Bio with equal square Ad Banner column */}
