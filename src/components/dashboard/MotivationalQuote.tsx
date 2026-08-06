@@ -103,7 +103,7 @@ export function MotivationalQuote() {
   }, [now]);
 
   // 0 = daily quote, 1 = bible verse
-  const [slide, setSlide] = useState(0);
+  const [slide, setSlide] = useState(1);
   const touchStartX = useRef<number | null>(null);
 
   const onTouchStart = (e: React.TouchEvent) => {

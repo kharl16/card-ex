@@ -108,7 +108,7 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
     return businessBibleVerses[idx];
   }, [now]);
 
-  const [slide, setSlide] = useState(0);
+  const [slide, setSlide] = useState(1);
   const touchStartX = useRef<number | null>(null);
 
   const onTouchStart = (e: React.TouchEvent) => {
