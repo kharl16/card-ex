@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAndClearAuthNext, safeRedirectPath, getAppUrl } from "@/lib/authUrl";
 import { Button } from "@/components/ui/button";
+import { recordAuthEvent } from "@/lib/authClient";
+
 
 type CallbackStatus = "loading" | "success" | "error" | "expired" | "verified_no_session";
 
