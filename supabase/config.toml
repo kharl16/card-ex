@@ -54,6 +54,16 @@ verify_jwt = false
 [functions.extract-testimony-caption]
 verify_jwt = true
 
+[functions.auth-signup-check]
+verify_jwt = false
+
+[functions.auth-log]
+verify_jwt = false
+
+[functions.admin-user-actions]
+verify_jwt = true
+
+
 [auth]
 enabled = true
 

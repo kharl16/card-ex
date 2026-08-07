@@ -12,9 +12,16 @@ import RequireTrustedDevice from "./RequireTrustedDevice";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { session, isAdmin, loading } = useAuth();
+  const { session, isAdmin, loading, status, mustChangePassword } = useAuth();
   const [resending, setResending] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (mustChangePassword && window.location.pathname !== "/change-password") {
+      navigate("/change-password", { replace: true });
+    }
+  }, [mustChangePassword, navigate]);
+
 
   useEffect(() => {
     if (!loading && !session) {
@@ -74,8 +81,33 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     return null;
   }
 
+  // Suspended / deactivated accounts cannot use the app
+  if (status === "suspended" || status === "inactive") {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
+          <CardHeader className="space-y-1 text-center">
+            <CardTitle className="text-2xl font-bold">
+              {status === "suspended" ? "Account suspended" : "Account deactivated"}
+            </CardTitle>
+            <CardDescription>
+              Your Card-Ex account is currently {status}. Please contact support if you believe this is a mistake.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button variant="outline" className="w-full gap-2" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Check if email is verified (admins bypass this check)
   const isEmailVerified = session.user?.email_confirmed_at != null;
+
 
   if (!isEmailVerified && !isAdmin) {
     return (

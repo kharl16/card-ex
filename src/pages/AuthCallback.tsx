@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAndClearAuthNext, safeRedirectPath, getAppUrl } from "@/lib/authUrl";
 import { Button } from "@/components/ui/button";
+import { recordAuthEvent } from "@/lib/authClient";
+
 
 type CallbackStatus = "loading" | "success" | "error" | "expired" | "verified_no_session";
 
@@ -102,10 +104,13 @@ export default function AuthCallback() {
 
       if (session && mounted) {
         setStatus("success");
+        const provider = (session.user?.app_metadata as { provider?: string })?.provider ?? "email";
+        void recordAuthEvent("login", provider);
         const destination = redirectToDestination();
         navigate(destination, { replace: true });
         return;
       }
+
 
       // ── 4. No session — if we had a code param, verification likely succeeded
       //       but user opened link in a different browser ──

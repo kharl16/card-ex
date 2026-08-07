@@ -279,6 +279,45 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_logs: {
+        Row: {
+          auth_provider: string | null
+          browser: string | null
+          country: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          login_time: string | null
+          operating_system: string | null
+          signup_time: string | null
+          user_id: string | null
+        }
+        Insert: {
+          auth_provider?: string | null
+          browser?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          login_time?: string | null
+          operating_system?: string | null
+          signup_time?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          auth_provider?: string | null
+          browser?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          login_time?: string | null
+          operating_system?: string | null
+          signup_time?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       availability_settings: {
         Row: {
           booking_enabled: boolean
@@ -1970,68 +2009,98 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_provider_id: string | null
           avatar_url: string | null
+          card_ex_id: string | null
           company_id: string | null
           created_at: string
+          created_by: string | null
+          email_verified: boolean
           facebook_url: string | null
           full_name: string | null
           has_referral_access: boolean
           iam_id: string | null
           id: string
+          last_login_at: string | null
+          must_change_password: boolean
           onboarding_completed_at: string | null
           payout_account_name: string | null
           payout_account_number: string | null
           payout_method: string | null
           phone: string | null
+          phone_verification_date: string | null
           phone_verified: boolean | null
           referral_code: string | null
           referred_by_code: string | null
           referred_by_name: string | null
           referred_by_user_id: string | null
+          signup_method: string
+          status: Database["public"]["Enums"]["account_status"]
+          subscription_status: string
           tool_preferences: Json
           updated_at: string
         }
         Insert: {
+          avatar_provider_id?: string | null
           avatar_url?: string | null
+          card_ex_id?: string | null
           company_id?: string | null
           created_at?: string
+          created_by?: string | null
+          email_verified?: boolean
           facebook_url?: string | null
           full_name?: string | null
           has_referral_access?: boolean
           iam_id?: string | null
           id: string
+          last_login_at?: string | null
+          must_change_password?: boolean
           onboarding_completed_at?: string | null
           payout_account_name?: string | null
           payout_account_number?: string | null
           payout_method?: string | null
           phone?: string | null
+          phone_verification_date?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referred_by_code?: string | null
           referred_by_name?: string | null
           referred_by_user_id?: string | null
+          signup_method?: string
+          status?: Database["public"]["Enums"]["account_status"]
+          subscription_status?: string
           tool_preferences?: Json
           updated_at?: string
         }
         Update: {
+          avatar_provider_id?: string | null
           avatar_url?: string | null
+          card_ex_id?: string | null
           company_id?: string | null
           created_at?: string
+          created_by?: string | null
+          email_verified?: boolean
           facebook_url?: string | null
           full_name?: string | null
           has_referral_access?: boolean
           iam_id?: string | null
           id?: string
+          last_login_at?: string | null
+          must_change_password?: boolean
           onboarding_completed_at?: string | null
           payout_account_name?: string | null
           payout_account_number?: string | null
           payout_method?: string | null
           phone?: string | null
+          phone_verification_date?: string | null
           phone_verified?: boolean | null
           referral_code?: string | null
           referred_by_code?: string | null
           referred_by_name?: string | null
           referred_by_user_id?: string | null
+          signup_method?: string
+          status?: Database["public"]["Enums"]["account_status"]
+          subscription_status?: string
           tool_preferences?: Json
           updated_at?: string
         }
@@ -3242,6 +3311,7 @@ export type Database = {
         }
         Returns: string
       }
+      can_publish: { Args: { _user_id: string }; Returns: boolean }
       can_view_resource: {
         Args: {
           p_allowed_sites?: string[]
@@ -3273,6 +3343,10 @@ export type Database = {
       }
       expire_stale_approval_requests: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
+      get_account_status: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["account_status"]
+      }
       get_booked_appointment_slots: {
         Args: { p_card_id: string; p_date: string }
         Returns: {
@@ -3334,6 +3408,7 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_permanent_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_resource_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_resource_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
@@ -3376,7 +3451,12 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "owner" | "admin" | "member"
+      account_status:
+        | "active"
+        | "inactive"
+        | "suspended"
+        | "pending_verification"
+      app_role: "owner" | "admin" | "member" | "moderator" | "super_admin"
       event_kind:
         | "view"
         | "qr_scan"
@@ -3532,7 +3612,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["owner", "admin", "member"],
+      account_status: [
+        "active",
+        "inactive",
+        "suspended",
+        "pending_verification",
+      ],
+      app_role: ["owner", "admin", "member", "moderator", "super_admin"],
       event_kind: [
         "view",
         "qr_scan",

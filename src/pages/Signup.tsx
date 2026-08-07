@@ -8,11 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Gift } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
+import { TurnstileWidget, turnstileEnabled } from "@/components/auth/TurnstileWidget";
+import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { storeReferralCode, getStoredReferralCode } from "@/hooks/useReferral";
 import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
 import { SEO } from "@/components/SEO";
+
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -22,6 +25,8 @@ export default function Signup() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+
 
   useEffect(() => {
     // Check for referral code in URL
@@ -72,8 +77,14 @@ export default function Signup() {
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (turnstileEnabled && !captchaToken) {
+      toast.error("Please complete the security check first.");
+      return;
+    }
     setLoading(true);
     try {
+      await verifySignupAllowed(email, captchaToken);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -90,7 +101,7 @@ export default function Signup() {
       // Check if user already exists
       // Case 1: Confirmed user — Supabase returns empty identities
       if (data.user && data.user.identities && data.user.identities.length === 0) {
-        toast.error("This email is already registered. Please sign in or use a different email.");
+        toast.error("This email address already has a Card-Ex account.");
         return;
       }
       
@@ -105,13 +116,16 @@ export default function Signup() {
         }
       }
       
+      await recordAuthEvent("signup", "email");
       toast.success("Account created! Check your email to verify.");
     } catch (error: any) {
       toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
+      setCaptchaToken(null);
     }
   };
+
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
@@ -198,17 +212,23 @@ export default function Signup() {
                 id="signup-password"
                 name="signup-password"
                 type="password"
-                placeholder="Minimum 6 characters"
+                placeholder="Minimum 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
                 required
-                minLength={6}
+                minLength={8}
               />
             </div>
+            <TurnstileWidget
+              onVerify={setCaptchaToken}
+              onExpire={() => setCaptchaToken(null)}
+              className="flex justify-center"
+            />
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating account..." : "Create Account"}
             </Button>
+
           </form>
 
           <div className="relative">

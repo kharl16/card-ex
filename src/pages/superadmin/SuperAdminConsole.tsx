@@ -29,6 +29,14 @@ function SuperAdminConsoleContent() {
 
   const consoleLinks = [
     {
+      title: "User Management",
+      description: "Create accounts, set roles and status, reset passwords, and sign in as a user.",
+      icon: <Users className="h-8 w-8" />,
+      href: "/admin/users",
+      color: "bg-emerald-500/10 text-emerald-500",
+    },
+
+    {
       title: "Companies",
       description: "Manage tenants (e.g. IAM Worldwide). Each company has its own videos, tools, files, and content.",
       icon: <Building2 className="h-8 w-8" />,

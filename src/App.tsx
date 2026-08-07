@@ -11,6 +11,9 @@ import AuthCallback from "./pages/AuthCallback";
 import AuthConfirm from "./pages/AuthConfirm";
 import OAuthConsent from "./pages/OAuthConsent";
 import ResetPassword from "./pages/ResetPassword";
+import ChangePassword from "./pages/ChangePassword";
+import AdminUsers from "./pages/admin/AdminUsers";
+
 import Dashboard from "./pages/Dashboard";
 import CardEditor from "./pages/CardEditor";
 import DashboardActivity from "./pages/DashboardActivity";
@@ -84,6 +87,8 @@ const AnimatedRoutes = () => {
         <Route path="/.lovable/oauth/consent" element={<PageTransition><OAuthConsent /></PageTransition>} />
 
         <Route path="/auth/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
+        <Route path="/change-password" element={<PageTransition><ChangePassword /></PageTransition>} />
+
         <Route
           path="/onboarding"
           element={
@@ -223,6 +228,17 @@ const AnimatedRoutes = () => {
         <Route path="/locator" element={<PageTransition><DistributorLocator /></PageTransition>} />
         <Route path="/team/:orgSlug" element={<PageTransition><TeamDirectory /></PageTransition>} />
         <Route
+          path="/admin/users"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminUsers />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+
           path="/admin/cards"
           element={
             <PageTransition>
