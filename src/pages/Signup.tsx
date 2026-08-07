@@ -8,11 +8,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Gift } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
+import { TurnstileWidget, turnstileEnabled } from "@/components/auth/TurnstileWidget";
+import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { storeReferralCode, getStoredReferralCode } from "@/hooks/useReferral";
 import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
 import { SEO } from "@/components/SEO";
+
 
 export default function Signup() {
   const navigate = useNavigate();
