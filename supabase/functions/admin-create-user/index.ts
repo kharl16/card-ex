@@ -1,149 +1,120 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { corsHeaders, json, requireSuperAdmin } from "../_shared/adminAuth.ts";
+import { isDisposableEmail } from "../_shared/disposableDomains.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-function getUserIdFromAuthHeader(authHeader: string): string | null {
-  try {
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : authHeader;
-    const parts = token.split(".");
-    if (parts.length < 2) return null;
-
-    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
-    const payloadJson = atob(padded);
-    const payload = JSON.parse(payloadJson);
-    return typeof payload?.sub === "string" ? payload.sub : null;
-  } catch {
-    return null;
-  }
-}
+const SITE_ORIGIN = Deno.env.get("SITE_ORIGIN") ?? "https://tagex.app";
+const VALID_ROLES = ["super_admin", "admin", "moderator", "member"];
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "No authorization header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const guard = await requireSuperAdmin(req);
+    if (guard instanceof Response) return guard;
+    const { admin, userId: actorId } = guard;
+
+    const body = await req.json().catch(() => ({}));
+    const first_name = (body?.first_name ?? "").toString().trim();
+    const last_name = (body?.last_name ?? "").toString().trim();
+    const full_name = (body?.full_name ?? `${first_name} ${last_name}`).toString().trim();
+    const email = (body?.email ?? "").toString().trim().toLowerCase();
+    const password = (body?.password ?? body?.temporary_password ?? "").toString();
+    const mobile = (body?.mobile_number ?? "").toString().trim();
+    const sponsorCode = (body?.sponsor_code ?? "").toString().trim();
+    const role = VALID_ROLES.includes(body?.role) ? body.role : "member";
+    const sendInvite = body?.send_invitation === true;
+
+    if (!email || !full_name) return json({ error: "Email and name are required" }, 400);
+    if (!password || password.length < 8) {
+      return json({ error: "Temporary password must be at least 8 characters" }, 400);
+    }
+    if (isDisposableEmail(email)) {
+      return json({ error: "Temporary or disposable email addresses are not allowed." }, 400);
     }
 
-    // Create client with user's token to verify they're admin
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    // Get current user (fallback to JWT sub if session is missing)
-    let currentUserId: string | null = null;
-    const { data: userData, error: userError } = await userClient.auth.getUser();
-    if (userData?.user?.id) {
-      currentUserId = userData.user.id;
-    } else {
-      console.warn("admin-create-user: auth.getUser failed, falling back to JWT sub", {
-        error: userError?.message,
-      });
-      currentUserId = getUserIdFromAuthHeader(authHeader);
+    const { data: existing } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    if (existing?.users?.some((u) => (u.email ?? "").toLowerCase() === email)) {
+      return json({ error: "This email address already has a Card-Ex account." }, 409);
     }
 
-    if (!currentUserId) {
-      return new Response(
-        JSON.stringify({
-          error: "Unauthorized",
-          details: "Missing/invalid user token. Please sign out and sign in again.",
-        }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    // Check if current user is super admin
-    const { data: isAdmin, error: adminError } = await userClient.rpc("is_super_admin", {
-      _user_id: currentUserId,
-    });
-
-    if (adminError || !isAdmin) {
-      return new Response(JSON.stringify({ error: "Access denied: Admin only" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Parse request body
-    const { email, password, full_name } = await req.json();
-
-    if (!email || !password || !full_name) {
-      return new Response(JSON.stringify({ error: "Email, password, and name are required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Validate password length
-    if (password.length < 6) {
-      return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Create admin client with service role key
-    const adminClient = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-
-    // Create user with email_confirm: true to auto-verify
-    const { data: newUser, error: createError } = await adminClient.auth.admin.createUser({
+    const { data: newUser, error: createError } = await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name },
+      user_metadata: { full_name, first_name, last_name, created_by_admin: true },
     });
 
-    if (createError) {
+    if (createError || !newUser?.user) {
       console.error("Create user error:", createError);
-      return new Response(JSON.stringify({ error: createError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const msg = (createError?.message ?? "").toLowerCase().includes("already")
+        ? "This email address already has a Card-Ex account."
+        : createError?.message ?? "Failed to create user";
+      return json({ error: msg }, 400);
     }
 
-    // Update the profile with full_name (trigger should create it, but update to be sure)
-    await adminClient.from("profiles").upsert({ id: newUser.user.id, full_name }, { onConflict: "id" });
+    const newId = newUser.user.id;
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        user: {
-          id: newUser.user.id,
-          email: newUser.user.email,
-          full_name,
-        },
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Resolve sponsor / referral attribution
+    let sponsorPatch: Record<string, unknown> = {};
+    if (sponsorCode) {
+      const { data: sponsor } = await admin
+        .from("profiles")
+        .select("id, full_name, referral_code")
+        .eq("referral_code", sponsorCode)
+        .maybeSingle();
+      if (sponsor) {
+        sponsorPatch = {
+          referred_by_user_id: sponsor.id,
+          referred_by_code: sponsor.referral_code,
+          referred_by_name: sponsor.full_name,
+        };
       }
+    }
+
+    await admin.from("profiles").upsert(
+      {
+        id: newId,
+        full_name,
+        phone: mobile || null,
+        created_by: actorId,
+        signup_method: "admin",
+        status: "active",
+        email_verified: true,
+        must_change_password: true,
+        ...sponsorPatch,
+      },
+      { onConflict: "id" },
     );
-  } catch (error) {
-    console.error("Error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+
+    if (role !== "member") {
+      await admin.from("user_roles").delete().eq("user_id", newId);
+      await admin.from("user_roles").insert({ user_id: newId, role, granted_by: actorId });
+    }
+
+    let invitation_link: string | null = null;
+    if (sendInvite) {
+      const { data: link, error: linkError } = await admin.auth.admin.generateLink({
+        type: "magiclink",
+        email,
+        options: { redirectTo: `${SITE_ORIGIN}/change-password` },
+      });
+      if (linkError) console.error("Invite link error:", linkError);
+      invitation_link = link?.properties?.action_link ?? null;
+    }
+
+    await admin.from("superadmin_audit_log").insert({
+      actor_user_id: actorId,
+      action: "create_user",
+      target_user_id: newId,
+      details: { email, role, sponsor_code: sponsorCode || null },
     });
+
+    return json({
+      success: true,
+      user: { id: newId, email, full_name, role },
+      invitation_link,
+    });
+  } catch (error) {
+    console.error("admin-create-user error:", error);
+    return json({ error: "Internal server error" }, 500);
   }
 });
-
