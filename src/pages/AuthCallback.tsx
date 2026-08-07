@@ -102,10 +102,13 @@ export default function AuthCallback() {
 
       if (session && mounted) {
         setStatus("success");
+        const provider = (session.user?.app_metadata as { provider?: string })?.provider ?? "email";
+        void recordAuthEvent("login", provider);
         const destination = redirectToDestination();
         navigate(destination, { replace: true });
         return;
       }
+
 
       // ── 4. No session — if we had a code param, verification likely succeeded
       //       but user opened link in a different browser ──
