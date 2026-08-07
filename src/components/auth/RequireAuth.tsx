@@ -12,9 +12,16 @@ import RequireTrustedDevice from "./RequireTrustedDevice";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { session, isAdmin, loading } = useAuth();
+  const { session, isAdmin, loading, status, mustChangePassword } = useAuth();
   const [resending, setResending] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    if (mustChangePassword && window.location.pathname !== "/change-password") {
+      navigate("/change-password", { replace: true });
+    }
+  }, [mustChangePassword, navigate]);
+
 
   useEffect(() => {
     if (!loading && !session) {
