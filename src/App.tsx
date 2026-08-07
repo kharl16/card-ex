@@ -228,6 +228,17 @@ const AnimatedRoutes = () => {
         <Route path="/locator" element={<PageTransition><DistributorLocator /></PageTransition>} />
         <Route path="/team/:orgSlug" element={<PageTransition><TeamDirectory /></PageTransition>} />
         <Route
+          path="/admin/users"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminUsers />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+
           path="/admin/cards"
           element={
             <PageTransition>
