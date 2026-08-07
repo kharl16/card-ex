@@ -212,17 +212,23 @@ export default function Signup() {
                 id="signup-password"
                 name="signup-password"
                 type="password"
-                placeholder="Minimum 6 characters"
+                placeholder="Minimum 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"
                 required
-                minLength={6}
+                minLength={8}
               />
             </div>
+            <TurnstileWidget
+              onVerify={setCaptchaToken}
+              onExpire={() => setCaptchaToken(null)}
+              className="flex justify-center"
+            />
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating account..." : "Create Account"}
             </Button>
+
           </form>
 
           <div className="relative">
