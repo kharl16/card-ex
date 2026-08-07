@@ -11,6 +11,9 @@ import AuthCallback from "./pages/AuthCallback";
 import AuthConfirm from "./pages/AuthConfirm";
 import OAuthConsent from "./pages/OAuthConsent";
 import ResetPassword from "./pages/ResetPassword";
+import ChangePassword from "./pages/ChangePassword";
+import AdminUsers from "./pages/admin/AdminUsers";
+
 import Dashboard from "./pages/Dashboard";
 import CardEditor from "./pages/CardEditor";
 import DashboardActivity from "./pages/DashboardActivity";
