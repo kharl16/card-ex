@@ -75,8 +75,14 @@ export default function Signup() {
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (turnstileEnabled && !captchaToken) {
+      toast.error("Please complete the security check first.");
+      return;
+    }
     setLoading(true);
     try {
+      await verifySignupAllowed(email, captchaToken);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -93,7 +99,7 @@ export default function Signup() {
       // Check if user already exists
       // Case 1: Confirmed user — Supabase returns empty identities
       if (data.user && data.user.identities && data.user.identities.length === 0) {
-        toast.error("This email is already registered. Please sign in or use a different email.");
+        toast.error("This email address already has a Card-Ex account.");
         return;
       }
       
@@ -108,13 +114,16 @@ export default function Signup() {
         }
       }
       
+      await recordAuthEvent("signup", "email");
       toast.success("Account created! Check your email to verify.");
     } catch (error: any) {
       toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
+      setCaptchaToken(null);
     }
   };
+
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
