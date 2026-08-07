@@ -84,6 +84,8 @@ const AnimatedRoutes = () => {
         <Route path="/.lovable/oauth/consent" element={<PageTransition><OAuthConsent /></PageTransition>} />
 
         <Route path="/auth/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
+        <Route path="/change-password" element={<PageTransition><ChangePassword /></PageTransition>} />
+
         <Route
           path="/onboarding"
           element={
