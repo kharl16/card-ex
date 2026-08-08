@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, XCircle, RefreshCw, Copy, KeyRound, AlertTriangle } from "lucide-react";
+import { CheckCircle2, XCircle, RefreshCw, Copy, KeyRound, AlertTriangle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { getAppUrl, getAuthCallbackUrl } from "@/lib/authUrl";
@@ -55,7 +55,12 @@ export function OAuthProviderStatus({ isAdmin }: { isAdmin: boolean }) {
   const external = data?.external ?? {};
   const callbackUrl = getAuthCallbackUrl();
   const supabaseCallback = `${SUPABASE_URL}/auth/v1/callback`;
-  const originMatchesApp = typeof window !== "undefined" && window.location.origin === getAppUrl();
+  const appUrl = getAppUrl();
+  const originMatchesApp = typeof window !== "undefined" && window.location.origin === appUrl;
+
+  const googleCloudOrigins = [appUrl, appUrl.replace("https://", "https://www.")].filter(
+    (v, i, a) => a.indexOf(v) === i
+  );
 
   return (
     <section className="rounded-2xl border border-border/40 bg-card/40 p-4 backdrop-blur-xl">
@@ -139,10 +144,69 @@ export function OAuthProviderStatus({ isAdmin }: { isAdmin: boolean }) {
           <p className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             You are on {typeof window !== "undefined" ? window.location.origin : ""}, but OAuth redirects to{" "}
-            {getAppUrl()}. Add both origins to the Supabase redirect allow-list to test from here.
+            {appUrl}. Add both origins to the Supabase redirect allow-list to test from here.
           </p>
         )}
       </div>
+
+      {external.google && (
+        <div className="mt-4 space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-3">
+          <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-primary">
+            <ExternalLink className="h-3.5 w-3.5" />
+            Google Cloud Console setup
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            Add these exact values to your Google OAuth 2.0 Web client to avoid the 403 error:
+          </p>
+
+          <div className="space-y-2">
+            <div>
+              <p className="text-[11px] font-medium text-muted-foreground">Authorized JavaScript origins</p>
+              <ul className="mt-1 space-y-1">
+                {googleCloudOrigins.map((origin) => (
+                  <li
+                    key={origin}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-border/30 bg-background/30 px-2 py-1.5"
+                  >
+                    <span className="truncate text-xs font-mono">{origin}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => copy(origin, "JavaScript origin")}
+                      aria-label={`Copy ${origin}`}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div>
+              <p className="text-[11px] font-medium text-muted-foreground">Authorized redirect URIs</p>
+              <div className="mt-1 flex items-center justify-between gap-2 rounded-lg border border-border/30 bg-background/30 px-2 py-1.5">
+                <span className="truncate text-xs font-mono">{supabaseCallback}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0"
+                  onClick={() => copy(supabaseCallback, "Redirect URI")}
+                  aria-label="Copy redirect URI"
+                >
+                  <Copy className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-muted-foreground">
+            Then verify Supabase Authentication → URL Configuration has{" "}
+            <span className="font-mono text-foreground">{appUrl}</span> as the Site URL and{" "}
+            <span className="font-mono text-foreground">{callbackUrl}</span> in the redirect allow-list.
+          </p>
+        </div>
+      )}
     </section>
   );
 }
