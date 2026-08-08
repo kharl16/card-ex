@@ -57,6 +57,9 @@ export default function Auth() {
     if (message.includes("password") && message.includes("weak")) {
       return "Password is too weak. Please use at least 8 characters with a mix of letters and numbers.";
     }
+    if (message.includes("access denied") || message.includes("403") || message.includes("unauthorized")) {
+      return "Google sign-in is blocked. Please ask your admin to add this domain to the Google Cloud Console OAuth origins.";
+    }
     return error?.message || "An unexpected error occurred. Please try again.";
   };
 
