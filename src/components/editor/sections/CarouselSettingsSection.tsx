@@ -725,8 +725,15 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                             value={carouselSettings[key].cta.href || ""}
                             onChange={(e) => updateCTA(key, { href: e.target.value })}
                             placeholder="https://..."
+                            readOnly={key === "products" && !!iamEcommUrl}
                           />
+                          {key === "products" && iamEcommUrl && (
+                            <p className="text-xs text-muted-foreground">
+                              Locked to your IAM ID ({iamId}) — updates automatically if the ID changes.
+                            </p>
+                          )}
                         </div>
+
                         <div className="space-y-2">
                           <Label>Open in</Label>
                           <Select
