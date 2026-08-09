@@ -17,6 +17,7 @@ import {
   buildCardLinksInsertFromSnapshot,
   type CardSnapshot,
 } from "@/lib/cardSnapshot";
+import { applyIamIdToUrl, buildIamEcommUrl, normalizeIamId } from "@/lib/iamEcommUrl";
 
 interface AdminCreateCardDialogProps {
   open: boolean;
