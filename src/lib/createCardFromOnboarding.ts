@@ -4,6 +4,7 @@ import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type Car
 import type { CardTemplate } from "@/hooks/useTemplates";
 import type { User } from "@supabase/supabase-js";
 import { extractFacebookHandle } from "@/lib/facebookHandle";
+import { applyIamIdToUrl, buildIamEcommUrl, normalizeIamId } from "@/lib/iamEcommUrl";
 
 
 type CardInsert = Database["public"]["Tables"]["cards"]["Insert"];
