@@ -43,13 +43,10 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
 
   const productImages: Json[] = [];
 
-  const iamId8 = isIamMember && iamId ? iamId : null;
-  const substituteIamId = (url: string | undefined | null): string | undefined | null => {
-    if (!url || !iamId8) return url;
-    return url
-      .replace(/(idno=)\d{6,}/gi, `$1${iamId8}`)
-      .replace(/(\?|&)(ref|referrer|referral|iamid|iam_id)=\d{6,}/gi, `$1$2=${iamId8}`);
-  };
+  const iamId8 = isIamMember ? normalizeIamId(iamId) : null;
+  const iamEcommUrl = buildIamEcommUrl(iamId8);
+  const substituteIamId = (url: string | undefined | null): string | undefined | null =>
+    applyIamIdToUrl(url, iamId8);
   const substituteInItems = (items: unknown): Json[] | null | undefined => {
     if (items === null) return null;
     if (items === undefined) return undefined;
