@@ -158,6 +158,11 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     };
   }
 
+  if (iamEcommUrl && iamId8) {
+    insertData.products_carousel_url = iamEcommUrl;
+    insertData.products_carousel_url_digits = iamId8;
+  }
+
   const { data: card, error: cardErr } = await supabase
     .from("cards")
     .insert(insertData)
