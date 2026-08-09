@@ -3,6 +3,8 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
 import type { CardTemplate } from "@/hooks/useTemplates";
 import type { User } from "@supabase/supabase-js";
+import { extractFacebookHandle } from "@/lib/facebookHandle";
+
 
 type CardInsert = Database["public"]["Tables"]["cards"]["Insert"];
 type CardLinkInsert = Database["public"]["Tables"]["card_links"]["Insert"];
@@ -77,25 +79,9 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     return next;
   };
 
-  const extractFbHandle = (url: string): string | null => {
-    if (!url) return null;
-    try {
-      const parsed = new URL(url);
-      const host = parsed.hostname.replace(/^www\.|^web\.|^m\.|^mobile\./i, "").toLowerCase();
-      if (host === "facebook.com" || host === "fb.com" || host === "fb.me") {
-        const id = parsed.searchParams.get("id");
-        if (parsed.pathname.toLowerCase().includes("profile.php") && id) return id;
-        const [handle] = parsed.pathname.split("/").filter(Boolean);
-        return handle || null;
-      }
-    } catch {
-      const match = url.match(/(?:facebook\.com|fb\.com|fb\.me)\/([^/?#]+)/i);
-      return match?.[1] || null;
-    }
-    return null;
-  };
-  const fbHandle = extractFbHandle(facebookUrl);
+  const fbHandle = extractFacebookHandle(facebookUrl);
   const messengerUrl = fbHandle ? `https://m.me/${fbHandle}` : "https://m.me/";
+
 
   // Desired ordering for social-style kinds: Facebook → Website → Messenger
   const SOCIAL_ORDER: Record<string, number> = {

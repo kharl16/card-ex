@@ -24,6 +24,8 @@ import {
 } from "react-icons/si";
 import { FaLinkedin } from "react-icons/fa";
 import { z } from "zod";
+import { messengerUrlFromFacebook } from "@/lib/facebookHandle";
+
 import {
   DndContext,
   closestCenter,
@@ -284,29 +286,58 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
     }
   };
 
+  // Messenger is always derived from the Facebook profile URL:
+  // https://www.facebook.com/<handle> → https://m.me/<handle>
+  const withDerivedMessenger = (list: SocialLink[]): SocialLink[] => {
+    const facebook = list.find((l) => (l.kind || "").toLowerCase() === "facebook");
+    const derived = messengerUrlFromFacebook(facebook?.value);
+    if (!derived) return list;
+
+    const hasMessenger = list.some((l) => (l.kind || "").toLowerCase() === "messenger");
+    if (hasMessenger) {
+      return list.map((l) =>
+        (l.kind || "").toLowerCase() === "messenger" ? { ...l, value: derived } : l
+      );
+    }
+    return [
+      ...list,
+      {
+        id: `link-messenger-${Date.now()}`,
+        kind: "messenger",
+        label: "Messenger",
+        value: derived,
+        icon: "Messenger",
+      },
+    ];
+  };
+
   // Save social links to the card's social_links JSON field AND mirror them
   // into the card_links table so both data sources stay in sync.
-  const saveSocialLinksToCard = async (linksToSave: SocialLink[]) => {
+  // Returns the normalized list on success, or null on failure.
+  const saveSocialLinksToCard = async (linksToSave: SocialLink[]): Promise<SocialLink[] | null> => {
+    const normalized = withDerivedMessenger(linksToSave);
+
     // Cast to any to bypass strict Json typing - data is valid JSON
     const { error } = await supabase
       .from("cards")
-      .update({ social_links: JSON.parse(JSON.stringify(linksToSave)) })
+      .update({ social_links: JSON.parse(JSON.stringify(normalized)) })
       .eq("id", cardId);
 
     if (error) {
       console.error("Error saving social links:", error);
-      return false;
+      return null;
     }
 
     // Best-effort sync to card_links table. Failure here is logged but does
     // not block the primary save (social_links JSONB remains source of truth).
-    const syncResult = await syncSocialLinksToCardLinks(cardId, linksToSave);
+    const syncResult = await syncSocialLinksToCardLinks(cardId, normalized);
     if (!syncResult.ok) {
       console.warn("[SocialMediaLinks] card_links sync failed:", syncResult.error);
     }
 
-    return true;
+    return normalized;
   };
+
 
   const addLink = async () => {
     if (!newLink.platform || !newLink.url) {
@@ -338,10 +369,10 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
 
     const updatedLinks = [...links, newLinkData];
     
-    const success = await saveSocialLinksToCard(updatedLinks);
+    const saved = await saveSocialLinksToCard(updatedLinks);
     
-    if (success) {
-      updateLinksState(updatedLinks);
+    if (saved) {
+      updateLinksState(saved);
       toast.success("Social link added");
       setNewLink({ platform: "", url: "" });
     } else {
@@ -354,10 +385,10 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
   const deleteLink = async (id: string) => {
     const updatedLinks = links.filter(link => link.id !== id);
     
-    const success = await saveSocialLinksToCard(updatedLinks);
+    const saved = await saveSocialLinksToCard(updatedLinks);
     
-    if (success) {
-      updateLinksState(updatedLinks);
+    if (saved) {
+      updateLinksState(saved);
       toast.success("Link deleted");
     } else {
       toast.error("Failed to delete link");
@@ -369,10 +400,10 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
       link.id === id ? { ...link, label, value } : link
     );
     
-    const success = await saveSocialLinksToCard(updatedLinks);
+    const saved = await saveSocialLinksToCard(updatedLinks);
     
-    if (success) {
-      updateLinksState(updatedLinks);
+    if (saved) {
+      updateLinksState(saved);
       setEditingId(null);
       toast.success("Link updated");
     } else {
@@ -394,11 +425,13 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
     updateLinksState(newLinks);
 
     // Save reordered links to database
-    const success = await saveSocialLinksToCard(newLinks);
+    const saved = await saveSocialLinksToCard(newLinks);
     
-    if (success) {
+    if (saved) {
+      updateLinksState(saved);
       toast.success("Links reordered");
     }
+
   };
 
   return (
