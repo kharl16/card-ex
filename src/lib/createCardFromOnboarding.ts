@@ -3,6 +3,8 @@ import type { Database, Json } from "@/integrations/supabase/types";
 import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type CardSnapshot } from "@/lib/cardSnapshot";
 import type { CardTemplate } from "@/hooks/useTemplates";
 import type { User } from "@supabase/supabase-js";
+import { extractFacebookHandle } from "@/lib/facebookHandle";
+
 
 type CardInsert = Database["public"]["Tables"]["cards"]["Insert"];
 type CardLinkInsert = Database["public"]["Tables"]["card_links"]["Insert"];
