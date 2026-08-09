@@ -369,10 +369,10 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
 
     const updatedLinks = [...links, newLinkData];
     
-    const success = await saveSocialLinksToCard(updatedLinks);
+    const saved = await saveSocialLinksToCard(updatedLinks);
     
-    if (success) {
-      updateLinksState(updatedLinks);
+    if (saved) {
+      updateLinksState(saved);
       toast.success("Social link added");
       setNewLink({ platform: "", url: "" });
     } else {
@@ -385,10 +385,10 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
   const deleteLink = async (id: string) => {
     const updatedLinks = links.filter(link => link.id !== id);
     
-    const success = await saveSocialLinksToCard(updatedLinks);
+    const saved = await saveSocialLinksToCard(updatedLinks);
     
-    if (success) {
-      updateLinksState(updatedLinks);
+    if (saved) {
+      updateLinksState(saved);
       toast.success("Link deleted");
     } else {
       toast.error("Failed to delete link");
@@ -400,10 +400,10 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
       link.id === id ? { ...link, label, value } : link
     );
     
-    const success = await saveSocialLinksToCard(updatedLinks);
+    const saved = await saveSocialLinksToCard(updatedLinks);
     
-    if (success) {
-      updateLinksState(updatedLinks);
+    if (saved) {
+      updateLinksState(saved);
       setEditingId(null);
       toast.success("Link updated");
     } else {
@@ -425,11 +425,13 @@ export default function SocialMediaLinks({ cardId, onLinksChange }: SocialMediaL
     updateLinksState(newLinks);
 
     // Save reordered links to database
-    const success = await saveSocialLinksToCard(newLinks);
+    const saved = await saveSocialLinksToCard(newLinks);
     
-    if (success) {
+    if (saved) {
+      updateLinksState(saved);
       toast.success("Links reordered");
     }
+
   };
 
   return (
