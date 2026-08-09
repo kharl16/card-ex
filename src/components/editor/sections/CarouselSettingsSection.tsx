@@ -100,11 +100,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
         cta: { ...carouselSettings.products.cta, href: iamEcommUrl },
       },
     };
-    onCardChange({
-      carousel_settings: next as any,
-      products_carousel_url: iamEcommUrl,
-      products_carousel_url_digits: iamId,
-    } as any);
+    onCardChange({ carousel_settings: next as any });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [iamEcommUrl, productsUrlOutOfSync]);
 
