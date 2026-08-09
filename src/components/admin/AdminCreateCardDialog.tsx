@@ -17,6 +17,7 @@ import {
   buildCardLinksInsertFromSnapshot,
   type CardSnapshot,
 } from "@/lib/cardSnapshot";
+import { applyIamIdToUrl, buildIamEcommUrl, normalizeIamId } from "@/lib/iamEcommUrl";
 
 interface AdminCreateCardDialogProps {
   open: boolean;
@@ -162,13 +163,10 @@ export function AdminCreateCardDialog({
       // Start new cards with an empty Products carousel (matches onboarding behavior).
       const productImages: any[] = [];
 
-      const iamId8 = parsed.data.isIamMember && parsed.data.iamId ? parsed.data.iamId : null;
-      const substituteIamId = (url: string | undefined | null): string | undefined | null => {
-        if (!url || !iamId8) return url;
-        return url
-          .replace(/(idno=)\d{6,}/gi, `$1${iamId8}`)
-          .replace(/(\?|&)(ref|referrer|referral|iamid|iam_id)=\d{6,}/gi, `$1$2=${iamId8}`);
-      };
+      const iamId8 = parsed.data.isIamMember ? normalizeIamId(parsed.data.iamId) : null;
+      const iamEcommUrl = buildIamEcommUrl(iamId8);
+      const substituteIamId = (url: string | undefined | null): string | undefined | null =>
+        applyIamIdToUrl(url, iamId8);
       const substituteInItems = <T extends { link?: string | null; url?: string | null }>(
         items: T[] | undefined | null,
       ): T[] | undefined | null => {
@@ -179,10 +177,11 @@ export function AdminCreateCardDialog({
         if (!cs || typeof cs !== "object") return cs;
         const next = { ...cs };
         const section = next.products;
-        if (section && typeof section === "object" && section.cta) {
+        if (section && typeof section === "object") {
+          const cta = section.cta ?? {};
           next.products = {
             ...section,
-            cta: { ...section.cta, href: substituteIamId(section.cta.href) ?? section.cta.href },
+            cta: { ...cta, href: iamEcommUrl ?? substituteIamId(cta.href) ?? cta.href },
           };
         }
         return next;
@@ -238,6 +237,12 @@ export function AdminCreateCardDialog({
           product_images: productImages,
         };
       }
+
+      if (iamEcommUrl && iamId8) {
+        insertData.products_carousel_url = iamEcommUrl;
+        insertData.products_carousel_url_digits = iamId8;
+      }
+
 
       const { data: card, error: cardErr } = await supabase
         .from("cards")

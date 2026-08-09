@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { buildIamEcommUrl, normalizeIamId } from "@/lib/iamEcommUrl";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -59,11 +61,53 @@ const CAROUSEL_DESCRIPTIONS: Record<CarouselKey, string> = {
 
 export function CarouselSettingsSection({ card, onCardChange }: CarouselSettingsSectionProps) {
   const [activeTab, setActiveTab] = useState<CarouselKey>("products");
+  const [iamId, setIamId] = useState<string | null>(null);
 
   // Get or initialize carousel settings
   const carouselSettings = mergeCarouselSettings(
     (card as any).carousel_settings as Partial<CarouselSettingsData> | null
   );
+
+  // Load the card owner's IAM ID (falls back to the digits already stored on the card)
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!card?.user_id) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("iam_id")
+        .eq("id", card.user_id)
+        .maybeSingle();
+      if (cancelled) return;
+      setIamId(normalizeIamId(data?.iam_id) ?? normalizeIamId((card as any).products_carousel_url_digits));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [card?.user_id, (card as any).products_carousel_url_digits]);
+
+  const iamEcommUrl = buildIamEcommUrl(iamId);
+  const productsHref = carouselSettings.products.cta.href || "";
+  const productsUrlOutOfSync = !!iamEcommUrl && productsHref !== iamEcommUrl;
+
+  // Keep the Products CTA URL locked to the member's IAM e-commerce share link
+  useEffect(() => {
+    if (!iamEcommUrl || !productsUrlOutOfSync) return;
+    const next = {
+      ...carouselSettings,
+      products: {
+        ...carouselSettings.products,
+        cta: { ...carouselSettings.products.cta, href: iamEcommUrl },
+      },
+    };
+    onCardChange({
+      carousel_settings: next as any,
+      products_carousel_url: iamEcommUrl,
+      products_carousel_url_digits: iamId,
+    } as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [iamEcommUrl, productsUrlOutOfSync]);
+
 
   const updateCarouselSection = (key: CarouselKey, updates: Partial<CarouselSection>) => {
     const newSettings = {
@@ -681,8 +725,15 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                             value={carouselSettings[key].cta.href || ""}
                             onChange={(e) => updateCTA(key, { href: e.target.value })}
                             placeholder="https://..."
+                            readOnly={key === "products" && !!iamEcommUrl}
                           />
+                          {key === "products" && iamEcommUrl && (
+                            <p className="text-xs text-muted-foreground">
+                              Locked to your IAM ID ({iamId}) — updates automatically if the ID changes.
+                            </p>
+                          )}
                         </div>
+
                         <div className="space-y-2">
                           <Label>Open in</Label>
                           <Select

@@ -4,6 +4,7 @@ import { buildCardInsertFromSnapshot, buildCardLinksInsertFromSnapshot, type Car
 import type { CardTemplate } from "@/hooks/useTemplates";
 import type { User } from "@supabase/supabase-js";
 import { extractFacebookHandle } from "@/lib/facebookHandle";
+import { applyIamIdToUrl, buildIamEcommUrl, normalizeIamId } from "@/lib/iamEcommUrl";
 
 
 type CardInsert = Database["public"]["Tables"]["cards"]["Insert"];
@@ -43,13 +44,10 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
 
   const productImages: Json[] = [];
 
-  const iamId8 = isIamMember && iamId ? iamId : null;
-  const substituteIamId = (url: string | undefined | null): string | undefined | null => {
-    if (!url || !iamId8) return url;
-    return url
-      .replace(/(idno=)\d{6,}/gi, `$1${iamId8}`)
-      .replace(/(\?|&)(ref|referrer|referral|iamid|iam_id)=\d{6,}/gi, `$1$2=${iamId8}`);
-  };
+  const iamId8 = isIamMember ? normalizeIamId(iamId) : null;
+  const iamEcommUrl = buildIamEcommUrl(iamId8);
+  const substituteIamId = (url: string | undefined | null): string | undefined | null =>
+    applyIamIdToUrl(url, iamId8);
   const substituteInItems = (items: unknown): Json[] | null | undefined => {
     if (items === null) return null;
     if (items === undefined) return undefined;
@@ -67,13 +65,15 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
     const section = next.products;
     if (section && typeof section === "object" && !Array.isArray(section)) {
       const sectionRecord = section as Record<string, unknown>;
-      const cta = sectionRecord.cta;
-      if (!cta || typeof cta !== "object" || Array.isArray(cta)) return next;
-      const ctaRecord = cta as Record<string, unknown>;
-      const href = typeof ctaRecord.href === "string" ? ctaRecord.href : null;
+      const cta = (sectionRecord.cta && typeof sectionRecord.cta === "object" && !Array.isArray(sectionRecord.cta)
+        ? sectionRecord.cta
+        : {}) as Record<string, unknown>;
+      const href = typeof cta.href === "string" ? cta.href : null;
+      // With an IAM ID the Products CTA always points at the member's e-comm share link.
+      const nextHref = iamEcommUrl ?? (href ? substituteIamId(href) ?? href : cta.href);
       next.products = {
         ...sectionRecord,
-        cta: { ...ctaRecord, href: href ? substituteIamId(href) ?? href : ctaRecord.href },
+        cta: { ...cta, href: nextHref },
       };
     }
     return next;
@@ -156,6 +156,11 @@ export async function createCardFromOnboarding(input: CreateCardInput): Promise<
       product_images: productImages,
       social_links: buildOnboardingSocialLinks(),
     };
+  }
+
+  if (iamEcommUrl && iamId8) {
+    insertData.products_carousel_url = iamEcommUrl;
+    insertData.products_carousel_url_digits = iamId8;
   }
 
   const { data: card, error: cardErr } = await supabase

@@ -313,6 +313,8 @@ export default function CardEditor() {
         image_carousels: (card as any).image_carousels,
         show_daily_quote: (card as any).show_daily_quote,
         show_referral_earnings: (card as any).show_referral_earnings,
+        products_carousel_url: (card as any).products_carousel_url,
+        products_carousel_url_digits: (card as any).products_carousel_url_digits,
       })
       .eq("id", card.id);
 
