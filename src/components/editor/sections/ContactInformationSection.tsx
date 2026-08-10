@@ -97,6 +97,16 @@ export function ContactInformationSection({
   const [primaryOrder, setPrimaryOrder] = useState<PrimaryField[]>(["email", "phone", "website", "location"]);
   const [primaryDraggingId, setPrimaryDraggingId] = useState<PrimaryField | null>(null);
 
+  // Only allow dragging when the grip handle is pressed, so text inside inputs
+  // can be selected/highlighted normally.
+  const [dragArmedId, setDragArmedId] = useState<string | null>(null);
+  const dragHandleProps = (id: string) => ({
+    onMouseDown: () => setDragArmedId(id),
+    onTouchStart: () => setDragArmedId(id),
+    onMouseUp: () => setDragArmedId(null),
+    onTouchEnd: () => setDragArmedId(null),
+  });
+
   useEffect(() => {
     if (card?.id) {
       loadAdditionalContacts();
@@ -544,18 +554,25 @@ export function ContactInformationSection({
             return (
               <div
                 key={field}
-                draggable
+                draggable={dragArmedId === field}
                 onDragStart={() => handlePrimaryDragStart(field)}
                 onDragOver={(e) => handlePrimaryDragOver(e, field)}
-                onDragEnd={handlePrimaryDragEnd}
-                className={`flex items-center gap-1.5 sm:gap-2 rounded-lg bg-muted/20 border border-border/40 px-1.5 sm:px-2 py-1.5 cursor-grab w-full ${
+                onDragEnd={() => {
+                  setDragArmedId(null);
+                  handlePrimaryDragEnd();
+                }}
+                className={`flex items-center gap-1.5 sm:gap-2 rounded-lg bg-muted/20 border border-border/40 px-1.5 sm:px-2 py-1.5 w-full ${
                   primaryDraggingId === field ? "ring-1 ring-primary/60 bg-muted/40" : ""
                 }`}
               >
                 {/* Drag handle */}
-                <div className="flex items-center justify-center text-muted-foreground shrink-0">
+                <div
+                  {...dragHandleProps(field)}
+                  className="flex items-center justify-center text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
+                >
                   <GripVertical className="h-4 w-4 opacity-70" />
                 </div>
+
 
                 {/* Icon */}
                 <div className="flex items-center justify-center shrink-0">{getPrimaryIcon(field)}</div>
@@ -587,18 +604,25 @@ export function ContactInformationSection({
             {additionalContacts.map((contact) => (
               <div
                 key={contact.id}
-                draggable
+                draggable={dragArmedId === contact.id}
                 onDragStart={() => handleDragStart(contact.id)}
                 onDragOver={(e) => handleDragOver(e, contact.id)}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-1.5 sm:gap-2 rounded-lg bg-muted/30 border border-border/40 px-1.5 sm:px-2 py-1.5 cursor-grab w-full ${
+                onDragEnd={() => {
+                  setDragArmedId(null);
+                  handleDragEnd();
+                }}
+                className={`flex items-center gap-1.5 sm:gap-2 rounded-lg bg-muted/30 border border-border/40 px-1.5 sm:px-2 py-1.5 w-full ${
                   draggingId === contact.id ? "ring-1 ring-primary/60 bg-muted/50" : ""
                 }`}
               >
                 {/* Drag handle */}
-                <div className="flex items-center justify-center text-muted-foreground shrink-0">
+                <div
+                  {...dragHandleProps(contact.id)}
+                  className="flex items-center justify-center text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
+                >
                   <GripVertical className="h-4 w-4 opacity-70" />
                 </div>
+
 
                 {/* Icon */}
                 <div className="shrink-0">{getContactIcon(contact.kind)}</div>
