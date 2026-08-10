@@ -604,18 +604,25 @@ export function ContactInformationSection({
             {additionalContacts.map((contact) => (
               <div
                 key={contact.id}
-                draggable
+                draggable={dragArmedId === contact.id}
                 onDragStart={() => handleDragStart(contact.id)}
                 onDragOver={(e) => handleDragOver(e, contact.id)}
-                onDragEnd={handleDragEnd}
-                className={`flex items-center gap-1.5 sm:gap-2 rounded-lg bg-muted/30 border border-border/40 px-1.5 sm:px-2 py-1.5 cursor-grab w-full ${
+                onDragEnd={() => {
+                  setDragArmedId(null);
+                  handleDragEnd();
+                }}
+                className={`flex items-center gap-1.5 sm:gap-2 rounded-lg bg-muted/30 border border-border/40 px-1.5 sm:px-2 py-1.5 w-full ${
                   draggingId === contact.id ? "ring-1 ring-primary/60 bg-muted/50" : ""
                 }`}
               >
                 {/* Drag handle */}
-                <div className="flex items-center justify-center text-muted-foreground shrink-0">
+                <div
+                  {...dragHandleProps(contact.id)}
+                  className="flex items-center justify-center text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing touch-none select-none"
+                >
                   <GripVertical className="h-4 w-4 opacity-70" />
                 </div>
+
 
                 {/* Icon */}
                 <div className="shrink-0">{getContactIcon(contact.kind)}</div>
