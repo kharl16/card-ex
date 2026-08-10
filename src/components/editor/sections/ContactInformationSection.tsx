@@ -97,6 +97,16 @@ export function ContactInformationSection({
   const [primaryOrder, setPrimaryOrder] = useState<PrimaryField[]>(["email", "phone", "website", "location"]);
   const [primaryDraggingId, setPrimaryDraggingId] = useState<PrimaryField | null>(null);
 
+  // Only allow dragging when the grip handle is pressed, so text inside inputs
+  // can be selected/highlighted normally.
+  const [dragArmedId, setDragArmedId] = useState<string | null>(null);
+  const dragHandleProps = (id: string) => ({
+    onMouseDown: () => setDragArmedId(id),
+    onTouchStart: () => setDragArmedId(id),
+    onMouseUp: () => setDragArmedId(null),
+    onTouchEnd: () => setDragArmedId(null),
+  });
+
   useEffect(() => {
     if (card?.id) {
       loadAdditionalContacts();
