@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { DirectoryEntry, EventType } from "@/types/resources";
 import { useState } from "react";
 import { getViewOnMapsUrl, openInNewTab } from "@/lib/mapsUrl";
+import { resourceImageUrl } from "@/lib/resourceImage";
 
 interface DirectoryCardProps {
   entry: DirectoryEntry;
@@ -59,7 +60,7 @@ export function DirectoryCard({
         <div className="relative w-full h-full overflow-hidden bg-muted/80">
           {entry.owner_photo_url ? (
             <img
-              src={entry.owner_photo_url}
+              src={resourceImageUrl(entry.owner_photo_url)}
               alt={entry.owner || "Owner"}
               className="w-full h-full object-cover object-top"
             />
@@ -114,7 +115,7 @@ export function DirectoryCard({
         {entry.owner && (
           <div className="flex items-center gap-2">
             {entry.owner_photo_url ? (
-              <img src={entry.owner_photo_url} alt="" className="h-4 w-4 rounded-full object-cover" />
+              <img src={resourceImageUrl(entry.owner_photo_url)} alt="" className="h-4 w-4 rounded-full object-cover" />
             ) : (
               <User className="h-3.5 w-3.5 text-primary flex-shrink-0" />
             )}

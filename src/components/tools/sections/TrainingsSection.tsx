@@ -15,6 +15,7 @@ import AdminVideoFolderDialog from "../admin/AdminVideoFolderDialog";
 import AdminAmbassadorClipDialog from "../admin/AdminAmbassadorClipDialog";
 import YouTubeProgressPlayer from "@/components/video/YouTubeProgressPlayer";
 import { extractYouTubeId, getProgress, recordProgress } from "@/lib/videoProgress";
+import { resourceImageUrl } from "@/lib/resourceImage";
 
 interface TrainingItem {
   id: string;
@@ -315,7 +316,7 @@ export default function TrainingsSection({ searchQuery }: TrainingsSectionProps)
             )}
 
             {folder.images ? (
-              <img src={folder.images} alt={folder.folder_name} className="w-full h-full object-contain bg-black" />
+              <img src={resourceImageUrl(folder.images)} alt={folder.folder_name} className="w-full h-full object-contain bg-black" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                 <FolderOpen className="w-12 h-12 text-primary/40" />
@@ -385,7 +386,7 @@ function VideoItemsView({
             )}
             <div className="relative aspect-video bg-black">
               {item.thumbnail_url ? (
-                <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-contain" />
+                <img src={resourceImageUrl(item.thumbnail_url)} alt={item.title} className="w-full h-full object-contain" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                   <Play className="w-12 h-12 text-primary/50" />
@@ -481,7 +482,7 @@ function AmbassadorClipsView({
               )}
               <div className="relative aspect-video bg-black">
                 {clip.thumbnail ? (
-                  <img src={clip.thumbnail} alt={clip.endorser || "Ambassador"} className="w-full h-full object-contain" />
+                  <img src={resourceImageUrl(clip.thumbnail)} alt={clip.endorser || "Ambassador"} className="w-full h-full object-contain" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                     <Play className="w-12 h-12 text-primary/50" />

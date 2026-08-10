@@ -4,6 +4,7 @@ import { FolderOpen } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ResourceFolder } from "@/types/resources";
+import { resourceImageUrl } from "@/lib/resourceImage";
 
 interface FolderGridProps {
   folders: ResourceFolder[];
@@ -28,7 +29,7 @@ export function FolderGrid({ folders, basePath = "/resources/files", selectedFol
             <div className="relative aspect-[4/3] overflow-hidden bg-black/90">
               {folder.images ? (
                 <img
-                  src={folder.images}
+                  src={resourceImageUrl(folder.images)}
                   alt={folder.folder_name}
                   className="h-full w-full object-contain transition-transform duration-700 ease-out group-hover:scale-110"
                   loading="lazy"

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
 import type { FileResource } from "@/types/resources";
+import { resourceImageUrl } from "@/lib/resourceImage";
 
 
 interface FileItem {
@@ -210,7 +211,7 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
               >
                 {thumbnail ? (
                   <img
-                    src={thumbnail}
+                    src={resourceImageUrl(thumbnail)}
                     alt={item.file_name}
                     className="w-full h-full object-contain bg-black/90"
                     loading="lazy"
@@ -282,7 +283,7 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
             )}
           >
             {folder.images ? (
-              <img src={folder.images} alt={folder.folder_name} className="w-full h-full object-contain bg-black/90" loading="lazy" referrerPolicy="no-referrer" />
+              <img src={resourceImageUrl(folder.images)} alt={folder.folder_name} className="w-full h-full object-contain bg-black/90" loading="lazy" referrerPolicy="no-referrer" />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
                 <FolderOpen className="w-10 h-10 text-primary/40" />
