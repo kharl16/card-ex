@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Ambassador, EventType } from "@/types/resources";
+import { resourceImageUrl } from "@/lib/resourceImage";
 
 interface AmbassadorCardProps {
   ambassador: Ambassador;
@@ -26,7 +27,7 @@ export function AmbassadorCard({
       <div className="relative aspect-square overflow-hidden bg-black">
         {ambassador.thumbnail ? (
           <img
-            src={ambassador.thumbnail}
+            src={resourceImageUrl(ambassador.thumbnail)}
             alt={`${ambassador.endorser} - ${ambassador.product_endorsed}`}
             className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110"
             loading="lazy"

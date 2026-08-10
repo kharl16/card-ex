@@ -6,6 +6,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TopRightActions } from "@/components/ui/top-right-actions";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
+import { resourceImageUrl } from "@/lib/resourceImage";
 
 interface FilePreviewDialogProps {
   file: FileResource | null;
@@ -528,7 +529,7 @@ export function FilePreviewDialog({
       return (
         <img
           ref={isCurrent ? imgRef : undefined}
-          src={f.images}
+          src={resourceImageUrl(f.images)}
           alt={f.file_name}
           className={cn(
             "w-full h-full object-contain max-h-[55vh] select-none pointer-events-none",

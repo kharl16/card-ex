@@ -2,6 +2,7 @@ import { Heart, Play, Eye, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
+import { resourceImageUrl } from "@/lib/resourceImage";
 
 interface ResourceCardProps {
   resource: FileResource;
@@ -34,7 +35,7 @@ export function ResourceCard({
       <div className={cn("relative overflow-hidden", compact ? "aspect-square" : "aspect-[3/4]")}>
         {resource.images ? (
           <img
-            src={resource.images}
+            src={resourceImageUrl(resource.images)}
             alt={resource.file_name}
             className="h-full w-full object-contain bg-black/90 transition-transform duration-700 ease-out group-hover:scale-110"
             loading="lazy"
