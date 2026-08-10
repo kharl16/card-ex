@@ -73,7 +73,7 @@ function SortableTile({ file, disabled, children }: SortableTileProps) {
 function FilesPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<"name" | "newest" | "custom">("name");
+  const [sortBy, setSortBy] = useState<"name" | "newest" | "custom">("custom");
   const [showFilters, setShowFilters] = useState(false);
   const [reorderMode, setReorderMode] = useState(false);
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
