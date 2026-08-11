@@ -3,7 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <script>
+      // Disable browser pinch/zoom on mobile everywhere except image viewers,
+      // which implement their own pinch-to-zoom (e.g., LightboxDialog).
+      document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+      document.addEventListener("gesturechange", function (e) { e.preventDefault(); });
+      document.addEventListener("gestureend", function (e) { e.preventDefault(); });
+    </script>
     <title>Card-Ex - Digital Business Portfolio</title>
     <meta name="description" content="Create stunning, shareable digital business portfolios with analytics. Track engagement and make lasting impressions—fully customizable.">
     <meta name="author" content="Card-Ex" />
