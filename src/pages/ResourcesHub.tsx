@@ -114,7 +114,7 @@ function ResourcesHubContent() {
                 Resources Hub
               </h1>
               <p className="text-base md:text-lg text-muted-foreground max-w-2xl">
-                Everything in one place — files, ambassador clips, quick links, and 13 Ways.
+                Everything in one place — files, quick links, and 13 Ways.
                 Tap the big search above to find anything instantly.
               </p>
             </div>
