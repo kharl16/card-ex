@@ -42,14 +42,6 @@ function ResourcesHubContent() {
     );
   }, [files, term]);
 
-  const filteredAmbassadors = useMemo(() => {
-    if (!term) return ambassadors;
-    return ambassadors.filter(
-      (a) =>
-        a.endorser?.toLowerCase().includes(term) ||
-        a.product_endorsed?.toLowerCase().includes(term)
-    );
-  }, [ambassadors, term]);
 
   const filteredLinks = useMemo(() => {
     if (!term) return links;
