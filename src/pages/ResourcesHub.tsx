@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Link2, BookOpen, Sparkles, Heart, Clock } from "lucide-react";
+import { FileText, Link2, BookOpen, Sparkles, Heart, Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,10 +14,14 @@ import { QuickLinksGrid } from "@/components/resources/QuickLinksGrid";
 import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
 import { SectionHeader } from "@/components/resources/SectionHeader";
 import type { FileResource } from "@/types/resources";
+import AdminLinkDialog from "@/components/tools/admin/AdminLinkDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 function ResourcesHubContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const { isSuperAdmin } = useAuth();
   const {
     files,
     links,
@@ -28,6 +32,7 @@ function ResourcesHubContent() {
     toggleFavorite,
     logEvent,
     isFavorite,
+    refetch,
   } = useResourceData();
 
   const term = searchTerm.trim().toLowerCase();
@@ -205,7 +210,7 @@ function ResourcesHubContent() {
 
 
         {/* Quick Links */}
-        {filteredLinks.length > 0 && (
+        {(filteredLinks.length > 0 || isSuperAdmin) && (
           <section>
             <SectionHeader
               icon={Link2}
@@ -214,6 +219,14 @@ function ResourcesHubContent() {
               viewAllHref="/resources/links"
               count={filteredLinks.length}
             />
+            {isSuperAdmin && (
+              <div className="mb-4">
+                <Button size="sm" className="gap-2" onClick={() => setLinkDialogOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Add Quick Link
+                </Button>
+              </div>
+            )}
             <QuickLinksGrid
               links={filteredLinks.slice(0, 8)}
               favorites={new Set()}
