@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, ExternalLink, Copy, Heart, X } from "lucide-react";
+import { ArrowLeft, Search, ExternalLink, Copy, Heart, X, Plus, Pencil } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,13 +11,18 @@ import { cn } from "@/lib/utils";
 import { ResourcesProvider } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
 import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
+import AdminLinkDialog from "@/components/tools/admin/AdminLinkDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 function LinksPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   useSearchQueryParam(setSearchTerm);
 
-  const { links, loading, toggleFavorite, logEvent, isFavorite } = useResourceData();
+  const { links, loading, toggleFavorite, logEvent, isFavorite, refetch } = useResourceData();
+  const { isSuperAdmin } = useAuth();
+  const [editItem, setEditItem] = useState<any>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   // Filtered links
   const filteredLinks = useMemo(() => {
@@ -100,6 +105,19 @@ function LinksPageContent() {
             <Badge variant="secondary" className="ml-auto text-base px-3 py-1">
               {filteredLinks.length} links
             </Badge>
+            {isSuperAdmin && (
+              <Button
+                size="lg"
+                className="h-12 gap-2"
+                onClick={() => {
+                  setEditItem(null);
+                  setDialogOpen(true);
+                }}
+              >
+                <Plus className="h-5 w-5" />
+                Add Link
+              </Button>
+            )}
           </div>
 
           {/* Filters */}
@@ -169,6 +187,20 @@ function LinksPageContent() {
                       </Button>
                     </div>
                     <div className="flex gap-3">
+                      {isSuperAdmin && (
+                        <Button
+                          variant="secondary"
+                          size="lg"
+                          className="h-12 gap-2 text-base"
+                          onClick={() => {
+                            setEditItem(link);
+                            setDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-5 w-5" />
+                          Edit
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="lg"
@@ -195,6 +227,15 @@ function LinksPageContent() {
           </div>
         )}
       </main>
+
+      {isSuperAdmin && (
+        <AdminLinkDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          item={editItem}
+          onSaved={() => refetch()}
+        />
+      )}
     </div>
   );
 }
