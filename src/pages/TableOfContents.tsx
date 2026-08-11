@@ -123,7 +123,7 @@ const SECTIONS: TocSection[] = [
     entries: [
       { label: "Resources Hub", description: "All learning materials", path: "/resources" },
       { label: "Files", description: "Documents and assets", path: "/resources/files" },
-      { label: "Ambassadors", description: "Endorsement videos", path: "/resources/ambassadors" },
+      
       { label: "Links", description: "Curated links library", path: "/resources/links" },
       { label: "Directory", description: "Branch and partner directory", path: "/resources/directory" },
       { label: "13 Ways", description: "13 Ways collection", path: "/resources/13-ways" },

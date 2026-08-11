@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Users, Link2, BookOpen, Sparkles, Heart, Clock } from "lucide-react";
+import { FileText, Link2, BookOpen, Sparkles, Heart, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +10,6 @@ import { ResourcesHeader } from "@/components/resources/ResourcesHeader";
 import { FolderGrid } from "@/components/resources/FolderGrid";
 import { HorizontalScroll } from "@/components/resources/HorizontalScroll";
 import { ResourceCard } from "@/components/resources/ResourceCard";
-import { AmbassadorCard } from "@/components/resources/AmbassadorCard";
 import { QuickLinksGrid } from "@/components/resources/QuickLinksGrid";
 import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
 import { SectionHeader } from "@/components/resources/SectionHeader";
@@ -21,7 +20,6 @@ function ResourcesHubContent() {
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
   const {
     files,
-    ambassadors,
     links,
     ways,
     folders,
@@ -44,14 +42,6 @@ function ResourcesHubContent() {
     );
   }, [files, term]);
 
-  const filteredAmbassadors = useMemo(() => {
-    if (!term) return ambassadors;
-    return ambassadors.filter(
-      (a) =>
-        a.endorser?.toLowerCase().includes(term) ||
-        a.product_endorsed?.toLowerCase().includes(term)
-    );
-  }, [ambassadors, term]);
 
   const filteredLinks = useMemo(() => {
     if (!term) return links;
@@ -124,7 +114,7 @@ function ResourcesHubContent() {
                 Resources Hub
               </h1>
               <p className="text-base md:text-lg text-muted-foreground max-w-2xl">
-                Everything in one place — files, ambassador clips, quick links, and 13 Ways.
+                Everything in one place — files, quick links, and 13 Ways.
                 Tap the big search above to find anything instantly.
               </p>
             </div>
@@ -137,7 +127,7 @@ function ResourcesHubContent() {
             <p className="text-base">
               Showing results for{" "}
               <span className="font-semibold text-primary">"{searchTerm}"</span> —{" "}
-              {filteredFiles.length + filteredAmbassadors.length + filteredLinks.length + filteredWays.length}{" "}
+              {filteredFiles.length + filteredLinks.length + filteredWays.length}{" "}
               matches
             </p>
           </div>
@@ -213,29 +203,6 @@ function ResourcesHubContent() {
           </section>
         )}
 
-        {/* Ambassadors */}
-        {filteredAmbassadors.length > 0 && (
-          <section>
-            <SectionHeader
-              icon={Users}
-              title="Ambassador Clips"
-              subtitle="Celebrity endorsements"
-              viewAllHref="/resources/ambassadors"
-              count={filteredAmbassadors.length}
-            />
-            <HorizontalScroll>
-              {filteredAmbassadors.slice(0, 12).map((ambassador) => (
-                <AmbassadorCard
-                  key={ambassador.id}
-                  ambassador={ambassador}
-                  isFavorite={isFavorite("ambassador", ambassador.id)}
-                  onToggleFavorite={() => toggleFavorite("ambassador", ambassador.id)}
-                  onLogEvent={(e) => logEvent("ambassador", ambassador.id, e)}
-                />
-              ))}
-            </HorizontalScroll>
-          </section>
-        )}
 
         {/* Quick Links */}
         {filteredLinks.length > 0 && (
@@ -283,7 +250,6 @@ function ResourcesHubContent() {
         {/* Empty search state */}
         {isSearching &&
           filteredFiles.length === 0 &&
-          filteredAmbassadors.length === 0 &&
           filteredLinks.length === 0 &&
           filteredWays.length === 0 && (
             <div className="text-center py-16">

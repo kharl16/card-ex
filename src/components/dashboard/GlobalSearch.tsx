@@ -209,29 +209,6 @@ export function GlobalSearch() {
         })()
       );
 
-      // Resources — ambassadors_library
-      queries.push(
-        (async () => {
-          let q = supabase
-            .from("ambassadors_library")
-            .select("id, endorser, product_endorsed, folder_name")
-            .or(
-              `endorser.ilike.${like},product_endorsed.ilike.${like},folder_name.ilike.${like}`
-            )
-            .eq("is_active", true)
-            .limit(4);
-          if (co) q = q.eq("company_id", co);
-          const { data } = await q;
-          return (data ?? []).map((r): Hit => ({
-            id: `amb-${r.id}`,
-            section: "Resources",
-            title: r.endorser || r.product_endorsed || "Ambassador",
-            subtitle: r.product_endorsed || r.folder_name || undefined,
-            route: "/resources/ambassadors",
-          }));
-        })()
-      );
-
       // Resources — ways_13
       queries.push(
         (async () => {

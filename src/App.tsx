@@ -35,7 +35,7 @@ import BillingSuccess from "./pages/BillingSuccess";
 import Tools from "./pages/Tools";
 import ResourcesHub from "./pages/ResourcesHub";
 import FilesPage from "./pages/resources/FilesPage";
-import AmbassadorsPage from "./pages/resources/AmbassadorsPage";
+
 import LinksPage from "./pages/resources/LinksPage";
 import DirectoryPage from "./pages/resources/DirectoryPage";
 import WaysPage from "./pages/resources/WaysPage";
@@ -384,16 +384,6 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <FilesPage />
-              </RequireAuth>
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/resources/ambassadors"
-          element={
-            <PageTransition>
-              <RequireAuth>
-                <AmbassadorsPage />
               </RequireAuth>
             </PageTransition>
           }
