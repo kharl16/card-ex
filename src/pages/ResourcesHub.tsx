@@ -127,7 +127,7 @@ function ResourcesHubContent() {
             <p className="text-base">
               Showing results for{" "}
               <span className="font-semibold text-primary">"{searchTerm}"</span> —{" "}
-              {filteredFiles.length + filteredAmbassadors.length + filteredLinks.length + filteredWays.length}{" "}
+              {filteredFiles.length + filteredLinks.length + filteredWays.length}{" "}
               matches
             </p>
           </div>
@@ -203,29 +203,6 @@ function ResourcesHubContent() {
           </section>
         )}
 
-        {/* Ambassadors */}
-        {filteredAmbassadors.length > 0 && (
-          <section>
-            <SectionHeader
-              icon={Users}
-              title="Ambassador Clips"
-              subtitle="Celebrity endorsements"
-              viewAllHref="/resources/ambassadors"
-              count={filteredAmbassadors.length}
-            />
-            <HorizontalScroll>
-              {filteredAmbassadors.slice(0, 12).map((ambassador) => (
-                <AmbassadorCard
-                  key={ambassador.id}
-                  ambassador={ambassador}
-                  isFavorite={isFavorite("ambassador", ambassador.id)}
-                  onToggleFavorite={() => toggleFavorite("ambassador", ambassador.id)}
-                  onLogEvent={(e) => logEvent("ambassador", ambassador.id, e)}
-                />
-              ))}
-            </HorizontalScroll>
-          </section>
-        )}
 
         {/* Quick Links */}
         {filteredLinks.length > 0 && (
@@ -273,7 +250,6 @@ function ResourcesHubContent() {
         {/* Empty search state */}
         {isSearching &&
           filteredFiles.length === 0 &&
-          filteredAmbassadors.length === 0 &&
           filteredLinks.length === 0 &&
           filteredWays.length === 0 && (
             <div className="text-center py-16">
