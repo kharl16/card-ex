@@ -20,7 +20,6 @@ function ResourcesHubContent() {
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
   const {
     files,
-    ambassadors,
     links,
     ways,
     folders,
