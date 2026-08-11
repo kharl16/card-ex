@@ -310,6 +310,16 @@ function ResourcesHubContent() {
         }}
         onNavigate={setPreviewFile}
       />
+
+      {isSuperAdmin && (
+        <AdminLinkDialog
+          open={linkDialogOpen}
+          onOpenChange={setLinkDialogOpen}
+          item={null}
+          onSaved={() => refetch()}
+        />
+      )}
+
     </div>
   );
 }
