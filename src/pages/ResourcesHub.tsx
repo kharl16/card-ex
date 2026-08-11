@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Users, Link2, BookOpen, Sparkles, Heart, Clock } from "lucide-react";
+import { FileText, Link2, BookOpen, Sparkles, Heart, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +10,6 @@ import { ResourcesHeader } from "@/components/resources/ResourcesHeader";
 import { FolderGrid } from "@/components/resources/FolderGrid";
 import { HorizontalScroll } from "@/components/resources/HorizontalScroll";
 import { ResourceCard } from "@/components/resources/ResourceCard";
-import { AmbassadorCard } from "@/components/resources/AmbassadorCard";
 import { QuickLinksGrid } from "@/components/resources/QuickLinksGrid";
 import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
 import { SectionHeader } from "@/components/resources/SectionHeader";
