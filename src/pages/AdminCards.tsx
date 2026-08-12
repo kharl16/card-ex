@@ -1167,7 +1167,7 @@ export default function AdminCards() {
                     <TableBody>
                       {filteredUsers.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center text-muted-foreground">
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
                             No users found
                           </TableCell>
                         </TableRow>
