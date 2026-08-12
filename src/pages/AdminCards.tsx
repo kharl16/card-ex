@@ -1088,23 +1088,21 @@ export default function AdminCards() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          {(["Name", "Owner", "Company", "Plan", "Paid", "Published", "Referral", "Referred By"] as const).map((col) => (
-                            <FilterableHead
-                              key={col}
-                              label={col}
-                              options={columnOptions[col] || []}
-                              selected={columnFilters[col] || []}
-                              onChange={setColFilter(col)}
-                            />
-                          ))}
-                          <TableHead className="text-right">Actions</TableHead>
+                          <FilterableHead label="Name" options={columnOptions["Name"] || []} selected={columnFilters["Name"] || []} onChange={setColFilter("Name")} />
+                          <FilterableHead label="Company" options={columnOptions["Company"] || []} selected={columnFilters["Company"] || []} onChange={setColFilter("Company")} />
+                          <FilterableHead className="text-center" label="Plan" options={columnOptions["Plan"] || []} selected={columnFilters["Plan"] || []} onChange={setColFilter("Plan")} />
+                          <FilterableHead className="text-center" label="Paid" options={columnOptions["Paid"] || []} selected={columnFilters["Paid"] || []} onChange={setColFilter("Paid")} />
+                          <FilterableHead className="text-center" label="Published" options={columnOptions["Published"] || []} selected={columnFilters["Published"] || []} onChange={setColFilter("Published")} />
+                          <FilterableHead className="text-center" label="Referral" options={columnOptions["Referral"] || []} selected={columnFilters["Referral"] || []} onChange={setColFilter("Referral")} />
+                          <FilterableHead className="text-center" label="Referred By" options={columnOptions["Referred By"] || []} selected={columnFilters["Referred By"] || []} onChange={setColFilter("Referred By")} />
+                          <TableHead className="text-center">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
 
                       <TableBody>
                         {filteredCards.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} className="text-center text-muted-foreground">
+                            <TableCell colSpan={8} className="text-center text-muted-foreground">
                               No cards found
                             </TableCell>
                           </TableRow>
