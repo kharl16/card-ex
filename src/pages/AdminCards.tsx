@@ -1159,7 +1159,6 @@ export default function AdminCards() {
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Verified</TableHead>
-                        <TableHead>Password</TableHead>
                         <TableHead>Cards</TableHead>
                         <TableHead>Joined</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
