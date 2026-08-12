@@ -926,7 +926,6 @@ export default function AdminCards() {
         : "No Access";
     return {
       Name: card.full_name || "—",
-      Owner: (card as any).owner_name || "—",
       Company: card.company || "—",
       Plan: planName,
       Paid: card.is_paid ? "Paid" : "Unpaid",
