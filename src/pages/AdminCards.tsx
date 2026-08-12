@@ -188,9 +188,8 @@ function AdminCardRow({
   return (
     <TableRow>
       <TableCell className="font-medium">{card.full_name}</TableCell>
-      <TableCell>{(card as any).owner_name || "—"}</TableCell>
       <TableCell>{card.company || "—"}</TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         {plans && plans.length > 0 ? (
           <Select
             value={card.plan_id ?? undefined}
@@ -220,11 +219,15 @@ function AdminCardRow({
               onPaymentChange();
             }}
           >
-            <SelectTrigger className="w-[160px] h-8 text-xs">
+            <SelectTrigger className="w-[110px] h-8 text-xs mx-auto">
               <SelectValue placeholder="No plan">
                 {(() => {
                   const plan = plans?.find((p) => p.id === card.plan_id);
-                  return plan ? `${plan.name} • ₱${plan.retail_price.toLocaleString()}` : "No plan";
+                  return plan ? (
+                    <span className="truncate">{plan.name}</span>
+                  ) : (
+                    "No plan"
+                  );
                 })()}
               </SelectValue>
             </SelectTrigger>
@@ -241,23 +244,23 @@ function AdminCardRow({
           <span className="text-xs text-muted-foreground">Loading...</span>
         )}
       </TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         <Checkbox checked={card.is_paid} onCheckedChange={handlePaidChange} disabled={adminOverride.isPending} />
       </TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         <Switch checked={card.is_published || false} onCheckedChange={handlePublishedChange} disabled={!card.is_paid} />
       </TableCell>
-      <TableCell>
-        <div className="flex items-center gap-2">
+      <TableCell className="text-center">
+        <div className="flex items-center justify-center gap-2">
           {card.is_paid && card.is_published && (card as any).owner_referral_code ? (
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5 items-center">
               <Badge variant="default" className="text-xs w-fit">
                 Active
               </Badge>
               <span className="text-xs text-muted-foreground font-mono">{(card as any).owner_referral_code}</span>
             </div>
           ) : referralData?.has_referral_access && referralData.referral_code ? (
-            <div className="flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5 items-center">
               <Badge variant="secondary" className="text-xs w-fit">
                 Has Code
               </Badge>
@@ -270,9 +273,9 @@ function AdminCardRow({
           )}
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="text-center">
         {(card as any).referred_by_name || (card as any).referred_by_code ? (
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-0.5 items-center">
             <span className="text-xs font-medium">{(card as any).referred_by_name || "Unknown"}</span>
             <span className="text-xs text-muted-foreground font-mono">{(card as any).referred_by_code || "—"}</span>
           </div>
@@ -280,7 +283,7 @@ function AdminCardRow({
           <span className="text-xs text-muted-foreground">—</span>
         )}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
