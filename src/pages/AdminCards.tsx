@@ -1159,7 +1159,6 @@ export default function AdminCards() {
                         <TableHead>Name</TableHead>
                         <TableHead>Email</TableHead>
                         <TableHead>Verified</TableHead>
-                        <TableHead>Password</TableHead>
                         <TableHead>Cards</TableHead>
                         <TableHead>Joined</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -1168,7 +1167,7 @@ export default function AdminCards() {
                     <TableBody>
                       {filteredUsers.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center text-muted-foreground">
+                          <TableCell colSpan={6} className="text-center text-muted-foreground">
                             No users found
                           </TableCell>
                         </TableRow>
@@ -1225,7 +1224,6 @@ export default function AdminCards() {
                                 </Button>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">••••••••</TableCell>
                             <TableCell>
                               <Badge variant={user.card_count && user.card_count > 0 ? "default" : "secondary"}>
                                 {user.card_count || 0} card{user.card_count !== 1 ? "s" : ""}
