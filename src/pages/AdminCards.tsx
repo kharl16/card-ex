@@ -953,7 +953,7 @@ export default function AdminCards() {
   });
 
   const columnOptions = useMemo(() => {
-    const cols = ["Name", "Owner", "Company", "Plan", "Paid", "Published", "Referral", "Referred By"];
+    const cols = ["Name", "Company", "Plan", "Paid", "Published", "Referral", "Referred By"];
     const map: Record<string, string[]> = {};
     for (const c of cols) map[c] = [];
     const seen: Record<string, Set<string>> = {};
