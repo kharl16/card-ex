@@ -1233,41 +1233,40 @@ export default function AdminCards() {
                               {new Date(user.created_at).toLocaleDateString()}
                             </TableCell>
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
+                              <div className="flex justify-end gap-1">
                                 <Button
                                   variant="outline"
-                                  size="sm"
-                                  className="gap-2"
+                                  size="icon"
+                                  className="h-8 w-8"
                                   onClick={() => {
                                     setEditingUser(user);
                                     setEditUserEmail(user.email || "");
                                     setEditUserPassword("");
                                     setShowEditUserDialog(true);
                                   }}
+                                  title="Edit user"
                                 >
                                   <Edit className="h-4 w-4" />
-                                  Edit
                                 </Button>
                                 <Button
                                   variant="outline"
-                                  size="sm"
-                                  className="gap-2 border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                                  size="icon"
+                                  className="h-8 w-8 border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
                                   onClick={() => navigate(`/dashboard?viewAs=${user.id}`)}
                                   title="View this user's dashboard as Super Admin"
                                 >
                                   <Eye className="h-4 w-4" />
-                                  View
                                 </Button>
                                 <Button
                                   variant="outline"
-                                  size="sm"
-                                  className="gap-2"
+                                  size="icon"
+                                  className="h-8 w-8"
                                   onClick={() => openCreateCardForUser(user)}
+                                  title="Create card for user"
                                 >
                                   <Plus className="h-4 w-4" />
-                                  Card
                                 </Button>
-                                <Button variant="ghost" size="icon" onClick={() => setDeleteUserId(user.id)}>
+                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDeleteUserId(user.id)} title="Delete user">
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                               </div>
