@@ -1224,7 +1224,6 @@ export default function AdminCards() {
                                 </Button>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">••••••••</TableCell>
                             <TableCell>
                               <Badge variant={user.card_count && user.card_count > 0 ? "default" : "secondary"}>
                                 {user.card_count || 0} card{user.card_count !== 1 ? "s" : ""}
