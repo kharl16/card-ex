@@ -941,8 +941,7 @@ export default function AdminCards() {
       !q ||
       card.full_name?.toLowerCase().includes(q) ||
       card.slug?.toLowerCase().includes(q) ||
-      card.company?.toLowerCase().includes(q) ||
-      (card as any).owner_name?.toLowerCase().includes(q);
+      card.company?.toLowerCase().includes(q);
     if (!matchesSearch) return false;
 
     const vals = getCardColumnValues(card);
