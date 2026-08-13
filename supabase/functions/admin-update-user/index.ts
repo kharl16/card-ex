@@ -125,9 +125,15 @@ Deno.serve(async (req) => {
 
     // Build update object
     const updateData: { email?: string; password?: string; email_confirm?: boolean } = {};
-    if (email) updateData.email = email;
+    // Admin email changes are applied directly and marked confirmed so GoTrue does not
+    // attempt to send a confirmation email (which can fail and return a 500).
+    if (email) {
+      updateData.email = email;
+      updateData.email_confirm = true;
+    }
     if (password) updateData.password = password;
     if (email_confirm) updateData.email_confirm = true;
+
 
     console.log(`Admin ${currentUserId} updating user ${user_id}:`, {
       email: email ? "***" : undefined,
