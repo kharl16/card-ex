@@ -49,7 +49,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
     >
       {/* Left: Avatar strip */}
       <div
-        className="relative flex w-20 shrink-0 items-center justify-center sm:w-24"
+        className="relative flex w-20 shrink-0 flex-col items-center gap-2 py-4 sm:w-24"
         style={{ background: `linear-gradient(180deg, ${bgColor}, ${primaryColor}22)` }}
       >
         {card.avatar_url ? (
@@ -66,6 +66,13 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             {(card.full_name || "U")[0].toUpperCase()}
           </div>
         )}
+
+        {/* Views count */}
+        <span className="flex items-center gap-1 text-[10px] text-muted-foreground sm:text-xs">
+          <Eye className="h-3 w-3 text-primary/60" />
+          <span className="font-medium">{analyticsViews != null ? analyticsViews : (card.views_count || 0)}</span>
+        </span>
+
         {/* Published dot */}
         <div
           className={`absolute right-2 top-2 h-2.5 w-2.5 rounded-full ring-2 ring-card ${card.is_published ? "bg-emerald-400" : "bg-muted-foreground/40"}`}
