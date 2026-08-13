@@ -117,61 +117,37 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
         </div>
 
         {/* Bottom row: views + actions */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <Eye className="h-3.5 w-3.5 text-primary/60" />
             <span className="font-medium">{analyticsViews != null ? analyticsViews : (card.views_count || 0)} views</span>
           </span>
 
-          {onTogglePublish && (
+          <div className="flex min-w-0 flex-1 shrink items-center justify-end gap-0.5">
+
             <Button
-              variant={card.is_published ? "outline" : "default"}
+              variant="outline"
               size="sm"
-              className={
-                card.is_published
-                  ? "h-8 gap-1.5 rounded-full border-emerald-500/60 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400"
-                  : "h-8 gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground shadow-md shadow-primary/30 hover:bg-primary/90 animate-pulse"
-              }
-              title={card.is_published ? "Click to unpublish" : "Click to publish your card"}
-              onClick={(e) => onTogglePublish(card, e)}
-            >
-              {card.is_published ? (
-                <>
-                  <Globe className="h-3.5 w-3.5" />
-                  Published
-                </>
-              ) : (
-                <>
-                  <EyeOff className="h-3.5 w-3.5" />
-                  Publish
-                </>
-              )}
-            </Button>
-          )}
-
-          <div className="flex shrink-0 items-center gap-0.5">
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500"
-              title="View Card"
+              className="h-8 shrink-0 gap-1.5 rounded-full border-emerald-500/60 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400"
+              title="Edit Card"
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug), "_blank");
+                navigate(`/cards/${card.id}/edit`);
               }}
             >
-              <ExternalLink className="h-4 w-4" />
+              <Pencil className="h-3.5 w-3.5" />
+              Edit Card
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-primary hover:bg-primary/10 hover:text-primary"
+              className="h-8 w-8 shrink-0 text-primary hover:bg-primary/10 hover:text-primary"
               title="Share"
               onClick={(e) => onShare(card.id, e)}
             >
               <Share2 className="h-4 w-4" />
             </Button>
+
             <Button
               variant="ghost"
               size="icon"
