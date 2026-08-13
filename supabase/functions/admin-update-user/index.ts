@@ -141,16 +141,51 @@ Deno.serve(async (req) => {
       email_confirm: email_confirm || undefined,
     });
 
-    // Update user
-    const { data: updatedUser, error: updateError } = await adminClient.auth.admin.updateUserById(user_id, updateData);
+    // Guard against duplicate emails, which surface as an opaque 500 from GoTrue
+    if (email) {
+      const { data: existing } = await adminClient.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      const clash = existing?.users?.find(
+        (u) => u.email?.toLowerCase() === email.toLowerCase() && u.id !== user_id
+      );
+      if (clash) {
+        return new Response(
+          JSON.stringify({ error: "This email address already belongs to another Card-Ex account." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
 
-    if (updateError) {
-      console.error("Update user error:", updateError);
-      return new Response(JSON.stringify({ error: updateError.message }), {
+    // Update user — apply email and password separately so one failure doesn't block the other
+    let updatedUser: { user: { id: string; email?: string | null } } | null = null;
+    const steps: Array<Record<string, unknown>> = [];
+    if (updateData.email) steps.push({ email: updateData.email, email_confirm: true });
+    if (updateData.password) steps.push({ password: updateData.password });
+    if (steps.length === 0 && updateData.email_confirm) steps.push({ email_confirm: true });
+
+    for (const step of steps) {
+      const { data, error: updateError } = await adminClient.auth.admin.updateUserById(user_id, step);
+      if (updateError) {
+        console.error("Update user error:", { step: Object.keys(step), error: updateError });
+        return new Response(
+          JSON.stringify({
+            error:
+              updateError.message === "Error updating user"
+                ? `Supabase rejected the ${Object.keys(step).join("/")} change. Please try again in a moment.`
+                : updateError.message,
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      updatedUser = data as any;
+    }
+
+    if (!updatedUser) {
+      return new Response(JSON.stringify({ error: "Nothing to update" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     return new Response(
       JSON.stringify({
