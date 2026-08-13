@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Share2, Pencil, Copy, Trash2, Eye, TextCursorInput } from "lucide-react";
-import { getPublicCardUrl } from "@/lib/cardUrl";
 import type { Tables } from "@/integrations/supabase/types";
 import eagleImg from "@/assets/disc/eagle.jpg";
 import roosterImg from "@/assets/disc/rooster.jpg";
@@ -37,7 +36,7 @@ interface DashboardCardTileProps {
   onTogglePublish?: (card: CardData, e: React.MouseEvent) => void;
 }
 
-export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, onDelete, onRename, onTogglePublish }: DashboardCardTileProps) {
+export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, onDelete, onRename }: DashboardCardTileProps) {
   const navigate = useNavigate();
   const theme = card.theme as any;
   const primaryColor = theme?.primary || "#D4AF37";
