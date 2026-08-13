@@ -122,14 +122,8 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
           </p>
         </div>
 
-        {/* Bottom row: views + actions */}
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Eye className="h-3.5 w-3.5 text-primary/60" />
-            <span className="font-medium">{analyticsViews != null ? analyticsViews : (card.views_count || 0)} views</span>
-          </span>
-
-          <div className="flex min-w-0 flex-1 shrink items-center justify-end gap-0.5">
+        {/* Bottom row: actions */}
+        <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1.5">
 
             <Button
               variant="outline"
