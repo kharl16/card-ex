@@ -431,23 +431,24 @@ export default function Dashboard() {
       <DashboardDock onOpenStats={() => setStatsOpen(true)} />
 
       {/* Sticky Deep Search — always visible while scrolling */}
-      <div className="sticky top-0 z-40 border-b border-amber-400/20 bg-background/85 backdrop-blur-xl">
+      <div className="sticky top-0 z-40 border-b border-amber-400/20 bg-background/30 backdrop-blur-xl">
         {/* Translucent search-themed background */}
         <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
           <img
             src={deepSearchBackdrop}
             alt=""
-            loading="lazy"
+            loading="eager"
             width={1024}
             height={512}
-            className="h-full w-full object-cover opacity-[0.22]"
+            className="h-full w-full object-cover opacity-70"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/75 to-background/90" />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/90" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/35 to-background/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-transparent to-background/70" />
         </div>
 
         <div className="container relative mx-auto px-3 sm:px-4 py-2 sm:py-3">
-          <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/10 via-background/70 to-background/60 px-2.5 py-2 sm:px-4 sm:py-3 shadow-[0_6px_24px_-12px_rgba(212,175,55,0.5)]">
+          <div className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/10 via-background/25 to-background/20 px-2.5 py-2 sm:px-4 sm:py-3 shadow-[0_6px_24px_-12px_rgba(212,175,55,0.5)]">
+
             <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="relative inline-flex h-2 w-2 shrink-0">
