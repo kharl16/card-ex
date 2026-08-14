@@ -123,12 +123,12 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
         </div>
 
         {/* Bottom row: actions */}
-        <div className="flex flex-nowrap items-center justify-start gap-1 sm:gap-1.5">
+        <div className="flex flex-nowrap items-center justify-start gap-1 sm:gap-1.5 md:gap-1 lg:gap-1.5">
 
             <Button
               variant="outline"
               size="sm"
-              className="h-8 shrink-0 gap-1.5 rounded-full border-emerald-500/60 bg-emerald-500/10 px-2.5 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400 sm:px-3"
+              className="h-8 shrink-0 gap-1.5 rounded-full border-emerald-500/60 bg-emerald-500/10 px-2.5 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400 sm:px-3 md:px-2 lg:px-3"
               title="Edit Card"
               onClick={(e) => {
                 e.stopPropagation();
@@ -141,7 +141,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-7 shrink-0 sm:w-8 text-primary hover:bg-primary/10 hover:text-primary"
+              className="h-8 w-7 shrink-0 sm:w-8 md:w-7 lg:w-8 text-primary hover:bg-primary/10 hover:text-primary"
               title="Share"
               onClick={(e) => onShare(card.id, e)}
             >
@@ -151,7 +151,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-7 shrink-0 sm:w-8 text-muted-foreground hover:text-foreground"
+              className="h-8 w-7 shrink-0 sm:w-8 md:w-7 lg:w-8 text-muted-foreground hover:text-foreground"
               title="Rename"
               onClick={(e) => onRename(card, e)}
             >
@@ -160,7 +160,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-7 shrink-0 sm:w-8 text-muted-foreground hover:text-foreground"
+              className="h-8 w-7 shrink-0 sm:w-8 md:w-7 lg:w-8 text-muted-foreground hover:text-foreground"
               title="Duplicate"
               onClick={(e) => onDuplicate(card, e)}
             >
@@ -169,7 +169,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-7 shrink-0 sm:w-8 text-destructive/70 hover:text-destructive"
+              className="h-8 w-7 shrink-0 sm:w-8 md:w-7 lg:w-8 text-destructive/70 hover:text-destructive"
               title="Delete"
               onClick={(e) => onDelete(card, e)}
             >
