@@ -446,8 +446,7 @@ export default function Dashboard() {
               />
               <div className="absolute inset-0 bg-gradient-to-r from-background/85 via-background/45 to-background/70" />
             </div>
-
-
+            <div className="relative">
             <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="relative inline-flex h-2 w-2 shrink-0">
@@ -463,6 +462,8 @@ export default function Dashboard() {
               </span>
             </div>
             <GlobalSearch />
+            </div>
+
           </div>
         </div>
       </div>
