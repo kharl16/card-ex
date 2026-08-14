@@ -346,7 +346,7 @@ export function GlobalSearch() {
   return (
     <div ref={wrapRef} className="relative w-full">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 sm:left-4 top-1/2 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 text-amber-300/90" />
+        <Search className="pointer-events-none absolute left-3 sm:left-4 top-1/2 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 text-amber-300" />
         <Input
           value={query}
           onChange={(e) => {
@@ -355,7 +355,7 @@ export function GlobalSearch() {
           }}
           onFocus={() => setOpen(true)}
           placeholder="Search Locator, Videos, Resources…"
-          className="pl-9 sm:pl-12 pr-9 sm:pr-10 h-11 sm:h-14 text-sm sm:text-lg rounded-full bg-background/70 border-2 border-amber-400/40 focus-visible:border-amber-300 focus-visible:ring-2 focus-visible:ring-amber-300/40 placeholder:text-muted-foreground/80 shadow-inner backdrop-blur w-full"
+          className="pl-9 sm:pl-12 pr-9 sm:pr-10 h-11 sm:h-14 text-sm sm:text-lg rounded-full bg-transparent border-2 border-amber-400/60 focus-visible:border-amber-300 focus-visible:ring-2 focus-visible:ring-amber-300/40 placeholder:text-amber-100/70 text-amber-50 shadow-inner backdrop-blur-sm w-full"
           aria-label="Global search"
         />
         {query && (
@@ -366,7 +366,7 @@ export function GlobalSearch() {
               setQuery("");
               setHits([]);
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted"
+            className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-full text-amber-100 hover:bg-amber-400/20"
           >
             <X className="h-4 w-4" />
           </button>
