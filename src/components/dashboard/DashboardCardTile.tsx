@@ -123,12 +123,12 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
         </div>
 
         {/* Bottom row: actions */}
-        <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1.5">
+        <div className="flex flex-nowrap items-center justify-start gap-1 sm:gap-1.5">
 
             <Button
               variant="outline"
               size="sm"
-              className="h-8 shrink-0 gap-1.5 rounded-full border-emerald-500/60 bg-emerald-500/10 px-3 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400"
+              className="h-8 shrink-0 gap-1.5 rounded-full border-emerald-500/60 bg-emerald-500/10 px-2.5 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400 sm:px-3"
               title="Edit Card"
               onClick={(e) => {
                 e.stopPropagation();
