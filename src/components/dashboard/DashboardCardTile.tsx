@@ -141,7 +141,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0 text-primary hover:bg-primary/10 hover:text-primary"
+              className="h-8 w-7 shrink-0 sm:w-8 text-primary hover:bg-primary/10 hover:text-primary"
               title="Share"
               onClick={(e) => onShare(card.id, e)}
             >
@@ -151,7 +151,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+              className="h-8 w-7 shrink-0 sm:w-8 text-muted-foreground hover:text-foreground"
               title="Rename"
               onClick={(e) => onRename(card, e)}
             >
@@ -160,7 +160,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+              className="h-8 w-7 shrink-0 sm:w-8 text-muted-foreground hover:text-foreground"
               title="Duplicate"
               onClick={(e) => onDuplicate(card, e)}
             >
@@ -169,7 +169,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0 text-destructive/70 hover:text-destructive"
+              className="h-8 w-7 shrink-0 sm:w-8 text-destructive/70 hover:text-destructive"
               title="Delete"
               onClick={(e) => onDelete(card, e)}
             >
