@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import LoadingAnimation from "@/components/LoadingAnimation";
+import deepSearchBackdrop from "@/assets/tiles/tile-deep-search.jpg";
 import eagleImg from "@/assets/disc/eagle.jpg";
 import roosterImg from "@/assets/disc/rooster.jpg";
 import carabaoImg from "@/assets/disc/carabao.jpg";
