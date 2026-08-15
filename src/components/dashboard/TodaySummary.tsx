@@ -4,6 +4,7 @@ import { Eye, QrCode, UserPlus, CalendarDays, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface TodaySummaryProps {
@@ -129,6 +130,9 @@ export function TodaySummary({ cards }: TodaySummaryProps) {
               <p className="mt-1 text-xl font-bold tracking-tight">{item.value.toLocaleString()}</p>
             </div>
           ))}
+        </div>
+        <div className="mt-3 border-t border-border/40 pt-3">
+          <ActivityFeed />
         </div>
       </PopoverContent>
     </Popover>
