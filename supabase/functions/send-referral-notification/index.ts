@@ -37,7 +37,7 @@ const normalizeResendFrom = (input: string) => {
   return v;
 };
 
-const RESEND_FROM_EMAIL = normalizeResendFrom(Deno.env.get("RESEND_FROM_EMAIL") ?? "");
+const DEFAULT_FROM_EMAIL = "Card-Ex <noreply@tagex.app>";
 
 const isValidEmail = (email: string) => /^[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+$/.test(email);
 
@@ -47,6 +47,14 @@ const isValidResendFrom = (value: string) => {
   if (m) return !!m[1]?.trim() && isValidEmail(m[2].trim());
   return isValidEmail(trimmed);
 };
+
+const normalized = normalizeResendFrom(Deno.env.get("RESEND_FROM_EMAIL") ?? "");
+// Fall back to the verified domain sender when the secret is missing or malformed
+const RESEND_FROM_EMAIL = isValidResendFrom(normalized) ? normalized : DEFAULT_FROM_EMAIL;
+if (normalized && !isValidResendFrom(normalized)) {
+  console.warn("RESEND_FROM_EMAIL is malformed; falling back to default sender.");
+}
+
 
 
 const corsHeaders = {
@@ -95,17 +103,8 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
-    if (!RESEND_FROM_EMAIL) {
-      throw new Error(
-        "RESEND_FROM_EMAIL is not configured. Set it to 'Name <email@yourdomain.com>' or 'email@yourdomain.com' (no quotes)."
-      );
-    }
 
-    if (!isValidResendFrom(RESEND_FROM_EMAIL)) {
-      throw new Error(
-        "Invalid RESEND_FROM_EMAIL format. Use 'email@example.com' or 'Name <email@example.com>' (no quotes)."
-      );
-    }
+
 
     console.log(
       `Resend config ok: keySet=${RESEND_API_KEY.startsWith("re_")}, fromHasName=${RESEND_FROM_EMAIL.includes("<")}`
