@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { createPortal } from "react-dom";
 import { Zap, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useBackButtonClose } from "@/hooks/useBackButtonClose";
 import CardExLogo from "@/assets/Card-Ex-Big.png";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 export interface QuickAction {
   id: string;
@@ -23,18 +24,24 @@ interface DashboardOrbProps {
 const ORB_SIZE = 56;
 const MARGIN = 16;
 const POSITION_KEY = "dashboard_orb_position";
+const RADIUS = 112;
+const ITEM_SIZE = 44;
 
 export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [showLabel, setShowLabel] = useState(true);
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const motionX = useMotionValue(0);
   const motionY = useMotionValue(0);
   const springConfig = { stiffness: 900, damping: 60 };
   const springX = useSpring(motionX, springConfig);
   const springY = useSpring(motionY, springConfig);
+
+  // Derived center for radial items
+  const orbCenterX = useTransform(springX, (x) => x + ORB_SIZE / 2);
+  const orbCenterY = useTransform(springY, (y) => y + ORB_SIZE / 2);
 
   const getBounds = useCallback(() => {
     const vv = window.visualViewport;
@@ -62,6 +69,9 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
       y: b.height - ORB_SIZE - 100, // above bottom nav
     });
   }, [getBounds, clampPosition]);
+
+  // Hardware/browser back button closes the radial menu first.
+  useBackButtonClose(isOpen, () => setIsOpen(false));
 
   // Initialize position
   useEffect(() => {
@@ -108,6 +118,48 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
     height: vv?.height ?? window.innerHeight,
   };
 
+  const currentX = springX.get();
+  const currentY = springY.get();
+  const currentCenterX = currentX + ORB_SIZE / 2;
+  const currentCenterY = currentY + ORB_SIZE / 2;
+  const edgeThreshold = 120;
+
+  // Determine sweep direction based on orb position so items stay on screen
+  let startAngle: number;
+  let sweep: number;
+  if (currentCenterX < edgeThreshold) {
+    startAngle = -90;
+    sweep = 180;
+  } else if (currentCenterX > b.width - edgeThreshold) {
+    startAngle = 90;
+    sweep = 180;
+  } else {
+    startAngle = -90;
+    sweep = 340;
+  }
+
+  const totalItems = actions.length;
+  const step = totalItems > 1 ? sweep / (totalItems - 1) : 0;
+
+  const getRadialPosition = (index: number) => {
+    const angleDeg = startAngle + index * step;
+    const angleRad = angleDeg * (Math.PI / 180);
+    return {
+      x: Math.cos(angleRad) * RADIUS,
+      y: Math.sin(angleRad) * RADIUS,
+    };
+  };
+
+  const handleOrbClick = () => {
+    if (!isDragging) setIsOpen((v) => !v);
+  };
+
+  const handleActionClick = (action: QuickAction) => {
+    if (action.disabled) return;
+    setIsOpen(false);
+    action.onSelect();
+  };
+
   const fab = (
     <div
       className="pointer-events-none"
@@ -122,6 +174,21 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         height: vvOffset.height,
       }}
     >
+      {/* Backdrop */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm pointer-events-auto"
+            style={{ zIndex: 9997 }}
+            onClick={() => setIsOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Drag glow trail */}
       {isDragging && (
         <motion.div
@@ -144,6 +211,70 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         />
       )}
 
+      {/* Radial menu anchor point */}
+      <motion.div
+        className="pointer-events-none"
+        style={{
+          position: "absolute",
+          left: orbCenterX,
+          top: orbCenterY,
+          width: 0,
+          height: 0,
+          zIndex: 10000,
+          overflow: "visible",
+        }}
+      >
+        <AnimatePresence>
+          {isOpen &&
+            actions.map((action, index) => {
+              const pos = getRadialPosition(index);
+              const Icon = action.icon;
+              return (
+                <div
+                  key={action.id}
+                  className="pointer-events-auto"
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    transform: `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px))`,
+                    zIndex: 10000,
+                    overflow: "visible",
+                  }}
+                >
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.6, filter: "blur(6px)" }}
+                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                    exit={{ opacity: 0, scale: 0.6, filter: "blur(4px)" }}
+                    transition={{ delay: index * 0.05, duration: 0.25 }}
+                    style={{ transformOrigin: "center" }}
+                  >
+                    <button
+                      type="button"
+                      disabled={action.disabled}
+                      onClick={() => handleActionClick(action)}
+                      className={cn(
+                        "relative flex flex-col items-center justify-center gap-1 rounded-2xl border border-border/50 bg-card/90 text-foreground shadow-lg shadow-black/30 transition-all",
+                        "hover:scale-105 hover:border-primary/50 hover:bg-card",
+                        "active:scale-95",
+                        action.disabled && "opacity-40 cursor-not-allowed hover:scale-100"
+                      )}
+                      style={{ width: ITEM_SIZE, height: ITEM_SIZE }}
+                      aria-label={action.label}
+                    >
+                      <Icon className="h-5 w-5 text-primary" />
+                    </button>
+                    {/* Floating label */}
+                    <span className="pointer-events-none absolute left-1/2 top-full mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/80 px-2 py-0.5 text-[10px] font-medium text-white shadow-md">
+                      {action.label}
+                    </span>
+                  </motion.div>
+                </div>
+              );
+            })}
+        </AnimatePresence>
+      </motion.div>
+
       {/* Orb FAB */}
       <motion.div
         drag
@@ -155,7 +286,10 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         }}
         dragMomentum={false}
         dragElastic={0.08}
-        onDragStart={() => setIsDragging(true)}
+        onDragStart={() => {
+          setIsDragging(true);
+          setIsOpen(false);
+        }}
         onDragEnd={() => {
           setIsDragging(false);
           const pos = clampPosition({ x: motionX.get(), y: motionY.get() });
@@ -163,16 +297,14 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
           motionY.set(pos.y);
           localStorage.setItem(POSITION_KEY, JSON.stringify(pos));
         }}
-        onClick={() => {
-          if (!isDragging) setOpen(true);
-        }}
+        onClick={handleOrbClick}
         role="button"
         tabIndex={0}
         aria-label={`${label} (drag to move)`}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            setOpen(true);
+            handleOrbClick();
           }
         }}
         style={{
@@ -191,7 +323,10 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         onHoverEnd={() => setShowLabel(false)}
       >
         <div
-          className="relative rounded-full flex items-center justify-center transition-all duration-300 ease-out"
+          className={cn(
+            "relative rounded-full flex items-center justify-center transition-all duration-300 ease-out",
+            isOpen && "ring-2 ring-primary/60 shadow-[0_0_20px_hsl(var(--primary)/0.4)]"
+          )}
           style={{
             width: ORB_SIZE,
             height: ORB_SIZE,
@@ -220,7 +355,7 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         {/* Floating label */}
         <motion.span
           initial={false}
-          animate={{ opacity: showLabel && !isDragging ? 1 : 0 }}
+          animate={{ opacity: showLabel && !isDragging && !isOpen ? 1 : 0 }}
           transition={{ duration: 0.2 }}
           className="pointer-events-none absolute left-1/2 top-full mt-2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/70 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md"
         >
@@ -228,7 +363,7 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         </motion.span>
 
         {/* Pulse ring */}
-        {!isDragging && (
+        {!isDragging && !isOpen && (
           <div
             className="absolute inset-0 rounded-full animate-ping bg-primary/15 pointer-events-none"
             style={{ animationDuration: "2.5s" }}
@@ -238,42 +373,5 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
     </div>
   );
 
-  return (
-    <>
-      {typeof document !== "undefined" ? createPortal(fab, document.body) : null}
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[440px]">
-          <DialogHeader>
-            <DialogTitle>Quick Actions</DialogTitle>
-            <DialogDescription>Create or update something right away.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-2">
-            {actions.map((action) => (
-              <button
-                key={action.id}
-                type="button"
-                disabled={action.disabled}
-                onClick={() => {
-                  setOpen(false);
-                  action.onSelect();
-                }}
-                className="flex min-h-[56px] w-full items-center gap-3 rounded-2xl border border-border/40 bg-card/40 px-4 py-3 text-left transition-all hover:border-primary/40 hover:bg-card/70 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <action.icon className="h-5 w-5" />
-                </span>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-foreground">{action.label}</span>
-                  {action.description && (
-                    <span className="block truncate text-xs text-muted-foreground">{action.description}</span>
-                  )}
-                </span>
-              </button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
+  return <>{typeof document !== "undefined" ? createPortal(fab, document.body) : null}</>;
 }
