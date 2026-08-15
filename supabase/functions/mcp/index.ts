@@ -3,7 +3,7 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
 
 // src/lib/mcp/tools/search-cards.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
@@ -105,11 +105,19 @@ var list_recent_cards_default = defineTool3({
 });
 
 // src/lib/mcp/index.ts
+var supabaseUrl = (process.env.SUPABASE_URL ?? "https://lorowpouhpjjxembvwyi.supabase.co").replace(/\/+$/, "");
 var mcp_default = defineMcp({
   name: "card-ex-mcp",
   title: "Card-Ex by Tagex.app",
   version: "0.1.0",
   instructions: "Tools for discovering and reading public Card-Ex business cards on tagex.app. Use `search_cards` to find people or companies, `get_card` to fetch full details for a known slug, and `list_recent_cards` to browse recently published cards.",
+  // Require a verified Supabase OAuth bearer token before any tool can run.
+  auth: auth.oauth.issuer({
+    issuer: `${supabaseUrl}/auth/v1`,
+    acceptedAudiences: "authenticated",
+    jwksUri: `${supabaseUrl}/auth/v1/.well-known/jwks.json`,
+    resourceName: "Card-Ex MCP"
+  }),
   tools: [search_cards_default, get_card_default, list_recent_cards_default]
 });
 
