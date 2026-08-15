@@ -103,17 +103,8 @@ serve(async (req: Request): Promise<Response> => {
       throw new Error("RESEND_API_KEY is not configured");
     }
 
-    if (!RESEND_FROM_EMAIL) {
-      throw new Error(
-        "RESEND_FROM_EMAIL is not configured. Set it to 'Name <email@yourdomain.com>' or 'email@yourdomain.com' (no quotes)."
-      );
-    }
 
-    if (!isValidResendFrom(RESEND_FROM_EMAIL)) {
-      throw new Error(
-        "Invalid RESEND_FROM_EMAIL format. Use 'email@example.com' or 'Name <email@example.com>' (no quotes)."
-      );
-    }
+
 
     console.log(
       `Resend config ok: keySet=${RESEND_API_KEY.startsWith("re_")}, fromHasName=${RESEND_FROM_EMAIL.includes("<")}`
