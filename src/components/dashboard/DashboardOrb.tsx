@@ -24,8 +24,9 @@ interface DashboardOrbProps {
 const ORB_SIZE = 56;
 const MARGIN = 16;
 const POSITION_KEY = "dashboard_orb_position";
-const RADIUS = 112;
+const RADIUS = 124;
 const ITEM_SIZE = 44;
+const LABEL_OFFSET = 34;
 
 export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbProps) {
   const [isDragging, setIsDragging] = useState(false);
