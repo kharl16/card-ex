@@ -434,7 +434,7 @@ export default function Dashboard() {
       <div className="sticky top-0 z-40 border-b border-amber-400/20">
         <div className="container relative mx-auto px-3 sm:px-4 py-2 sm:py-3">
           <div className="relative overflow-hidden rounded-2xl border border-amber-400/40 px-2.5 py-2 sm:px-4 sm:py-3 shadow-[0_6px_24px_-12px_rgba(212,175,55,0.5)]">
-            {/* Translucent search-themed background, clipped to the box */}
+            {/* Search-themed background photo, fully visible through transparent overlays */}
             <div className="pointer-events-none absolute inset-0" aria-hidden="true">
               <img
                 src={deepSearchBackdrop}
@@ -444,26 +444,24 @@ export default function Dashboard() {
                 height={512}
                 className="h-full w-full object-cover object-center"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-background/20 to-background/40" />
             </div>
             <div className="relative">
-            <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="relative inline-flex h-2 w-2 shrink-0">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400/70" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" />
-                </span>
-                <span className="text-[11px] sm:text-sm font-semibold uppercase tracking-[0.16em] text-amber-300 truncate">
-                  Deep Search
+              <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5 bg-transparent">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="relative inline-flex h-2 w-2 shrink-0 drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400/70" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" />
+                  </span>
+                  <span className="text-[11px] sm:text-sm font-semibold uppercase tracking-[0.16em] text-amber-300 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                    Deep Search
+                  </span>
+                </div>
+                <span className="hidden md:inline text-[11px] text-amber-100 truncate drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]">
+                  Locator · Videos · Resources · Gallery · Tools
                 </span>
               </div>
-              <span className="hidden md:inline text-[11px] text-amber-100/80 truncate">
-                Locator · Videos · Resources · Gallery · Tools
-              </span>
+              <GlobalSearch />
             </div>
-            <GlobalSearch />
-            </div>
-
           </div>
         </div>
       </div>
