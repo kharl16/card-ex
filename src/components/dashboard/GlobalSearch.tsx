@@ -355,7 +355,7 @@ export function GlobalSearch() {
           }}
           onFocus={() => setOpen(true)}
           placeholder="Search Locator, Videos, Resources…"
-          className="pl-9 sm:pl-12 pr-9 sm:pr-10 h-11 sm:h-14 text-sm sm:text-lg rounded-full bg-transparent border-2 border-amber-400/60 focus-visible:border-amber-300 focus-visible:ring-2 focus-visible:ring-amber-300/40 placeholder:text-amber-100/70 text-amber-50 shadow-inner backdrop-blur-sm w-full"
+          className="pl-9 sm:pl-12 pr-9 sm:pr-10 h-11 sm:h-14 text-sm sm:text-lg rounded-full bg-transparent border-2 border-amber-400/60 focus-visible:border-amber-300 focus-visible:ring-2 focus-visible:ring-amber-300/40 placeholder:text-amber-100/90 text-amber-50 shadow-inner w-full drop-shadow-[0_1px_2px_rgba(0,0,0,0.85)]"
           aria-label="Global search"
         />
         {query && (
