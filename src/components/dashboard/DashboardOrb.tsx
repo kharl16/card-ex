@@ -125,27 +125,41 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
   const currentCenterY = currentY + ORB_SIZE / 2;
   const edgeThreshold = 120;
 
-  // Determine sweep direction based on orb position so items stay on screen
-  let startAngle: number;
-  let sweep: number;
+  const totalItems = actions.length;
+
+  // Clean symmetric presets so the menu never looks messy regardless of orb position.
+  // Angles are in degrees; 0° = right, -90° = top, 90° = bottom.
+  const centeredAngles: Record<number, number[]> = {
+    1: [-90],
+    2: [-90, 90],
+    3: [-90, 30, 150],
+    4: [-90, 0, 90, 180],
+    5: [-90, -18, 54, 126, 198],
+    6: [-90, -30, 30, 90, 150, 210],
+    7: [-90, -38, 13, 65, 115, 167, 218],
+    8: [-90, -45, 0, 45, 90, 135, 180, 225],
+  };
+
+  // Determine sweep direction based on orb position so items stay on screen.
+  let angles: number[];
   if (currentCenterX < edgeThreshold) {
-    startAngle = -90;
-    sweep = 180;
+    // Orb on left edge: fan out to the right (240° arc, clockwise from top-left)
+    const step = totalItems > 1 ? 240 / (totalItems - 1) : 0;
+    angles = Array.from({ length: totalItems }, (_, i) => -150 + i * step);
   } else if (currentCenterX > b.width - edgeThreshold) {
-    startAngle = 90;
-    sweep = 180;
+    // Orb on right edge: fan out to the left (240° arc)
+    const step = totalItems > 1 ? 240 / (totalItems - 1) : 0;
+    angles = Array.from({ length: totalItems }, (_, i) => -30 + i * step);
   } else {
-    startAngle = -90;
-    sweep = 340;
+    // Centered: use symmetric preset, fall back to even 360° distribution
+    angles = centeredAngles[totalItems] ?? Array.from({ length: totalItems }, (_, i) => -90 + (i * 360) / Math.max(1, totalItems));
   }
 
-  const totalItems = actions.length;
-  const step = totalItems > 1 ? sweep / (totalItems - 1) : 0;
-
   const getRadialPosition = (index: number) => {
-    const angleDeg = startAngle + index * step;
+    const angleDeg = angles[index] ?? -90;
     const angleRad = angleDeg * (Math.PI / 180);
     return {
+      angleDeg,
       x: Math.cos(angleRad) * RADIUS,
       y: Math.sin(angleRad) * RADIUS,
     };
