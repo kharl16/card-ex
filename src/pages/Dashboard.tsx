@@ -49,7 +49,7 @@ import { Pencil, Upload, Copy as CopyIcon, QrCode, Share2, FilePlus2 } from "luc
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
 import { MobileBottomNav } from "@/components/dashboard/MobileBottomNav";
 import { DashboardDock } from "@/components/dashboard/DashboardDock";
-import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
+
 import { ReferralsFeed } from "@/components/dashboard/ReferralsFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
@@ -549,12 +549,9 @@ export default function Dashboard() {
         )}
 
 
-        {/* Progress + Activity */}
+        {/* Progress tracker */}
         {!loading && cards.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <ProgressTracker cards={cards} profile={profile} cardViewsMap={cardViewsMap} />
-            <ActivityFeed />
-          </div>
+          <ProgressTracker cards={cards} profile={profile} cardViewsMap={cardViewsMap} />
         )}
       </main>
 
