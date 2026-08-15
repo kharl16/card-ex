@@ -3,7 +3,13 @@
   "sdk_version": "0.20.0",
   "path": "/functions/v1/mcp",
   "auth": {
-    "type": "none"
+    "type": "oauth",
+    "issuer": "https://lorowpouhpjjxembvwyi.supabase.co/auth/v1",
+    "resource_name": "Card-Ex MCP",
+    "accepted_audiences": [
+      "authenticated"
+    ],
+    "jwks_uri": "https://lorowpouhpjjxembvwyi.supabase.co/auth/v1/.well-known/jwks.json"
   },
   "mcp": {
     "server": {
