@@ -24,8 +24,9 @@ interface DashboardOrbProps {
 const ORB_SIZE = 56;
 const MARGIN = 16;
 const POSITION_KEY = "dashboard_orb_position";
-const RADIUS = 112;
+const RADIUS = 124;
 const ITEM_SIZE = 44;
+const LABEL_OFFSET = 34;
 
 export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -124,27 +125,41 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
   const currentCenterY = currentY + ORB_SIZE / 2;
   const edgeThreshold = 120;
 
-  // Determine sweep direction based on orb position so items stay on screen
-  let startAngle: number;
-  let sweep: number;
+  const totalItems = actions.length;
+
+  // Clean symmetric presets so the menu never looks messy regardless of orb position.
+  // Angles are in degrees; 0° = right, -90° = top, 90° = bottom.
+  const centeredAngles: Record<number, number[]> = {
+    1: [-90],
+    2: [-90, 90],
+    3: [-90, 30, 150],
+    4: [-90, 0, 90, 180],
+    5: [-90, -18, 54, 126, 198],
+    6: [-90, -30, 30, 90, 150, 210],
+    7: [-90, -38, 13, 65, 115, 167, 218],
+    8: [-90, -45, 0, 45, 90, 135, 180, 225],
+  };
+
+  // Determine sweep direction based on orb position so items stay on screen.
+  let angles: number[];
   if (currentCenterX < edgeThreshold) {
-    startAngle = -90;
-    sweep = 180;
+    // Orb on left edge: fan out to the right (240° arc, clockwise from top-left)
+    const step = totalItems > 1 ? 240 / (totalItems - 1) : 0;
+    angles = Array.from({ length: totalItems }, (_, i) => -150 + i * step);
   } else if (currentCenterX > b.width - edgeThreshold) {
-    startAngle = 90;
-    sweep = 180;
+    // Orb on right edge: fan out to the left (240° arc)
+    const step = totalItems > 1 ? 240 / (totalItems - 1) : 0;
+    angles = Array.from({ length: totalItems }, (_, i) => -30 + i * step);
   } else {
-    startAngle = -90;
-    sweep = 340;
+    // Centered: use symmetric preset, fall back to even 360° distribution
+    angles = centeredAngles[totalItems] ?? Array.from({ length: totalItems }, (_, i) => -90 + (i * 360) / Math.max(1, totalItems));
   }
 
-  const totalItems = actions.length;
-  const step = totalItems > 1 ? sweep / (totalItems - 1) : 0;
-
   const getRadialPosition = (index: number) => {
-    const angleDeg = startAngle + index * step;
+    const angleDeg = angles[index] ?? -90;
     const angleRad = angleDeg * (Math.PI / 180);
     return {
+      angleDeg,
       x: Math.cos(angleRad) * RADIUS,
       y: Math.sin(angleRad) * RADIUS,
     };
@@ -225,53 +240,99 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         }}
       >
         <AnimatePresence>
-          {isOpen &&
-            actions.map((action, index) => {
-              const pos = getRadialPosition(index);
-              const Icon = action.icon;
-              return (
-                <div
-                  key={action.id}
-                  className="pointer-events-auto"
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    transform: `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px))`,
-                    zIndex: 10000,
-                    overflow: "visible",
-                  }}
-                >
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.6, filter: "blur(6px)" }}
-                    animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, scale: 0.6, filter: "blur(4px)" }}
-                    transition={{ delay: index * 0.05, duration: 0.25 }}
-                    style={{ transformOrigin: "center" }}
+          {isOpen && (
+            <>
+              {/* Subtle decorative ring tying the radial items together */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.25 }}
+                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/20 bg-primary/5"
+                style={{
+                  width: RADIUS * 2 - ITEM_SIZE,
+                  height: RADIUS * 2 - ITEM_SIZE,
+                  left: 0,
+                  top: 0,
+                }}
+              />
+
+              {actions.map((action, index) => {
+                const pos = getRadialPosition(index);
+                const Icon = action.icon;
+
+                // Position labels radially outward so they never overlap the orb or each other.
+                // angleDeg: -90 top, 0 right, 90 bottom, 180/-180 left
+                const labelDistance = RADIUS + LABEL_OFFSET;
+                const labelRad = pos.angleDeg * (Math.PI / 180);
+                const labelX = Math.cos(labelRad) * labelDistance;
+                const labelY = Math.sin(labelRad) * labelDistance;
+
+                // Anchor the label on its outer edge so text flows away from the center.
+                let labelAnchor = "center";
+                if (pos.angleDeg > -45 && pos.angleDeg < 45) labelAnchor = "left";
+                else if (pos.angleDeg > 135 || pos.angleDeg < -135) labelAnchor = "right";
+
+                const labelTranslate =
+                  labelAnchor === "left"
+                    ? "translate(0%, -50%)"
+                    : labelAnchor === "right"
+                    ? "translate(-100%, -50%)"
+                    : "translate(-50%, -50%)";
+
+                return (
+                  <div
+                    key={action.id}
+                    className="pointer-events-auto"
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: 0,
+                      transform: `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px))`,
+                      zIndex: 10000,
+                      overflow: "visible",
+                    }}
                   >
-                    <button
-                      type="button"
-                      disabled={action.disabled}
-                      onClick={() => handleActionClick(action)}
-                      className={cn(
-                        "relative flex flex-col items-center justify-center gap-1 rounded-2xl border border-border/50 bg-card/90 text-foreground shadow-lg shadow-black/30 transition-all",
-                        "hover:scale-105 hover:border-primary/50 hover:bg-card",
-                        "active:scale-95",
-                        action.disabled && "opacity-40 cursor-not-allowed hover:scale-100"
-                      )}
-                      style={{ width: ITEM_SIZE, height: ITEM_SIZE }}
-                      aria-label={action.label}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.6, filter: "blur(6px)" }}
+                      animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                      exit={{ opacity: 0, scale: 0.6, filter: "blur(4px)" }}
+                      transition={{ delay: index * 0.05, duration: 0.25 }}
+                      style={{ transformOrigin: "center" }}
                     >
-                      <Icon className="h-5 w-5 text-primary" />
-                    </button>
-                    {/* Floating label */}
-                    <span className="pointer-events-none absolute left-1/2 top-full mt-1.5 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/80 px-2 py-0.5 text-[10px] font-medium text-white shadow-md">
-                      {action.label}
-                    </span>
-                  </motion.div>
-                </div>
-              );
-            })}
+                      <button
+                        type="button"
+                        disabled={action.disabled}
+                        onClick={() => handleActionClick(action)}
+                        className={cn(
+                          "relative flex flex-col items-center justify-center gap-1 rounded-2xl border border-primary/30 bg-card/95 text-foreground shadow-xl shadow-black/40 transition-all",
+                          "hover:scale-110 hover:border-primary/60 hover:bg-card hover:shadow-primary/20",
+                          "active:scale-95",
+                          action.disabled && "opacity-40 cursor-not-allowed hover:scale-100"
+                        )}
+                        style={{ width: ITEM_SIZE, height: ITEM_SIZE }}
+                        aria-label={action.label}
+                      >
+                        <Icon className="h-5 w-5 text-primary" />
+                      </button>
+
+                      {/* Floating label — placed radially outward */}
+                      <span
+                        className="pointer-events-none absolute whitespace-nowrap rounded-full bg-black/85 px-2.5 py-1 text-[10px] font-semibold text-white shadow-lg backdrop-blur-sm"
+                        style={{
+                          left: `calc(50% + ${labelX - pos.x}px)`,
+                          top: `calc(50% + ${labelY - pos.y}px)`,
+                          transform: labelTranslate,
+                        }}
+                      >
+                        {action.label}
+                      </span>
+                    </motion.div>
+                  </div>
+                );
+              })}
+            </>
+          )}
         </AnimatePresence>
       </motion.div>
 
