@@ -260,25 +260,8 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
               {actions.map((action, index) => {
                 const pos = getRadialPosition(index);
                 const Icon = action.icon;
-
-                // Position labels radially outward so they never overlap the orb or each other.
-                // angleDeg: -90 top, 0 right, 90 bottom, 180/-180 left
-                const labelDistance = RADIUS + LABEL_OFFSET;
-                const labelRad = pos.angleDeg * (Math.PI / 180);
-                const labelX = Math.cos(labelRad) * labelDistance;
-                const labelY = Math.sin(labelRad) * labelDistance;
-
-                // Anchor the label on its outer edge so text flows away from the center.
-                let labelAnchor = "center";
-                if (pos.angleDeg > -45 && pos.angleDeg < 45) labelAnchor = "left";
-                else if (pos.angleDeg > 135 || pos.angleDeg < -135) labelAnchor = "right";
-
-                const labelTranslate =
-                  labelAnchor === "left"
-                    ? "translate(0%, -50%)"
-                    : labelAnchor === "right"
-                    ? "translate(-100%, -50%)"
-                    : "translate(-50%, -50%)";
+                const isTop = pos.y < 0;
+                const isCreateTemplate = action.id === "create-template";
 
                 return (
                   <div
@@ -305,24 +288,32 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
                         disabled={action.disabled}
                         onClick={() => handleActionClick(action)}
                         className={cn(
-                          "relative flex flex-col items-center justify-center gap-1 rounded-2xl border border-primary/30 bg-card/95 text-foreground shadow-xl shadow-black/40 transition-all",
-                          "hover:scale-110 hover:border-primary/60 hover:bg-card hover:shadow-primary/20",
-                          "active:scale-95",
+                          "relative flex flex-col items-center justify-center transition-all",
+                          isCreateTemplate
+                            ? "bg-transparent border-0 shadow-none hover:scale-110 active:scale-95"
+                            : "gap-1 rounded-2xl border border-primary/30 bg-card/95 text-foreground shadow-xl shadow-black/40 hover:scale-110 hover:border-primary/60 hover:bg-card hover:shadow-primary/20 active:scale-95",
                           action.disabled && "opacity-40 cursor-not-allowed hover:scale-100"
                         )}
                         style={{ width: ITEM_SIZE, height: ITEM_SIZE }}
                         aria-label={action.label}
                       >
-                        <Icon className="h-5 w-5 text-primary" />
+                        <Icon
+                          className={cn(
+                            "text-primary",
+                            isCreateTemplate
+                              ? "h-7 w-7 drop-shadow-[0_0_10px_hsl(var(--primary)/0.55)]"
+                              : "h-5 w-5"
+                          )}
+                        />
                       </button>
 
-                      {/* Floating label — placed radially outward */}
+                      {/* Floating label — above for top items, below for bottom items */}
                       <span
-                        className="pointer-events-none absolute whitespace-nowrap rounded-full bg-black/85 px-2.5 py-1 text-[10px] font-semibold text-white shadow-lg backdrop-blur-sm"
+                        className="pointer-events-none absolute left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-black/85 px-2.5 py-1 text-[10px] font-semibold text-white shadow-lg backdrop-blur-sm"
                         style={{
-                          left: `calc(50% + ${labelX - pos.x}px)`,
-                          top: `calc(50% + ${labelY - pos.y}px)`,
-                          transform: labelTranslate,
+                          top: isTop
+                            ? `calc(50% - ${ITEM_SIZE / 2}px - 10px)`
+                            : `calc(50% + ${ITEM_SIZE / 2}px + 10px)`,
                         }}
                       >
                         {action.label}
