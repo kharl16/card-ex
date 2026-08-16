@@ -241,20 +241,6 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         <AnimatePresence>
           {isOpen && (
             <>
-              {/* Subtle decorative ring tying the radial items together */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.25 }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/20 bg-primary/5"
-                style={{
-                  width: RADIUS * 2 - ITEM_SIZE,
-                  height: RADIUS * 2 - ITEM_SIZE,
-                  left: 0,
-                  top: 0,
-                }}
-              />
 
               {actions.map((action, index) => {
                 const pos = getRadialPosition(index);
