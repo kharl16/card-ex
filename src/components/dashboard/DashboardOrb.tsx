@@ -275,7 +275,7 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
                         className={cn(
                           "relative flex flex-col items-center justify-center transition-all",
                           isCreateTemplate
-                            ? "bg-transparent border-0 shadow-none hover:scale-110 active:scale-95"
+                            ? "!bg-transparent !border-0 !shadow-none rounded-none hover:scale-110 active:scale-95"
                             : "gap-1 rounded-2xl border border-primary/30 bg-card/95 text-foreground shadow-xl shadow-black/40 hover:scale-110 hover:border-primary/60 hover:bg-card hover:shadow-primary/20 active:scale-95",
                           action.disabled && "opacity-40 cursor-not-allowed hover:scale-100"
                         )}
