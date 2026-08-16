@@ -246,7 +246,6 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
                 const pos = getRadialPosition(index);
                 const Icon = action.icon;
                 const isTop = pos.y < 0;
-                const isCreateTemplate = action.id === "create-template";
 
                 return (
                   <div
@@ -274,22 +273,13 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
                         onClick={() => handleActionClick(action)}
                         className={cn(
                           "relative flex flex-col items-center justify-center transition-all",
-                          isCreateTemplate
-                            ? "!bg-transparent !border-0 !shadow-none rounded-none hover:scale-110 active:scale-95"
-                            : "gap-1 rounded-2xl border border-primary/30 bg-card/95 text-foreground shadow-xl shadow-black/40 hover:scale-110 hover:border-primary/60 hover:bg-card hover:shadow-primary/20 active:scale-95",
+                          "gap-1 rounded-2xl border border-primary/30 bg-card/95 text-foreground shadow-xl shadow-black/40 hover:scale-110 hover:border-primary/60 hover:bg-card hover:shadow-primary/20 active:scale-95",
                           action.disabled && "opacity-40 cursor-not-allowed hover:scale-100"
                         )}
                         style={{ width: ITEM_SIZE, height: ITEM_SIZE }}
                         aria-label={action.label}
                       >
-                        <Icon
-                          className={cn(
-                            "text-primary",
-                            isCreateTemplate
-                              ? "h-7 w-7 drop-shadow-[0_0_10px_hsl(var(--primary)/0.55)]"
-                              : "h-5 w-5"
-                          )}
-                        />
+                        <Icon className="h-5 w-5 text-primary" />
                       </button>
 
                       {/* Floating label — above for top items, below for bottom items */}
@@ -297,8 +287,8 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
                         className="pointer-events-none absolute left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-black/85 px-2.5 py-1 text-[10px] font-semibold text-white shadow-lg backdrop-blur-sm"
                         style={{
                           top: isTop
-                            ? `calc(50% - ${ITEM_SIZE / 2}px - 10px)`
-                            : `calc(50% + ${ITEM_SIZE / 2}px + 10px)`,
+                            ? `calc(50% - ${ITEM_SIZE / 2}px - 22px)`
+                            : `calc(50% + ${ITEM_SIZE / 2}px + 22px)`,
                         }}
                       >
                         {action.label}
@@ -325,7 +315,6 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         dragElastic={0.08}
         onDragStart={() => {
           setIsDragging(true);
-          setIsOpen(false);
         }}
         onDragEnd={() => {
           setIsDragging(false);
