@@ -246,7 +246,6 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
                 const pos = getRadialPosition(index);
                 const Icon = action.icon;
                 const isTop = pos.y < 0;
-                const isCreateTemplate = action.id === "create-template";
 
                 return (
                   <div
