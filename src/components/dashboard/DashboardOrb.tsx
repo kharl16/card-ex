@@ -241,20 +241,6 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         <AnimatePresence>
           {isOpen && (
             <>
-              {/* Subtle decorative ring tying the radial items together */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.25 }}
-                className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/20 bg-primary/5"
-                style={{
-                  width: RADIUS * 2 - ITEM_SIZE,
-                  height: RADIUS * 2 - ITEM_SIZE,
-                  left: 0,
-                  top: 0,
-                }}
-              />
 
               {actions.map((action, index) => {
                 const pos = getRadialPosition(index);
@@ -289,7 +275,7 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
                         className={cn(
                           "relative flex flex-col items-center justify-center transition-all",
                           isCreateTemplate
-                            ? "bg-transparent border-0 shadow-none hover:scale-110 active:scale-95"
+                            ? "!bg-transparent !border-0 !shadow-none rounded-none hover:scale-110 active:scale-95"
                             : "gap-1 rounded-2xl border border-primary/30 bg-card/95 text-foreground shadow-xl shadow-black/40 hover:scale-110 hover:border-primary/60 hover:bg-card hover:shadow-primary/20 active:scale-95",
                           action.disabled && "opacity-40 cursor-not-allowed hover:scale-100"
                         )}
