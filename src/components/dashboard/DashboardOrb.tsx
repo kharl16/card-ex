@@ -315,7 +315,6 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
         dragElastic={0.08}
         onDragStart={() => {
           setIsDragging(true);
-          setIsOpen(false);
         }}
         onDragEnd={() => {
           setIsDragging(false);
