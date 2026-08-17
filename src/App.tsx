@@ -153,6 +153,16 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
+        <Route
+          path="/dashboard/bible-wisdom"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <BibleWisdomPage />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
 
         <Route
           path="/cards/:id/edit"
