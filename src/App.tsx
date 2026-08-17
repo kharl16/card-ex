@@ -319,6 +319,16 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/admin/bible-wisdom"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminBibleWisdom />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
           path="/admin/otp-audit"
           element={
             <PageTransition>
