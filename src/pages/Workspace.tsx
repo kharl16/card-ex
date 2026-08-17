@@ -54,6 +54,13 @@ export default function Workspace() {
       path: "/tools",
       tone: "text-amber-400 bg-amber-500/10",
     },
+    {
+      label: "Bible Wisdom",
+      description: "365 days · 3 readings a day",
+      icon: BookOpen,
+      path: "/dashboard/bible-wisdom",
+      tone: "text-violet-400 bg-violet-500/10",
+    },
   ];
 
   return (
