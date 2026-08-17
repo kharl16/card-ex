@@ -368,6 +368,122 @@ export type Database = {
           },
         ]
       }
+      bible_wisdom: {
+        Row: {
+          bible_book: string
+          bible_translation: string
+          business_principle: string
+          chapter: number
+          created_at: string
+          day_number: number
+          display_order: number
+          id: string
+          is_active: boolean
+          reference: string
+          reflection: string
+          theme: string
+          time_slot: string
+          title: string
+          updated_at: string
+          verse: string
+          verse_text: string
+        }
+        Insert: {
+          bible_book: string
+          bible_translation?: string
+          business_principle: string
+          chapter: number
+          created_at?: string
+          day_number: number
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          reference: string
+          reflection: string
+          theme: string
+          time_slot: string
+          title: string
+          updated_at?: string
+          verse: string
+          verse_text: string
+        }
+        Update: {
+          bible_book?: string
+          bible_translation?: string
+          business_principle?: string
+          chapter?: number
+          created_at?: string
+          day_number?: number
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          reference?: string
+          reflection?: string
+          theme?: string
+          time_slot?: string
+          title?: string
+          updated_at?: string
+          verse?: string
+          verse_text?: string
+        }
+        Relationships: []
+      }
+      bible_wisdom_favorites: {
+        Row: {
+          bible_wisdom_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          bible_wisdom_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          bible_wisdom_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bible_wisdom_favorites_bible_wisdom_id_fkey"
+            columns: ["bible_wisdom_id"]
+            isOneToOne: false
+            referencedRelation: "bible_wisdom"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bible_wisdom_notification_prefs: {
+        Row: {
+          created_at: string
+          evening_enabled: boolean
+          midday_enabled: boolean
+          morning_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          evening_enabled?: boolean
+          midday_enabled?: boolean
+          morning_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          evening_enabled?: boolean
+          midday_enabled?: boolean
+          morning_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       card_appointments: {
         Row: {
           appointment_date: string
