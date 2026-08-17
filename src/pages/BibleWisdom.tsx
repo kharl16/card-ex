@@ -191,6 +191,7 @@ export default function BibleWisdomPage() {
       <SEO
         title="Bible Wisdom for Entrepreneurs | Card-Ex"
         description="A 365-day Bible wisdom system for entrepreneurs — morning, midday and evening scripture with a practical business action for every day."
+        path="/dashboard/bible-wisdom"
       />
 
       <header className="sticky top-0 z-40 border-b border-border/20 bg-background/80 backdrop-blur-xl">
