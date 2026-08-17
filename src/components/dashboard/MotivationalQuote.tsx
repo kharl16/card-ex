@@ -43,8 +43,10 @@ const FALLBACK: Quote = {
 
 export function MotivationalQuote() {
   const { activeCompanyId } = useActiveCompany();
+  const { current: wisdom, dayNumber, slot: wisdomSlot } = useBibleWisdom();
   const [now, setNow] = useState(() => new Date());
   const [quotes, setQuotes] = useState<Quote[]>([]);
+
 
   useEffect(() => {
     const id = setInterval(() => {
