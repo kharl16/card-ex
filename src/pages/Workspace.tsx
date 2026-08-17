@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, CalendarDays, Images, BarChart3, Wrench, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, Users, CalendarDays, Images, BarChart3, Wrench, BookOpen, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
@@ -53,6 +53,13 @@ export default function Workspace() {
       icon: Wrench,
       path: "/tools",
       tone: "text-amber-400 bg-amber-500/10",
+    },
+    {
+      label: "Bible Wisdom",
+      description: "365 days · 3 readings a day",
+      icon: BookOpen,
+      path: "/dashboard/bible-wisdom",
+      tone: "text-violet-400 bg-violet-500/10",
     },
   ];
 

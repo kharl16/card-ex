@@ -49,6 +49,8 @@ import AdminGlobalTestimonies from "./pages/admin/AdminGlobalTestimonies";
 import AdminOtpAudit from "./pages/admin/AdminOtpAudit";
 import AdminDeviceApprovals from "./pages/admin/AdminDeviceApprovals";
 import AdminDailyQuotes from "./pages/admin/AdminDailyQuotes";
+import AdminBibleWisdom from "./pages/admin/AdminBibleWisdom";
+import BibleWisdomPage from "./pages/BibleWisdom";
 import SuperAdminConsole from "./pages/superadmin/SuperAdminConsole";
 import UserRolesPage from "./pages/superadmin/UserRolesPage";
 import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
@@ -147,6 +149,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <Workspace />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/bible-wisdom"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <BibleWisdomPage />
               </RequireAuth>
             </PageTransition>
           }
@@ -314,6 +326,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <AdminDailyQuotes />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/bible-wisdom"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminBibleWisdom />
               </RequireAuth>
             </PageTransition>
           }
