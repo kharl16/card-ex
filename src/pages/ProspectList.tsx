@@ -125,7 +125,11 @@ export default function ProspectListPage() {
 
       <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
         {/* Dashboard Stats */}
-        <ProspectDashboard stats={stats} />
+        <ProspectDashboard
+          stats={stats}
+          onSelectFocus={(f) => { setFocus(f); setView("action"); }}
+        />
+
 
         {/* Search + Add */}
         <div className="flex gap-2">
@@ -140,6 +144,22 @@ export default function ProspectListPage() {
           </div>
           <Button onClick={() => setImportOpen(true)} variant="outline" className="h-12 gap-2 shrink-0" title="Import contacts">
             <Upload className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="outline"
+            className="h-12 gap-2 shrink-0"
+            title="Export prospects to CSV"
+            onClick={() => {
+              const blob = new Blob([prospectsToCsv(prospects)], { type: "text/csv;charset=utf-8" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `prospects-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            <Download className="h-5 w-5" />
           </Button>
           <Button onClick={() => setAddOpen(true)} className="h-12 gap-2 shrink-0">
             <Plus className="h-5 w-5" />
@@ -174,10 +194,11 @@ export default function ProspectListPage() {
         {/* View Toggle */}
         <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
           {[
+            { key: "action", icon: Target, label: "Today" },
             { key: "list", icon: List, label: "List" },
             { key: "pipeline", icon: Columns3, label: "Pipeline" },
             { key: "followups", icon: CalendarClock, label: "Follow-Ups" },
-            { key: "analytics", icon: BarChart3, label: "Analytics" },
+            { key: "analytics", icon: BarChart3, label: "Stats" },
           ].map((v) => (
             <Button
               key={v.key}
@@ -193,6 +214,15 @@ export default function ProspectListPage() {
         </div>
 
         {/* Views */}
+        {view === "action" && (
+          <ProspectActionCenter
+            lists={stats.lists}
+            focus={focus}
+            onFocusChange={setFocus}
+            onOpenProspect={setSelectedProspect}
+          />
+        )}
+
         {view === "list" && (
           <div className="space-y-4">
             {/* Status filter tabs */}
@@ -205,7 +235,7 @@ export default function ProspectListPage() {
               >
                 All ({prospects.length})
               </Button>
-              {PIPELINE_STATUSES.slice(0, 5).map((s) => {
+              {PIPELINE_STATUSES.map((s) => {
                 const count = prospects.filter((p) => p.pipeline_status === s.value).length;
                 return (
                   <Button
@@ -272,6 +302,7 @@ export default function ProspectListPage() {
         open={addOpen}
         onOpenChange={setAddOpen}
         onAdd={addProspect}
+        existing={prospects}
       />
 
       <ImportContactsDialog
