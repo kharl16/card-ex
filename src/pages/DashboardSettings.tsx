@@ -15,7 +15,7 @@ const links = [
 
 export default function DashboardSettings() {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isPermanentSuperAdmin } = useAuth();
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -55,7 +55,7 @@ export default function DashboardSettings() {
           </button>
         ))}
 
-        {isAdmin && <OAuthProviderStatus isAdmin={isAdmin} />}
+        {isPermanentSuperAdmin && <OAuthProviderStatus isAdmin={isAdmin} />}
 
 
         <Button variant="outline" className="h-12 w-full text-base" onClick={signOut}>
