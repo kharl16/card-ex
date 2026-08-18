@@ -211,11 +211,30 @@ export default function ImportContactsDialog({ open, onOpenChange, onAdd, existi
   };
 
   const handleImport = async () => {
-    const toImport = contacts.filter((c) => c.selected);
-    if (toImport.length === 0) {
+    const selected = contacts.filter((c) => c.selected);
+    if (selected.length === 0) {
       toast.error("Select at least one contact");
       return;
     }
+
+    // Skip contacts that already exist on the list (phone / email / exact name match)
+    const seen: Prospect[] = [...existing];
+    const toImport: ParsedContact[] = [];
+    let skipped = 0;
+    for (const c of selected) {
+      if (findDuplicates(seen, { full_name: c.full_name, phone: c.phone, email: c.email }).length > 0) {
+        skipped++;
+        continue;
+      }
+      toImport.push(c);
+      seen.push({ full_name: c.full_name, phone: c.phone, email: c.email } as Prospect);
+    }
+
+    if (toImport.length === 0) {
+      toast.info(`All ${skipped} selected contacts are already on your list`);
+      return;
+    }
+
     setStep("importing");
     setImportProgress({ done: 0, total: toImport.length });
 
@@ -233,9 +252,12 @@ export default function ImportContactsDialog({ open, onOpenChange, onAdd, existi
       setImportProgress({ done: i + 1, total: toImport.length });
     }
 
-    toast.success(`Imported ${successCount} of ${toImport.length} contacts`);
+    toast.success(
+      `Imported ${successCount} of ${toImport.length} contacts${skipped ? ` · ${skipped} duplicate${skipped > 1 ? "s" : ""} skipped` : ""}`
+    );
     handleClose(false);
   };
+
 
   const selectedCount = contacts.filter((c) => c.selected).length;
 
