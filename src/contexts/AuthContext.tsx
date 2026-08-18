@@ -5,11 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 export type AccountRole = "super_admin" | "admin" | "moderator" | "member";
 export type AccountStatus = "active" | "inactive" | "suspended" | "pending_verification";
 
+export const PERMANENT_SUPER_ADMIN_EMAIL = "kharl16@gmail.com";
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  isPermanentSuperAdmin: boolean;
   role: AccountRole;
   status: AccountStatus;
   mustChangePassword: boolean;
