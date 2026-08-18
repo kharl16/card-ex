@@ -5,12 +5,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, Smartphone, FileText, Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import type { Prospect } from "@/hooks/useProspects";
+import { findDuplicates, type Prospect } from "@/hooks/useProspects";
 
 interface ImportContactsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (prospect: Partial<Prospect>) => Promise<Prospect | null>;
+  existing?: Prospect[];
 }
 
 interface ParsedContact {
@@ -22,7 +23,7 @@ interface ParsedContact {
 
 type Step = "choose" | "review" | "importing";
 
-export default function ImportContactsDialog({ open, onOpenChange, onAdd }: ImportContactsDialogProps) {
+export default function ImportContactsDialog({ open, onOpenChange, onAdd, existing = [] }: ImportContactsDialogProps) {
   const [step, setStep] = useState<Step>("choose");
   const [contacts, setContacts] = useState<ParsedContact[]>([]);
   const [importProgress, setImportProgress] = useState({ done: 0, total: 0 });
