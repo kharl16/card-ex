@@ -2246,6 +2246,7 @@ export type Database = {
           created_at: string
           id: string
           metadata: Json | null
+          outcome: string | null
           owner_user_id: string
           prospect_id: string
         }
@@ -2257,6 +2258,7 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          outcome?: string | null
           owner_user_id: string
           prospect_id: string
         }
@@ -2268,6 +2270,7 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          outcome?: string | null
           owner_user_id?: string
           prospect_id?: string
         }
@@ -2284,6 +2287,7 @@ export type Database = {
       prospect_followups: {
         Row: {
           completed_at: string | null
+          completion_note: string | null
           created_at: string
           followup_type: string
           id: string
@@ -2295,6 +2299,7 @@ export type Database = {
         }
         Insert: {
           completed_at?: string | null
+          completion_note?: string | null
           created_at?: string
           followup_type?: string
           id?: string
@@ -2306,6 +2311,7 @@ export type Database = {
         }
         Update: {
           completed_at?: string | null
+          completion_note?: string | null
           created_at?: string
           followup_type?: string
           id?: string
@@ -2324,6 +2330,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      prospect_goals: {
+        Row: {
+          contacts_per_day: number
+          created_at: string
+          followups_per_day: number
+          id: string
+          new_prospects_per_day: number
+          presentations_per_week: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contacts_per_day?: number
+          created_at?: string
+          followups_per_day?: number
+          id?: string
+          new_prospects_per_day?: number
+          presentations_per_week?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contacts_per_day?: number
+          created_at?: string
+          followups_per_day?: number
+          id?: string
+          new_prospects_per_day?: number
+          presentations_per_week?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       prospect_scripts: {
         Row: {
@@ -2361,96 +2400,138 @@ export type Database = {
       prospects: {
         Row: {
           archived_at: string | null
+          avatar_url: string | null
+          birthday: string | null
           card_id: string | null
+          city: string | null
           company: string | null
           converted_at: string | null
           created_at: string
           custom_fields: Json | null
           email: string | null
+          facebook_url: string | null
           first_name: string | null
           full_name: string
           id: string
           interest_level: string
+          interest_type: string
           last_activity_at: string | null
           last_contacted_at: string | null
           last_name: string | null
           location: string | null
           messenger_link: string | null
           next_follow_up_at: string | null
+          nickname: string | null
           notes: string | null
           occupation: string | null
+          other_social_url: string | null
           owner_user_id: string
           phone: string | null
           pipeline_status: string
           priority_level: string
+          product_interests: Json | null
+          referral_campaign: string | null
+          relationship_strength: string | null
           source_detail: string | null
           source_type: string
+          sponsor_name: string | null
           tags: Json | null
           telegram: string | null
           updated_at: string
           whatsapp: string | null
+          won_at: string | null
+          won_notes: string | null
+          won_result: string | null
         }
         Insert: {
           archived_at?: string | null
+          avatar_url?: string | null
+          birthday?: string | null
           card_id?: string | null
+          city?: string | null
           company?: string | null
           converted_at?: string | null
           created_at?: string
           custom_fields?: Json | null
           email?: string | null
+          facebook_url?: string | null
           first_name?: string | null
           full_name: string
           id?: string
           interest_level?: string
+          interest_type?: string
           last_activity_at?: string | null
           last_contacted_at?: string | null
           last_name?: string | null
           location?: string | null
           messenger_link?: string | null
           next_follow_up_at?: string | null
+          nickname?: string | null
           notes?: string | null
           occupation?: string | null
+          other_social_url?: string | null
           owner_user_id: string
           phone?: string | null
           pipeline_status?: string
           priority_level?: string
+          product_interests?: Json | null
+          referral_campaign?: string | null
+          relationship_strength?: string | null
           source_detail?: string | null
           source_type?: string
+          sponsor_name?: string | null
           tags?: Json | null
           telegram?: string | null
           updated_at?: string
           whatsapp?: string | null
+          won_at?: string | null
+          won_notes?: string | null
+          won_result?: string | null
         }
         Update: {
           archived_at?: string | null
+          avatar_url?: string | null
+          birthday?: string | null
           card_id?: string | null
+          city?: string | null
           company?: string | null
           converted_at?: string | null
           created_at?: string
           custom_fields?: Json | null
           email?: string | null
+          facebook_url?: string | null
           first_name?: string | null
           full_name?: string
           id?: string
           interest_level?: string
+          interest_type?: string
           last_activity_at?: string | null
           last_contacted_at?: string | null
           last_name?: string | null
           location?: string | null
           messenger_link?: string | null
           next_follow_up_at?: string | null
+          nickname?: string | null
           notes?: string | null
           occupation?: string | null
+          other_social_url?: string | null
           owner_user_id?: string
           phone?: string | null
           pipeline_status?: string
           priority_level?: string
+          product_interests?: Json | null
+          referral_campaign?: string | null
+          relationship_strength?: string | null
           source_detail?: string | null
           source_type?: string
+          sponsor_name?: string | null
           tags?: Json | null
           telegram?: string | null
           updated_at?: string
           whatsapp?: string | null
+          won_at?: string | null
+          won_notes?: string | null
+          won_result?: string | null
         }
         Relationships: [
           {
