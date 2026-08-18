@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Search, Plus, List, Columns3, CalendarClock, Sparkles,
-  BarChart3, Loader2, Upload
+  BarChart3, Loader2, Upload, Target, Download
 } from "lucide-react";
-import { useProspects, PIPELINE_STATUSES } from "@/hooks/useProspects";
+import { useProspects, PIPELINE_STATUSES, prospectsToCsv } from "@/hooks/useProspects";
+import ProspectActionCenter from "@/components/prospects/ProspectActionCenter";
 import ProspectDashboard from "@/components/prospects/ProspectDashboard";
 import ProspectCard from "@/components/prospects/ProspectCard";
 import ProspectDetail from "@/components/prospects/ProspectDetail";
@@ -32,7 +33,8 @@ export default function ProspectListPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null);
-  const [view, setView] = useState<"list" | "pipeline" | "followups" | "analytics">("list");
+  const [view, setView] = useState<"action" | "list" | "pipeline" | "followups" | "analytics">("action");
+  const [focus, setFocus] = useState<"overdue" | "dueToday" | "noNextStep" | "stale">("overdue");
 
   const filteredProspects = useMemo(() => {
     let list = [...prospects];
@@ -55,7 +57,10 @@ export default function ProspectListPage() {
 
   const handleStatusChange = async (prospectId: string, newStatus: string) => {
     const updates: Partial<Prospect> = { pipeline_status: newStatus };
-    if (newStatus === "converted") updates.converted_at = new Date().toISOString();
+    if (newStatus === "won") {
+      updates.converted_at = new Date().toISOString();
+      updates.won_at = new Date().toISOString();
+    }
     if (newStatus === "contacted") updates.last_contacted_at = new Date().toISOString();
     await updateProspect(prospectId, updates);
   };
