@@ -212,6 +212,16 @@ export function useProspects() {
           notes: prospect.notes || null,
           tags: prospect.tags || [],
           card_id: prospect.card_id || null,
+          nickname: prospect.nickname || null,
+          facebook_url: prospect.facebook_url || null,
+          other_social_url: prospect.other_social_url || null,
+          birthday: prospect.birthday || null,
+          city: prospect.city || null,
+          sponsor_name: prospect.sponsor_name || null,
+          referral_campaign: prospect.referral_campaign || null,
+          interest_type: prospect.interest_type || "undecided",
+          product_interests: prospect.product_interests || [],
+          relationship_strength: prospect.relationship_strength || null,
         } as any)
         .select()
         .single();
@@ -274,19 +284,48 @@ export function useProspects() {
   const stats = useMemo(() => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today.getTime() + 86400000);
+    const weekAgo = new Date(today.getTime() - 7 * 86400000);
+    const staleCutoff = new Date(today.getTime() - 14 * 86400000);
+
+    const dueToday = prospects.filter((p) => {
+      if (!p.next_follow_up_at) return false;
+      const d = new Date(p.next_follow_up_at);
+      return d >= today && d < tomorrow;
+    });
+    const overdue = prospects.filter(
+      (p) => p.next_follow_up_at && new Date(p.next_follow_up_at) < today
+    );
+    const won = prospects.filter((p) => p.pipeline_status === "won");
+    const active = prospects.filter((p) => ACTIVE_STAGES.includes(p.pipeline_status));
+    const noNextStep = active.filter((p) => !p.next_follow_up_at);
+    const stale = active.filter((p) => {
+      const ref = p.last_contacted_at || p.last_activity_at || p.created_at;
+      return new Date(ref) < staleCutoff;
+    });
+
     return {
       total: prospects.length,
+      active: active.length,
       hot: prospects.filter((p) => p.interest_level === "hot").length,
-      converted: prospects.filter((p) => p.pipeline_status === "converted").length,
-      dueToday: prospects.filter((p) => {
-        if (!p.next_follow_up_at) return false;
-        const d = new Date(p.next_follow_up_at);
-        return d >= today && d < new Date(today.getTime() + 86400000);
-      }).length,
-      overdue: prospects.filter((p) => {
-        if (!p.next_follow_up_at) return false;
-        return new Date(p.next_follow_up_at) < today;
-      }).length,
+      converted: won.length,
+      won: won.length,
+      dueToday: dueToday.length,
+      overdue: overdue.length,
+      noNextStep: noNextStep.length,
+      stale: stale.length,
+      addedThisWeek: prospects.filter((p) => new Date(p.created_at) >= weekAgo).length,
+      contactedThisWeek: prospects.filter(
+        (p) => p.last_contacted_at && new Date(p.last_contacted_at) >= weekAgo
+      ).length,
+      conversionRate: prospects.length
+        ? Math.round((won.length / prospects.length) * 100)
+        : 0,
+      byStage: PIPELINE_STATUSES.reduce<Record<string, number>>((acc, s) => {
+        acc[s.value] = prospects.filter((p) => p.pipeline_status === s.value).length;
+        return acc;
+      }, {}),
+      lists: { dueToday, overdue, noNextStep, stale },
     };
   }, [prospects]);
 
