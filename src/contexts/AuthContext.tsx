@@ -24,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAdmin: false,
   isSuperAdmin: false,
+  isPermanentSuperAdmin: false,
   role: "member",
   status: "active",
   mustChangePassword: false,
@@ -110,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: session?.user ?? null,
         isAdmin,
         isSuperAdmin,
+        isPermanentSuperAdmin:
+          (session?.user?.email ?? "").toLowerCase() === PERMANENT_SUPER_ADMIN_EMAIL,
         role,
         status,
         mustChangePassword,
