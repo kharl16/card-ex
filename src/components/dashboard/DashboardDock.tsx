@@ -27,7 +27,7 @@ export function DashboardDock(_props: DashboardDockProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [adminOpen, setAdminOpen] = useState(false);
-  const { isAdmin } = useAuth();
+  const { isPermanentSuperAdmin } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -51,7 +51,7 @@ export function DashboardDock(_props: DashboardDockProps) {
             </button>
           ))}
 
-          {isAdmin && (
+          {isPermanentSuperAdmin && (
             <Popover open={adminOpen} onOpenChange={setAdminOpen}>
               <PopoverTrigger asChild>
                 <button className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 transition-colors">

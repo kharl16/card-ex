@@ -5,11 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 export type AccountRole = "super_admin" | "admin" | "moderator" | "member";
 export type AccountStatus = "active" | "inactive" | "suspended" | "pending_verification";
 
+export const PERMANENT_SUPER_ADMIN_EMAIL = "kharl16@gmail.com";
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
   isAdmin: boolean;
   isSuperAdmin: boolean;
+  isPermanentSuperAdmin: boolean;
   role: AccountRole;
   status: AccountStatus;
   mustChangePassword: boolean;
@@ -21,6 +24,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isAdmin: false,
   isSuperAdmin: false,
+  isPermanentSuperAdmin: false,
   role: "member",
   status: "active",
   mustChangePassword: false,
@@ -107,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: session?.user ?? null,
         isAdmin,
         isSuperAdmin,
+        isPermanentSuperAdmin:
+          (session?.user?.email ?? "").toLowerCase() === PERMANENT_SUPER_ADMIN_EMAIL,
         role,
         status,
         mustChangePassword,
