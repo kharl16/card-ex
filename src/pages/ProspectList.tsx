@@ -309,6 +309,7 @@ export default function ProspectListPage() {
         open={importOpen}
         onOpenChange={setImportOpen}
         onAdd={addProspect}
+        existing={prospects}
       />
     </div>
   );
