@@ -18,6 +18,20 @@ export interface Prospect {
   location: string | null;
   occupation: string | null;
   company: string | null;
+  nickname: string | null;
+  avatar_url: string | null;
+  facebook_url: string | null;
+  other_social_url: string | null;
+  birthday: string | null;
+  city: string | null;
+  sponsor_name: string | null;
+  referral_campaign: string | null;
+  interest_type: string;
+  product_interests: string[];
+  relationship_strength: string | null;
+  won_at: string | null;
+  won_result: string | null;
+  won_notes: string | null;
   source_type: string;
   source_detail: string | null;
   interest_level: string;
@@ -61,20 +75,40 @@ export interface ProspectFollowup {
 
 export const PIPELINE_STATUSES = [
   { value: "new", label: "New", color: "bg-blue-500" },
+  { value: "to_contact", label: "To Contact", color: "bg-sky-500" },
   { value: "contacted", label: "Contacted", color: "bg-cyan-500" },
-  { value: "follow_up", label: "Follow-Up", color: "bg-yellow-500" },
   { value: "interested", label: "Interested", color: "bg-orange-500" },
-  { value: "presentation_set", label: "Presentation Set", color: "bg-purple-500" },
-  { value: "decision_pending", label: "Decision Pending", color: "bg-pink-500" },
-  { value: "converted", label: "Converted", color: "bg-emerald-500" },
+  { value: "presented", label: "Presented", color: "bg-purple-500" },
+  { value: "follow_up", label: "Follow-Up", color: "bg-yellow-500" },
+  { value: "decision", label: "Decision", color: "bg-pink-500" },
+  { value: "won", label: "Won / Closed", color: "bg-emerald-500" },
+  { value: "nurture", label: "Nurture", color: "bg-slate-500" },
   { value: "not_interested", label: "Not Interested", color: "bg-gray-500" },
-  { value: "reconnect_later", label: "Reconnect Later", color: "bg-slate-500" },
 ];
+
+/** Stages that count as still moving forward in the pipeline. */
+export const ACTIVE_STAGES = PIPELINE_STATUSES
+  .filter((s) => !["won", "nurture", "not_interested"].includes(s.value))
+  .map((s) => s.value);
 
 export const INTEREST_LEVELS = [
   { value: "cold", label: "Cold", emoji: "🧊", color: "text-blue-400" },
   { value: "warm", label: "Warm", emoji: "🔥", color: "text-orange-400" },
   { value: "hot", label: "Hot", emoji: "💥", color: "text-red-500" },
+];
+
+export const INTEREST_TYPES = [
+  { value: "undecided", label: "Undecided" },
+  { value: "product", label: "Product" },
+  { value: "business", label: "Business Opportunity" },
+  { value: "both", label: "Product + Business" },
+];
+
+export const RELATIONSHIP_STRENGTHS = [
+  { value: "close", label: "Close friend / family" },
+  { value: "known", label: "Known acquaintance" },
+  { value: "referral", label: "Referred to me" },
+  { value: "cold", label: "Cold contact" },
 ];
 
 export const SOURCE_TYPES = [
@@ -95,6 +129,31 @@ export const PRIORITY_LEVELS = [
   { value: "high", label: "High" },
   { value: "urgent", label: "Urgent" },
 ];
+
+const digits = (v?: string | null) => (v || "").replace(/\D/g, "");
+
+/** Finds likely duplicates by phone (last 9 digits), email, or exact name. */
+export function findDuplicates(list: Prospect[], candidate: Partial<Prospect>) {
+  const phone = digits(candidate.phone).slice(-9);
+  const email = (candidate.email || "").trim().toLowerCase();
+  const name = (candidate.full_name || "").trim().toLowerCase();
+  return list.filter((p) => {
+    if (phone && digits(p.phone).slice(-9) === phone) return true;
+    if (email && (p.email || "").trim().toLowerCase() === email) return true;
+    if (name && p.full_name.trim().toLowerCase() === name) return true;
+    return false;
+  });
+}
+
+export function prospectsToCsv(list: Prospect[]) {
+  const cols = [
+    "full_name", "nickname", "phone", "email", "messenger_link", "facebook_url",
+    "city", "occupation", "company", "source_type", "interest_level", "interest_type",
+    "pipeline_status", "priority_level", "next_follow_up_at", "last_contacted_at", "notes",
+  ];
+  const esc = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  return [cols.join(","), ...list.map((p) => cols.map((c) => esc((p as any)[c])).join(","))].join("\n");
+}
 
 export function useProspects() {
   const { user } = useAuth();
