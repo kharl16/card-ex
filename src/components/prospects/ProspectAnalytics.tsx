@@ -9,11 +9,11 @@ interface ProspectAnalyticsProps {
 export default function ProspectAnalytics({ prospects }: ProspectAnalyticsProps) {
   const analytics = useMemo(() => {
     const total = prospects.length;
-    const converted = prospects.filter((p) => p.pipeline_status === "converted").length;
+    const converted = prospects.filter((p) => p.pipeline_status === "won").length;
     const conversionRate = total > 0 ? Math.round((converted / total) * 100) : 0;
 
     const withFollowups = prospects.filter((p) => p.next_follow_up_at);
-    const completedFollowups = prospects.filter((p) => p.pipeline_status === "converted" || p.last_contacted_at);
+    const completedFollowups = prospects.filter((p) => p.pipeline_status === "won" || p.last_contacted_at);
     const followupRate = withFollowups.length > 0
       ? Math.round((completedFollowups.length / withFollowups.length) * 100)
       : 0;
