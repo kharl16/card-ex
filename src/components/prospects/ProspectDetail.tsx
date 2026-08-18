@@ -15,6 +15,7 @@ import ProspectAIPanel from "./ProspectAIPanel";
 import ProspectScripts from "./ProspectScripts";
 import {
   PIPELINE_STATUSES, INTEREST_LEVELS, SOURCE_TYPES, PRIORITY_LEVELS,
+  INTEREST_TYPES, RELATIONSHIP_STRENGTHS,
   type Prospect, type ProspectActivity, type ProspectFollowup,
   useProspectActivities, useProspectFollowups
 } from "@/hooks/useProspects";
@@ -54,8 +55,9 @@ export default function ProspectDetail({ prospect, onBack, onUpdate, onDelete, o
 
   const handleStatusChange = async (newStatus: string) => {
     const updates: Partial<Prospect> = { pipeline_status: newStatus };
-    if (newStatus === "converted") {
+    if (newStatus === "won") {
       updates.converted_at = new Date().toISOString();
+      updates.won_at = new Date().toISOString();
     }
     if (newStatus === "contacted") {
       updates.last_contacted_at = new Date().toISOString();
@@ -63,10 +65,16 @@ export default function ProspectDetail({ prospect, onBack, onUpdate, onDelete, o
     await onUpdate(prospect.id, updates);
     await addActivity({
       activity_type: "status_change",
-      activity_title: `Status → ${PIPELINE_STATUSES.find(s => s.value === newStatus)?.label}`,
+      activity_title: `Stage → ${PIPELINE_STATUSES.find(s => s.value === newStatus)?.label}`,
     });
     setStatusDialog(false);
   };
+
+  const logContact = async (channel: string) => {
+    await onUpdate(prospect.id, { last_contacted_at: new Date().toISOString() });
+    await addActivity({ activity_type: channel, activity_title: `Reached out via ${channel}` });
+  };
+
 
   const handleAddActivity = async () => {
     if (!activityForm.note.trim() && !activityForm.title.trim()) return;
@@ -126,6 +134,35 @@ export default function ProspectDetail({ prospect, onBack, onUpdate, onDelete, o
         </div>
       </div>
 
+      {/* One-tap contact bar */}
+      <div className="grid grid-cols-4 gap-2">
+        <Button asChild variant="outline" className="h-14 flex-col gap-1 text-[10px]" disabled={!prospect.phone}>
+          <a href={prospect.phone ? `tel:${prospect.phone}` : undefined} onClick={() => prospect.phone && logContact("call")}>
+            <Phone className="h-4 w-4 text-emerald-500" /> Call
+          </a>
+        </Button>
+        <Button asChild variant="outline" className="h-14 flex-col gap-1 text-[10px]" disabled={!prospect.phone}>
+          <a href={prospect.phone ? `sms:${prospect.phone}` : undefined} onClick={() => prospect.phone && logContact("message")}>
+            <MessageSquare className="h-4 w-4 text-cyan-500" /> SMS
+          </a>
+        </Button>
+        <Button asChild variant="outline" className="h-14 flex-col gap-1 text-[10px]" disabled={!prospect.messenger_link}>
+          <a
+            href={prospect.messenger_link || undefined}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => prospect.messenger_link && logContact("message")}
+          >
+            <Send className="h-4 w-4 text-blue-500" /> Chat
+          </a>
+        </Button>
+        <Button asChild variant="outline" className="h-14 flex-col gap-1 text-[10px]" disabled={!prospect.email}>
+          <a href={prospect.email ? `mailto:${prospect.email}` : undefined} onClick={() => prospect.email && logContact("email")}>
+            <Mail className="h-4 w-4 text-sky-400" /> Email
+          </a>
+        </Button>
+      </div>
+
       {/* Contact Info */}
       <Card>
         <CardContent className="py-4 space-y-3">
@@ -140,13 +177,18 @@ export default function ProspectDetail({ prospect, onBack, onUpdate, onDelete, o
             </a>
           )}
           {prospect.messenger_link && (
-            <a href={prospect.messenger_link} target="_blank" className="flex items-center gap-3 text-sm hover:text-primary transition-colors">
+            <a href={prospect.messenger_link} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition-colors">
               <MessageSquare className="h-4 w-4 text-blue-600" /> Messenger
             </a>
           )}
-          {prospect.location && (
+          {prospect.facebook_url && (
+            <a href={prospect.facebook_url} target="_blank" rel="noreferrer" className="flex items-center gap-3 text-sm hover:text-primary transition-colors">
+              <MessageSquare className="h-4 w-4 text-blue-400" /> Facebook
+            </a>
+          )}
+          {(prospect.city || prospect.location) && (
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" /> {prospect.location}
+              <MapPin className="h-4 w-4" /> {prospect.city || prospect.location}
             </div>
           )}
           {prospect.occupation && (
@@ -159,8 +201,27 @@ export default function ProspectDetail({ prospect, onBack, onUpdate, onDelete, o
               <Building2 className="h-4 w-4" /> {prospect.company}
             </div>
           )}
+          {prospect.birthday && (
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <Calendar className="h-4 w-4" /> Birthday: {format(new Date(prospect.birthday), "MMM d")}
+            </div>
+          )}
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Badge variant="outline" className="text-[10px]">
+              {INTEREST_TYPES.find((t) => t.value === prospect.interest_type)?.label || "Undecided"}
+            </Badge>
+            {prospect.sponsor_name && (
+              <Badge variant="outline" className="text-[10px]">Referred by {prospect.sponsor_name}</Badge>
+            )}
+            {prospect.relationship_strength && (
+              <Badge variant="outline" className="text-[10px]">
+                {RELATIONSHIP_STRENGTHS.find((r) => r.value === prospect.relationship_strength)?.label}
+              </Badge>
+            )}
+          </div>
         </CardContent>
       </Card>
+
 
       {/* Notes */}
       {prospect.notes && (

@@ -5,12 +5,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Upload, Smartphone, FileText, Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import type { Prospect } from "@/hooks/useProspects";
+import { findDuplicates, type Prospect } from "@/hooks/useProspects";
 
 interface ImportContactsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (prospect: Partial<Prospect>) => Promise<Prospect | null>;
+  existing?: Prospect[];
 }
 
 interface ParsedContact {
@@ -22,7 +23,7 @@ interface ParsedContact {
 
 type Step = "choose" | "review" | "importing";
 
-export default function ImportContactsDialog({ open, onOpenChange, onAdd }: ImportContactsDialogProps) {
+export default function ImportContactsDialog({ open, onOpenChange, onAdd, existing = [] }: ImportContactsDialogProps) {
   const [step, setStep] = useState<Step>("choose");
   const [contacts, setContacts] = useState<ParsedContact[]>([]);
   const [importProgress, setImportProgress] = useState({ done: 0, total: 0 });
@@ -210,11 +211,30 @@ export default function ImportContactsDialog({ open, onOpenChange, onAdd }: Impo
   };
 
   const handleImport = async () => {
-    const toImport = contacts.filter((c) => c.selected);
-    if (toImport.length === 0) {
+    const selected = contacts.filter((c) => c.selected);
+    if (selected.length === 0) {
       toast.error("Select at least one contact");
       return;
     }
+
+    // Skip contacts that already exist on the list (phone / email / exact name match)
+    const seen: Prospect[] = [...existing];
+    const toImport: ParsedContact[] = [];
+    let skipped = 0;
+    for (const c of selected) {
+      if (findDuplicates(seen, { full_name: c.full_name, phone: c.phone, email: c.email }).length > 0) {
+        skipped++;
+        continue;
+      }
+      toImport.push(c);
+      seen.push({ full_name: c.full_name, phone: c.phone, email: c.email } as Prospect);
+    }
+
+    if (toImport.length === 0) {
+      toast.info(`All ${skipped} selected contacts are already on your list`);
+      return;
+    }
+
     setStep("importing");
     setImportProgress({ done: 0, total: toImport.length });
 
@@ -232,9 +252,12 @@ export default function ImportContactsDialog({ open, onOpenChange, onAdd }: Impo
       setImportProgress({ done: i + 1, total: toImport.length });
     }
 
-    toast.success(`Imported ${successCount} of ${toImport.length} contacts`);
+    toast.success(
+      `Imported ${successCount} of ${toImport.length} contacts${skipped ? ` · ${skipped} duplicate${skipped > 1 ? "s" : ""} skipped` : ""}`
+    );
     handleClose(false);
   };
+
 
   const selectedCount = contacts.filter((c) => c.selected).length;
 

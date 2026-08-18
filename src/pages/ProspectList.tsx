@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ArrowLeft, Search, Plus, List, Columns3, CalendarClock, Sparkles,
-  BarChart3, Loader2, Upload
+  BarChart3, Loader2, Upload, Target, Download
 } from "lucide-react";
-import { useProspects, PIPELINE_STATUSES } from "@/hooks/useProspects";
+import { useProspects, PIPELINE_STATUSES, prospectsToCsv } from "@/hooks/useProspects";
+import ProspectActionCenter from "@/components/prospects/ProspectActionCenter";
 import ProspectDashboard from "@/components/prospects/ProspectDashboard";
 import ProspectCard from "@/components/prospects/ProspectCard";
 import ProspectDetail from "@/components/prospects/ProspectDetail";
@@ -32,7 +33,8 @@ export default function ProspectListPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [selectedProspect, setSelectedProspect] = useState<Prospect | null>(null);
-  const [view, setView] = useState<"list" | "pipeline" | "followups" | "analytics">("list");
+  const [view, setView] = useState<"action" | "list" | "pipeline" | "followups" | "analytics">("action");
+  const [focus, setFocus] = useState<"overdue" | "dueToday" | "noNextStep" | "stale">("overdue");
 
   const filteredProspects = useMemo(() => {
     let list = [...prospects];
@@ -55,7 +57,10 @@ export default function ProspectListPage() {
 
   const handleStatusChange = async (prospectId: string, newStatus: string) => {
     const updates: Partial<Prospect> = { pipeline_status: newStatus };
-    if (newStatus === "converted") updates.converted_at = new Date().toISOString();
+    if (newStatus === "won") {
+      updates.converted_at = new Date().toISOString();
+      updates.won_at = new Date().toISOString();
+    }
     if (newStatus === "contacted") updates.last_contacted_at = new Date().toISOString();
     await updateProspect(prospectId, updates);
   };
@@ -120,7 +125,11 @@ export default function ProspectListPage() {
 
       <main className="container mx-auto px-4 py-4 max-w-lg space-y-4">
         {/* Dashboard Stats */}
-        <ProspectDashboard stats={stats} />
+        <ProspectDashboard
+          stats={stats}
+          onSelectFocus={(f) => { setFocus(f); setView("action"); }}
+        />
+
 
         {/* Search + Add */}
         <div className="flex gap-2">
@@ -135,6 +144,22 @@ export default function ProspectListPage() {
           </div>
           <Button onClick={() => setImportOpen(true)} variant="outline" className="h-12 gap-2 shrink-0" title="Import contacts">
             <Upload className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="outline"
+            className="h-12 gap-2 shrink-0"
+            title="Export prospects to CSV"
+            onClick={() => {
+              const blob = new Blob([prospectsToCsv(prospects)], { type: "text/csv;charset=utf-8" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `prospects-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            <Download className="h-5 w-5" />
           </Button>
           <Button onClick={() => setAddOpen(true)} className="h-12 gap-2 shrink-0">
             <Plus className="h-5 w-5" />
@@ -169,10 +194,11 @@ export default function ProspectListPage() {
         {/* View Toggle */}
         <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
           {[
+            { key: "action", icon: Target, label: "Today" },
             { key: "list", icon: List, label: "List" },
             { key: "pipeline", icon: Columns3, label: "Pipeline" },
             { key: "followups", icon: CalendarClock, label: "Follow-Ups" },
-            { key: "analytics", icon: BarChart3, label: "Analytics" },
+            { key: "analytics", icon: BarChart3, label: "Stats" },
           ].map((v) => (
             <Button
               key={v.key}
@@ -188,6 +214,15 @@ export default function ProspectListPage() {
         </div>
 
         {/* Views */}
+        {view === "action" && (
+          <ProspectActionCenter
+            lists={stats.lists}
+            focus={focus}
+            onFocusChange={setFocus}
+            onOpenProspect={setSelectedProspect}
+          />
+        )}
+
         {view === "list" && (
           <div className="space-y-4">
             {/* Status filter tabs */}
@@ -200,7 +235,7 @@ export default function ProspectListPage() {
               >
                 All ({prospects.length})
               </Button>
-              {PIPELINE_STATUSES.slice(0, 5).map((s) => {
+              {PIPELINE_STATUSES.map((s) => {
                 const count = prospects.filter((p) => p.pipeline_status === s.value).length;
                 return (
                   <Button
@@ -267,12 +302,14 @@ export default function ProspectListPage() {
         open={addOpen}
         onOpenChange={setAddOpen}
         onAdd={addProspect}
+        existing={prospects}
       />
 
       <ImportContactsDialog
         open={importOpen}
         onOpenChange={setImportOpen}
         onAdd={addProspect}
+        existing={prospects}
       />
     </div>
   );
