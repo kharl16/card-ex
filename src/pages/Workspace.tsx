@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, CalendarDays, Images, BarChart3, Wrench, BookOpen, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, Users, CalendarDays, Images, BarChart3, Wrench, BookOpen, ArrowUpRight, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
@@ -26,6 +26,13 @@ export default function Workspace() {
   }, []);
 
   const modules = [
+    {
+      label: "Prospect List",
+      description: "MLM prospecting CRM",
+      icon: Target,
+      path: "/prospects",
+      tone: "text-rose-400 bg-rose-500/10",
+    },
     {
       label: "Leads",
       description: stats.loading ? "Your captured contacts" : `${stats.leads} total leads`,

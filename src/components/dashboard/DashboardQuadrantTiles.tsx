@@ -123,7 +123,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
       icon: LayoutGrid,
       path: "/dashboard/workspace",
       primary: stats.loading ? "—" : `${stats.leads} Leads · ${stats.appointments} Appts`,
-      secondary: "D.I.S.C. Personality Test · 5 Love Languages · Learning & Growth",
+      secondary: "Prospect List · D.I.S.C. · 5 Love Languages · Tools",
       badge: stats.appointments > 0 ? `${stats.appointments}` : null,
     },
   ];
