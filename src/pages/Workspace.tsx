@@ -27,6 +27,13 @@ export default function Workspace() {
 
   const modules = [
     {
+      label: "Prospect List",
+      description: "MLM prospecting CRM",
+      icon: Target,
+      path: "/prospects",
+      tone: "text-rose-400 bg-rose-500/10",
+    },
+    {
       label: "Leads",
       description: stats.loading ? "Your captured contacts" : `${stats.leads} total leads`,
       icon: Users,
