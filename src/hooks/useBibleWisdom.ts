@@ -98,11 +98,27 @@ export function useBibleWisdom() {
     return map;
   }, [entries]);
 
-  const todayEntries = useMemo(() => byDay.get(dayNumber) ?? [], [byDay, dayNumber]);
+  // The library is filled in batches, so fall back to looping over whatever
+  // days are actually seeded instead of showing an empty day.
+  const availableDays = useMemo(
+    () => Array.from(byDay.keys()).sort((a, b) => a - b),
+    [byDay]
+  );
+  const effectiveDayNumber = useMemo(() => {
+    if (byDay.has(dayNumber)) return dayNumber;
+    if (availableDays.length === 0) return dayNumber;
+    return availableDays[(dayNumber - 1) % availableDays.length];
+  }, [byDay, dayNumber, availableDays]);
+
+  const todayEntries = useMemo(
+    () => byDay.get(effectiveDayNumber) ?? [],
+    [byDay, effectiveDayNumber]
+  );
   const current = useMemo(
     () => todayEntries.find((e) => e.time_slot === slot) ?? todayEntries[0] ?? null,
     [todayEntries, slot]
   );
+
 
   const themes = useMemo(
     () => Array.from(new Set(entries.map((e) => e.theme))).sort((a, b) => a.localeCompare(b)),
@@ -143,7 +159,9 @@ export function useBibleWisdom() {
     byDay,
     todayEntries,
     current,
-    dayNumber,
+    dayNumber: effectiveDayNumber,
+    scheduleDayNumber: dayNumber,
+
     slot,
     themes,
     books,
