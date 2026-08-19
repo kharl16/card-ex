@@ -159,7 +159,9 @@ export function useBibleWisdom() {
     byDay,
     todayEntries,
     current,
-    dayNumber,
+    dayNumber: effectiveDayNumber,
+    scheduleDayNumber: dayNumber,
+
     slot,
     themes,
     books,
