@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, CalendarDays, Images, BarChart3, Wrench, BookOpen, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, Users, CalendarDays, Images, BarChart3, Wrench, BookOpen, ArrowUpRight, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
