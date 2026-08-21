@@ -175,9 +175,9 @@ export default function Auth() {
       type="button"
       onClick={handleGoogleSignIn}
       disabled={loading}
-      className="h-14 w-full gap-3 rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-lg transition-transform hover:scale-[1.01]"
+      className="h-14 w-full gap-3 rounded-xl border-t border-white/30 bg-gradient-to-r from-[#B8860B] via-[#F9E498] to-[#AA802B] text-base font-semibold text-[#010309] shadow-[0_0_20px_rgba(212,175,55,0.1)] transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-70"
     >
-      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background">
+      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background shadow-sm">
         <GoogleIcon className="h-4 w-4" />
       </span>
       Continue with Google
