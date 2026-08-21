@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Sparkles, ExternalLink, BookOpen, ArrowRight } from "lucide-react";
+import { Sparkles, ExternalLink, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { businessBibleVerses } from "@/data/bibleVerses";
