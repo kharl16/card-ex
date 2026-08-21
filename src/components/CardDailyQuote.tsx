@@ -4,6 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { businessBibleVerses } from "@/data/bibleVerses";
 import { dailyQuotes } from "@/data/dailyQuotes";
+import {
+  useBibleWisdom,
+  getCurrentSlot,
+  getSlotIndex,
+  getZonedDayOfYear,
+} from "@/hooks/useBibleWisdom";
 
 interface Quote {
   text: string;
@@ -11,24 +17,9 @@ interface Quote {
   source_url: string | null;
 }
 
-type Slot = "morning" | "afternoon" | "evening";
-
-function getSlot(d: Date): Slot {
-  const h = d.getHours();
-  if (h < 12) return "morning";
-  if (h < 18) return "afternoon";
-  return "evening";
-}
-
-function slotIndex(slot: Slot): number {
-  return slot === "morning" ? 0 : slot === "afternoon" ? 1 : 2;
-}
-
-function dayOfYear(now: Date): number {
-  return Math.floor(
-    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000
-  );
-}
+const getSlot = getCurrentSlot;
+const slotIndex = (_slot: unknown, d: Date = new Date()) => getSlotIndex(d);
+const dayOfYear = getZonedDayOfYear;
 
 const FALLBACK: Quote = {
   text: "The secret of getting ahead is getting started.",
@@ -47,6 +38,7 @@ interface CardDailyQuoteProps {
  */
 export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
   const { activeCompanyId } = useActiveCompany();
+  const { current: wisdom } = useBibleWisdom();
   const [now, setNow] = useState(() => new Date());
   const [quotes, setQuotes] = useState<Quote[]>([]);
 
@@ -98,13 +90,13 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
 
   const quote = useMemo<Quote>(() => {
     if (quotePool.length === 0) return FALLBACK;
-    const idx = (dayOfYear(now) * 3 + slotIndex(getSlot(now))) % quotePool.length;
+    const idx = (dayOfYear(now) * 3 + slotIndex(null, now)) % quotePool.length;
     return quotePool[idx];
   }, [now, quotePool]);
 
   const verse = useMemo(() => {
     const idx =
-      (dayOfYear(now) * 3 + slotIndex(getSlot(now))) % businessBibleVerses.length;
+      (dayOfYear(now) * 3 + slotIndex(null, now)) % businessBibleVerses.length;
     return businessBibleVerses[idx];
   }, [now]);
 
@@ -172,10 +164,16 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
               <BookOpen className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accent }} />
               <div className="min-w-0 flex-1">
                 <p className="text-sm italic leading-relaxed text-foreground/90">
-                  "{verse.text}"
+                  "{wisdom ? wisdom.verse_text : verse.text}"
                 </p>
                 <p className="mt-1 text-xs font-medium" style={{ color: accent, opacity: 0.85 }}>
-                  — {verse.reference}
+                  — {wisdom ? wisdom.reference : verse.reference}
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                  <span className="font-semibold text-foreground/80">Business action: </span>
+                  {wisdom
+                    ? wisdom.business_principle
+                    : "Apply this verse to one business decision today — then follow up with one prospect before the day ends."}
                 </p>
                 <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
                   Bible verse for business · Card-Ex

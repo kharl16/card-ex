@@ -5,7 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { businessBibleVerses } from "@/data/bibleVerses";
 import { dailyQuotes } from "@/data/dailyQuotes";
-import { useBibleWisdom, SLOT_LABELS, type WisdomSlot } from "@/hooks/useBibleWisdom";
+import {
+  useBibleWisdom,
+  SLOT_LABELS,
+  getCurrentSlot,
+  getSlotIndex,
+  getZonedDayOfYear,
+  type WisdomSlot,
+} from "@/hooks/useBibleWisdom";
 
 
 
@@ -15,24 +22,9 @@ interface Quote {
   source_url: string | null;
 }
 
-type Slot = "morning" | "afternoon" | "evening";
-
-function getSlot(d: Date): Slot {
-  const h = d.getHours();
-  if (h < 12) return "morning";
-  if (h < 18) return "afternoon";
-  return "evening";
-}
-
-function slotIndex(slot: Slot): number {
-  return slot === "morning" ? 0 : slot === "afternoon" ? 1 : 2;
-}
-
-function dayOfYear(now: Date): number {
-  return Math.floor(
-    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000
-  );
-}
+const getSlot = getCurrentSlot;
+const slotIndex = (_slot: unknown, d: Date = new Date()) => getSlotIndex(d);
+const dayOfYear = getZonedDayOfYear;
 
 // Fallback in case DB is unreachable — keeps the dashboard from looking broken.
 const FALLBACK: Quote = {
@@ -97,13 +89,13 @@ export function MotivationalQuote() {
 
   const quote = useMemo<Quote>(() => {
     if (quotePool.length === 0) return FALLBACK;
-    const idx = (dayOfYear(now) * 3 + slotIndex(getSlot(now))) % quotePool.length;
+    const idx = (dayOfYear(now) * 3 + slotIndex(null, now)) % quotePool.length;
     return quotePool[idx];
   }, [now, quotePool]);
 
   const verse = useMemo(() => {
     const idx =
-      (dayOfYear(now) * 3 + slotIndex(getSlot(now))) % businessBibleVerses.length;
+      (dayOfYear(now) * 3 + slotIndex(null, now)) % businessBibleVerses.length;
     return businessBibleVerses[idx];
   }, [now]);
 
@@ -196,6 +188,11 @@ export function MotivationalQuote() {
                   </p>
                   <p className="mt-1.5 text-xs font-semibold text-primary/70">
                     — {verse.reference}
+                  </p>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    <span className="font-semibold text-foreground/80">Business action: </span>
+                    Apply this verse to one business decision today — then follow up with one
+                    prospect before the day ends.
                   </p>
                 </>
               )}
