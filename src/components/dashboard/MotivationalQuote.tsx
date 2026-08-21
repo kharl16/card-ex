@@ -189,6 +189,11 @@ export function MotivationalQuote() {
                   <p className="mt-1.5 text-xs font-semibold text-primary/70">
                     — {verse.reference}
                   </p>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    <span className="font-semibold text-foreground/80">Business action: </span>
+                    Apply this verse to one business decision today — then follow up with one
+                    prospect before the day ends.
+                  </p>
                 </>
               )}
               <Link
