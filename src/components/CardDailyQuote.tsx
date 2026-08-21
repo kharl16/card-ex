@@ -4,6 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { businessBibleVerses } from "@/data/bibleVerses";
 import { dailyQuotes } from "@/data/dailyQuotes";
+import {
+  useBibleWisdom,
+  getCurrentSlot,
+  getSlotIndex,
+  getZonedDayOfYear,
+} from "@/hooks/useBibleWisdom";
 
 interface Quote {
   text: string;
@@ -11,24 +17,9 @@ interface Quote {
   source_url: string | null;
 }
 
-type Slot = "morning" | "afternoon" | "evening";
-
-function getSlot(d: Date): Slot {
-  const h = d.getHours();
-  if (h < 12) return "morning";
-  if (h < 18) return "afternoon";
-  return "evening";
-}
-
-function slotIndex(slot: Slot): number {
-  return slot === "morning" ? 0 : slot === "afternoon" ? 1 : 2;
-}
-
-function dayOfYear(now: Date): number {
-  return Math.floor(
-    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000
-  );
-}
+const getSlot = getCurrentSlot;
+const slotIndex = (_slot: unknown, d: Date = new Date()) => getSlotIndex(d);
+const dayOfYear = getZonedDayOfYear;
 
 const FALLBACK: Quote = {
   text: "The secret of getting ahead is getting started.",
