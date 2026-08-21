@@ -89,13 +89,13 @@ export function MotivationalQuote() {
 
   const quote = useMemo<Quote>(() => {
     if (quotePool.length === 0) return FALLBACK;
-    const idx = (dayOfYear(now) * 3 + slotIndex(getSlot(now))) % quotePool.length;
+    const idx = (dayOfYear(now) * 3 + slotIndex(null, now)) % quotePool.length;
     return quotePool[idx];
   }, [now, quotePool]);
 
   const verse = useMemo(() => {
     const idx =
-      (dayOfYear(now) * 3 + slotIndex(getSlot(now))) % businessBibleVerses.length;
+      (dayOfYear(now) * 3 + slotIndex(null, now)) % businessBibleVerses.length;
     return businessBibleVerses[idx];
   }, [now]);
 
