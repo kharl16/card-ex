@@ -5,7 +5,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { businessBibleVerses } from "@/data/bibleVerses";
 import { dailyQuotes } from "@/data/dailyQuotes";
-import { useBibleWisdom, SLOT_LABELS, type WisdomSlot } from "@/hooks/useBibleWisdom";
+import {
+  useBibleWisdom,
+  SLOT_LABELS,
+  getCurrentSlot,
+  getSlotIndex,
+  getZonedDayOfYear,
+  type WisdomSlot,
+} from "@/hooks/useBibleWisdom";
 
 
 
@@ -15,24 +22,9 @@ interface Quote {
   source_url: string | null;
 }
 
-type Slot = "morning" | "afternoon" | "evening";
-
-function getSlot(d: Date): Slot {
-  const h = d.getHours();
-  if (h < 12) return "morning";
-  if (h < 18) return "afternoon";
-  return "evening";
-}
-
-function slotIndex(slot: Slot): number {
-  return slot === "morning" ? 0 : slot === "afternoon" ? 1 : 2;
-}
-
-function dayOfYear(now: Date): number {
-  return Math.floor(
-    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000
-  );
-}
+const getSlot = getCurrentSlot;
+const slotIndex = (_slot: unknown, d: Date = new Date()) => getSlotIndex(d);
+const dayOfYear = getZonedDayOfYear;
 
 // Fallback in case DB is unreachable — keeps the dashboard from looking broken.
 const FALLBACK: Quote = {
