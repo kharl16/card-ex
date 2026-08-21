@@ -38,6 +38,7 @@ interface CardDailyQuoteProps {
  */
 export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
   const { activeCompanyId } = useActiveCompany();
+  const { current: wisdom } = useBibleWisdom();
   const [now, setNow] = useState(() => new Date());
   const [quotes, setQuotes] = useState<Quote[]>([]);
 
