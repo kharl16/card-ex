@@ -14,16 +14,49 @@ export const SLOT_LABELS: Record<WisdomSlot, string> = {
 const DEFAULT_REFERENCE_DATE = "2026-01-01";
 const DAY_MS = 86_400_000;
 
-/** Current slot based on local time: morning <12, midday <18, evening otherwise. */
+/**
+ * Single app-wide timezone so every device (laptop, tablet, phone) resolves the
+ * exact same day + slot regardless of its own clock/timezone setting.
+ */
+export const APP_TIME_ZONE = "Asia/Manila";
+
+/** Y/M/D/H for a date, expressed in the app timezone. */
+export function getZonedParts(d: Date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: APP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value ?? 0);
+  return { year: get("year"), month: get("month"), day: get("day"), hour: get("hour") % 24 };
+}
+
+/** Current slot based on app timezone: morning <12, midday <18, evening otherwise. */
 export function getCurrentSlot(d: Date = new Date()): WisdomSlot {
-  const h = d.getHours();
-  if (h < 12) return "morning";
-  if (h < 18) return "midday";
+  const { hour } = getZonedParts(d);
+  if (hour < 12) return "morning";
+  if (hour < 18) return "midday";
   return "evening";
 }
 
+/** 0 = morning, 1 = midday, 2 = evening — shared by the quote carousels. */
+export function getSlotIndex(d: Date = new Date()): number {
+  const slot = getCurrentSlot(d);
+  return slot === "morning" ? 0 : slot === "midday" ? 1 : 2;
+}
+
+/** Day-of-year in the app timezone — identical on every device. */
+export function getZonedDayOfYear(d: Date = new Date()): number {
+  const { year, month, day } = getZonedParts(d);
+  return Math.floor((Date.UTC(year, month - 1, day) - Date.UTC(year, 0, 0)) / DAY_MS);
+}
+
 function startOfDayUTC(d: Date): number {
-  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  const { year, month, day } = getZonedParts(d);
+  return Date.UTC(year, month - 1, day);
 }
 
 /** day_number = ((today - referenceDate) mod 365) + 1 — loops forever. */
