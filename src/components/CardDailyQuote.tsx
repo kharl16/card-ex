@@ -164,10 +164,16 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
               <BookOpen className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accent }} />
               <div className="min-w-0 flex-1">
                 <p className="text-sm italic leading-relaxed text-foreground/90">
-                  "{verse.text}"
+                  "{wisdom ? wisdom.verse_text : verse.text}"
                 </p>
                 <p className="mt-1 text-xs font-medium" style={{ color: accent, opacity: 0.85 }}>
-                  — {verse.reference}
+                  — {wisdom ? wisdom.reference : verse.reference}
+                </p>
+                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                  <span className="font-semibold text-foreground/80">Business action: </span>
+                  {wisdom
+                    ? wisdom.business_principle
+                    : "Apply this verse to one business decision today — then follow up with one prospect before the day ends."}
                 </p>
                 <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
                   Bible verse for business · Card-Ex
