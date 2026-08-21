@@ -196,13 +196,6 @@ export function MotivationalQuote() {
                   </p>
                 </>
               )}
-              <Link
-                to="/dashboard/bible-wisdom"
-                className="mt-2 inline-flex min-h-[32px] items-center gap-1 text-xs font-semibold text-primary underline-offset-2 hover:underline"
-              >
-                Open Bible Wisdom
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
             </div>
           </div>
         </div>
