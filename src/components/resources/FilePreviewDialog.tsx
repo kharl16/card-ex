@@ -674,6 +674,40 @@ export function FilePreviewDialog({
             {currentIndex + 1} / {files.length}
           </div>
 
+          {/* Super-admin image controls — replaces/removes ONLY the photo */}
+          {isResourceSuperAdmin && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={imageBusy}
+                onClick={() => pickAndUpload(file.id)}
+                className="h-9 gap-1.5 rounded-full bg-black/55 hover:bg-black/75 text-white text-xs backdrop-blur-md border border-white/15"
+              >
+                {imageBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageUp className="h-4 w-4" />}
+                {imageFor(file) ? "Replace photo" : "Add photo"}
+              </Button>
+              {imageFor(file) && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  disabled={imageBusy}
+                  aria-label="Remove photo"
+                  title="Remove photo"
+                  onClick={() => {
+                    if (confirm("Remove this photo? The package details below stay unchanged.")) {
+                      setImage(file.id, null);
+                    }
+                  }}
+                  className="h-9 w-9 rounded-full bg-black/55 hover:bg-black/75 text-white backdrop-blur-md border border-white/15"
+                >
+                  <ImageOff className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
+
+
           {/* Top-right actions (reserves space for Dialog's built-in X) */}
           <TopRightActions reserveCloseSlot>
             <Button
