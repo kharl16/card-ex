@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
-import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -7,6 +7,9 @@ import { TopRightActions } from "@/components/ui/top-right-actions";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
 import { resourceImageUrl } from "@/lib/resourceImage";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useResources } from "@/contexts/ResourcesContext";
 
 interface FilePreviewDialogProps {
   file: FileResource | null;
@@ -17,6 +20,7 @@ interface FilePreviewDialogProps {
   onToggleFavorite: () => void;
   onLogEvent: (eventType: EventType) => void;
   onNavigate: (file: FileResource) => void;
+  onImageUpdated?: (fileId: number, url: string | null) => void;
 }
 
 export function FilePreviewDialog({
@@ -28,8 +32,13 @@ export function FilePreviewDialog({
   onToggleFavorite,
   onLogEvent,
   onNavigate,
+  onImageUpdated,
 }: FilePreviewDialogProps) {
+  const { isResourceSuperAdmin } = useResources();
+  const [imageOverrides, setImageOverrides] = useState<Record<number, string | null>>({});
+  const [imageBusy, setImageBusy] = useState(false);
   if (!file) return null;
+
 
   const currentIndex = files.findIndex((f) => f.id === file.id);
   const total = files.length;
@@ -514,14 +523,60 @@ export function FilePreviewDialog({
   // Reset zoom whenever the previewed file changes
   useEffect(() => { commitZoom(1); }, [file.id, commitZoom]);
 
+  // --- Super-admin image replace / remove (image only, details untouched) ---
+  const setImage = async (fileId: number, url: string | null) => {
+    setImageBusy(true);
+    const { error } = await supabase
+      .from("files_repository")
+      .update({ images: url })
+      .eq("id", fileId);
+    setImageBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setImageOverrides((prev) => ({ ...prev, [fileId]: url }));
+    onImageUpdated?.(fileId, url);
+    toast.success(url ? "Image replaced" : "Image removed");
+  };
 
-
+  const pickAndUpload = (fileId: number) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async () => {
+      const picked = input.files?.[0];
+      if (!picked) return;
+      setImageBusy(true);
+      try {
+        const ext = picked.name.split(".").pop() || "jpg";
+        const path = `files/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error } = await supabase.storage.from("resources").upload(path, picked, {
+          upsert: true,
+          contentType: picked.type || undefined,
+        });
+        if (error) throw error;
+        const { data: pub } = supabase.storage.from("resources").getPublicUrl(path);
+        setImageBusy(false);
+        await setImage(fileId, pub.publicUrl);
+      } catch (e) {
+        setImageBusy(false);
+        toast.error(e instanceof Error ? e.message : "Upload failed");
+      }
+    };
+    input.click();
+  };
 
   const isZoomed = zoom > 1.01;
 
+
+  const imageFor = (f: FileResource) =>
+    Object.prototype.hasOwnProperty.call(imageOverrides, f.id) ? imageOverrides[f.id] : f.images;
+
   const renderImage = (f: FileResource | null, isCurrent = false) => {
     if (!f) return <div className="w-full h-full" />;
-    if (f.images) {
+    const src = imageFor(f);
+    if (src) {
       const scale = isCurrent ? zoom : 1;
       const tx = isCurrent ? pan.x : 0;
       const ty = isCurrent ? pan.y : 0;
@@ -529,7 +584,7 @@ export function FilePreviewDialog({
       return (
         <img
           ref={isCurrent ? imgRef : undefined}
-          src={resourceImageUrl(f.images)}
+          src={resourceImageUrl(src)}
           alt={f.file_name}
           className={cn(
             "w-full h-full object-contain max-h-[55vh] select-none pointer-events-none",
@@ -618,6 +673,40 @@ export function FilePreviewDialog({
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 text-white/80 text-[10px] font-medium px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
             {currentIndex + 1} / {files.length}
           </div>
+
+          {/* Super-admin image controls — replaces/removes ONLY the photo */}
+          {isResourceSuperAdmin && (
+            <div className="absolute bottom-3 right-3 flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={imageBusy}
+                onClick={() => pickAndUpload(file.id)}
+                className="h-9 gap-1.5 rounded-full bg-black/55 hover:bg-black/75 text-white text-xs backdrop-blur-md border border-white/15"
+              >
+                {imageBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageUp className="h-4 w-4" />}
+                {imageFor(file) ? "Replace photo" : "Add photo"}
+              </Button>
+              {imageFor(file) && (
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  disabled={imageBusy}
+                  aria-label="Remove photo"
+                  title="Remove photo"
+                  onClick={() => {
+                    if (confirm("Remove this photo? The package details below stay unchanged.")) {
+                      setImage(file.id, null);
+                    }
+                  }}
+                  className="h-9 w-9 rounded-full bg-black/55 hover:bg-black/75 text-white backdrop-blur-md border border-white/15"
+                >
+                  <ImageOff className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
+
 
           {/* Top-right actions (reserves space for Dialog's built-in X) */}
           <TopRightActions reserveCloseSlot>
