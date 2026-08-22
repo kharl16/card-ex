@@ -533,7 +533,7 @@ export function FilePreviewDialog({
       return (
         <img
           ref={isCurrent ? imgRef : undefined}
-          src={resourceImageUrl(f.images)}
+          src={resourceImageUrl(src)}
           alt={f.file_name}
           className={cn(
             "w-full h-full object-contain max-h-[55vh] select-none pointer-events-none",
