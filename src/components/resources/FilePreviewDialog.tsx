@@ -23,7 +23,12 @@ interface FilePreviewDialogProps {
   onImageUpdated?: (fileId: number, url: string | null) => void;
 }
 
-export function FilePreviewDialog({
+export function FilePreviewDialog(props: FilePreviewDialogProps) {
+  if (!props.file) return null;
+  return <FilePreviewDialogInner {...props} file={props.file} />;
+}
+
+function FilePreviewDialogInner({
   file,
   files,
   open,
@@ -33,11 +38,11 @@ export function FilePreviewDialog({
   onLogEvent,
   onNavigate,
   onImageUpdated,
-}: FilePreviewDialogProps) {
+}: FilePreviewDialogProps & { file: FileResource }) {
   const { isResourceSuperAdmin } = useResources();
   const [imageOverrides, setImageOverrides] = useState<Record<number, string | null>>({});
   const [imageBusy, setImageBusy] = useState(false);
-  if (!file) return null;
+
 
 
   const currentIndex = files.findIndex((f) => f.id === file.id);
