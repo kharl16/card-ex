@@ -40,8 +40,10 @@ function FilePreviewDialogInner({
   onImageUpdated,
 }: FilePreviewDialogProps & { file: FileResource }) {
   const { isResourceSuperAdmin } = useResources();
-  const [imageOverrides, setImageOverrides] = useState<Record<number, string | null>>({});
+  const [imageOverrides, setImageOverrides] = useState<Record<string, string | null>>({});
   const [imageBusy, setImageBusy] = useState(false);
+  // Which of the two photo slots of the CURRENT file is displayed (0 = main, 1 = alternate)
+  const [slot, setSlot] = useState(0);
 
 
 
