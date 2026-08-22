@@ -514,10 +514,52 @@ export function FilePreviewDialog({
   // Reset zoom whenever the previewed file changes
   useEffect(() => { commitZoom(1); }, [file.id, commitZoom]);
 
+  // --- Super-admin image replace / remove (image only, details untouched) ---
+  const setImage = async (fileId: number, url: string | null) => {
+    setImageBusy(true);
+    const { error } = await supabase
+      .from("files_repository")
+      .update({ images: url })
+      .eq("id", fileId);
+    setImageBusy(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setImageOverrides((prev) => ({ ...prev, [fileId]: url }));
+    onImageUpdated?.(fileId, url);
+    toast.success(url ? "Image replaced" : "Image removed");
+  };
 
-
+  const pickAndUpload = (fileId: number) => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async () => {
+      const picked = input.files?.[0];
+      if (!picked) return;
+      setImageBusy(true);
+      try {
+        const ext = picked.name.split(".").pop() || "jpg";
+        const path = `files/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error } = await supabase.storage.from("resources").upload(path, picked, {
+          upsert: true,
+          contentType: picked.type || undefined,
+        });
+        if (error) throw error;
+        const { data: pub } = supabase.storage.from("resources").getPublicUrl(path);
+        setImageBusy(false);
+        await setImage(fileId, pub.publicUrl);
+      } catch (e) {
+        setImageBusy(false);
+        toast.error(e instanceof Error ? e.message : "Upload failed");
+      }
+    };
+    input.click();
+  };
 
   const isZoomed = zoom > 1.01;
+
 
   const imageFor = (f: FileResource) =>
     Object.prototype.hasOwnProperty.call(imageOverrides, f.id) ? imageOverrides[f.id] : f.images;
