@@ -422,8 +422,10 @@ function FilesPageContent() {
           if (previewFile) logEvent("file", String(previewFile.id), eventType);
         }}
         onNavigate={setPreviewFile}
-        onImageUpdated={(id, url) => {
-          setPreviewFile((p) => (p && p.id === id ? { ...p, images: url } : p));
+        onImageUpdated={(id, url, slot) => {
+          setPreviewFile((p) =>
+            p && p.id === id ? { ...p, ...(slot === 2 ? { images_2: url } : { images: url }) } : p
+          );
           refetch();
         }}
       />

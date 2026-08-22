@@ -1343,6 +1343,7 @@ export type Database = {
           give_me_5: string | null
           id: number
           images: string | null
+          images_2: string | null
           infinity: string | null
           is_active: boolean
           just_4_you: string | null
@@ -1372,6 +1373,7 @@ export type Database = {
           give_me_5?: string | null
           id?: number
           images?: string | null
+          images_2?: string | null
           infinity?: string | null
           is_active?: boolean
           just_4_you?: string | null
@@ -1401,6 +1403,7 @@ export type Database = {
           give_me_5?: string | null
           id?: number
           images?: string | null
+          images_2?: string | null
           infinity?: string | null
           is_active?: boolean
           just_4_you?: string | null

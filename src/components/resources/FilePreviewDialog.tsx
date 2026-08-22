@@ -20,7 +20,7 @@ interface FilePreviewDialogProps {
   onToggleFavorite: () => void;
   onLogEvent: (eventType: EventType) => void;
   onNavigate: (file: FileResource) => void;
-  onImageUpdated?: (fileId: number, url: string | null) => void;
+  onImageUpdated?: (fileId: number, url: string | null, slot?: 1 | 2) => void;
 }
 
 export function FilePreviewDialog(props: FilePreviewDialogProps) {
@@ -40,8 +40,10 @@ function FilePreviewDialogInner({
   onImageUpdated,
 }: FilePreviewDialogProps & { file: FileResource }) {
   const { isResourceSuperAdmin } = useResources();
-  const [imageOverrides, setImageOverrides] = useState<Record<number, string | null>>({});
+  const [imageOverrides, setImageOverrides] = useState<Record<string, string | null>>({});
   const [imageBusy, setImageBusy] = useState(false);
+  // Which of the two photo slots of the CURRENT file is displayed (0 = main, 1 = alternate)
+  const [slot, setSlot] = useState(0);
 
 
 
@@ -528,24 +530,28 @@ function FilePreviewDialogInner({
   // Reset zoom whenever the previewed file changes
   useEffect(() => { commitZoom(1); }, [file.id, commitZoom]);
 
+  // Always start on the main photo when switching packages
+  useEffect(() => { setSlot(0); }, [file.id]);
+
   // --- Super-admin image replace / remove (image only, details untouched) ---
-  const setImage = async (fileId: number, url: string | null) => {
+  const setImage = async (fileId: number, url: string | null, slotIndex: number) => {
+    const column = slotIndex === 1 ? "images_2" : "images";
     setImageBusy(true);
     const { error } = await supabase
       .from("files_repository")
-      .update({ images: url })
+      .update({ [column]: url })
       .eq("id", fileId);
     setImageBusy(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    setImageOverrides((prev) => ({ ...prev, [fileId]: url }));
-    onImageUpdated?.(fileId, url);
-    toast.success(url ? "Image replaced" : "Image removed");
+    setImageOverrides((prev) => ({ ...prev, [`${fileId}:${slotIndex}`]: url }));
+    onImageUpdated?.(fileId, url, slotIndex === 1 ? 2 : 1);
+    toast.success(url ? "Photo updated" : "Photo removed");
   };
 
-  const pickAndUpload = (fileId: number) => {
+  const pickAndUpload = (fileId: number, slotIndex: number) => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -563,7 +569,7 @@ function FilePreviewDialogInner({
         if (error) throw error;
         const { data: pub } = supabase.storage.from("resources").getPublicUrl(path);
         setImageBusy(false);
-        await setImage(fileId, pub.publicUrl);
+        await setImage(fileId, pub.publicUrl, slotIndex);
       } catch (e) {
         setImageBusy(false);
         toast.error(e instanceof Error ? e.message : "Upload failed");
@@ -574,13 +580,20 @@ function FilePreviewDialogInner({
 
   const isZoomed = zoom > 1.01;
 
+  const imageFor = (f: FileResource, slotIndex = 0) => {
+    const key = `${f.id}:${slotIndex}`;
+    if (Object.prototype.hasOwnProperty.call(imageOverrides, key)) return imageOverrides[key];
+    return slotIndex === 1 ? (f as FileResource).images_2 ?? null : f.images;
+  };
 
-  const imageFor = (f: FileResource) =>
-    Object.prototype.hasOwnProperty.call(imageOverrides, f.id) ? imageOverrides[f.id] : f.images;
+  const currentSrc = imageFor(file, slot);
+  const hasSecondPhoto = !!imageFor(file, 1);
+  const showSlotSwitch = hasSecondPhoto || isResourceSuperAdmin;
 
   const renderImage = (f: FileResource | null, isCurrent = false) => {
+
     if (!f) return <div className="w-full h-full" />;
-    const src = imageFor(f);
+    const src = isCurrent ? currentSrc : imageFor(f);
     if (src) {
       const scale = isCurrent ? zoom : 1;
       const tx = isCurrent ? pan.x : 0;
@@ -679,20 +692,39 @@ function FilePreviewDialogInner({
             {currentIndex + 1} / {files.length}
           </div>
 
-          {/* Super-admin image controls — replaces/removes ONLY the photo */}
+          {/* Photo 1 / Photo 2 switcher */}
+          {showSlotSwitch && (
+            <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-black/55 p-1 backdrop-blur-md border border-white/15">
+              {[0, 1].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setSlot(s)}
+                  className={cn(
+                    "h-7 min-w-[2rem] px-2 rounded-full text-[11px] font-medium transition-colors",
+                    slot === s ? "bg-white/90 text-black" : "text-white/70 hover:text-white"
+                  )}
+                >
+                  {s + 1}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Super-admin image controls — replaces/removes ONLY the selected photo */}
           {isResourceSuperAdmin && (
             <div className="absolute bottom-3 right-3 flex items-center gap-2">
               <Button
                 size="sm"
                 variant="ghost"
                 disabled={imageBusy}
-                onClick={() => pickAndUpload(file.id)}
+                onClick={() => pickAndUpload(file.id, slot)}
                 className="h-9 gap-1.5 rounded-full bg-black/55 hover:bg-black/75 text-white text-xs backdrop-blur-md border border-white/15"
               >
                 {imageBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageUp className="h-4 w-4" />}
-                {imageFor(file) ? "Replace photo" : "Add photo"}
+                {currentSrc ? `Replace photo ${slot + 1}` : `Add photo ${slot + 1}`}
               </Button>
-              {imageFor(file) && (
+              {currentSrc && (
                 <Button
                   size="icon"
                   variant="ghost"
@@ -701,7 +733,7 @@ function FilePreviewDialogInner({
                   title="Remove photo"
                   onClick={() => {
                     if (confirm("Remove this photo? The package details below stay unchanged.")) {
-                      setImage(file.id, null);
+                      setImage(file.id, null, slot);
                     }
                   }}
                   className="h-9 w-9 rounded-full bg-black/55 hover:bg-black/75 text-white backdrop-blur-md border border-white/15"
@@ -710,6 +742,7 @@ function FilePreviewDialogInner({
                 </Button>
               )}
             </div>
+
           )}
 
 

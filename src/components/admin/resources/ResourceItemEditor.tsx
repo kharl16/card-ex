@@ -226,13 +226,22 @@ export function ResourceItemEditor({
                 uploading={uploading}
               />
               <UploadOrLink
-                label="Thumbnail image"
+                label="Photo 1 (main)"
                 value={form.images ?? ""}
                 onChange={(v) => update("images", v)}
                 onUpload={() => triggerUpload("images", "image/*")}
                 uploading={uploading}
                 preview
               />
+              <UploadOrLink
+                label="Photo 2 (alternate angle)"
+                value={form.images_2 ?? ""}
+                onChange={(v) => update("images_2", v)}
+                onUpload={() => triggerUpload("images_2", "image/*")}
+                uploading={uploading}
+                preview
+              />
+
               <Field label="Share link">
                 <Input
                   value={form.drive_link_share ?? ""}

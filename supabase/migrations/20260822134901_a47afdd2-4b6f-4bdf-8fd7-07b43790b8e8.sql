@@ -1,0 +1,1 @@
+ALTER TABLE public.files_repository ADD COLUMN IF NOT EXISTS images_2 text;
