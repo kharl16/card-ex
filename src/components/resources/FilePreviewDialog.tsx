@@ -530,24 +530,28 @@ function FilePreviewDialogInner({
   // Reset zoom whenever the previewed file changes
   useEffect(() => { commitZoom(1); }, [file.id, commitZoom]);
 
+  // Always start on the main photo when switching packages
+  useEffect(() => { setSlot(0); }, [file.id]);
+
   // --- Super-admin image replace / remove (image only, details untouched) ---
-  const setImage = async (fileId: number, url: string | null) => {
+  const setImage = async (fileId: number, url: string | null, slotIndex: number) => {
+    const column = slotIndex === 1 ? "images_2" : "images";
     setImageBusy(true);
     const { error } = await supabase
       .from("files_repository")
-      .update({ images: url })
+      .update({ [column]: url })
       .eq("id", fileId);
     setImageBusy(false);
     if (error) {
       toast.error(error.message);
       return;
     }
-    setImageOverrides((prev) => ({ ...prev, [fileId]: url }));
-    onImageUpdated?.(fileId, url);
-    toast.success(url ? "Image replaced" : "Image removed");
+    setImageOverrides((prev) => ({ ...prev, [`${fileId}:${slotIndex}`]: url }));
+    onImageUpdated?.(fileId, url, slotIndex === 1 ? 2 : 1);
+    toast.success(url ? "Photo updated" : "Photo removed");
   };
 
-  const pickAndUpload = (fileId: number) => {
+  const pickAndUpload = (fileId: number, slotIndex: number) => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -565,7 +569,7 @@ function FilePreviewDialogInner({
         if (error) throw error;
         const { data: pub } = supabase.storage.from("resources").getPublicUrl(path);
         setImageBusy(false);
-        await setImage(fileId, pub.publicUrl);
+        await setImage(fileId, pub.publicUrl, slotIndex);
       } catch (e) {
         setImageBusy(false);
         toast.error(e instanceof Error ? e.message : "Upload failed");
@@ -576,11 +580,18 @@ function FilePreviewDialogInner({
 
   const isZoomed = zoom > 1.01;
 
+  const imageFor = (f: FileResource, slotIndex = 0) => {
+    const key = `${f.id}:${slotIndex}`;
+    if (Object.prototype.hasOwnProperty.call(imageOverrides, key)) return imageOverrides[key];
+    return slotIndex === 1 ? (f as FileResource).images_2 ?? null : f.images;
+  };
 
-  const imageFor = (f: FileResource) =>
-    Object.prototype.hasOwnProperty.call(imageOverrides, f.id) ? imageOverrides[f.id] : f.images;
+  const currentSrc = imageFor(file, slot);
+  const hasSecondPhoto = !!imageFor(file, 1);
+  const showSlotSwitch = hasSecondPhoto || isResourceSuperAdmin;
 
   const renderImage = (f: FileResource | null, isCurrent = false) => {
+
     if (!f) return <div className="w-full h-full" />;
     const src = imageFor(f);
     if (src) {
