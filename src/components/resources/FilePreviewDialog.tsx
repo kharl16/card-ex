@@ -519,9 +519,13 @@ export function FilePreviewDialog({
 
   const isZoomed = zoom > 1.01;
 
+  const imageFor = (f: FileResource) =>
+    Object.prototype.hasOwnProperty.call(imageOverrides, f.id) ? imageOverrides[f.id] : f.images;
+
   const renderImage = (f: FileResource | null, isCurrent = false) => {
     if (!f) return <div className="w-full h-full" />;
-    if (f.images) {
+    const src = imageFor(f);
+    if (src) {
       const scale = isCurrent ? zoom : 1;
       const tx = isCurrent ? pan.x : 0;
       const ty = isCurrent ? pan.y : 0;
