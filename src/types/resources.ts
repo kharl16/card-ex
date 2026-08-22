@@ -9,7 +9,7 @@ export interface FileResource {
   id: number;
   file_name: string;
   images: string | null;
-  images_2: string | null;
+  images_2?: string | null;
   drive_link_download: string | null;
   drive_link_share: string | null;
   description: string | null;
