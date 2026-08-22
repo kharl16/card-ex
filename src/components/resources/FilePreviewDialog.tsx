@@ -593,7 +593,7 @@ function FilePreviewDialogInner({
   const renderImage = (f: FileResource | null, isCurrent = false) => {
 
     if (!f) return <div className="w-full h-full" />;
-    const src = imageFor(f);
+    const src = isCurrent ? currentSrc : imageFor(f);
     if (src) {
       const scale = isCurrent ? zoom : 1;
       const tx = isCurrent ? pan.x : 0;
