@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
-import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -7,6 +7,9 @@ import { TopRightActions } from "@/components/ui/top-right-actions";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
 import { resourceImageUrl } from "@/lib/resourceImage";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useResources } from "@/contexts/ResourcesContext";
 
 interface FilePreviewDialogProps {
   file: FileResource | null;
@@ -17,6 +20,7 @@ interface FilePreviewDialogProps {
   onToggleFavorite: () => void;
   onLogEvent: (eventType: EventType) => void;
   onNavigate: (file: FileResource) => void;
+  onImageUpdated?: (fileId: number, url: string | null) => void;
 }
 
 export function FilePreviewDialog({
@@ -28,8 +32,13 @@ export function FilePreviewDialog({
   onToggleFavorite,
   onLogEvent,
   onNavigate,
+  onImageUpdated,
 }: FilePreviewDialogProps) {
+  const { isResourceSuperAdmin } = useResources();
+  const [imageOverrides, setImageOverrides] = useState<Record<number, string | null>>({});
+  const [imageBusy, setImageBusy] = useState(false);
   if (!file) return null;
+
 
   const currentIndex = files.findIndex((f) => f.id === file.id);
   const total = files.length;
