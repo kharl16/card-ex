@@ -692,20 +692,39 @@ function FilePreviewDialogInner({
             {currentIndex + 1} / {files.length}
           </div>
 
-          {/* Super-admin image controls — replaces/removes ONLY the photo */}
+          {/* Photo 1 / Photo 2 switcher */}
+          {showSlotSwitch && (
+            <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-black/55 p-1 backdrop-blur-md border border-white/15">
+              {[0, 1].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setSlot(s)}
+                  className={cn(
+                    "h-7 min-w-[2rem] px-2 rounded-full text-[11px] font-medium transition-colors",
+                    slot === s ? "bg-white/90 text-black" : "text-white/70 hover:text-white"
+                  )}
+                >
+                  {s + 1}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Super-admin image controls — replaces/removes ONLY the selected photo */}
           {isResourceSuperAdmin && (
             <div className="absolute bottom-3 right-3 flex items-center gap-2">
               <Button
                 size="sm"
                 variant="ghost"
                 disabled={imageBusy}
-                onClick={() => pickAndUpload(file.id)}
+                onClick={() => pickAndUpload(file.id, slot)}
                 className="h-9 gap-1.5 rounded-full bg-black/55 hover:bg-black/75 text-white text-xs backdrop-blur-md border border-white/15"
               >
                 {imageBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageUp className="h-4 w-4" />}
-                {imageFor(file) ? "Replace photo" : "Add photo"}
+                {currentSrc ? `Replace photo ${slot + 1}` : `Add photo ${slot + 1}`}
               </Button>
-              {imageFor(file) && (
+              {currentSrc && (
                 <Button
                   size="icon"
                   variant="ghost"
@@ -714,7 +733,7 @@ function FilePreviewDialogInner({
                   title="Remove photo"
                   onClick={() => {
                     if (confirm("Remove this photo? The package details below stay unchanged.")) {
-                      setImage(file.id, null);
+                      setImage(file.id, null, slot);
                     }
                   }}
                   className="h-9 w-9 rounded-full bg-black/55 hover:bg-black/75 text-white backdrop-blur-md border border-white/15"
@@ -723,6 +742,7 @@ function FilePreviewDialogInner({
                 </Button>
               )}
             </div>
+
           )}
 
 
