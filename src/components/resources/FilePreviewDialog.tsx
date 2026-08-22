@@ -20,7 +20,7 @@ interface FilePreviewDialogProps {
   onToggleFavorite: () => void;
   onLogEvent: (eventType: EventType) => void;
   onNavigate: (file: FileResource) => void;
-  onImageUpdated?: (fileId: number, url: string | null) => void;
+  onImageUpdated?: (fileId: number, url: string | null, slot?: 1 | 2) => void;
 }
 
 export function FilePreviewDialog(props: FilePreviewDialogProps) {
