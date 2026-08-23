@@ -492,24 +492,28 @@ export default function CardView({
           };
 
           const ownProductImages = normalizeCarouselImages((card as any).product_images);
-          const globalAsCarousel = visibleGlobals.map((g, idx) => ({
-            url: g.url,
-            alt: g.caption ?? undefined,
-            order: ownProductImages.length + idx,
-            description: undefined,
-            shareText: g.caption ?? undefined,
-            srp: (g as any).srp ?? undefined,
-          }));
+          const globalAsCarousel = visibleGlobals
+            .flatMap((g) => [g.url, (g as any).url_2].filter(Boolean).map((u) => ({ ...g, url: u as string })))
+            .map((g, idx) => ({
+              url: g.url,
+              alt: g.caption ?? undefined,
+              order: ownProductImages.length + idx,
+              description: undefined,
+              shareText: g.caption ?? undefined,
+              srp: (g as any).srp ?? undefined,
+            }));
           const productImagesData = [...ownProductImages, ...globalAsCarousel];
           const ownPackageImages = normalizeCarouselImages((card as any).package_images);
-          const globalPackagesAsCarousel = visibleGlobalPackages.map((g, idx) => ({
-            url: g.url,
-            alt: g.caption ?? undefined,
-            order: ownPackageImages.length + idx,
-            description: undefined,
-            shareText: g.caption ?? undefined,
-            srp: (g as any).srp ?? undefined,
-          }));
+          const globalPackagesAsCarousel = visibleGlobalPackages
+            .flatMap((g) => [g.url, (g as any).url_2].filter(Boolean).map((u) => ({ ...g, url: u as string })))
+            .map((g, idx) => ({
+              url: g.url,
+              alt: g.caption ?? undefined,
+              order: ownPackageImages.length + idx,
+              description: undefined,
+              shareText: g.caption ?? undefined,
+              srp: (g as any).srp ?? undefined,
+            }));
           const packageImagesData = [...ownPackageImages, ...globalPackagesAsCarousel];
           const ownTestimonyImages = normalizeCarouselImages((card as any).testimony_images);
           const globalTestimoniesAsCarousel = visibleGlobalTestimonies.map((g, idx) => ({
