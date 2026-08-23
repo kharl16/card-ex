@@ -120,7 +120,7 @@ function LightboxSlide({
             onDimensions?.({ width: el.naturalWidth, height: el.naturalHeight });
           }
         }}
-        className="pointer-events-auto select-none object-contain max-w-[calc(95vw-4rem)] max-h-[calc(95vh-4rem)] w-auto h-auto"
+        className="pointer-events-auto select-none object-contain max-w-[calc(95vw-4rem)] max-h-full w-auto h-auto"
         style={transformStyle}
       />
     </div>
@@ -338,7 +338,7 @@ export default function LightboxDialog({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30">
-          <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+          <div className="relative flex h-full w-full flex-col overflow-hidden">
             {/* Close button */}
             <CloseButton3D
               variant="prominent"
@@ -398,7 +398,7 @@ export default function LightboxDialog({
                 framer-motion drag track for one-finger horizontal swipe navigation. */}
             <div
               ref={stageRef}
-              className="absolute inset-0 overflow-hidden"
+              className="relative min-h-0 w-full flex-1 overflow-hidden"
               style={{ touchAction: canDrag ? "pan-y" : "none" }}
             >
               <div ref={trackRef} className="relative w-full h-full">
@@ -443,29 +443,29 @@ export default function LightboxDialog({
               </div>
             </div>
 
-            {/* Caption, SRP, Description & Counter */}
-            <div className="fixed bottom-0 left-0 right-0 z-[60] pointer-events-none flex flex-col items-center gap-1 pb-4">
+            {/* Dedicated caption area below the image — never overlays photo content. */}
+            <div className="relative z-[60] flex w-full shrink-0 flex-col items-center gap-1 border-t border-border/30 bg-black/95 px-4 py-3">
               {(currentImage?.shareText || currentImage?.alt || currentImage?.description || currentImage?.srp) && (
-                <div className="w-full max-w-lg px-4 space-y-0 text-center pointer-events-auto max-h-[40vh] overflow-y-auto">
+                <div className="w-full max-w-lg space-y-0 text-center max-h-[32vh] overflow-y-auto">
                   {(currentImage?.shareText || currentImage?.alt) && (
-                    <h3 className="text-white font-semibold text-base bg-black/70 backdrop-blur-md rounded-t-lg px-4 pt-3 pb-1">
+                    <h3 className="text-white font-semibold text-base px-4 pb-1">
                       {currentImage?.shareText || currentImage?.alt}
                     </h3>
                   )}
                   {currentImage?.srp && (
-                    <p className="text-amber-300 font-semibold text-sm bg-black/70 backdrop-blur-md px-4 py-1">
+                    <p className="text-amber-300 font-semibold text-sm px-4 py-1">
                       SRP {currentImage.srp}
                     </p>
                   )}
                   {currentImage?.description && currentImage.description !== (currentImage?.shareText || currentImage?.alt) && (
-                    <p className="text-white/90 text-sm leading-relaxed bg-black/70 backdrop-blur-md rounded-b-lg px-4 pb-3 pt-1">
+                    <p className="text-white/90 text-sm leading-relaxed px-4 pt-1">
                       {currentImage.description}
                     </p>
                   )}
                 </div>
               )}
               {count > 1 && (
-                <div className="bg-black/70 text-white px-4 py-1.5 rounded-full text-sm pointer-events-auto">
+                <div className="text-white/80 px-4 py-1 text-sm">
                   {index + 1} / {count}
                 </div>
               )}
