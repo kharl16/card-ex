@@ -37,7 +37,7 @@ export function ResourceCard({
           <img
             src={resourceImageUrl(resource.images)}
             alt={resource.file_name}
-            className="h-full w-full object-contain bg-black/90 transition-transform duration-700 ease-out group-hover:scale-110"
+            className="h-full w-full object-contain bg-black/90 transition-transform duration-700 ease-out group-hover:scale-105"
             loading="lazy"
             referrerPolicy="no-referrer"
           />
@@ -46,12 +46,6 @@ export function ResourceCard({
             <Eye className="h-8 w-8 text-muted-foreground/20" />
           </div>
         )}
-
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-70 group-hover:opacity-90 transition-opacity duration-300" />
-
-        {/* Shimmer on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-tr from-transparent via-white/5 to-transparent" />
 
         {/* Favorite button */}
         <button
@@ -84,19 +78,19 @@ export function ResourceCard({
             <Play className="h-3 w-3 text-white fill-white" />
           </div>
         )}
+      </div>
 
-        {/* Bottom text overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-2.5 z-10">
-          <h3 className="font-medium text-white text-[11px] leading-snug line-clamp-2 drop-shadow-lg">
-            {resource.file_name}
-          </h3>
-          {!compact && resource.folder_name && (
-            <p className="text-[9px] text-white/50 mt-0.5 truncate flex items-center gap-1">
-              <Tag className="h-2.5 w-2.5" />
-              {resource.folder_name}
-            </p>
-          )}
-        </div>
+      {/* Caption below the photo so it never overlaps image content */}
+      <div className="p-2.5 border-t border-border/20">
+        <h3 className="font-medium text-foreground text-[11px] leading-snug line-clamp-2">
+          {resource.file_name}
+        </h3>
+        {!compact && resource.folder_name && (
+          <p className="text-[9px] text-muted-foreground mt-0.5 truncate flex items-center gap-1">
+            <Tag className="h-2.5 w-2.5" />
+            {resource.folder_name}
+          </p>
+        )}
       </div>
     </div>
   );
