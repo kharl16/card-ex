@@ -279,21 +279,23 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
             key={folder.id}
             onClick={() => setActiveFolder(folder)}
             className={cn(
-              "relative rounded-xl overflow-hidden aspect-square",
+              "relative rounded-xl overflow-hidden text-left group",
               "bg-card border border-border/40 shadow-sm",
-              "hover:shadow-lg hover:border-primary/30 transition-all text-left group"
+              "hover:shadow-lg hover:border-primary/30 transition-all"
             )}
           >
-            {folder.images ? (
-              <img src={resourceImageUrl(folder.images)} alt={folder.folder_name} className="w-full h-full object-contain bg-black/90" loading="lazy" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                <FolderOpen className="w-10 h-10 text-primary/40" />
-              </div>
-            )}
-
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
-              <h3 className="text-[11px] font-semibold text-white line-clamp-2 drop-shadow-lg">{folder.folder_name}</h3>
+            <div className="relative aspect-square overflow-hidden">
+              {folder.images ? (
+                <img src={resourceImageUrl(folder.images)} alt={folder.folder_name} className="w-full h-full object-contain bg-black/90 group-hover:scale-105 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                  <FolderOpen className="w-10 h-10 text-primary/40" />
+                </div>
+              )}
+            </div>
+            {/* Caption below the photo so it never overlaps image content */}
+            <div className="p-2 border-t border-border/20">
+              <h3 className="text-[11px] font-semibold text-foreground line-clamp-2">{folder.folder_name}</h3>
             </div>
           </button>
         ))}
