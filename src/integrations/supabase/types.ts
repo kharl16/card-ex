@@ -1440,6 +1440,7 @@ export type Database = {
           srp: string | null
           updated_at: string
           url: string
+          url_2: string | null
         }
         Insert: {
           caption?: string | null
@@ -1452,6 +1453,7 @@ export type Database = {
           srp?: string | null
           updated_at?: string
           url: string
+          url_2?: string | null
         }
         Update: {
           caption?: string | null
@@ -1464,6 +1466,7 @@ export type Database = {
           srp?: string | null
           updated_at?: string
           url?: string
+          url_2?: string | null
         }
         Relationships: [
           {
@@ -1487,6 +1490,7 @@ export type Database = {
           srp: string | null
           updated_at: string
           url: string
+          url_2: string | null
         }
         Insert: {
           caption?: string | null
@@ -1499,6 +1503,7 @@ export type Database = {
           srp?: string | null
           updated_at?: string
           url: string
+          url_2?: string | null
         }
         Update: {
           caption?: string | null
@@ -1511,6 +1516,7 @@ export type Database = {
           srp?: string | null
           updated_at?: string
           url?: string
+          url_2?: string | null
         }
         Relationships: [
           {

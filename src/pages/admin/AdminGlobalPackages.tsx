@@ -10,10 +10,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2, Eye, EyeOff } from "lucide-react";
+import GlobalImageSlots from "@/components/admin/GlobalImageSlots";
 
 type Row = {
   id: string;
   url: string;
+  url_2: string | null;
   caption: string | null;
   srp: string | null;
   sort_index: number;
@@ -37,7 +39,7 @@ export default function AdminGlobalPackages() {
     setLoading(true);
     const { data, error } = await supabase
       .from("global_package_images")
-      .select("id,url,caption,srp,sort_index,is_active")
+      .select("id,url,url_2,caption,srp,sort_index,is_active")
       .eq("company_id", activeCompanyId)
       .order("sort_index", { ascending: true });
     if (error) toast.error(error.message);
@@ -222,14 +224,17 @@ export default function AdminGlobalPackages() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((r, i) => (
             <div key={r.id} className="rounded-xl border border-border bg-card p-3 space-y-2">
-              <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
-                <img src={getRenderUrl(r.url, "package", "thumb")} alt={r.caption ?? ""} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                {!r.is_active && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs font-medium text-white">
-                    HIDDEN GLOBALLY
-                  </div>
-                )}
-              </div>
+              <GlobalImageSlots
+                table="global_package_images"
+                rowId={r.id}
+                url={r.url}
+                url2={r.url_2}
+                caption={r.caption}
+                isActive={r.is_active}
+                kind="package"
+                folder="global-packages"
+                onChanged={load}
+              />
               <Input
                 defaultValue={r.caption ?? ""}
                 placeholder="Caption"
