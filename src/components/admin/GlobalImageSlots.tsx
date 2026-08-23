@@ -100,6 +100,30 @@ export default function GlobalImageSlots({
 
   return (
     <div className="space-y-2">
+      {/* Slot switcher lives above the photo so it never covers image content */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex gap-1 rounded-full bg-muted p-0.5">
+          {([1, 2] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setSlot(s)}
+              className={`h-6 min-w-6 rounded-full px-2 text-[11px] font-semibold transition ${
+                slot === s ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+              aria-label={s === 1 ? "Main photo" : "Alternate angle"}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+        {!isActive && (
+          <span className="rounded-full bg-destructive/90 px-2 py-0.5 text-[10px] font-medium text-white">
+            Hidden globally
+          </span>
+        )}
+      </div>
+
       <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
         {current ? (
           <img
@@ -109,32 +133,11 @@ export default function GlobalImageSlots({
             decoding="async"
             className="h-full w-full object-contain"
           />
-
         ) : (
           <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
             No alternate photo yet
           </div>
         )}
-        {!isActive && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs font-medium text-white">
-            HIDDEN GLOBALLY
-          </div>
-        )}
-        <div className="absolute left-1.5 top-1.5 flex gap-1 rounded-full bg-background/85 p-0.5 backdrop-blur-sm">
-          {([1, 2] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setSlot(s)}
-              className={`h-6 min-w-6 rounded-full px-2 text-[11px] font-semibold transition ${
-                slot === s ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-              }`}
-              aria-label={s === 1 ? "Main photo" : "Alternate angle"}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
       </div>
 
       <input

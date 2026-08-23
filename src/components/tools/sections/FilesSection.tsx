@@ -204,32 +204,34 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
                 key={item.id}
                 onClick={() => setSelectedFile(item)}
                 className={cn(
-                  "group relative overflow-hidden rounded-xl aspect-square text-left",
+                  "group relative overflow-hidden rounded-xl text-left",
                   "bg-card border border-border/40 shadow-sm",
                   "hover:shadow-lg hover:border-primary/30 transition-all"
                 )}
               >
-                {thumbnail ? (
-                  <img
-                    src={resourceImageUrl(thumbnail)}
-                    alt={item.file_name}
-                    className="w-full h-full object-contain bg-black/90"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                    <FolderOpen className="w-8 h-8 text-primary/50" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-80" />
-                {item.view_video_url && (
-                  <div className="absolute top-1.5 left-1.5 bg-black/50 backdrop-blur-md rounded-full p-1 border border-white/10">
-                    <Play className="h-3 w-3 text-white fill-white" />
-                  </div>
-                )}
-                <div className="absolute bottom-0 inset-x-0 p-2">
-                  <h3 className="font-medium text-white text-[11px] leading-snug line-clamp-2 drop-shadow-lg">
+                <div className="relative aspect-square overflow-hidden">
+                  {thumbnail ? (
+                    <img
+                      src={resourceImageUrl(thumbnail)}
+                      alt={item.file_name}
+                      className="w-full h-full object-contain bg-black/90 group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                      <FolderOpen className="w-8 h-8 text-primary/50" />
+                    </div>
+                  )}
+                  {item.view_video_url && (
+                    <div className="absolute top-1.5 left-1.5 bg-black/50 backdrop-blur-md rounded-full p-1 border border-white/10">
+                      <Play className="h-3 w-3 text-white fill-white" />
+                    </div>
+                  )}
+                </div>
+                {/* Caption below the photo so it never overlaps image content */}
+                <div className="p-2 border-t border-border/20">
+                  <h3 className="font-medium text-foreground text-[11px] leading-snug line-clamp-2">
                     {item.file_name}
                   </h3>
                 </div>
@@ -277,21 +279,23 @@ export default function FilesSection({ searchQuery }: FilesSectionProps) {
             key={folder.id}
             onClick={() => setActiveFolder(folder)}
             className={cn(
-              "relative rounded-xl overflow-hidden aspect-square",
+              "relative rounded-xl overflow-hidden text-left group",
               "bg-card border border-border/40 shadow-sm",
-              "hover:shadow-lg hover:border-primary/30 transition-all text-left group"
+              "hover:shadow-lg hover:border-primary/30 transition-all"
             )}
           >
-            {folder.images ? (
-              <img src={resourceImageUrl(folder.images)} alt={folder.folder_name} className="w-full h-full object-contain bg-black/90" loading="lazy" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-                <FolderOpen className="w-10 h-10 text-primary/40" />
-              </div>
-            )}
-
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
-              <h3 className="text-[11px] font-semibold text-white line-clamp-2 drop-shadow-lg">{folder.folder_name}</h3>
+            <div className="relative aspect-square overflow-hidden">
+              {folder.images ? (
+                <img src={resourceImageUrl(folder.images)} alt={folder.folder_name} className="w-full h-full object-contain bg-black/90 group-hover:scale-105 transition-transform duration-500" loading="lazy" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                  <FolderOpen className="w-10 h-10 text-primary/40" />
+                </div>
+              )}
+            </div>
+            {/* Caption below the photo so it never overlaps image content */}
+            <div className="p-2 border-t border-border/20">
+              <h3 className="text-[11px] font-semibold text-foreground line-clamp-2">{folder.folder_name}</h3>
             </div>
           </button>
         ))}

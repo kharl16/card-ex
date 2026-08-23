@@ -75,7 +75,7 @@ export default function GlobalPackagesManager({ cardId }: Props) {
                 <img
                   src={g.url}
                   alt={g.caption ?? ""}
-                  className="h-28 w-full object-cover"
+                  className="h-28 w-full object-contain bg-black/90"
                 />
                 <button
                   type="button"
