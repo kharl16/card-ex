@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 export type GlobalPackageImage = {
   id: string;
   url: string;
+  url_2: string | null;
   caption: string | null;
   srp: string | null;
   sort_index: number;
@@ -39,7 +40,7 @@ export function useGlobalPackageImages(cardId: string | null | undefined) {
 
     let globalsQuery = supabase
       .from("global_package_images")
-      .select("id,url,caption,srp,sort_index,is_active")
+      .select("id,url,url_2,caption,srp,sort_index,is_active")
       .eq("is_active", true)
       .order("sort_index", { ascending: true });
     if (companyId) globalsQuery = globalsQuery.eq("company_id", companyId);
