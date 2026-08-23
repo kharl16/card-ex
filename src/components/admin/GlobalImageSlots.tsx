@@ -103,12 +103,13 @@ export default function GlobalImageSlots({
       <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
         {current ? (
           <img
-            src={getRenderUrl(current, kind, "thumb")}
+            src={getRenderUrl(current, kind, "default")}
             alt={caption ?? ""}
             loading="lazy"
             decoding="async"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
           />
+
         ) : (
           <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
             No alternate photo yet
