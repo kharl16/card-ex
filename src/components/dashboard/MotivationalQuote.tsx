@@ -32,6 +32,7 @@ const FALLBACK: Quote = {
   text: "The secret of getting ahead is getting started.",
   author: "Mark Twain",
   source_url: "https://en.wikiquote.org/wiki/Mark_Twain",
+  business_action: "Pick one task you have been avoiding and do the first small step right now.",
 };
 
 export function MotivationalQuote() {
