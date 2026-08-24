@@ -34,6 +34,33 @@ const FALLBACK: Quote = {
   business_action: "Pick one task you have been avoiding and do the first small step right now.",
 };
 
+// Generates a contextual business action when a built-in quote does not have one.
+function getFallbackBusinessAction(quoteText: string): string {
+  const text = quoteText.toLowerCase();
+  if (text.includes("lead") || text.includes("people") || text.includes("team") || text.includes("walk behind")) {
+    return "Identify one person you can lead, serve, or support more effectively today.";
+  }
+  if (text.includes("success") || text.includes("fail")) {
+    return "Review one recent outcome and extract one lesson to apply tomorrow.";
+  }
+  if (text.includes("action") || text.includes("act") || text.includes("do ")) {
+    return "Choose one important task and take the first step within the next hour.";
+  }
+  if (text.includes("network") || text.includes("connect") || text.includes("relationship")) {
+    return "Reach out to one contact you have not spoken to recently.";
+  }
+  if (text.includes("time") || text.includes("today") || text.includes("now")) {
+    return "Block 30 minutes today for your highest-priority business activity.";
+  }
+  if (text.includes("idea") || text.includes("plan") || text.includes("create")) {
+    return "Turn one idea into a concrete next step and schedule it.";
+  }
+  if (text.includes("attitude") || text.includes("mind") || text.includes("think")) {
+    return "Notice one limiting thought today and reframe it into an empowering one.";
+  }
+  return "Take one small, intentional action inspired by this quote before the day ends.";
+}
+
 export function MotivationalQuote() {
   const { activeCompanyId } = useActiveCompany();
   const { current: wisdom, dayNumber } = useBibleWisdom();
