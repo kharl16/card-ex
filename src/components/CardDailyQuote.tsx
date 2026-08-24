@@ -15,6 +15,7 @@ interface Quote {
   text: string;
   author: string;
   source_url: string | null;
+  business_action: string | null;
 }
 
 const getSlot = getCurrentSlot;
@@ -56,7 +57,7 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
     (async () => {
       const { data, error } = await supabase
         .from("daily_quotes")
-        .select("text, author, source_url")
+        .select("text, author, source_url, business_action")
         .eq("is_active", true)
         .eq("company_id", activeCompanyId)
         .order("sort_index", { ascending: true });
@@ -83,7 +84,12 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
       const k = q.text.trim().toLowerCase();
       if (seen.has(k) || pool.length >= 1095) continue;
       seen.add(k);
-      pool.push({ text: q.text, author: q.author, source_url: q.source_url ?? null });
+      pool.push({
+        text: q.text,
+        author: q.author,
+        source_url: q.source_url ?? null,
+        business_action: q.business_action ?? null,
+      });
     }
     return pool;
   }, [quotes]);
@@ -151,6 +157,12 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
                 <p className="mt-1 text-xs font-medium" style={{ color: accent, opacity: 0.85 }}>
                   — {quote.author}
                 </p>
+                {quote.business_action && (
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                    <span className="font-semibold text-foreground/80">Business action: </span>
+                    {quote.business_action}
+                  </p>
+                )}
                 <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
                   Daily inspiration · Card-Ex
                 </p>

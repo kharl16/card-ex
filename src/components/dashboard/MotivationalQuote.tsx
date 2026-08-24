@@ -20,6 +20,7 @@ interface Quote {
   text: string;
   author: string;
   source_url: string | null;
+  business_action: string | null;
 }
 
 const getSlot = getCurrentSlot;
@@ -54,7 +55,7 @@ export function MotivationalQuote() {
     (async () => {
       const { data, error } = await supabase
         .from("daily_quotes")
-        .select("text, author, source_url")
+        .select("text, author, source_url, business_action")
         .eq("is_active", true)
         .eq("company_id", activeCompanyId)
         .order("sort_index", { ascending: true });
@@ -82,7 +83,12 @@ export function MotivationalQuote() {
       const k = q.text.trim().toLowerCase();
       if (seen.has(k) || pool.length >= 1095) continue;
       seen.add(k);
-      pool.push({ text: q.text, author: q.author, source_url: q.source_url ?? null });
+      pool.push({
+        text: q.text,
+        author: q.author,
+        source_url: q.source_url ?? null,
+        business_action: q.business_action ?? null,
+      });
     }
     return pool;
   }, [quotes]);
@@ -154,6 +160,12 @@ export function MotivationalQuote() {
                   </>
                 )}
               </p>
+              {quote.business_action && (
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  <span className="font-semibold text-foreground/80">Business action: </span>
+                  {quote.business_action}
+                </p>
+              )}
             </div>
           </div>
         </div>
