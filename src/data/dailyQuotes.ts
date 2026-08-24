@@ -5,6 +5,7 @@ export interface DailyQuote {
   text: string;
   author: string;
   source_url?: string | null;
+  business_action?: string | null;
 }
 
 export const dailyQuotes: DailyQuote[] = [
