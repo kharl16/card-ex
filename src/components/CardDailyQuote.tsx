@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Sparkles, BookOpen } from "lucide-react";
+import { Sparkles, BookOpen, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useActiveCompany } from "@/contexts/ActiveCompanyContext";
 import { businessBibleVerses } from "@/data/bibleVerses";
@@ -28,6 +28,33 @@ const FALLBACK: Quote = {
   source_url: null,
   business_action: "Pick one task you have been avoiding and do the first small step right now.",
 };
+
+// Generates a contextual business action when a built-in quote does not have one.
+function getFallbackBusinessAction(quoteText: string): string {
+  const text = quoteText.toLowerCase();
+  if (text.includes("lead") || text.includes("people") || text.includes("team") || text.includes("walk behind")) {
+    return "Identify one person you can lead, serve, or support more effectively today.";
+  }
+  if (text.includes("success") || text.includes("fail")) {
+    return "Review one recent outcome and extract one lesson to apply tomorrow.";
+  }
+  if (text.includes("action") || text.includes("act") || text.includes("do ")) {
+    return "Choose one important task and take the first step within the next hour.";
+  }
+  if (text.includes("network") || text.includes("connect") || text.includes("relationship")) {
+    return "Reach out to one contact you have not spoken to recently.";
+  }
+  if (text.includes("time") || text.includes("today") || text.includes("now")) {
+    return "Block 30 minutes today for your highest-priority business activity.";
+  }
+  if (text.includes("idea") || text.includes("plan") || text.includes("create")) {
+    return "Turn one idea into a concrete next step and schedule it.";
+  }
+  if (text.includes("attitude") || text.includes("mind") || text.includes("think")) {
+    return "Notice one limiting thought today and reframe it into an empowering one.";
+  }
+  return "Take one small, intentional action inspired by this quote before the day ends.";
+}
 
 interface CardDailyQuoteProps {
   accentColor?: string;
@@ -158,12 +185,13 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
                 <p className="mt-1 text-xs font-medium" style={{ color: accent, opacity: 0.85 }}>
                   — {quote.author}
                 </p>
-                {quote.business_action && (
-                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                    <span className="font-semibold text-foreground/80">Business action: </span>
-                    {quote.business_action}
+                <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-primary/10 bg-primary/5 px-2 py-1.5">
+                  <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                  <p className="text-xs leading-relaxed text-foreground/80">
+                    <span className="font-semibold text-primary/90">Business action: </span>
+                    {quote.business_action || getFallbackBusinessAction(quote.text)}
                   </p>
-                )}
+                </div>
                 <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
                   Daily inspiration · Card-Ex
                 </p>
