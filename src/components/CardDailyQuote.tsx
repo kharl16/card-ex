@@ -163,11 +163,16 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
             <div className="flex items-start gap-2.5 pl-2">
               <BookOpen className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accent }} />
               <div className="min-w-0 flex-1">
+                {wisdom?.title && (
+                  <p className="mb-1 text-sm font-bold tracking-tight text-foreground">
+                    {wisdom.title}
+                  </p>
+                )}
                 <p className="text-sm italic leading-relaxed text-foreground/90">
                   "{wisdom ? wisdom.verse_text : verse.text}"
                 </p>
                 <p className="mt-1 text-xs font-medium" style={{ color: accent, opacity: 0.85 }}>
-                  — {wisdom ? wisdom.reference : verse.reference}
+                  — {wisdom ? `${wisdom.reference}${wisdom.bible_translation ? ` (${wisdom.bible_translation})` : ""}` : verse.reference}
                 </p>
                 <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                   <span className="font-semibold text-foreground/80">Business action: </span>
