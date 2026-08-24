@@ -172,7 +172,7 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
                   "{wisdom ? wisdom.verse_text : verse.text}"
                 </p>
                 <p className="mt-1 text-xs font-medium" style={{ color: accent, opacity: 0.85 }}>
-                  — {wisdom ? wisdom.reference : verse.reference}
+                  — {wisdom ? `${wisdom.reference}${wisdom.bible_translation ? ` (${wisdom.bible_translation})` : ""}` : verse.reference}
                 </p>
                 <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                   <span className="font-semibold text-foreground/80">Business action: </span>
