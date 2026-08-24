@@ -1147,6 +1147,7 @@ export type Database = {
       daily_quotes: {
         Row: {
           author: string
+          business_action: string | null
           company_id: string | null
           created_at: string
           id: string
@@ -1158,6 +1159,7 @@ export type Database = {
         }
         Insert: {
           author?: string
+          business_action?: string | null
           company_id?: string | null
           created_at?: string
           id?: string
@@ -1169,6 +1171,7 @@ export type Database = {
         }
         Update: {
           author?: string
+          business_action?: string | null
           company_id?: string | null
           created_at?: string
           id?: string

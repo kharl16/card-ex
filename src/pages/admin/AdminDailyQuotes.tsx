@@ -20,6 +20,7 @@ interface DailyQuote {
   text: string;
   author: string;
   source_url: string | null;
+  business_action: string | null;
   sort_index: number;
   is_active: boolean;
 }
@@ -30,7 +31,7 @@ export default function AdminDailyQuotes() {
   const [quotes, setQuotes] = useState<DailyQuote[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [draft, setDraft] = useState({ text: "", author: "", source_url: "" });
+  const [draft, setDraft] = useState({ text: "", author: "", source_url: "", business_action: "" });
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -52,7 +53,7 @@ export default function AdminDailyQuotes() {
     setLoading(true);
     const { data, error } = await supabase
       .from("daily_quotes")
-      .select("id, text, author, source_url, sort_index, is_active")
+      .select("id, text, author, source_url, business_action, sort_index, is_active")
       .eq("company_id", activeCompanyId)
       .order("sort_index", { ascending: true });
     if (error) toast.error(error.message);
@@ -86,13 +87,14 @@ export default function AdminDailyQuotes() {
       text: draft.text.trim(),
       author: draft.author.trim(),
       source_url: draft.source_url.trim() || null,
+      business_action: draft.business_action.trim() || null,
       sort_index: nextSort,
       is_active: true,
       company_id: activeCompanyId,
     });
     setSaving(false);
     if (error) return toast.error(error.message);
-    setDraft({ text: "", author: "", source_url: "" });
+    setDraft({ text: "", author: "", source_url: "", business_action: "" });
     toast.success("Quote added");
     load();
   };
@@ -135,8 +137,8 @@ export default function AdminDailyQuotes() {
 
   const downloadTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([
-      ["text", "author", "source_url"],
-      ["The secret of getting ahead is getting started.", "Mark Twain", "https://en.wikiquote.org/wiki/Mark_Twain"],
+      ["text", "author", "source_url", "business_action"],
+      ["The secret of getting ahead is getting started.", "Mark Twain", "https://en.wikiquote.org/wiki/Mark_Twain", "Pick one task you have been avoiding and do the first small step right now."],
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Quotes");
@@ -156,7 +158,8 @@ export default function AdminDailyQuotes() {
           const text = String(r.text ?? r.Text ?? r.quotation ?? r.Quotation ?? r.quote ?? r.Quote ?? "").trim();
           const author = String(r.author ?? r.Author ?? "Unknown").trim() || "Unknown";
           const source_url = String(r.source_url ?? r["Source URL"] ?? r.source ?? "").trim() || null;
-          return text ? { text, author, source_url, sort_index: startSort + i, is_active: true, company_id: activeCompanyId } : null;
+          const business_action = String(r.business_action ?? r["Business Action"] ?? r.businessAction ?? "").trim() || null;
+          return text ? { text, author, source_url, business_action, sort_index: startSort + i, is_active: true, company_id: activeCompanyId } : null;
         })
         .filter(Boolean) as Array<{ text: string; author: string; source_url: string | null; sort_index: number; is_active: boolean; company_id: string | null }>;
       if (payload.length === 0) {
@@ -225,6 +228,11 @@ export default function AdminDailyQuotes() {
                     </div>
                     <p className="text-sm italic leading-snug">"{q.text}"</p>
                     <p className="text-xs text-muted-foreground">— {q.author}</p>
+                    {q.business_action && (
+                      <p className="text-xs text-foreground/80">
+                        <span className="font-semibold">Business action:</span> {q.business_action}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -239,7 +247,7 @@ export default function AdminDailyQuotes() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Upload an .xlsx or .csv file with columns: <code className="text-xs">text</code>, <code className="text-xs">author</code>, and optional <code className="text-xs">source_url</code>. Tip: for full-year coverage with 3 unique quotes/day, include 1095 rows.
+              Upload an .xlsx or .csv file with columns: <code className="text-xs">text</code>, <code className="text-xs">author</code>, optional <code className="text-xs">source_url</code>, and optional <code className="text-xs">business_action</code>. Tip: for full-year coverage with 3 unique quotes/day, include 1095 rows.
             </p>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" onClick={downloadTemplate} className="gap-2">
@@ -290,6 +298,15 @@ export default function AdminDailyQuotes() {
                   placeholder="https://en.wikiquote.org/wiki/..."
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Business action (optional)</Label>
+              <Textarea
+                value={draft.business_action}
+                onChange={(e) => setDraft({ ...draft, business_action: e.target.value })}
+                placeholder="One practical thing the reader should do today."
+                rows={2}
+              />
             </div>
             <Button onClick={addQuote} disabled={saving} className="gap-2">
               <Plus className="h-4 w-4" /> Add quote
@@ -369,6 +386,15 @@ export default function AdminDailyQuotes() {
                           )}
                         </div>
                       </div>
+                      <Textarea
+                        value={q.business_action ?? ""}
+                        onChange={(e) =>
+                          setQuotes((p) => p.map((x) => (x.id === q.id ? { ...x, business_action: e.target.value } : x)))
+                        }
+                        onBlur={(e) => updateQuote(q.id, { business_action: e.target.value.trim() || null })}
+                        placeholder="Business action (optional)"
+                        rows={2}
+                      />
                       <div className="flex items-center justify-between pt-1">
                         <div className="flex items-center gap-2">
                           <Switch
