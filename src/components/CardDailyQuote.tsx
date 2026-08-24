@@ -163,6 +163,11 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
             <div className="flex items-start gap-2.5 pl-2">
               <BookOpen className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accent }} />
               <div className="min-w-0 flex-1">
+                {wisdom?.title && (
+                  <p className="mb-1 text-sm font-bold tracking-tight text-foreground">
+                    {wisdom.title}
+                  </p>
+                )}
                 <p className="text-sm italic leading-relaxed text-foreground/90">
                   "{wisdom ? wisdom.verse_text : verse.text}"
                 </p>
