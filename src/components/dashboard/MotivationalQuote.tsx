@@ -162,8 +162,9 @@ export function MotivationalQuote() {
         style={{ transform: `translateX(-${slide * 100}%)` }}
       >
         {/* Slide 1 — Daily quote */}
-        <div className="w-full shrink-0 px-5 py-4">
-          <div className="flex items-start gap-3">
+        <div className="relative w-full shrink-0 overflow-hidden px-5 py-4">
+          <QuoteBackdrop src={quoteBg} />
+          <div className="relative z-10 flex items-start gap-3">
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <div className="min-w-0">
               <p className="text-sm font-medium italic leading-relaxed text-foreground/90">
@@ -199,8 +200,9 @@ export function MotivationalQuote() {
         </div>
 
         {/* Slide 2 — 365-Day Bible Entrepreneur Wisdom */}
-        <div className="w-full shrink-0 px-5 py-4">
-          <div className="flex items-start gap-3">
+        <div className="relative w-full shrink-0 overflow-hidden px-5 py-4">
+          <QuoteBackdrop src={scriptureBg} />
+          <div className="relative z-10 flex items-start gap-3">
             <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <div className="min-w-0 flex-1">
               {wisdom ? (
