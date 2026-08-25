@@ -216,10 +216,13 @@ export function MotivationalQuote() {
                   <p className="mt-1.5 text-xs font-semibold text-primary/70">
                     — {wisdom.reference} ({wisdom.bible_translation})
                   </p>
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                    <span className="font-semibold text-foreground/80">Business action: </span>
-                    {wisdom.business_principle}
-                  </p>
+                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-primary/10 bg-primary/5 px-2.5 py-2">
+                    <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                    <p className="text-xs leading-relaxed text-foreground/80">
+                      <span className="font-semibold text-primary/90">Business action: </span>
+                      {wisdom.business_principle}
+                    </p>
+                  </div>
                 </>
               ) : (
                 <>
@@ -229,11 +232,14 @@ export function MotivationalQuote() {
                   <p className="mt-1.5 text-xs font-semibold text-primary/70">
                     — {verse.reference}
                   </p>
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                    <span className="font-semibold text-foreground/80">Business action: </span>
-                    Apply this verse to one business decision today — then follow up with one
-                    prospect before the day ends.
-                  </p>
+                  <div className="mt-2 flex items-start gap-2 rounded-lg border border-primary/10 bg-primary/5 px-2.5 py-2">
+                    <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                    <p className="text-xs leading-relaxed text-foreground/80">
+                      <span className="font-semibold text-primary/90">Business action: </span>
+                      Apply this verse to one business decision today — then follow up with one
+                      prospect before the day ends.
+                    </p>
+                  </div>
                 </>
               )}
             </div>

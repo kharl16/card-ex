@@ -215,12 +215,15 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
                 <p className="mt-1 text-xs font-medium" style={{ color: accent, opacity: 0.85 }}>
                   — {wisdom ? `${wisdom.reference}${wisdom.bible_translation ? ` (${wisdom.bible_translation})` : ""}` : verse.reference}
                 </p>
-                <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                  <span className="font-semibold text-foreground/80">Business action: </span>
-                  {wisdom
-                    ? wisdom.business_principle
-                    : "Apply this verse to one business decision today — then follow up with one prospect before the day ends."}
-                </p>
+                <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-primary/10 bg-primary/5 px-2 py-1.5">
+                  <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                  <p className="text-xs leading-relaxed text-foreground/80">
+                    <span className="font-semibold text-primary/90">Business action: </span>
+                    {wisdom
+                      ? wisdom.business_principle
+                      : "Apply this verse to one business decision today — then follow up with one prospect before the day ends."}
+                  </p>
+                </div>
                 <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
                   Bible verse for business · Card-Ex
                 </p>
