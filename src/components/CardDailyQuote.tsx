@@ -156,21 +156,14 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
   return (
     <div className="px-6 pt-3 pb-1">
       <div
-        className="relative overflow-hidden rounded-2xl glass-shimmer animate-slide-up-fade"
-        style={{
-          background: "var(--glass-bg)",
-          backdropFilter: "blur(var(--glass-blur))",
-          WebkitBackdropFilter: "blur(var(--glass-blur))",
-          border: "1px solid var(--glass-border)",
-          borderTop: "1px solid var(--glass-border-highlight)",
-        }}
+        className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         aria-roledescription="carousel"
       >
         <div
-          className="absolute left-0 top-0 z-10 h-full w-[3px]"
-          style={{ background: accent, opacity: 0.7 }}
+          className="absolute left-0 top-0 z-10 h-full w-1 bg-gradient-to-b from-primary via-primary/60 to-primary"
+          style={{ opacity: 0.9 }}
         />
 
         <div
