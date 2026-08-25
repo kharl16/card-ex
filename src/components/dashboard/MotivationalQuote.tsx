@@ -166,7 +166,7 @@ export function MotivationalQuote() {
       >
         {/* Slide 1 — Daily quote */}
         <div className="relative w-full shrink-0 overflow-hidden px-5 py-4">
-          <QuoteBackdrop src={quoteBg} />
+          <QuoteBackdrop src={quoteBg} objectPosition="right" />
           <div className="relative z-10 flex items-start gap-3">
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <div className="min-w-0">
