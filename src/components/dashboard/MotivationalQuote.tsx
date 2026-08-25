@@ -12,6 +12,9 @@ import {
   getZonedDayOfYear,
   type WisdomSlot,
 } from "@/hooks/useBibleWisdom";
+import { QuoteBackdrop } from "@/components/dashboard/QuoteBackdrop";
+import quoteBg from "@/assets/tiles/tile-quote.jpg";
+import scriptureBg from "@/assets/tiles/tile-scripture.jpg";
 
 
 
