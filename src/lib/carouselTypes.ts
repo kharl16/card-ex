@@ -358,12 +358,8 @@ export function getCTAStableStateClasses(variant: CTAStyle["variant"]): string {
   switch (variant) {
     case "outline":
       return "hover:bg-background hover:text-foreground active:bg-background active:text-foreground";
-    case "secondary":
-      return "hover:bg-secondary hover:text-secondary-foreground active:bg-secondary active:text-secondary-foreground";
     case "ghost":
       return "hover:bg-transparent hover:text-foreground active:bg-transparent active:text-foreground";
-    case "link":
-      return "hover:text-primary active:text-primary";
     case "solid":
     default:
       return "hover:text-primary-foreground active:text-primary-foreground";
