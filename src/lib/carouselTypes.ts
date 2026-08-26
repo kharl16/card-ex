@@ -342,3 +342,26 @@ export function getCTAButtonClasses(style: CTAStyle): string {
 
   return classes.join(" ");
 }
+
+/**
+ * Hover/active overrides that keep a CTA button's resting colors stable.
+ *
+ * On touch devices a tap leaves the button in the "sticky hover" state, so the
+ * shadcn variant hover (e.g. outline → bg-accent text-accent-foreground) stays
+ * applied after the tap. On many card themes that accent combo has almost no
+ * luminance contrast (e.g. gold text on bright green), which makes the label
+ * look blurry/washed out. These classes pin hover/active to the resting colors
+ * so the label always stays crisp. Inline custom colors already win over
+ * classes, so custom-styled CTAs are unaffected.
+ */
+export function getCTAStableStateClasses(variant: CTAStyle["variant"]): string {
+  switch (variant) {
+    case "outline":
+      return "hover:bg-background hover:text-foreground active:bg-background active:text-foreground";
+    case "ghost":
+      return "hover:bg-transparent hover:text-foreground active:bg-transparent active:text-foreground";
+    case "solid":
+    default:
+      return "hover:text-primary-foreground active:text-primary-foreground";
+  }
+}
