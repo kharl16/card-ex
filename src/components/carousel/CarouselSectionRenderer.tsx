@@ -13,6 +13,7 @@ import {
   type CarouselImage,
   getCarouselBackgroundCSS,
   getCTAButtonClasses,
+  getCTAStableStateClasses,
 } from "@/lib/carouselTypes";
 import { toast } from "sonner";
 import type { CarouselKind } from "@/lib/share";
@@ -189,7 +190,7 @@ export default function CarouselSectionRenderer({
 
   // CTA button classes - with safe defaults
   const ctaStyle = cta?.style ?? { variant: "solid" as const, shape: "pill" as const, size: "md" as const, width: "fit" as const };
-  const ctaClasses = getCTAButtonClasses(ctaStyle);
+  const ctaClasses = cn(getCTAButtonClasses(ctaStyle), getCTAStableStateClasses(ctaStyle.variant));
   const showCTA = cta?.enabled && visibleImages.length > 0;
 
   // CTA variant mapping
@@ -375,7 +376,7 @@ export default function CarouselSectionRenderer({
           <div className="absolute bottom-4 right-4 z-10">
             <Button
               variant={buttonVariant}
-              className={cn(ctaClasses, "backdrop-blur-sm bg-opacity-90")}
+              className={cn(ctaClasses, "bg-opacity-95")}
               onClick={handleCTAClick}
               style={Object.keys(ctaInlineStyle).length > 0 ? ctaInlineStyle : undefined}
             >
