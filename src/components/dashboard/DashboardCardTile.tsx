@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Pencil, Copy, Trash2, Eye, TextCursorInput, ExternalLink } from "lucide-react";
+import { Share2, Copy, Trash2, Eye, TextCursorInput } from "lucide-react";
 import { getPublicCardUrl } from "@/lib/cardUrl";
 import type { Tables } from "@/integrations/supabase/types";
 import eagleImg from "@/assets/disc/eagle.jpg";
@@ -128,20 +128,19 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             <Button
               variant="outline"
               size="sm"
-              className="h-8 shrink-0 gap-1.5 rounded-full border-emerald-500/60 bg-emerald-500/10 px-2.5 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400 sm:px-3 md:px-2 lg:px-3"
+              className="h-8 shrink-0 rounded-full border-emerald-500/60 bg-emerald-500/10 px-2.5 text-xs font-semibold text-emerald-500 hover:bg-emerald-500/20 hover:text-emerald-400 sm:px-3 md:px-2 lg:px-3"
               title="Edit Card"
               onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/cards/${card.id}/edit`);
               }}
             >
-              <Pencil className="h-3.5 w-3.5" />
               Edit Card
             </Button>
             <Button
               variant="outline"
               size="sm"
-              className="h-8 shrink-0 gap-1.5 rounded-full border-primary/70 bg-primary/10 px-2.5 text-xs font-semibold text-primary hover:bg-primary/20 sm:px-3 md:px-2 lg:px-3 disabled:opacity-40"
+              className="h-8 shrink-0 rounded-full border-primary/70 bg-primary/10 px-2.5 text-xs font-semibold text-primary hover:bg-primary/20 sm:px-3 md:px-2 lg:px-3 disabled:opacity-40"
               title={card.is_published ? "View Actual Card" : "Publish this card to view it"}
               disabled={!card.is_published}
               onClick={(e) => {
@@ -153,7 +152,6 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
                 );
               }}
             >
-              <ExternalLink className="h-3.5 w-3.5" />
               View Card
             </Button>
             <Button
