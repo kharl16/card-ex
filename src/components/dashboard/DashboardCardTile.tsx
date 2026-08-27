@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Share2, Pencil, Copy, Trash2, Eye, TextCursorInput } from "lucide-react";
+import { Share2, Pencil, Copy, Trash2, Eye, TextCursorInput, ExternalLink } from "lucide-react";
+import { getPublicCardUrl } from "@/lib/cardUrl";
 import type { Tables } from "@/integrations/supabase/types";
 import eagleImg from "@/assets/disc/eagle.jpg";
 import roosterImg from "@/assets/disc/rooster.jpg";
@@ -44,8 +45,7 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
 
   return (
     <div
-      className="group relative flex w-full cursor-pointer items-stretch overflow-hidden rounded-2xl border-2 border-primary/60 bg-card ring-1 ring-primary/30 animate-tile-glow-pulse transition-all duration-300 hover:border-primary hover:bg-primary/10 hover:ring-primary/60 active:scale-[0.98]"
-      onClick={() => navigate(`/cards/${card.id}/edit`)}
+      className="group relative flex w-full items-stretch overflow-hidden rounded-2xl border-2 border-primary/60 bg-card ring-1 ring-primary/30 animate-tile-glow-pulse transition-all duration-300 hover:border-primary hover:bg-primary/10 hover:ring-primary/60"
     >
       {/* Left: Avatar strip */}
       <div
@@ -137,6 +137,24 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
             >
               <Pencil className="h-3.5 w-3.5" />
               Edit Card
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 shrink-0 gap-1.5 rounded-full border-primary/70 bg-primary/10 px-2.5 text-xs font-semibold text-primary hover:bg-primary/20 sm:px-3 md:px-2 lg:px-3 disabled:opacity-40"
+              title={card.is_published ? "View Actual Card" : "Publish this card to view it"}
+              disabled={!card.is_published}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(
+                  getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug),
+                  "_blank",
+                  "noopener,noreferrer"
+                );
+              }}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              View Card
             </Button>
             <Button
               variant="ghost"
