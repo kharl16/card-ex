@@ -139,6 +139,24 @@ export function DashboardCardTile({ card, analyticsViews, onShare, onDuplicate, 
               Edit Card
             </Button>
             <Button
+              variant="outline"
+              size="sm"
+              className="h-8 shrink-0 gap-1.5 rounded-full border-primary/70 bg-primary/10 px-2.5 text-xs font-semibold text-primary hover:bg-primary/20 sm:px-3 md:px-2 lg:px-3 disabled:opacity-40"
+              title={card.is_published ? "View Actual Card" : "Publish this card to view it"}
+              disabled={!card.is_published}
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(
+                  getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug),
+                  "_blank",
+                  "noopener,noreferrer"
+                );
+              }}
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              View Card
+            </Button>
+            <Button
               variant="ghost"
               size="icon"
               className="h-8 w-7 shrink-0 sm:w-8 md:w-7 lg:w-8 text-primary hover:bg-primary/10 hover:text-primary"
