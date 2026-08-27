@@ -352,21 +352,24 @@ export function getCTAButtonClasses(style: CTAStyle): string {
  * luminance contrast (e.g. gold text on bright green), which makes the label
  * look blurry/washed out.
  *
- * These overrides are scoped to `@media (hover: none)` so they ONLY neutralize
- * hover/active recoloring on touch devices. On devices with a real pointer
- * (mouse/trackpad) the button keeps its full animated hover and click states.
+ * These overrides check both `hover: none` and `pointer: coarse`. Some Android
+ * browsers keep `:hover` after a tap while still reporting hover capability
+ * (for example when stylus support is present), so `hover: none` alone is not
+ * reliable. On devices with a real fine pointer (mouse/trackpad), the button
+ * keeps its full animated hover and click states.
  * Inline custom colors already win over classes, so custom-styled CTAs are
  * unaffected.
  */
 export function getCTAStableStateClasses(variant: CTAStyle["variant"]): string {
-  const touch = "[@media(hover:none)]";
+  const noHover = "[@media(hover:none)]";
+  const touch = "[@media(pointer:coarse)]";
   switch (variant) {
     case "outline":
-      return `${touch}:hover:bg-background ${touch}:hover:text-foreground ${touch}:active:bg-background ${touch}:active:text-foreground`;
+      return `${noHover}:hover:bg-background ${noHover}:hover:text-foreground ${noHover}:active:bg-background ${noHover}:active:text-foreground ${touch}:hover:bg-background ${touch}:hover:text-foreground ${touch}:active:bg-background ${touch}:active:text-foreground`;
     case "ghost":
-      return `${touch}:hover:bg-transparent ${touch}:hover:text-foreground ${touch}:active:bg-transparent ${touch}:active:text-foreground`;
+      return `${noHover}:hover:bg-transparent ${noHover}:hover:text-foreground ${noHover}:active:bg-transparent ${noHover}:active:text-foreground ${touch}:hover:bg-transparent ${touch}:hover:text-foreground ${touch}:active:bg-transparent ${touch}:active:text-foreground`;
     case "solid":
     default:
-      return `${touch}:hover:text-primary-foreground ${touch}:active:text-primary-foreground`;
+      return `${noHover}:hover:bg-primary ${noHover}:hover:text-primary-foreground ${noHover}:active:bg-primary ${noHover}:active:text-primary-foreground ${touch}:hover:bg-primary ${touch}:hover:text-primary-foreground ${touch}:active:bg-primary ${touch}:active:text-primary-foreground`;
   }
 }
