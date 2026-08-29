@@ -202,15 +202,25 @@ export default function AdminUsers() {
       const { data, error } = await supabase.functions.invoke("admin-create-user", {
         body: { ...form, full_name: `${form.first_name} ${form.last_name}`.trim() },
       });
-      if (error) throw error;
+      if (error) throw new Error(await readFnError(error));
       if (data?.error) throw new Error(data.error);
       toast.success(`Account created for ${form.email}`);
+      setCredentials([
+        {
+          email: data?.user?.email ?? form.email,
+          full_name: data?.user?.full_name ?? `${form.first_name} ${form.last_name}`.trim(),
+          password: data?.user?.temporary_password ?? form.password,
+        },
+      ]);
       if (data?.invitation_link) {
-        await navigator.clipboard.writeText(data.invitation_link).catch(() => {});
+        await copyText(data.invitation_link);
         toast.info("Invitation link copied to clipboard.");
       }
       setCreateOpen(false);
-      setForm({ first_name: "", last_name: "", email: "", mobile_number: "", sponsor_code: "", role: "member", password: "", send_invitation: true });
+      setForm({
+        first_name: "", last_name: "", email: "", mobile_number: "",
+        sponsor_code: "", role: "member", password: generatePassword(), send_invitation: false,
+      });
       await loadUsers();
     } catch (e: any) {
       toast.error(e.message || "Failed to create account");
@@ -218,6 +228,51 @@ export default function AdminUsers() {
       setCreating(false);
     }
   };
+
+  const handleBulkCreate = async () => {
+    const rows = parseBulkRows(bulkText);
+    if (rows.length === 0) {
+      toast.error("Add at least one row.");
+      return;
+    }
+    setBulkBusy(true);
+    setBulkResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: { users: rows },
+      });
+      if (error) throw new Error(await readFnError(error));
+      if (data?.error) throw new Error(data.error);
+      const results = (data?.results ?? []) as CreatedCredential[];
+      setBulkResults(results);
+      const s = data?.summary ?? {};
+      toast.success(`${s.created ?? 0} created · ${s.skipped ?? 0} skipped · ${s.failed ?? 0} failed`);
+      await loadUsers();
+    } catch (e: any) {
+      toast.error(e.message || "Bulk creation failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleResetPassword = async (u: UserRecord) => {
+    setBusyId(u.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "reset_password", user_id: u.id },
+      });
+      if (error) throw new Error(await readFnError(error));
+      if (data?.error) throw new Error(data.error);
+      setCredentials([{ email: u.email, full_name: u.full_name, password: data?.temporary_password }]);
+      toast.success("Temporary password set. No email was sent.");
+      await loadUsers();
+    } catch (e: any) {
+      toast.error(e.message || "Reset failed");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
