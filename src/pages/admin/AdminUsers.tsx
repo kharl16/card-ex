@@ -449,7 +449,8 @@ export default function AdminUsers() {
           <DialogHeader>
             <DialogTitle>Create Account</DialogTitle>
             <DialogDescription>
-              The account is verified immediately and the user must set their own password on first login.
+              No email is sent — the account is verified instantly and you hand over the temporary password.
+              The holder must change it on first login.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
