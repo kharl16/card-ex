@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { getZonedParts } from "@/hooks/useBibleWisdom";
 
 type CardData = Tables<"cards">;
 
@@ -13,7 +14,9 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
   const [totalViews, setTotalViews] = useState(0);
 
   const greeting = useMemo(() => {
-    const hour = new Date().getHours();
+    // Same clock as the Bible Verse / Daily Quote rotation (Asia/Manila),
+    // so the greeting flips at the exact same moment the quote slot changes.
+    const { hour } = getZonedParts(new Date());
     if (hour < 12) return "Amazing morning";
     if (hour < 18) return "Amazing afternoon";
     return "Amazing evening";
