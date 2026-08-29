@@ -522,6 +522,96 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk creation */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Bulk Create Accounts</DialogTitle>
+            <DialogDescription>
+              One account per line: first name, last name, email, mobile, sponsor code, role.
+              Duplicates are skipped. No emails are sent, so there is no hourly limit.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            rows={8}
+            className="font-mono text-xs"
+            placeholder={"Juan,Dela Cruz,juan@example.com,09171234567,CEX-ABC123,member\nMaria,Santos,maria@example.com,,,member"}
+          />
+
+          {bulkResults && (
+            <div className="space-y-2">
+              <div className="max-h-56 overflow-y-auto rounded-lg border border-border/50">
+                {bulkResults.map((r, i) => (
+                  <div key={`${r.email}-${i}`} className="flex items-center justify-between gap-2 border-b border-border/30 px-3 py-2 text-xs last:border-0">
+                    <span className="truncate">{r.email}</span>
+                    <span className="shrink-0">
+                      {r.status === "created" ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-400">created</Badge>
+                      ) : r.status === "skipped" ? (
+                        <Badge variant="outline">skipped</Badge>
+                      ) : (
+                        <Badge variant="destructive">failed</Badge>
+                      )}
+                    </span>
+                    {r.reason && <span className="hidden max-w-[45%] truncate text-muted-foreground sm:block">{r.reason}</span>}
+                  </div>
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                className="h-11 w-full gap-2"
+                onClick={async () => {
+                  const created = bulkResults.filter((r) => r.status === "created");
+                  const ok = await copyText(credentialsBlock(created));
+                  toast[ok ? "success" : "error"](ok ? `Copied ${created.length} logins.` : "Copy failed");
+                }}
+              >
+                <Copy className="h-4 w-4" />
+                Copy all created logins
+              </Button>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" className="h-11" onClick={() => setBulkOpen(false)}>Close</Button>
+            <Button className="h-11" onClick={handleBulkCreate} disabled={bulkBusy}>
+              {bulkBusy ? "Creating..." : "Create accounts"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Credentials handoff */}
+      <Dialog open={!!credentials} onOpenChange={(o) => !o && setCredentials(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Login Info</DialogTitle>
+            <DialogDescription>
+              Share this with the card holder. They will be asked to change the password on first login.
+            </DialogDescription>
+          </DialogHeader>
+          <pre className="whitespace-pre-wrap rounded-lg border border-border/50 bg-muted/30 p-3 text-xs">
+            {credentials ? credentialsBlock(credentials) : ""}
+          </pre>
+          <DialogFooter>
+            <Button
+              className="h-11 w-full gap-2"
+              onClick={async () => {
+                const ok = await copyText(credentialsBlock(credentials ?? []));
+                toast[ok ? "success" : "error"](ok ? "Login info copied." : "Copy failed");
+              }}
+            >
+              <Copy className="h-4 w-4" />
+              Copy login info
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
