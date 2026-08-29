@@ -420,10 +420,11 @@ export default function AdminUsers() {
                     variant="outline"
                     className="h-11"
                     disabled={busyId === u.id}
-                    onClick={() => runAction({ action: "reset_password", user_id: u.id }, "Password reset email sent")}
+                    onClick={() => handleResetPassword(u)}
                   >
                     Reset password
                   </Button>
+
 
                   <Button
                     variant="outline"
