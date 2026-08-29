@@ -4,6 +4,12 @@ const SITE_ORIGIN = Deno.env.get("SITE_ORIGIN") ?? "https://tagex.app";
 const VALID_STATUSES = ["active", "inactive", "suspended", "pending_verification"];
 const VALID_ROLES = ["super_admin", "admin", "moderator", "member"];
 
+function randomPassword(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  return Array.from(bytes, (b) => chars[b % chars.length]).join("");
+}
+
 /**
  * Super-admin only account operations:
  *  set_status | set_role | reset_password | force_password_change | impersonate
