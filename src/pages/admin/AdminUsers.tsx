@@ -53,6 +53,20 @@ const STATUSES = ["active", "inactive", "suspended", "pending_verification"];
 
 const LOGIN_URL = "https://tagex.app/auth";
 
+/** Edge functions return their reason in the response body on non-2xx. */
+async function readFnError(error: unknown) {
+  const ctx = (error as { context?: Response })?.context;
+  if (ctx && typeof ctx.json === "function") {
+    try {
+      const body = await ctx.json();
+      if (body?.error) return String(body.error);
+    } catch {
+      /* fall through */
+    }
+  }
+  return (error as { message?: string })?.message || "Request failed";
+}
+
 function generatePassword() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
   const bytes = crypto.getRandomValues(new Uint8Array(12));
