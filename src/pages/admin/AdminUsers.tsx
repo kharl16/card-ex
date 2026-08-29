@@ -51,6 +51,79 @@ const STATUS_STYLES: Record<string, string> = {
 const ROLES = ["super_admin", "admin", "moderator", "member"];
 const STATUSES = ["active", "inactive", "suspended", "pending_verification"];
 
+const LOGIN_URL = "https://tagex.app/auth";
+
+function generatePassword() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  return Array.from(bytes, (b) => chars[b % chars.length]).join("");
+}
+
+/** Clipboard copy with a legacy fallback so it works inside mobile webviews. */
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+interface CreatedCredential {
+  email: string;
+  full_name?: string;
+  password?: string;
+  status?: string;
+  reason?: string;
+}
+
+function credentialsBlock(rows: CreatedCredential[]) {
+  return rows
+    .map((r) =>
+      [
+        `Name: ${r.full_name ?? "—"}`,
+        `Login: ${r.email}`,
+        `Password: ${r.password ?? "—"}`,
+        `Sign in: ${LOGIN_URL}`,
+      ].join("\n"),
+    )
+    .join("\n\n");
+}
+
+/** Parses "first,last,email,mobile,sponsor,role" rows (header row optional). */
+function parseBulkRows(raw: string) {
+  return raw
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .filter((l) => !/^first[_ ]?name\s*,/i.test(l))
+    .map((line) => {
+      const [first_name = "", last_name = "", email = "", mobile_number = "", sponsor_code = "", role = "member"] =
+        line.split(",").map((c) => c.trim());
+      return {
+        first_name,
+        last_name,
+        email,
+        mobile_number,
+        sponsor_code,
+        role: ROLES.includes(role) ? role : "member",
+        send_invitation: false,
+      };
+    });
+}
+
 export default function AdminUsers() {
   const { isSuperAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
