@@ -135,10 +135,15 @@ export default function AdminUsers() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkResults, setBulkResults] = useState<CreatedCredential[] | null>(null);
+  const [credentials, setCredentials] = useState<CreatedCredential[] | null>(null);
 
   const [form, setForm] = useState({
     first_name: "", last_name: "", email: "", mobile_number: "",
-    sponsor_code: "", role: "member", password: "", send_invitation: true,
+    sponsor_code: "", role: "member", password: generatePassword(), send_invitation: false,
   });
   const [creating, setCreating] = useState(false);
 
