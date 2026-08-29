@@ -41,9 +41,8 @@ function randomPassword(): string {
  * built-in "emails per hour" quota. Credentials are returned for handoff.
  */
 async function createOne(
-  admin: ReturnType<typeof requireSuperAdmin> extends Promise<infer T>
-    ? T extends { admin: infer A } ? A : never
-    : never,
+  // deno-lint-ignore no-explicit-any
+  admin: any,
   actorId: string,
   input: CreateInput,
   existingEmails: Set<string>,
