@@ -490,13 +490,26 @@ export default function AdminUsers() {
               </div>
               <div className="space-y-2">
                 <Label>Temporary password</Label>
-                <Input className="h-11" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min. 8 characters" />
+                <div className="flex gap-2">
+                  <Input className="h-11" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min. 8 characters" />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 px-3"
+                    onClick={() => setForm({ ...form, password: generatePassword() })}
+                    aria-label="Generate password"
+                  >
+                    <Wand2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border/50 p-3">
-              <div>
-                <p className="text-sm font-medium">Send invitation link</p>
-                <p className="text-xs text-muted-foreground">Copies a one-time sign-in link to your clipboard.</p>
+              <div className="pr-3">
+                <p className="text-sm font-medium">Also create an invitation link</p>
+                <p className="text-xs text-muted-foreground">
+                  Optional. Copies a one-time sign-in link to your clipboard. Not required — no email is sent either way.
+                </p>
               </div>
               <Switch checked={form.send_invitation} onCheckedChange={(v) => setForm({ ...form, send_invitation: v })} />
             </div>
