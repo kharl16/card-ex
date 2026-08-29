@@ -14,8 +14,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, Search, ShieldCheck, UserPlus } from "lucide-react";
+import { Copy, Loader2, RefreshCw, Search, ShieldCheck, UserPlus, Users, Wand2 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 interface UserRecord {
@@ -50,6 +51,93 @@ const STATUS_STYLES: Record<string, string> = {
 const ROLES = ["super_admin", "admin", "moderator", "member"];
 const STATUSES = ["active", "inactive", "suspended", "pending_verification"];
 
+const LOGIN_URL = "https://tagex.app/auth";
+
+/** Edge functions return their reason in the response body on non-2xx. */
+async function readFnError(error: unknown) {
+  const ctx = (error as { context?: Response })?.context;
+  if (ctx && typeof ctx.json === "function") {
+    try {
+      const body = await ctx.json();
+      if (body?.error) return String(body.error);
+    } catch {
+      /* fall through */
+    }
+  }
+  return (error as { message?: string })?.message || "Request failed";
+}
+
+function generatePassword() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  return Array.from(bytes, (b) => chars[b % chars.length]).join("");
+}
+
+/** Clipboard copy with a legacy fallback so it works inside mobile webviews. */
+async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
+interface CreatedCredential {
+  email: string;
+  full_name?: string;
+  password?: string;
+  status?: string;
+  reason?: string;
+}
+
+function credentialsBlock(rows: CreatedCredential[]) {
+  return rows
+    .map((r) =>
+      [
+        `Name: ${r.full_name ?? "—"}`,
+        `Login: ${r.email}`,
+        `Password: ${r.password ?? "—"}`,
+        `Sign in: ${LOGIN_URL}`,
+      ].join("\n"),
+    )
+    .join("\n\n");
+}
+
+/** Parses "first,last,email,mobile,sponsor,role" rows (header row optional). */
+function parseBulkRows(raw: string) {
+  return raw
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .filter((l) => !/^first[_ ]?name\s*,/i.test(l))
+    .map((line) => {
+      const [first_name = "", last_name = "", email = "", mobile_number = "", sponsor_code = "", role = "member"] =
+        line.split(",").map((c) => c.trim());
+      return {
+        first_name,
+        last_name,
+        email,
+        mobile_number,
+        sponsor_code,
+        role: ROLES.includes(role) ? role : "member",
+        send_invitation: false,
+      };
+    });
+}
+
 export default function AdminUsers() {
   const { isSuperAdmin, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -61,10 +149,15 @@ export default function AdminUsers() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [bulkResults, setBulkResults] = useState<CreatedCredential[] | null>(null);
+  const [credentials, setCredentials] = useState<CreatedCredential[] | null>(null);
 
   const [form, setForm] = useState({
     first_name: "", last_name: "", email: "", mobile_number: "",
-    sponsor_code: "", role: "member", password: "", send_invitation: true,
+    sponsor_code: "", role: "member", password: generatePassword(), send_invitation: false,
   });
   const [creating, setCreating] = useState(false);
 
@@ -123,15 +216,25 @@ export default function AdminUsers() {
       const { data, error } = await supabase.functions.invoke("admin-create-user", {
         body: { ...form, full_name: `${form.first_name} ${form.last_name}`.trim() },
       });
-      if (error) throw error;
+      if (error) throw new Error(await readFnError(error));
       if (data?.error) throw new Error(data.error);
       toast.success(`Account created for ${form.email}`);
+      setCredentials([
+        {
+          email: data?.user?.email ?? form.email,
+          full_name: data?.user?.full_name ?? `${form.first_name} ${form.last_name}`.trim(),
+          password: data?.user?.temporary_password ?? form.password,
+        },
+      ]);
       if (data?.invitation_link) {
-        await navigator.clipboard.writeText(data.invitation_link).catch(() => {});
+        await copyText(data.invitation_link);
         toast.info("Invitation link copied to clipboard.");
       }
       setCreateOpen(false);
-      setForm({ first_name: "", last_name: "", email: "", mobile_number: "", sponsor_code: "", role: "member", password: "", send_invitation: true });
+      setForm({
+        first_name: "", last_name: "", email: "", mobile_number: "",
+        sponsor_code: "", role: "member", password: generatePassword(), send_invitation: false,
+      });
       await loadUsers();
     } catch (e: any) {
       toast.error(e.message || "Failed to create account");
@@ -139,6 +242,51 @@ export default function AdminUsers() {
       setCreating(false);
     }
   };
+
+  const handleBulkCreate = async () => {
+    const rows = parseBulkRows(bulkText);
+    if (rows.length === 0) {
+      toast.error("Add at least one row.");
+      return;
+    }
+    setBulkBusy(true);
+    setBulkResults(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-create-user", {
+        body: { users: rows },
+      });
+      if (error) throw new Error(await readFnError(error));
+      if (data?.error) throw new Error(data.error);
+      const results = (data?.results ?? []) as CreatedCredential[];
+      setBulkResults(results);
+      const s = data?.summary ?? {};
+      toast.success(`${s.created ?? 0} created · ${s.skipped ?? 0} skipped · ${s.failed ?? 0} failed`);
+      await loadUsers();
+    } catch (e: any) {
+      toast.error(e.message || "Bulk creation failed");
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleResetPassword = async (u: UserRecord) => {
+    setBusyId(u.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-user-actions", {
+        body: { action: "reset_password", user_id: u.id },
+      });
+      if (error) throw new Error(await readFnError(error));
+      if (data?.error) throw new Error(data.error);
+      setCredentials([{ email: u.email, full_name: u.full_name, password: data?.temporary_password }]);
+      toast.success("Temporary password set. No email was sent.");
+      await loadUsers();
+    } catch (e: any) {
+      toast.error(e.message || "Reset failed");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -176,6 +324,10 @@ export default function AdminUsers() {
           <Button variant="outline" className="h-11 gap-2" onClick={loadUsers} disabled={loading}>
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
+          </Button>
+          <Button variant="outline" className="h-11 gap-2" onClick={() => { setBulkResults(null); setBulkOpen(true); }}>
+            <Users className="h-4 w-4" />
+            Bulk Create
           </Button>
           <Button className="h-11 gap-2" onClick={() => setCreateOpen(true)}>
             <UserPlus className="h-4 w-4" />
@@ -268,10 +420,11 @@ export default function AdminUsers() {
                     variant="outline"
                     className="h-11"
                     disabled={busyId === u.id}
-                    onClick={() => runAction({ action: "reset_password", user_id: u.id }, "Password reset email sent")}
+                    onClick={() => handleResetPassword(u)}
                   >
                     Reset password
                   </Button>
+
 
                   <Button
                     variant="outline"
@@ -296,7 +449,8 @@ export default function AdminUsers() {
           <DialogHeader>
             <DialogTitle>Create Account</DialogTitle>
             <DialogDescription>
-              The account is verified immediately and the user must set their own password on first login.
+              No email is sent — the account is verified instantly and you hand over the temporary password.
+              The holder must change it on first login.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -336,13 +490,26 @@ export default function AdminUsers() {
               </div>
               <div className="space-y-2">
                 <Label>Temporary password</Label>
-                <Input className="h-11" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min. 8 characters" />
+                <div className="flex gap-2">
+                  <Input className="h-11" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Min. 8 characters" />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 px-3"
+                    onClick={() => setForm({ ...form, password: generatePassword() })}
+                    aria-label="Generate password"
+                  >
+                    <Wand2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
             <div className="flex items-center justify-between rounded-lg border border-border/50 p-3">
-              <div>
-                <p className="text-sm font-medium">Send invitation link</p>
-                <p className="text-xs text-muted-foreground">Copies a one-time sign-in link to your clipboard.</p>
+              <div className="pr-3">
+                <p className="text-sm font-medium">Also create an invitation link</p>
+                <p className="text-xs text-muted-foreground">
+                  Optional. Copies a one-time sign-in link to your clipboard. Not required — no email is sent either way.
+                </p>
               </div>
               <Switch checked={form.send_invitation} onCheckedChange={(v) => setForm({ ...form, send_invitation: v })} />
             </div>
@@ -355,6 +522,96 @@ export default function AdminUsers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Bulk creation */}
+      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Bulk Create Accounts</DialogTitle>
+            <DialogDescription>
+              One account per line: first name, last name, email, mobile, sponsor code, role.
+              Duplicates are skipped. No emails are sent, so there is no hourly limit.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Textarea
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+            rows={8}
+            className="font-mono text-xs"
+            placeholder={"Juan,Dela Cruz,juan@example.com,09171234567,CEX-ABC123,member\nMaria,Santos,maria@example.com,,,member"}
+          />
+
+          {bulkResults && (
+            <div className="space-y-2">
+              <div className="max-h-56 overflow-y-auto rounded-lg border border-border/50">
+                {bulkResults.map((r, i) => (
+                  <div key={`${r.email}-${i}`} className="flex items-center justify-between gap-2 border-b border-border/30 px-3 py-2 text-xs last:border-0">
+                    <span className="truncate">{r.email}</span>
+                    <span className="shrink-0">
+                      {r.status === "created" ? (
+                        <Badge className="bg-emerald-500/15 text-emerald-400">created</Badge>
+                      ) : r.status === "skipped" ? (
+                        <Badge variant="outline">skipped</Badge>
+                      ) : (
+                        <Badge variant="destructive">failed</Badge>
+                      )}
+                    </span>
+                    {r.reason && <span className="hidden max-w-[45%] truncate text-muted-foreground sm:block">{r.reason}</span>}
+                  </div>
+                ))}
+              </div>
+              <Button
+                variant="outline"
+                className="h-11 w-full gap-2"
+                onClick={async () => {
+                  const created = bulkResults.filter((r) => r.status === "created");
+                  const ok = await copyText(credentialsBlock(created));
+                  toast[ok ? "success" : "error"](ok ? `Copied ${created.length} logins.` : "Copy failed");
+                }}
+              >
+                <Copy className="h-4 w-4" />
+                Copy all created logins
+              </Button>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" className="h-11" onClick={() => setBulkOpen(false)}>Close</Button>
+            <Button className="h-11" onClick={handleBulkCreate} disabled={bulkBusy}>
+              {bulkBusy ? "Creating..." : "Create accounts"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Credentials handoff */}
+      <Dialog open={!!credentials} onOpenChange={(o) => !o && setCredentials(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Login Info</DialogTitle>
+            <DialogDescription>
+              Share this with the card holder. They will be asked to change the password on first login.
+            </DialogDescription>
+          </DialogHeader>
+          <pre className="whitespace-pre-wrap rounded-lg border border-border/50 bg-muted/30 p-3 text-xs">
+            {credentials ? credentialsBlock(credentials) : ""}
+          </pre>
+          <DialogFooter>
+            <Button
+              className="h-11 w-full gap-2"
+              onClick={async () => {
+                const ok = await copyText(credentialsBlock(credentials ?? []));
+                toast[ok ? "success" : "error"](ok ? "Login info copied." : "Copy failed");
+              }}
+            >
+              <Copy className="h-4 w-4" />
+              Copy login info
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }

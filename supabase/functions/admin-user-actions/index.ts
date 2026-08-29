@@ -4,6 +4,12 @@ const SITE_ORIGIN = Deno.env.get("SITE_ORIGIN") ?? "https://tagex.app";
 const VALID_STATUSES = ["active", "inactive", "suspended", "pending_verification"];
 const VALID_ROLES = ["super_admin", "admin", "moderator", "member"];
 
+function randomPassword(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  const bytes = crypto.getRandomValues(new Uint8Array(12));
+  return Array.from(bytes, (b) => chars[b % chars.length]).join("");
+}
+
 /**
  * Super-admin only account operations:
  *  set_status | set_role | reset_password | force_password_change | impersonate
@@ -62,22 +68,37 @@ Deno.serve(async (req) => {
 
       case "reset_password": {
         if (!targetEmail) return json({ error: "User has no email" }, 400);
-        const newPassword = body?.temporary_password as string | undefined;
-        if (newPassword) {
-          if (newPassword.length < 8) return json({ error: "Temporary password must be at least 8 characters" }, 400);
-          const { error } = await admin.auth.admin.updateUserById(targetUserId, { password: newPassword });
-          if (error) return json({ error: error.message }, 400);
-          await admin.from("profiles").update({ must_change_password: true }).eq("id", targetUserId);
-        } else {
+        const requested = body?.temporary_password as string | undefined;
+        const useEmail = body?.send_email === true;
+
+        if (useEmail) {
+          // Explicit opt-in only: this path uses the email quota.
           const { error } = await admin.auth.admin.generateLink({
             type: "recovery",
             email: targetEmail,
             options: { redirectTo: `${SITE_ORIGIN}/reset-password` },
           });
           if (error) return json({ error: error.message }, 400);
+          break;
         }
-        break;
+
+        // Default: set a temporary password directly — zero emails sent.
+        const newPassword = requested && requested.length >= 8 ? requested : randomPassword();
+        if (requested && requested.length > 0 && requested.length < 8) {
+          return json({ error: "Temporary password must be at least 8 characters" }, 400);
+        }
+        const { error } = await admin.auth.admin.updateUserById(targetUserId, { password: newPassword });
+        if (error) return json({ error: error.message }, 400);
+        await admin.from("profiles").update({ must_change_password: true }).eq("id", targetUserId);
+        await admin.from("superadmin_audit_log").insert({
+          actor_user_id: actorId,
+          action: "reset_password",
+          target_user_id: targetUserId,
+          details: { email: targetEmail, email_sent: false },
+        });
+        return json({ success: true, temporary_password: newPassword, email: targetEmail });
       }
+
 
       case "force_password_change": {
         const { error } = await admin
