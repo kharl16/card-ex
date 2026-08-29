@@ -325,6 +325,10 @@ export default function AdminUsers() {
             <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </Button>
+          <Button variant="outline" className="h-11 gap-2" onClick={() => { setBulkResults(null); setBulkOpen(true); }}>
+            <Users className="h-4 w-4" />
+            Bulk Create
+          </Button>
           <Button className="h-11 gap-2" onClick={() => setCreateOpen(true)}>
             <UserPlus className="h-4 w-4" />
             Create Account
