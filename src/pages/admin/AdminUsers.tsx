@@ -14,8 +14,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, RefreshCw, Search, ShieldCheck, UserPlus } from "lucide-react";
+import { Copy, Loader2, RefreshCw, Search, ShieldCheck, UserPlus, Users, Wand2 } from "lucide-react";
 import { SEO } from "@/components/SEO";
 
 interface UserRecord {
