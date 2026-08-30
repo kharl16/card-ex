@@ -457,6 +457,7 @@ export default function CardView({
                       </div>
                     </>
                   )}
+                  </div>
                 </div>
               )}
               {hasBanner && (
