@@ -1,8 +1,39 @@
 import type { Config } from "tailwindcss";
 
+// Touch/hover stable-state overrides used by getCTAStableStateClasses in
+// src/lib/carouselTypes.ts. These media-query utilities must always be emitted
+// even if Tailwind's scanner misses the literal strings during future refactors.
+const TOUCH_HOVER_SAFECLASSES = [
+  "[@media(hover:none)]:hover:bg-background",
+  "[@media(hover:none)]:hover:text-foreground",
+  "[@media(hover:none)]:active:bg-background",
+  "[@media(hover:none)]:active:text-foreground",
+  "[@media(pointer:coarse)]:hover:bg-background",
+  "[@media(pointer:coarse)]:hover:text-foreground",
+  "[@media(pointer:coarse)]:active:bg-background",
+  "[@media(pointer:coarse)]:active:text-foreground",
+  "[@media(hover:none)]:hover:bg-transparent",
+  "[@media(hover:none)]:hover:text-foreground",
+  "[@media(hover:none)]:active:bg-transparent",
+  "[@media(hover:none)]:active:text-foreground",
+  "[@media(pointer:coarse)]:hover:bg-transparent",
+  "[@media(pointer:coarse)]:hover:text-foreground",
+  "[@media(pointer:coarse)]:active:bg-transparent",
+  "[@media(pointer:coarse)]:active:text-foreground",
+  "[@media(hover:none)]:hover:bg-primary",
+  "[@media(hover:none)]:hover:text-primary-foreground",
+  "[@media(hover:none)]:active:bg-primary",
+  "[@media(hover:none)]:active:text-primary-foreground",
+  "[@media(pointer:coarse)]:hover:bg-primary",
+  "[@media(pointer:coarse)]:hover:text-primary-foreground",
+  "[@media(pointer:coarse)]:active:bg-primary",
+  "[@media(pointer:coarse)]:active:text-primary-foreground",
+] as const;
+
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  safelist: [...TOUCH_HOVER_SAFECLASSES],
   prefix: "",
   theme: {
     container: {

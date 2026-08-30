@@ -360,16 +360,19 @@ export function getCTAButtonClasses(style: CTAStyle): string {
  * Inline custom colors already win over classes, so custom-styled CTAs are
  * unaffected.
  */
+
+// Static class map referenced by both the helper below and tailwind.config.ts
+// safelist. Keep these as complete literal strings — Tailwind only emits classes
+// it sees in full. The safelist is the backstop; this map is the source of truth.
+export const CTA_STABLE_STATE_CLASSES: Record<CTAStyle["variant"], string> = {
+  outline:
+    "[@media(hover:none)]:hover:bg-background [@media(hover:none)]:hover:text-foreground [@media(hover:none)]:active:bg-background [@media(hover:none)]:active:text-foreground [@media(pointer:coarse)]:hover:bg-background [@media(pointer:coarse)]:hover:text-foreground [@media(pointer:coarse)]:active:bg-background [@media(pointer:coarse)]:active:text-foreground",
+  ghost:
+    "[@media(hover:none)]:hover:bg-transparent [@media(hover:none)]:hover:text-foreground [@media(hover:none)]:active:bg-transparent [@media(hover:none)]:active:text-foreground [@media(pointer:coarse)]:hover:bg-transparent [@media(pointer:coarse)]:hover:text-foreground [@media(pointer:coarse)]:active:bg-transparent [@media(pointer:coarse)]:active:text-foreground",
+  solid:
+    "[@media(hover:none)]:hover:bg-primary [@media(hover:none)]:hover:text-primary-foreground [@media(hover:none)]:active:bg-primary [@media(hover:none)]:active:text-primary-foreground [@media(pointer:coarse)]:hover:bg-primary [@media(pointer:coarse)]:hover:text-primary-foreground [@media(pointer:coarse)]:active:bg-primary [@media(pointer:coarse)]:active:text-primary-foreground",
+};
+
 export function getCTAStableStateClasses(variant: CTAStyle["variant"]): string {
-  // IMPORTANT: these must stay literal strings — Tailwind only scans source for
-  // complete class candidates, so do NOT recompose them with template interpolation.
-  switch (variant) {
-    case "outline":
-      return "[@media(hover:none)]:hover:bg-background [@media(hover:none)]:hover:text-foreground [@media(hover:none)]:active:bg-background [@media(hover:none)]:active:text-foreground [@media(pointer:coarse)]:hover:bg-background [@media(pointer:coarse)]:hover:text-foreground [@media(pointer:coarse)]:active:bg-background [@media(pointer:coarse)]:active:text-foreground";
-    case "ghost":
-      return "[@media(hover:none)]:hover:bg-transparent [@media(hover:none)]:hover:text-foreground [@media(hover:none)]:active:bg-transparent [@media(hover:none)]:active:text-foreground [@media(pointer:coarse)]:hover:bg-transparent [@media(pointer:coarse)]:hover:text-foreground [@media(pointer:coarse)]:active:bg-transparent [@media(pointer:coarse)]:active:text-foreground";
-    case "solid":
-    default:
-      return "[@media(hover:none)]:hover:bg-primary [@media(hover:none)]:hover:text-primary-foreground [@media(hover:none)]:active:bg-primary [@media(hover:none)]:active:text-primary-foreground [@media(pointer:coarse)]:hover:bg-primary [@media(pointer:coarse)]:hover:text-primary-foreground [@media(pointer:coarse)]:active:bg-primary [@media(pointer:coarse)]:active:text-primary-foreground";
-  }
+  return CTA_STABLE_STATE_CLASSES[variant] ?? CTA_STABLE_STATE_CLASSES.solid;
 }
