@@ -361,15 +361,15 @@ export function getCTAButtonClasses(style: CTAStyle): string {
  * unaffected.
  */
 export function getCTAStableStateClasses(variant: CTAStyle["variant"]): string {
-  const noHover = "[@media(hover:none)]";
-  const touch = "[@media(pointer:coarse)]";
+  // IMPORTANT: these must stay literal strings — Tailwind only scans source for
+  // complete class candidates, so do NOT recompose them with template interpolation.
   switch (variant) {
     case "outline":
-      return `${noHover}:hover:bg-background ${noHover}:hover:text-foreground ${noHover}:active:bg-background ${noHover}:active:text-foreground ${touch}:hover:bg-background ${touch}:hover:text-foreground ${touch}:active:bg-background ${touch}:active:text-foreground`;
+      return "[@media(hover:none)]:hover:bg-background [@media(hover:none)]:hover:text-foreground [@media(hover:none)]:active:bg-background [@media(hover:none)]:active:text-foreground [@media(pointer:coarse)]:hover:bg-background [@media(pointer:coarse)]:hover:text-foreground [@media(pointer:coarse)]:active:bg-background [@media(pointer:coarse)]:active:text-foreground";
     case "ghost":
-      return `${noHover}:hover:bg-transparent ${noHover}:hover:text-foreground ${noHover}:active:bg-transparent ${noHover}:active:text-foreground ${touch}:hover:bg-transparent ${touch}:hover:text-foreground ${touch}:active:bg-transparent ${touch}:active:text-foreground`;
+      return "[@media(hover:none)]:hover:bg-transparent [@media(hover:none)]:hover:text-foreground [@media(hover:none)]:active:bg-transparent [@media(hover:none)]:active:text-foreground [@media(pointer:coarse)]:hover:bg-transparent [@media(pointer:coarse)]:hover:text-foreground [@media(pointer:coarse)]:active:bg-transparent [@media(pointer:coarse)]:active:text-foreground";
     case "solid":
     default:
-      return `${noHover}:hover:bg-primary ${noHover}:hover:text-primary-foreground ${noHover}:active:bg-primary ${noHover}:active:text-primary-foreground ${touch}:hover:bg-primary ${touch}:hover:text-primary-foreground ${touch}:active:bg-primary ${touch}:active:text-primary-foreground`;
+      return "[@media(hover:none)]:hover:bg-primary [@media(hover:none)]:hover:text-primary-foreground [@media(hover:none)]:active:bg-primary [@media(hover:none)]:active:text-primary-foreground [@media(pointer:coarse)]:hover:bg-primary [@media(pointer:coarse)]:hover:text-primary-foreground [@media(pointer:coarse)]:active:bg-primary [@media(pointer:coarse)]:active:text-primary-foreground";
   }
 }
