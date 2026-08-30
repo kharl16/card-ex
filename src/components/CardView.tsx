@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import CardShareDialog from "@/components/CardShareDialog";
+import { QuoteBackdrop } from "@/components/dashboard/QuoteBackdrop";
+import tileBio from "@/assets/tiles/tile-bio.jpg";
 import CardDailyQuote from "@/components/CardDailyQuote";
 import DraggableShareFab from "@/components/DraggableShareFab";
 import {
@@ -381,7 +383,7 @@ export default function CardView({
             <div className={`flex flex-col ${bioBannerGapMobile} ${bioBannerGapDesktop} transition-[gap,margin] duration-300 ease-out motion-reduce:transition-none`}>
               {(card.company || card.bio) && (
                 <div
-                  className="w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer overflow-hidden flex flex-col"
+                  className="relative w-full min-w-0 rounded-2xl p-3 sm:p-4 sm:px-5 animate-slide-up-fade glass-shimmer overflow-hidden flex flex-col"
                   lang="en"
                   style={{
                     background: "var(--glass-bg)",
@@ -392,6 +394,8 @@ export default function CardView({
                     boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
                   }}
                 >
+                  <QuoteBackdrop src={tileBio} objectPosition="right" />
+                  <div className="relative z-10 flex flex-col">
                   {card.company && (
                     <p
                       className="text-[11px] sm:text-base text-foreground/80 uppercase font-light leading-snug text-balance break-words [overflow-wrap:break-word] hyphens-auto line-clamp-2"
@@ -453,6 +457,7 @@ export default function CardView({
                       </div>
                     </>
                   )}
+                  </div>
                 </div>
               )}
               {hasBanner && (
