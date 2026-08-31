@@ -54,6 +54,8 @@ export interface ThemeVariant {
   carouselAutoPlay?: boolean;
   carouselSpotlight?: boolean;
   showLocatorButton?: boolean;
+  /** Show the glamorous photographic background behind the Bio block. Defaults to true. */
+  showBioBackground?: boolean;
 }
 
 // Full card theme with A/B variants

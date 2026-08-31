@@ -394,7 +394,9 @@ export default function CardView({
                     boxShadow: "var(--glass-inner-glow), var(--glass-shadow)",
                   }}
                 >
-                  <QuoteBackdrop src={tileBio} objectPosition="right" />
+                  {(card.theme as any)?.showBioBackground !== false && (
+                    <QuoteBackdrop src={tileBio} objectPosition="right" parallax />
+                  )}
                   <div className="relative z-10 flex flex-col">
                   {card.company && (
                     <p
