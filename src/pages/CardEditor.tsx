@@ -921,6 +921,23 @@ export default function CardEditor() {
               <p className="text-xs text-muted-foreground mt-1">
                 Display a "Find a Distributor" button on your public card
               </p>
+
+              <div className="mt-4 flex items-center justify-between">
+                <Label htmlFor="show-bio-bg" className="text-sm cursor-pointer">
+                  Glamorous Bio background
+                </Label>
+                <Switch
+                  id="show-bio-bg"
+                  checked={(card.theme as any)?.showBioBackground !== false}
+                  onCheckedChange={(checked) => {
+                    const currentTheme = (card.theme as any) || {};
+                    setCard({ ...card, theme: { ...currentTheme, showBioBackground: checked } as any });
+                  }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Show the gold silk photo texture behind your Bio block
+              </p>
             </div>
           </div>
         ),
