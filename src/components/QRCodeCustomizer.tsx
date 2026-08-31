@@ -211,7 +211,6 @@ export default function QRCodeCustomizer({
   previewUrl,
 }: QRCodeCustomizerProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [presets, setPresets] = useState<QRPreset[]>([]);
   const [newPresetName, setNewPresetName] = useState("");
@@ -222,22 +221,9 @@ export default function QRCodeCustomizer({
     setPresets(loadPresetsFromStorage());
   }, []);
 
-  // Mark component as mounted to avoid auto-regenerate on first render
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  // Auto-regenerate QR whenever settings change (debounced)
-  useEffect(() => {
-    if (!hasMounted) return;
-
-    const timeout = setTimeout(() => {
-      onRegenerate();
-    }, 600); // debounce to avoid spamming regenerate on every keystroke
-
-    return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(settings), hasMounted]);
+  // NOTE: QR regeneration is manual only — triggered by the "Regenerate" button.
+  // The live preview already updates as settings change, so we intentionally do
+  // NOT auto-call onRegenerate() here.
 
   const handleLogoUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -963,8 +949,8 @@ export default function QRCodeCustomizer({
 
         <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3">
           <p className="text-xs text-blue-900 dark:text-blue-100">
-            💡 <strong>Tip:</strong> Your QR updates automatically as you tweak settings. The “Regenerate QR” button can
-            be used anytime if you want to manually refresh the generated image.
+            💡 <strong>Tip:</strong> The live preview updates as you tweak settings. Click “Regenerate QR” to apply
+            your changes to the generated QR code image.
           </p>
         </div>
       </CardContent>
