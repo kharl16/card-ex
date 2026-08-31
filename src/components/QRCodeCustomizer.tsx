@@ -949,8 +949,8 @@ export default function QRCodeCustomizer({
 
         <div className="rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 p-3">
           <p className="text-xs text-blue-900 dark:text-blue-100">
-            💡 <strong>Tip:</strong> Your QR updates automatically as you tweak settings. The “Regenerate QR” button can
-            be used anytime if you want to manually refresh the generated image.
+            💡 <strong>Tip:</strong> The live preview updates as you tweak settings. Click “Regenerate QR” to apply
+            your changes to the generated QR code image.
           </p>
         </div>
       </CardContent>
