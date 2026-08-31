@@ -25,7 +25,11 @@ export function SectionNavigator({ sections, activeId, onJump }: SectionNavigato
     if (!el) return;
     const activeBtn = el.querySelector<HTMLElement>(`[data-section-id="${activeId}"]`);
     if (!activeBtn) return;
-    activeBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    // Scroll horizontally only — scrollIntoView with block:"nearest" also moves
+    // the whole page vertically, which yanks the editor up/down on section clicks.
+    const targetLeft =
+      activeBtn.offsetLeft - el.clientWidth / 2 + activeBtn.clientWidth / 2;
+    el.scrollTo({ left: targetLeft, behavior: "smooth" });
   }, [activeId]);
 
   if (!sections.length) return null;
