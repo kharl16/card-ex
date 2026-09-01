@@ -56,6 +56,7 @@ import UserRolesPage from "./pages/superadmin/UserRolesPage";
 import VisibilityPoliciesPage from "./pages/superadmin/VisibilityPoliciesPage";
 import CompaniesPage from "./pages/superadmin/CompaniesPage";
 import RequireAuth from "./components/auth/RequireAuth";
+import RequireVaultAccess from "./components/auth/RequireVaultAccess";
 import RequireOnboarding from "./components/auth/RequireOnboarding";
 import Onboarding from "./pages/Onboarding";
 import Appointments from "./pages/Appointments";
@@ -237,7 +238,7 @@ const AnimatedRoutes = () => {
         <Route path="/c/:slug" element={<PageTransition><PublicCard /></PageTransition>} />
         <Route path="/c/:slug/share/:carouselKind" element={<PageTransition><CarouselSharePage /></PageTransition>} />
         <Route path="/s/:code" element={<PageTransition><SharedCard /></PageTransition>} />
-        <Route path="/locator" element={<PageTransition><DistributorLocator /></PageTransition>} />
+        <Route path="/locator" element={<PageTransition><RequireVaultAccess><DistributorLocator /></RequireVaultAccess></PageTransition>} />
         <Route path="/team/:orgSlug" element={<PageTransition><TeamDirectory /></PageTransition>} />
         <Route
           path="/admin/users"
@@ -384,9 +385,9 @@ const AnimatedRoutes = () => {
           path="/tools"
           element={
             <PageTransition>
-              <RequireAuth>
+              <RequireVaultAccess>
                 <Tools />
-              </RequireAuth>
+              </RequireVaultAccess>
             </PageTransition>
           }
         />
@@ -394,9 +395,9 @@ const AnimatedRoutes = () => {
           path="/resources"
           element={
             <PageTransition>
-              <RequireAuth>
+              <RequireVaultAccess>
                 <ResourcesHub />
-              </RequireAuth>
+              </RequireVaultAccess>
             </PageTransition>
           }
         />
@@ -404,9 +405,9 @@ const AnimatedRoutes = () => {
           path="/resources/files"
           element={
             <PageTransition>
-              <RequireAuth>
+              <RequireVaultAccess>
                 <FilesPage />
-              </RequireAuth>
+              </RequireVaultAccess>
             </PageTransition>
           }
         />
@@ -414,9 +415,9 @@ const AnimatedRoutes = () => {
           path="/resources/links"
           element={
             <PageTransition>
-              <RequireAuth>
+              <RequireVaultAccess>
                 <LinksPage />
-              </RequireAuth>
+              </RequireVaultAccess>
             </PageTransition>
           }
         />
@@ -424,9 +425,9 @@ const AnimatedRoutes = () => {
           path="/resources/directory"
           element={
             <PageTransition>
-              <RequireAuth>
+              <RequireVaultAccess>
                 <DirectoryPage />
-              </RequireAuth>
+              </RequireVaultAccess>
             </PageTransition>
           }
         />
@@ -434,9 +435,9 @@ const AnimatedRoutes = () => {
           path="/resources/13-ways"
           element={
             <PageTransition>
-              <RequireAuth>
+              <RequireVaultAccess>
                 <WaysPage />
-              </RequireAuth>
+              </RequireVaultAccess>
             </PageTransition>
           }
         />
@@ -444,9 +445,9 @@ const AnimatedRoutes = () => {
           path="/resources/favorites"
           element={
             <PageTransition>
-              <RequireAuth>
+              <RequireVaultAccess>
                 <FavoritesPage />
-              </RequireAuth>
+              </RequireVaultAccess>
             </PageTransition>
           }
         />
@@ -454,9 +455,9 @@ const AnimatedRoutes = () => {
           path="/resources/recent"
           element={
             <PageTransition>
-              <RequireAuth>
+              <RequireVaultAccess>
                 <RecentPage />
-              </RequireAuth>
+              </RequireVaultAccess>
             </PageTransition>
           }
         />
