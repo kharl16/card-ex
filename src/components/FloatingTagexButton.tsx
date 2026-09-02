@@ -71,7 +71,7 @@ const PillContent = ({ isDragging = false }: { isDragging?: boolean }) => (
     <span className="flex h-5 w-5 items-center justify-center overflow-hidden rounded-full bg-[hsl(var(--primary))]/10 ring-1 ring-[hsl(var(--primary))]/40">
       <img src={CardExLogo} alt="" className="h-3.5 w-3.5 object-contain" />
     </span>
-    <span className="whitespace-nowrap tracking-wide">Tools Vault</span>
+    <span className="whitespace-nowrap tracking-wide">Get Card-Ex</span>
     <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity" />
   </>
 );
@@ -252,7 +252,7 @@ export default function FloatingTagexButton({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Open Tools Vault (drag to move)"
+      aria-label="Get your own Card-Ex (drag to move)"
       aria-hidden={!visible}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
