@@ -2876,6 +2876,33 @@ export type Database = {
           },
         ]
       }
+      signup_attempts: {
+        Row: {
+          created_at: string
+          email_domain: string | null
+          email_hash: string | null
+          id: string
+          ip_hash: string | null
+          outcome: string
+        }
+        Insert: {
+          created_at?: string
+          email_domain?: string | null
+          email_hash?: string | null
+          id?: string
+          ip_hash?: string | null
+          outcome: string
+        }
+        Update: {
+          created_at?: string
+          email_domain?: string | null
+          email_hash?: string | null
+          id?: string
+          ip_hash?: string | null
+          outcome?: string
+        }
+        Relationships: []
+      }
       sites: {
         Row: {
           created_at: string
@@ -3530,6 +3557,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
+      cleanup_old_signup_attempts: { Args: never; Returns: undefined }
       create_referral_payout_batch: {
         Args: { p_min_amount?: number }
         Returns: {
