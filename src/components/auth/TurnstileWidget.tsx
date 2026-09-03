@@ -16,6 +16,21 @@ export const turnstileEnabled = !!TURNSTILE_SITE_KEY;
 
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
+/**
+ * Reads the solved token straight from Turnstile (or its hidden input) so a
+ * completed challenge is never rejected because React state missed the callback.
+ */
+export function readTurnstileToken(): string | null {
+  try {
+    const viaApi = window.turnstile?.getResponse?.();
+    if (viaApi) return viaApi;
+  } catch {
+    /* widget id required in some versions — fall through */
+  }
+  const input = document.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]');
+  return input?.value || null;
+}
+
 function loadScript(): Promise<void> {
   if (window.turnstile) return Promise.resolve();
   const existing = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_SRC}"]`);
