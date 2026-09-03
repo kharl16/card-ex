@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Gift } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
-import { TurnstileWidget, turnstileEnabled } from "@/components/auth/TurnstileWidget";
+import { TurnstileWidget, turnstileEnabled, readTurnstileToken } from "@/components/auth/TurnstileWidget";
 import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -81,13 +81,15 @@ export default function Signup() {
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (turnstileEnabled && !captchaToken) {
+    const token = captchaToken ?? readTurnstileToken();
+    if (turnstileEnabled && !token) {
       toast.error("Please complete the security check first.");
       return;
     }
+    if (token && token !== captchaToken) setCaptchaToken(token);
     setLoading(true);
     try {
-      await verifySignupAllowed(email, captchaToken);
+      await verifySignupAllowed(email, token);
 
       const { data, error } = await supabase.auth.signUp({
         email,
