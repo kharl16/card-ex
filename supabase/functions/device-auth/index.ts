@@ -250,19 +250,13 @@ Deno.serve(async (req) => {
                 </div>`;
             const text = `Your Card-Ex device verification code: ${approvalToken}\n\nDevice: ${device_label || "Unknown device"}\n\nThis code expires in 10 minutes. If you didn't request this, ignore this email.`;
 
-            await sendLovableEmail(
-              {
-                to: user.email,
-                from: FROM_ADDRESS,
-                sender_domain: SENDER_DOMAIN,
-                subject: `Your Card-Ex device verification code: ${approvalToken}`,
-                html,
-                text,
-                purpose: "transactional",
-                idempotency_key: `device-otp-${requestId}`,
-              },
-              { apiKey: LOVABLE_API_KEY },
-            );
+            await sendOtpEmail({
+              to: user.email,
+              subject: `Your Card-Ex device verification code: ${approvalToken}`,
+              html,
+              text,
+              idempotencyKey: `device-otp-${requestId}`,
+            });
 
             emailStatus = "sent";
             await sb.from("auth_audit_log").insert({
