@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
       let emailStatus: "sent" | "failed" = "sent";
       let emailError: string | undefined;
 
-      if (!LOVABLE_API_KEY) {
+      if (!RESEND_API_KEY && !LOVABLE_API_KEY) {
         emailStatus = "failed";
         emailError = "Email service not configured";
       } else {
@@ -377,19 +377,13 @@ Deno.serve(async (req) => {
             </div>`;
           const text = `Your Card-Ex device approval code: ${otp}\n\nDevice: ${reqRow.device_label || "Unknown device"}\n\nThis code expires in 10 minutes. If you didn't request this, deny the request and change your password.`;
 
-          await sendLovableEmail(
-            {
-              to: user.email,
-              from: FROM_ADDRESS,
-              sender_domain: SENDER_DOMAIN,
-              subject: `Your Card-Ex device approval code: ${otp}`,
-              html,
-              text,
-            purpose: "transactional",
-            idempotency_key: `device-self-otp-${request_id}-${sendCount + 1}`,
-            },
-            { apiKey: LOVABLE_API_KEY },
-          );
+          await sendOtpEmail({
+            to: user.email,
+            subject: `Your Card-Ex device approval code: ${otp}`,
+            html,
+            text,
+            idempotencyKey: `device-self-otp-${request_id}-${sendCount + 1}`,
+          });
         } catch (e) {
           emailStatus = "failed";
           emailError = (e as Error).message;
