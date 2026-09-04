@@ -14,8 +14,74 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const RESEND_API_KEY = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
 const SENDER_DOMAIN = "notify.tagex.app";
 const FROM_ADDRESS = `Card-Ex Security <noreply@tagex.app>`;
+const RESEND_FROM = (Deno.env.get("RESEND_FROM_EMAIL") ?? "").trim() || FROM_ADDRESS;
+
+/**
+ * Sends a device OTP email. Resend (custom SMTP domain) is primary; the Lovable
+ * email API is only used as a fallback. Throws when every transport fails.
+ */
+async function sendOtpEmail(opts: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  idempotencyKey: string;
+}) {
+  const errors: string[] = [];
+
+  if (RESEND_API_KEY) {
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: RESEND_FROM,
+          to: [opts.to],
+          subject: opts.subject,
+          html: opts.html,
+          text: opts.text,
+        }),
+      });
+      if (res.ok) return;
+      errors.push(`resend[${res.status}]: ${await res.text()}`);
+    } catch (e) {
+      errors.push(`resend: ${(e as Error).message}`);
+    }
+  } else {
+    errors.push("resend: RESEND_API_KEY not configured");
+  }
+
+  if (LOVABLE_API_KEY) {
+    try {
+      await sendLovableEmail(
+        {
+          to: opts.to,
+          from: FROM_ADDRESS,
+          sender_domain: SENDER_DOMAIN,
+          subject: opts.subject,
+          html: opts.html,
+          text: opts.text,
+          purpose: "transactional",
+          idempotency_key: opts.idempotencyKey,
+        },
+        { apiKey: LOVABLE_API_KEY },
+      );
+      return;
+    } catch (e) {
+      errors.push(`lovable: ${(e as Error).message}`);
+    }
+  } else {
+    errors.push("lovable: LOVABLE_API_KEY not configured");
+  }
+
+  throw new Error(errors.join(" | "));
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -167,7 +233,7 @@ Deno.serve(async (req) => {
         // Notify or email OTP
         let emailStatus: "sent" | "failed" | "skipped" = "skipped";
         let emailError: string | undefined;
-        if (isFirstDevice && approvalToken && LOVABLE_API_KEY && user.email) {
+        if (isFirstDevice && approvalToken && (RESEND_API_KEY || LOVABLE_API_KEY) && user.email) {
           try {
             const html = `
                 <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0a0a0a;color:#f5f5f5;border-radius:12px;">
@@ -184,19 +250,13 @@ Deno.serve(async (req) => {
                 </div>`;
             const text = `Your Card-Ex device verification code: ${approvalToken}\n\nDevice: ${device_label || "Unknown device"}\n\nThis code expires in 10 minutes. If you didn't request this, ignore this email.`;
 
-            await sendLovableEmail(
-              {
-                to: user.email,
-                from: FROM_ADDRESS,
-                sender_domain: SENDER_DOMAIN,
-                subject: `Your Card-Ex device verification code: ${approvalToken}`,
-                html,
-                text,
-                purpose: "transactional",
-                idempotency_key: `device-otp-${requestId}`,
-              },
-              { apiKey: LOVABLE_API_KEY },
-            );
+            await sendOtpEmail({
+              to: user.email,
+              subject: `Your Card-Ex device verification code: ${approvalToken}`,
+              html,
+              text,
+              idempotencyKey: `device-otp-${requestId}`,
+            });
 
             emailStatus = "sent";
             await sb.from("auth_audit_log").insert({
@@ -297,7 +357,7 @@ Deno.serve(async (req) => {
       let emailStatus: "sent" | "failed" = "sent";
       let emailError: string | undefined;
 
-      if (!LOVABLE_API_KEY) {
+      if (!RESEND_API_KEY && !LOVABLE_API_KEY) {
         emailStatus = "failed";
         emailError = "Email service not configured";
       } else {
@@ -317,19 +377,13 @@ Deno.serve(async (req) => {
             </div>`;
           const text = `Your Card-Ex device approval code: ${otp}\n\nDevice: ${reqRow.device_label || "Unknown device"}\n\nThis code expires in 10 minutes. If you didn't request this, deny the request and change your password.`;
 
-          await sendLovableEmail(
-            {
-              to: user.email,
-              from: FROM_ADDRESS,
-              sender_domain: SENDER_DOMAIN,
-              subject: `Your Card-Ex device approval code: ${otp}`,
-              html,
-              text,
-            purpose: "transactional",
-            idempotency_key: `device-self-otp-${request_id}-${sendCount + 1}`,
-            },
-            { apiKey: LOVABLE_API_KEY },
-          );
+          await sendOtpEmail({
+            to: user.email,
+            subject: `Your Card-Ex device approval code: ${otp}`,
+            html,
+            text,
+            idempotencyKey: `device-self-otp-${request_id}-${sendCount + 1}`,
+          });
         } catch (e) {
           emailStatus = "failed";
           emailError = (e as Error).message;
