@@ -233,7 +233,7 @@ Deno.serve(async (req) => {
         // Notify or email OTP
         let emailStatus: "sent" | "failed" | "skipped" = "skipped";
         let emailError: string | undefined;
-        if (isFirstDevice && approvalToken && LOVABLE_API_KEY && user.email) {
+        if (isFirstDevice && approvalToken && (RESEND_API_KEY || LOVABLE_API_KEY) && user.email) {
           try {
             const html = `
                 <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#0a0a0a;color:#f5f5f5;border-radius:12px;">
