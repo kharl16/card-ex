@@ -14,8 +14,74 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+const RESEND_API_KEY = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
 const SENDER_DOMAIN = "notify.tagex.app";
 const FROM_ADDRESS = `Card-Ex Security <noreply@tagex.app>`;
+const RESEND_FROM = (Deno.env.get("RESEND_FROM_EMAIL") ?? "").trim() || FROM_ADDRESS;
+
+/**
+ * Sends a device OTP email. Resend (custom SMTP domain) is primary; the Lovable
+ * email API is only used as a fallback. Throws when every transport fails.
+ */
+async function sendOtpEmail(opts: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+  idempotencyKey: string;
+}) {
+  const errors: string[] = [];
+
+  if (RESEND_API_KEY) {
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: RESEND_FROM,
+          to: [opts.to],
+          subject: opts.subject,
+          html: opts.html,
+          text: opts.text,
+        }),
+      });
+      if (res.ok) return;
+      errors.push(`resend[${res.status}]: ${await res.text()}`);
+    } catch (e) {
+      errors.push(`resend: ${(e as Error).message}`);
+    }
+  } else {
+    errors.push("resend: RESEND_API_KEY not configured");
+  }
+
+  if (LOVABLE_API_KEY) {
+    try {
+      await sendLovableEmail(
+        {
+          to: opts.to,
+          from: FROM_ADDRESS,
+          sender_domain: SENDER_DOMAIN,
+          subject: opts.subject,
+          html: opts.html,
+          text: opts.text,
+          purpose: "transactional",
+          idempotency_key: opts.idempotencyKey,
+        },
+        { apiKey: LOVABLE_API_KEY },
+      );
+      return;
+    } catch (e) {
+      errors.push(`lovable: ${(e as Error).message}`);
+    }
+  } else {
+    errors.push("lovable: LOVABLE_API_KEY not configured");
+  }
+
+  throw new Error(errors.join(" | "));
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
