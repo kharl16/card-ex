@@ -26,7 +26,31 @@ type State =
     }
   | { phase: "error"; message: string };
 
+// Turns technical/edge-function errors into friendly, human wording.
+async function friendlyError(e: any, fallback: string) {
+  let raw = "";
+  try {
+    const ctx = e?.context;
+    if (ctx && typeof ctx.json === "function") {
+      const body = await ctx.clone().json();
+      raw = body?.error || body?.message || "";
+    }
+  } catch {
+    // response body not JSON — ignore
+  }
+  if (!raw) raw = typeof e?.message === "string" ? e.message : "";
+
+  const m = raw.toLowerCase();
+  if (m.includes("non-2xx") || m.includes("failed to fetch") || m.includes("networkerror")) return fallback;
+  if (m.includes("invalid") && m.includes("code")) return "That code doesn't match. Please double-check and try again.";
+  if (m.includes("expired")) return "This code has expired. Please request a new one.";
+  if (m.includes("attempt")) return "Too many incorrect attempts. Please request a new code.";
+  if (m.includes("rate") || m.includes("too many")) return "Too many tries. Please wait a moment and try again.";
+  return raw || fallback;
+}
+
 function formatRemaining(ms: number) {
+
   if (ms <= 0) return "0:00";
   const total = Math.floor(ms / 1000);
   const m = Math.floor(total / 60);
