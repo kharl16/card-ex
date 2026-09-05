@@ -17,7 +17,11 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const RESEND_API_KEY = (Deno.env.get("RESEND_API_KEY") ?? "").trim();
 const SENDER_DOMAIN = "notify.tagex.app";
 const FROM_ADDRESS = `Card-Ex Security <noreply@tagex.app>`;
-const RESEND_FROM = (Deno.env.get("RESEND_FROM_EMAIL") ?? "").trim() || FROM_ADDRESS;
+// Accept either "Name <mail@domain>" or a bare "mail@domain"; fall back to the
+// verified default sender when the configured value is malformed.
+const RAW_RESEND_FROM = (Deno.env.get("RESEND_FROM_EMAIL") ?? "").trim().replace(/^["']|["']$/g, "");
+const VALID_FROM = /^(?:[^<>]+<[^@<>\s]+@[^@<>\s]+\.[^@<>\s]+>|[^@<>\s]+@[^@<>\s]+\.[^@<>\s]+)$/;
+const RESEND_FROM = VALID_FROM.test(RAW_RESEND_FROM) ? RAW_RESEND_FROM : FROM_ADDRESS;
 
 /**
  * Sends a device OTP email. Resend (custom SMTP domain) is primary; the Lovable
@@ -48,8 +52,13 @@ async function sendOtpEmail(opts: {
           text: opts.text,
         }),
       });
-      if (res.ok) return;
-      errors.push(`resend[${res.status}]: ${await res.text()}`);
+      if (res.ok) {
+        console.log(`OTP email sent via Resend from ${RESEND_FROM}`);
+        return;
+      }
+      const body = await res.text();
+      console.error(`Resend send failed [${res.status}] from=${RESEND_FROM}: ${body}`);
+      errors.push(`resend[${res.status}]: ${body}`);
     } catch (e) {
       errors.push(`resend: ${(e as Error).message}`);
     }
