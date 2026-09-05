@@ -39,7 +39,7 @@ export const InviteEmail = ({
           . Click the button below to accept the invitation and create your
           account.
         </Text>
-        <Button style={button} href={confirmationUrl}>
+        <Button style={button} href={confirmationUrl} target="_blank" rel="noopener noreferrer">
           Accept Invitation
         </Button>
         <Text style={footer}>
