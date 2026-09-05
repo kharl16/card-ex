@@ -47,7 +47,7 @@ export const SignupEmail = ({
           </Link>
           ) by clicking the button below:
         </Text>
-        <Button style={button} href={confirmationUrl}>
+        <Button style={button} href={confirmationUrl} target="_blank" rel="noopener noreferrer">
           Verify Email
         </Button>
         <Text style={footer}>

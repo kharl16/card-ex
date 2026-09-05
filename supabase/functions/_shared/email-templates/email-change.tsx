@@ -52,7 +52,7 @@ export const EmailChangeEmail = ({
         <Text style={text}>
           Click the button below to confirm this change:
         </Text>
-        <Button style={button} href={confirmationUrl}>
+        <Button style={button} href={confirmationUrl} target="_blank" rel="noopener noreferrer">
           Confirm Email Change
         </Button>
         <Text style={footer}>

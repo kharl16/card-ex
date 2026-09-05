@@ -32,7 +32,7 @@ export const RecoveryEmail = ({
           We received a request to reset your password for {siteName}. Click
           the button below to choose a new password.
         </Text>
-        <Button style={button} href={confirmationUrl}>
+        <Button style={button} href={confirmationUrl} target="_blank" rel="noopener noreferrer">
           Reset Password
         </Button>
         <Text style={footer}>

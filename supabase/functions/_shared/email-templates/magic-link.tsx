@@ -32,7 +32,7 @@ export const MagicLinkEmail = ({
           Click the button below to log in to {siteName}. This link will expire
           shortly.
         </Text>
-        <Button style={button} href={confirmationUrl}>
+        <Button style={button} href={confirmationUrl} target="_blank" rel="noopener noreferrer">
           Log In
         </Button>
         <Text style={footer}>
