@@ -52,8 +52,13 @@ async function sendOtpEmail(opts: {
           text: opts.text,
         }),
       });
-      if (res.ok) return;
-      errors.push(`resend[${res.status}]: ${await res.text()}`);
+      if (res.ok) {
+        console.log(`OTP email sent via Resend from ${RESEND_FROM}`);
+        return;
+      }
+      const body = await res.text();
+      console.error(`Resend send failed [${res.status}] from=${RESEND_FROM}: ${body}`);
+      errors.push(`resend[${res.status}]: ${body}`);
     } catch (e) {
       errors.push(`resend: ${(e as Error).message}`);
     }
