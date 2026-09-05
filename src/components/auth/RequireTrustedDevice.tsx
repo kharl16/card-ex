@@ -26,7 +26,31 @@ type State =
     }
   | { phase: "error"; message: string };
 
+// Turns technical/edge-function errors into friendly, human wording.
+async function friendlyError(e: any, fallback: string) {
+  let raw = "";
+  try {
+    const ctx = e?.context;
+    if (ctx && typeof ctx.json === "function") {
+      const body = await ctx.clone().json();
+      raw = body?.error || body?.message || "";
+    }
+  } catch {
+    // response body not JSON — ignore
+  }
+  if (!raw) raw = typeof e?.message === "string" ? e.message : "";
+
+  const m = raw.toLowerCase();
+  if (m.includes("non-2xx") || m.includes("failed to fetch") || m.includes("networkerror")) return fallback;
+  if (m.includes("invalid") && m.includes("code")) return "That code doesn't match. Please double-check and try again.";
+  if (m.includes("expired")) return "This code has expired. Please request a new one.";
+  if (m.includes("attempt")) return "Too many incorrect attempts. Please request a new code.";
+  if (m.includes("rate") || m.includes("too many")) return "Too many tries. Please wait a moment and try again.";
+  return raw || fallback;
+}
+
 function formatRemaining(ms: number) {
+
   if (ms <= 0) return "0:00";
   const total = Math.floor(ms / 1000);
   const m = Math.floor(total / 60);
@@ -70,7 +94,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
       }
     } catch (e: any) {
       console.error("Device check failed:", e);
-      setState({ phase: "error", message: e.message || "Could not verify device" });
+      setState({ phase: "error", message: await friendlyError(e, "We couldn't verify this device right now. Please try again.") });
     }
   }, [session?.user]);
 
@@ -148,7 +172,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
         checkDevice();
       }
     } catch (e: any) {
-      toast.error(e.message || "Invalid code");
+      toast.error(await friendlyError(e, "That code doesn't match. Please double-check and try again."));
     } finally {
       setSubmitting(false);
     }
@@ -191,7 +215,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
         toast.error("Email delivery failed — use the backup code");
       }
     } catch (e: any) {
-      toast.error(e.message || "Could not send code");
+      toast.error(await friendlyError(e, "We couldn't send the code right now. Please try again in a moment."));
     } finally {
       setRequestingEmailOtp(false);
     }
@@ -233,7 +257,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
         toast.success("Backup code retrieved");
       }
     } catch (e: any) {
-      toast.error(e.message || "Could not retrieve backup code");
+      toast.error(await friendlyError(e, "We couldn't retrieve your backup code. Please try again."));
     } finally {
       setRevealing(false);
     }
@@ -333,7 +357,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
                 {expired ? "Expired" : `Expires in ${formatRemaining(expiryMs)}`}
               </span>
               <span>
-                {Math.max(0, state.maxSends - state.sendCount)} of {state.maxSends} sends left
+                Code sent {Math.min(state.sendCount, state.maxSends)} of {state.maxSends}
               </span>
             </div>
           )}
