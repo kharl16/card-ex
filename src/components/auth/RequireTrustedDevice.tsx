@@ -516,12 +516,17 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
               <Button
                 variant="ghost"
                 className="w-full text-xs"
-                onClick={handleRequestEmailOtp}
-                disabled={requestingEmailOtp || expired || state.sendCount >= state.maxSends}
+                onClick={
+                  expired || state.sendCount >= state.maxSends ? handleStartOver : handleRequestEmailOtp
+                }
+                disabled={requestingEmailOtp}
               >
                 {requestingEmailOtp ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Mail className="h-3 w-3 mr-2" />}
-                {state.sendCount >= state.maxSends ? "No sends remaining" : "Resend email code"}
+                {expired || state.sendCount >= state.maxSends
+                  ? "Start over & send a new code"
+                  : "Resend email code"}
               </Button>
+
             </>
           ) : (
             <div className="space-y-3">
