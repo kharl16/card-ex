@@ -204,18 +204,19 @@ export default function AuthConfirm() {
                   autoComplete="email"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={resending || resent}>
+              <Button type="submit" className="w-full" disabled={resending}>
                 {resending ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Sending...
                   </>
                 ) : resent ? (
-                  "Email sent — check your inbox"
+                  "Send another confirmation email"
                 ) : (
                   "Resend confirmation email"
                 )}
               </Button>
+
             </form>
           )}
 
