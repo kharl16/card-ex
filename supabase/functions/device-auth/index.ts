@@ -441,6 +441,23 @@ Deno.serve(async (req) => {
       return json({ status: "sent", email_status: "sent", ...responseBase });
     }
 
+    // ─── RESTART (abandon the current request so a clean one can be issued) ─
+    if (action === "restart") {
+      const { fingerprint_hash } = body;
+      let q = sb
+        .from("device_approval_requests")
+        .update({ status: "expired", resolved_at: new Date().toISOString(), approval_token: null })
+        .eq("user_id", user.id)
+        .eq("status", "pending");
+      if (typeof fingerprint_hash === "string" && fingerprint_hash) {
+        q = q.eq("device_fingerprint_hash", fingerprint_hash);
+      }
+      await q;
+      return json({ status: "restarted" });
+    }
+
+
+
     // ─── REVEAL FALLBACK OTP (only when email delivery failed) ───────────
     if (action === "reveal_fallback_otp") {
       const { request_id } = body;
