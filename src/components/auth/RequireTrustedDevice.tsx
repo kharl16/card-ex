@@ -226,7 +226,15 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
         toast.error("Email delivery failed — use the backup code");
       }
     } catch (e: any) {
-      toast.error(await friendlyError(e, "We couldn't send the code right now. Please try again in a moment."));
+      const message = await friendlyError(e, "We couldn't send the code right now. Please try again in a moment.");
+      const m = message.toLowerCase();
+      if (m.includes("expired") || m.includes("too many") || m.includes("not found")) {
+        toast.error("Starting a fresh verification for you...");
+        await handleStartOver();
+      } else {
+        toast.error(message);
+      }
+
     } finally {
       setRequestingEmailOtp(false);
     }
