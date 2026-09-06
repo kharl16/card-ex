@@ -172,11 +172,21 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
         checkDevice();
       }
     } catch (e: any) {
-      toast.error(await friendlyError(e, "That code doesn't match. Please double-check and try again."));
+      const message = await friendlyError(e, "That code doesn't match. Please double-check and try again.");
+      setOtp("");
+      const m = message.toLowerCase();
+      // Stale/expired/locked request: silently start a clean one and send a new code.
+      if (m.includes("expired") || m.includes("too many") || m.includes("request a new")) {
+        toast.error("That code is no longer valid. Sending you a fresh one...");
+        await handleStartOver();
+      } else {
+        toast.error(message);
+      }
     } finally {
       setSubmitting(false);
     }
   };
+
 
   const [selfApproveMode, setSelfApproveMode] = useState(false);
   const [selfApproveStatus, setSelfApproveStatus] = useState<"sent" | "failed" | null>(null);
