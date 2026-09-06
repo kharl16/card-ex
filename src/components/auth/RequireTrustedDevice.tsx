@@ -250,8 +250,27 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, selfApproveMode, autoSentForRequest]);
 
+  // Abandons the current (stale, locked or used-up) request and starts a clean
+  // one, which automatically sends a brand-new code.
+  const handleStartOver = async () => {
+    if (state.phase !== "pending") return;
+    try {
+      await supabase.functions.invoke("device-auth", {
+        body: { action: "restart", fingerprint_hash: state.fingerprint.hash },
+      });
+    } catch {
+      // Even if cleanup fails, re-checking issues a usable request.
+    }
+    setOtp("");
+    setSelfApproveMode(false);
+    setSelfApproveStatus(null);
+    setAutoSentForRequest(null);
+    await checkDevice();
+  };
+
   const [revealedOtp, setRevealedOtp] = useState<string | null>(null);
   const [revealing, setRevealing] = useState(false);
+
 
   const handleRevealFallback = async () => {
     if (state.phase !== "pending") return;
