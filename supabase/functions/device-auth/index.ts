@@ -408,6 +408,8 @@ Deno.serve(async (req) => {
           approval_token: otpHash,
           metadata: {
             ...meta,
+            // A freshly issued code starts with a clean attempt counter.
+            verify_attempts: 0,
             email_status: emailStatus,
             email_error: emailError ?? null,
             email_otp_send_count: sendCount + 1,
@@ -416,6 +418,7 @@ Deno.serve(async (req) => {
           },
         })
         .eq("id", request_id);
+
 
       await sb.from("auth_audit_log").insert({
         user_id: user.id,
