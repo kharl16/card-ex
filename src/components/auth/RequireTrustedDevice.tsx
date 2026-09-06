@@ -196,9 +196,10 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
   const handleRequestEmailOtp = async () => {
     if (state.phase !== "pending") return;
     if (state.sendCount >= state.maxSends) {
-      toast.error("Maximum send attempts reached for this request.");
+      await handleStartOver();
       return;
     }
+
     setRequestingEmailOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke("device-auth", {
