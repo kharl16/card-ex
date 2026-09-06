@@ -172,11 +172,21 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
         checkDevice();
       }
     } catch (e: any) {
-      toast.error(await friendlyError(e, "That code doesn't match. Please double-check and try again."));
+      const message = await friendlyError(e, "That code doesn't match. Please double-check and try again.");
+      setOtp("");
+      const m = message.toLowerCase();
+      // Stale/expired/locked request: silently start a clean one and send a new code.
+      if (m.includes("expired") || m.includes("too many") || m.includes("request a new")) {
+        toast.error("That code is no longer valid. Sending you a fresh one...");
+        await handleStartOver();
+      } else {
+        toast.error(message);
+      }
     } finally {
       setSubmitting(false);
     }
   };
+
 
   const [selfApproveMode, setSelfApproveMode] = useState(false);
   const [selfApproveStatus, setSelfApproveStatus] = useState<"sent" | "failed" | null>(null);
@@ -186,9 +196,10 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
   const handleRequestEmailOtp = async () => {
     if (state.phase !== "pending") return;
     if (state.sendCount >= state.maxSends) {
-      toast.error("Maximum send attempts reached for this request.");
+      await handleStartOver();
       return;
     }
+
     setRequestingEmailOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke("device-auth", {
@@ -215,7 +226,15 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
         toast.error("Email delivery failed — use the backup code");
       }
     } catch (e: any) {
-      toast.error(await friendlyError(e, "We couldn't send the code right now. Please try again in a moment."));
+      const message = await friendlyError(e, "We couldn't send the code right now. Please try again in a moment.");
+      const m = message.toLowerCase();
+      if (m.includes("expired") || m.includes("too many") || m.includes("not found")) {
+        toast.error("Starting a fresh verification for you...");
+        await handleStartOver();
+      } else {
+        toast.error(message);
+      }
+
     } finally {
       setRequestingEmailOtp(false);
     }
@@ -240,8 +259,27 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, selfApproveMode, autoSentForRequest]);
 
+  // Abandons the current (stale, locked or used-up) request and starts a clean
+  // one, which automatically sends a brand-new code.
+  const handleStartOver = async () => {
+    if (state.phase !== "pending") return;
+    try {
+      await supabase.functions.invoke("device-auth", {
+        body: { action: "restart", fingerprint_hash: state.fingerprint.hash },
+      });
+    } catch {
+      // Even if cleanup fails, re-checking issues a usable request.
+    }
+    setOtp("");
+    setSelfApproveMode(false);
+    setSelfApproveStatus(null);
+    setAutoSentForRequest(null);
+    await checkDevice();
+  };
+
   const [revealedOtp, setRevealedOtp] = useState<string | null>(null);
   const [revealing, setRevealing] = useState(false);
+
 
   const handleRevealFallback = async () => {
     if (state.phase !== "pending") return;
@@ -487,12 +525,17 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
               <Button
                 variant="ghost"
                 className="w-full text-xs"
-                onClick={handleRequestEmailOtp}
-                disabled={requestingEmailOtp || expired || state.sendCount >= state.maxSends}
+                onClick={
+                  expired || state.sendCount >= state.maxSends ? handleStartOver : handleRequestEmailOtp
+                }
+                disabled={requestingEmailOtp}
               >
                 {requestingEmailOtp ? <Loader2 className="h-3 w-3 animate-spin mr-2" /> : <Mail className="h-3 w-3 mr-2" />}
-                {state.sendCount >= state.maxSends ? "No sends remaining" : "Resend email code"}
+                {expired || state.sendCount >= state.maxSends
+                  ? "Start over & send a new code"
+                  : "Resend email code"}
               </Button>
+
             </>
           ) : (
             <div className="space-y-3">
