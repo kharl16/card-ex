@@ -67,12 +67,24 @@ export default function AuthConfirm() {
   const doResend = async (emailToUse: string) => {
     setResending(true);
     try {
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email: emailToUse,
-        options: { emailRedirectTo: getAuthCallbackUrl() },
+      // Server-side resend: generates a fresh link and delivers it through our
+      // own sender, so it works even when the old link expired or was used.
+      const { data, error } = await supabase.functions.invoke("resend-confirmation", {
+        body: { email: emailToUse, redirect_to: getAuthCallbackUrl() },
       });
-      if (error) throw error;
+
+      if (error) {
+        // Fall back to the built-in mailer if the function is unavailable.
+        const { error: fbError } = await supabase.auth.resend({
+          type: "signup",
+          email: emailToUse,
+          options: { emailRedirectTo: getAuthCallbackUrl() },
+        });
+        if (fbError) throw fbError;
+      } else if (data?.error) {
+        throw new Error(data.error);
+      }
+
       setResent(true);
       toast.success("Confirmation email sent. Check your inbox.");
     } catch (err: any) {
@@ -81,6 +93,7 @@ export default function AuthConfirm() {
       setResending(false);
     }
   };
+
 
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
