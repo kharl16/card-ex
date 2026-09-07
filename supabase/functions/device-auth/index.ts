@@ -622,6 +622,15 @@ Deno.serve(async (req) => {
         return json({ error: "Too many invalid attempts. Request a new code." }, 429);
       }
 
+      // Codes live for 10 minutes; after that a new one must be sent.
+      const issuedAtMs = meta.self_approve_requested_at
+        ? new Date(meta.self_approve_requested_at).getTime()
+        : 0;
+      if (issuedAtMs > 0 && Date.now() - issuedAtMs > 10 * 60 * 1000) {
+        return json({ error: "Code expired" }, 410);
+      }
+
+
       const otpHash = await sha256(otp);
       if (otpHash !== reqRow.approval_token) {
         await sb
