@@ -195,15 +195,21 @@ Deno.serve(async (req) => {
 
       const isFirstDevice = (trustedCount ?? 0) === 0;
 
-      // Find or create pending request
-      const { data: existingReq } = await sb
+      // Find or create pending request.
+      // NOTE: never use maybeSingle() here — if duplicate pending rows ever exist
+      // it throws, which would silently create yet another request (and a new OTP)
+      // on every page load. Always reuse the most recent valid pending request.
+      const { data: existingReqs } = await sb
         .from("device_approval_requests")
         .select("id, status, expires_at")
         .eq("user_id", user.id)
         .eq("device_fingerprint_hash", fingerprint_hash)
         .eq("status", "pending")
         .gt("expires_at", new Date().toISOString())
-        .maybeSingle();
+        .order("created_at", { ascending: false })
+        .limit(1);
+      const existingReq = existingReqs?.[0];
+
 
       let requestId = existingReq?.id;
       let approvalToken: string | undefined;
