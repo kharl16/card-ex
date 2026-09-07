@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
             Confirm your email
           </a>
         </p>
-        <p style="color:#888;font-size:13px;">If the button doesn't work, copy this link:<br>${actionLink}</p>
+        <p style="color:#888;font-size:13px;">If the button doesn't work, request a new confirmation email from the sign-in page.</p>
       </div>`;
 
     const res = await fetch("https://api.resend.com/emails", {
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
         to: [email],
         subject: "Confirm your Card-Ex email",
         html,
-        text: `Confirm your Card-Ex email: ${actionLink}`,
+        text: "Confirm your Card-Ex email by opening this message in a mail app and tapping the confirm button.",
       }),
     });
 
