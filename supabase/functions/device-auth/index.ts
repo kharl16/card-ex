@@ -466,7 +466,9 @@ Deno.serve(async (req) => {
         send_count: sendCount + 1,
         max_sends: 3,
         expires_at: reqRow.expires_at,
+        otp_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
       };
+
       if (emailStatus === "failed") {
         return json({ status: "failed", email_status: "failed", error: emailError, ...responseBase }, 200);
       }
