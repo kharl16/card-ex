@@ -31,6 +31,19 @@ export function readTurnstileToken(): string | null {
   return input?.value || null;
 }
 
+/**
+ * Clears the solved token so a retry always uses a fresh challenge — a spent
+ * token would be rejected server-side and count toward abuse blocking.
+ */
+export function resetTurnstile(): void {
+  try {
+    window.turnstile?.reset?.();
+  } catch {
+    /* widget not ready — nothing to reset */
+  }
+}
+
+
 function loadScript(): Promise<void> {
   if (window.turnstile) return Promise.resolve();
   const existing = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_SRC}"]`);

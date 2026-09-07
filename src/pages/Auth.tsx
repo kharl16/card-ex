@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { ArrowLeft, Mail } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
-import { TurnstileWidget, turnstileEnabled, readTurnstileToken } from "@/components/auth/TurnstileWidget";
+import { TurnstileWidget, turnstileEnabled, readTurnstileToken, resetTurnstile } from "@/components/auth/TurnstileWidget";
 import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -19,6 +19,13 @@ type Mode = "choose" | "signin" | "signup" | "forgot";
 
 export default function Auth() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Return the visitor to the page that sent them here (must stay in-app).
+  const rawRedirect = searchParams.get("redirect");
+  const redirectTo =
+    rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : "/dashboard";
   const [mode, setMode] = useState<Mode>("choose");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -29,14 +36,14 @@ export default function Auth() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate("/dashboard", { replace: true });
+      if (session) navigate(redirectTo, { replace: true });
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) navigate("/dashboard", { replace: true });
+      if (session) navigate(redirectTo, { replace: true });
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, redirectTo]);
 
   const getErrorMessage = (error: any): string => {
     const message = error?.message?.toLowerCase() || "";
@@ -110,6 +117,7 @@ export default function Auth() {
     } finally {
       setLoading(false);
       setCaptchaToken(null);
+      resetTurnstile();
     }
   };
 
