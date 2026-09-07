@@ -193,9 +193,10 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
   const [requestingEmailOtp, setRequestingEmailOtp] = useState(false);
   const [autoSentForRequest, setAutoSentForRequest] = useState<string | null>(null);
 
-  const handleRequestEmailOtp = async () => {
+  const handleRequestEmailOtp = async (opts?: { force?: boolean }) => {
+    const force = !!opts?.force;
     if (state.phase !== "pending") return;
-    if (state.sendCount >= state.maxSends) {
+    if (force && state.sendCount >= state.maxSends) {
       await handleStartOver();
       return;
     }
@@ -203,7 +204,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     setRequestingEmailOtp(true);
     try {
       const { data, error } = await supabase.functions.invoke("device-auth", {
-        body: { action: "request_email_otp", request_id: state.requestId },
+        body: { action: "request_email_otp", request_id: state.requestId, force },
       });
       if (error) throw error;
       setSelfApproveMode(true);
@@ -220,7 +221,12 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
       );
       if (data?.email_status === "sent") {
         setSelfApproveStatus("sent");
-        toast.success("Verification code sent to your email");
+        // A reused code means nothing new was emailed — don't mislead the user.
+        if (data?.reused) {
+          toast.info("Your code is still valid — check your email inbox.");
+        } else {
+          toast.success("Verification code sent to your email");
+        }
       } else {
         setSelfApproveStatus("failed");
         toast.error("Email delivery failed — use the backup code");
@@ -242,6 +248,8 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
 
   // Auto-send the email OTP for non-first-device flow so users land on the
   // verify-code screen (with backup-code option) instead of a waiting screen.
+  // This never issues a new code when one is already outstanding (server-side
+  // idempotency), so leaving the page to read the email and coming back is safe.
   useEffect(() => {
     if (state.phase !== "pending") return;
     if (state.isFirstDevice) return;
@@ -254,10 +262,23 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     if (autoSentForRequest === state.requestId) return;
     if (state.sendCount > 0) return;
     if (state.sendCount >= state.maxSends) return;
+    // Survive reloads: once a code was auto-sent for this request, never auto-send again.
+    const marker = `tagex_device_otp_sent_${state.requestId}`;
+    try {
+      if (sessionStorage.getItem(marker)) {
+        setAutoSentForRequest(state.requestId);
+        setSelfApproveMode(true);
+        return;
+      }
+      sessionStorage.setItem(marker, "1");
+    } catch {
+      // storage unavailable — in-memory guard still applies
+    }
     setAutoSentForRequest(state.requestId);
     handleRequestEmailOtp();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, selfApproveMode, autoSentForRequest]);
+
 
   // Abandons the current (stale, locked or used-up) request and starts a clean
   // one, which automatically sends a brand-new code.
@@ -526,7 +547,9 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
                 variant="ghost"
                 className="w-full text-xs"
                 onClick={
-                  expired || state.sendCount >= state.maxSends ? handleStartOver : handleRequestEmailOtp
+                  expired || state.sendCount >= state.maxSends
+                    ? () => handleStartOver()
+                    : () => handleRequestEmailOtp({ force: true })
                 }
                 disabled={requestingEmailOtp}
               >
@@ -556,7 +579,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={handleRequestEmailOtp}
+                onClick={() => handleRequestEmailOtp({ force: true })}
                 disabled={requestingEmailOtp || expired || state.sendCount >= state.maxSends}
               >
                 {requestingEmailOtp ? (
