@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { ArrowLeft, Mail } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
-import { TurnstileWidget, turnstileEnabled, readTurnstileToken } from "@/components/auth/TurnstileWidget";
+import { TurnstileWidget, turnstileEnabled, readTurnstileToken, resetTurnstile } from "@/components/auth/TurnstileWidget";
 import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -110,6 +110,7 @@ export default function Auth() {
     } finally {
       setLoading(false);
       setCaptchaToken(null);
+      resetTurnstile();
     }
   };
 
