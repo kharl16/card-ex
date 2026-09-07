@@ -343,12 +343,12 @@ Deno.serve(async (req) => {
 
     // ─── REQUEST EMAIL OTP (self-approve when no trusted device available) ─
     if (action === "request_email_otp") {
-      const { request_id } = body;
+      const { request_id, force } = body;
       if (!request_id) return json({ error: "Missing request_id" }, 400);
 
       const { data: reqRow } = await sb
         .from("device_approval_requests")
-        .select("id, status, expires_at, device_label, device_fingerprint_hash, metadata")
+        .select("id, status, expires_at, device_label, device_fingerprint_hash, metadata, approval_token")
         .eq("id", request_id)
         .eq("user_id", user.id)
         .eq("status", "pending")
@@ -361,9 +361,26 @@ Deno.serve(async (req) => {
       // Rate-limit: max 3 sends per request
       const meta = (reqRow.metadata as any) || {};
       const sendCount = Number(meta.email_otp_send_count || 0);
+
+      // IDEMPOTENCY: a code that was already emailed and is still valid must NOT
+      // be replaced just because the page was re-opened (e.g. the user switched
+      // to their inbox and came back). Only an explicit "resend" (force) issues
+      // a new code.
+      if (!force && sendCount > 0 && reqRow.approval_token && meta.email_status === "sent") {
+        return json({
+          status: "sent",
+          email_status: "sent",
+          reused: true,
+          send_count: sendCount,
+          max_sends: 3,
+          expires_at: reqRow.expires_at,
+        });
+      }
+
       if (sendCount >= 3) {
         return json({ error: "Too many attempts. Please try again later." }, 429);
       }
+
 
       // Generate fresh OTP and store its hash on the request
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
