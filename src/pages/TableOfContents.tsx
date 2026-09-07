@@ -101,7 +101,7 @@ const SECTIONS: TocSection[] = [
     gradient: "from-rose-500/20 via-red-500/5 to-transparent",
     size: "sm",
     entries: [
-      { label: "Distributor Locator", description: "Public map of distributors", path: "/locator" },
+      { label: "Distributor Locator", description: "Members-only map of distributors", path: "/locator" },
     ],
   },
   {
