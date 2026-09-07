@@ -362,11 +362,18 @@ Deno.serve(async (req) => {
       const meta = (reqRow.metadata as any) || {};
       const sendCount = Number(meta.email_otp_send_count || 0);
 
-      // IDEMPOTENCY: a code that was already emailed and is still valid must NOT
-      // be replaced just because the page was re-opened (e.g. the user switched
-      // to their inbox and came back). Only an explicit "resend" (force) issues
-      // a new code.
-      if (!force && sendCount > 0 && reqRow.approval_token && meta.email_status === "sent") {
+      // IDEMPOTENCY: a code that was already emailed and is STILL WITHIN its
+      // 10-minute lifetime must NOT be replaced just because the page was
+      // re-opened (e.g. the user switched to their inbox and came back), or
+      // because a wrong code was typed. A new code IS issued when the user
+      // explicitly resends (force) or when the previous code has expired.
+      const OTP_TTL_MS = 10 * 60 * 1000;
+      const issuedAt = meta.self_approve_requested_at
+        ? new Date(meta.self_approve_requested_at).getTime()
+        : 0;
+      const otpStillValid = issuedAt > 0 && Date.now() - issuedAt < OTP_TTL_MS;
+
+      if (!force && sendCount > 0 && reqRow.approval_token && meta.email_status === "sent" && otpStillValid) {
         return json({
           status: "sent",
           email_status: "sent",
@@ -374,8 +381,10 @@ Deno.serve(async (req) => {
           send_count: sendCount,
           max_sends: 3,
           expires_at: reqRow.expires_at,
+          otp_expires_at: new Date(issuedAt + OTP_TTL_MS).toISOString(),
         });
       }
+
 
       if (sendCount >= 3) {
         return json({ error: "Too many attempts. Please try again later." }, 429);
