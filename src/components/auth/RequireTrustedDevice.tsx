@@ -547,7 +547,9 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
                 variant="ghost"
                 className="w-full text-xs"
                 onClick={
-                  expired || state.sendCount >= state.maxSends ? handleStartOver : handleRequestEmailOtp
+                  expired || state.sendCount >= state.maxSends
+                    ? () => handleStartOver()
+                    : () => handleRequestEmailOtp({ force: true })
                 }
                 disabled={requestingEmailOtp}
               >
@@ -577,7 +579,7 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={handleRequestEmailOtp}
+                onClick={() => handleRequestEmailOtp({ force: true })}
                 disabled={requestingEmailOtp || expired || state.sendCount >= state.maxSends}
               >
                 {requestingEmailOtp ? (
