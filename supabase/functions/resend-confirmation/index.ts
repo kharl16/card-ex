@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
 
     let actionLink = data?.properties?.action_link as string | undefined;
     let emailOtp = data?.properties?.email_otp as string | undefined;
+    let otpType: "signup" | "magiclink" = "signup";
 
     if (error || !actionLink) {
       const msg = (error?.message ?? "").toLowerCase();
@@ -60,6 +61,7 @@ Deno.serve(async (req) => {
         });
         actionLink = retry.data?.properties?.action_link as string | undefined;
         emailOtp = retry.data?.properties?.email_otp as string | undefined;
+        otpType = "magiclink";
         if (!actionLink) {
           return json({ error: "This email is already confirmed. Please sign in instead." }, 200);
         }
@@ -113,7 +115,7 @@ Deno.serve(async (req) => {
       return json({ error: "We couldn't send the email right now. Please try again shortly." }, 502);
     }
 
-    return json({ ok: true });
+    return json({ ok: true, otp_type: otpType });
   } catch (e) {
     console.error("resend-confirmation error:", (e as Error).message);
     return json({ error: "Something went wrong. Please try again." }, 500);
