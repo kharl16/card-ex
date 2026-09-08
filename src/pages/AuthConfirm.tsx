@@ -52,6 +52,7 @@ export default function AuthConfirm() {
   const [resent, setResent] = useState(false);
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [otpType, setOtpType] = useState<"signup" | "magiclink">("signup");
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
   const [autoCancelled, setAutoCancelled] = useState(false);
 
@@ -122,7 +123,10 @@ export default function AuthConfirm() {
         if (fbError) throw fbError;
       } else if (data?.error) {
         throw new Error(data.error);
+      } else if (data?.otp_type === "magiclink" || data?.otp_type === "signup") {
+        setOtpType(data.otp_type);
       }
+      setCode("");
 
       setResent(true);
       toast.success("Confirmation email sent. Check your inbox.");
