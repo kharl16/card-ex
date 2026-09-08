@@ -169,6 +169,7 @@ export default function AuthConfirm() {
       for (const type of candidates) {
         const { error } = await supabase.auth.verifyOtp({ email, token: code, type });
         if (!error) {
+          clearFailures(emailKey);
           toast.success("Email confirmed.");
           navigate("/dashboard", { replace: true });
           return;
@@ -179,11 +180,19 @@ export default function AuthConfirm() {
       throw lastError;
     } catch (err: any) {
       const msg = (err?.message || "").toLowerCase();
-      toast.error(
-        msg.includes("expired")
-          ? "That code has expired. Please request a new confirmation email."
-          : "That code doesn't match. Please double-check and try again.",
-      );
+      const nowLocked = registerFailure(emailKey);
+      setCode("");
+      if (nowLocked) {
+        toast.error("Too many wrong codes. This email is locked for 15 minutes.");
+      } else {
+        const remaining = Math.max(0, MAX_ATTEMPTS - (readAttempts()[emailKey]?.count ?? 0));
+        toast.error(
+          (msg.includes("expired")
+            ? "That code has expired. Please request a new confirmation email."
+            : "That code doesn't match. Please double-check and try again.") +
+            ` ${remaining} attempt${remaining === 1 ? "" : "s"} left.`,
+        );
+      }
     } finally {
       setVerifying(false);
     }
