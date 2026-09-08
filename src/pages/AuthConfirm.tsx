@@ -63,10 +63,22 @@ export default function AuthConfirm() {
     }
     setVerifying(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
-      if (error) throw error;
-      toast.success("Email confirmed.");
-      navigate("/dashboard", { replace: true });
+      // The code may have been issued as a signup, magic-link or generic email
+      // OTP depending on the account state, so try each accepted type.
+      const preferred = (otpType === "magiclink" ? "magiclink" : "signup") as "magiclink" | "signup";
+      const candidates: Array<"signup" | "magiclink" | "email"> = [preferred, "email", preferred === "signup" ? "magiclink" : "signup"];
+      let lastError: any = null;
+      for (const type of candidates) {
+        const { error } = await supabase.auth.verifyOtp({ email, token: code, type });
+        if (!error) {
+          toast.success("Email confirmed.");
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+        lastError = error;
+        if ((error.message || "").toLowerCase().includes("expired")) break;
+      }
+      throw lastError;
     } catch (err: any) {
       const msg = (err?.message || "").toLowerCase();
       toast.error(
