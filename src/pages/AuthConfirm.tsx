@@ -371,6 +371,15 @@ export default function AuthConfirm() {
 
           {showResend && (
             <form onSubmit={handleVerifyCode} className="space-y-3 border-t border-border/50 pt-4">
+              {isLocked && (
+                <Alert variant="destructive">
+                  <AlertTitle>Too many wrong codes</AlertTitle>
+                  <AlertDescription>
+                    For your security, code entry for {email} is paused for about {lockMinutes} more minute
+                    {lockMinutes === 1 ? "" : "s"}. You can use a different email address in the meantime.
+                  </AlertDescription>
+                </Alert>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="confirm-code">6-digit code from the email</Label>
                 <Input
@@ -380,11 +389,22 @@ export default function AuthConfirm() {
                   placeholder="123456"
                   maxLength={6}
                   value={code}
+                  disabled={isLocked}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   className="text-center text-2xl tracking-[0.5em]"
                 />
+                {!isLocked && attemptsLeft < MAX_ATTEMPTS && (
+                  <p className="text-xs text-muted-foreground">
+                    {attemptsLeft} attempt{attemptsLeft === 1 ? "" : "s"} left before this email is paused for 15 minutes.
+                  </p>
+                )}
               </div>
-              <Button type="submit" variant="secondary" className="w-full" disabled={verifying || code.length !== 6}>
+              <Button
+                type="submit"
+                variant="secondary"
+                className="w-full"
+                disabled={verifying || code.length !== 6 || isLocked}
+              >
                 {verifying ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -393,6 +413,9 @@ export default function AuthConfirm() {
                 ) : (
                   "Confirm with code"
                 )}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={handleTryAnotherEmail}>
+                Try another email
               </Button>
             </form>
           )}
