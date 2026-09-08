@@ -11,6 +11,31 @@ import { toast } from "sonner";
 import { getAuthCallbackUrl } from "@/lib/authUrl";
 
 const EMAIL_STORAGE_KEY = "auth_confirm_email";
+const LOCKOUT_STORAGE_KEY = "auth_confirm_code_attempts";
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000;
+
+type AttemptRecord = { count: number; lockedUntil: number };
+
+function readAttempts(): Record<string, AttemptRecord> {
+  try {
+    return JSON.parse(localStorage.getItem(LOCKOUT_STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeAttempts(data: Record<string, AttemptRecord>) {
+  try {
+    localStorage.setItem(LOCKOUT_STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // storage unavailable
+  }
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
 
 type Status = "success" | "expired" | "error" | "verified_no_session" | "pending";
 
@@ -55,11 +80,83 @@ export default function AuthConfirm() {
   const [otpType, setOtpType] = useState<"signup" | "magiclink">("signup");
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
   const [autoCancelled, setAutoCancelled] = useState(false);
+  const [lockedUntil, setLockedUntil] = useState<number>(0);
+  const [attemptsLeft, setAttemptsLeft] = useState<number>(MAX_ATTEMPTS);
+  const [now, setNow] = useState(Date.now());
+
+  const isLocked = lockedUntil > now;
+  const lockMinutes = Math.max(1, Math.ceil((lockedUntil - now) / 60000));
+
+  // Load the lockout state for whichever email is currently entered.
+  useEffect(() => {
+    const key = normalizeEmail(email);
+    if (!key) {
+      setLockedUntil(0);
+      setAttemptsLeft(MAX_ATTEMPTS);
+      return;
+    }
+    const rec = readAttempts()[key];
+    if (!rec || (rec.lockedUntil && rec.lockedUntil <= Date.now())) {
+      setLockedUntil(0);
+      setAttemptsLeft(MAX_ATTEMPTS);
+      return;
+    }
+    setLockedUntil(rec.lockedUntil || 0);
+    setAttemptsLeft(Math.max(0, MAX_ATTEMPTS - (rec.count || 0)));
+  }, [email]);
+
+  // Tick so the lockout expires on screen without a refresh.
+  useEffect(() => {
+    if (!lockedUntil) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [lockedUntil]);
+
+  const registerFailure = (emailKey: string) => {
+    const all = readAttempts();
+    const prev = all[emailKey];
+    const count = (prev && prev.lockedUntil > Date.now() ? prev.count : (prev?.count ?? 0)) + 1;
+    const locked = count >= MAX_ATTEMPTS ? Date.now() + LOCKOUT_MS : 0;
+    all[emailKey] = { count, lockedUntil: locked };
+    writeAttempts(all);
+    setAttemptsLeft(Math.max(0, MAX_ATTEMPTS - count));
+    setLockedUntil(locked);
+    setNow(Date.now());
+    return locked > 0;
+  };
+
+  const clearFailures = (emailKey: string) => {
+    const all = readAttempts();
+    delete all[emailKey];
+    writeAttempts(all);
+    setAttemptsLeft(MAX_ATTEMPTS);
+    setLockedUntil(0);
+  };
+
+  const handleTryAnotherEmail = () => {
+    setEmail("");
+    setCode("");
+    setResent(false);
+    setAutoCancelled(true);
+    setAutoCountdown(null);
+    setLockedUntil(0);
+    setAttemptsLeft(MAX_ATTEMPTS);
+    try {
+      localStorage.removeItem(EMAIL_STORAGE_KEY);
+    } catch {
+      // storage unavailable
+    }
+  };
 
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       toast.error("Please enter your email address first.");
+      return;
+    }
+    const emailKey = normalizeEmail(email);
+    if (lockedUntil > Date.now()) {
+      toast.error(`Too many wrong codes. Try again in ${lockMinutes} minute${lockMinutes === 1 ? "" : "s"}.`);
       return;
     }
     setVerifying(true);
@@ -72,6 +169,7 @@ export default function AuthConfirm() {
       for (const type of candidates) {
         const { error } = await supabase.auth.verifyOtp({ email, token: code, type });
         if (!error) {
+          clearFailures(emailKey);
           toast.success("Email confirmed.");
           navigate("/dashboard", { replace: true });
           return;
@@ -82,11 +180,19 @@ export default function AuthConfirm() {
       throw lastError;
     } catch (err: any) {
       const msg = (err?.message || "").toLowerCase();
-      toast.error(
-        msg.includes("expired")
-          ? "That code has expired. Please request a new confirmation email."
-          : "That code doesn't match. Please double-check and try again.",
-      );
+      const nowLocked = registerFailure(emailKey);
+      setCode("");
+      if (nowLocked) {
+        toast.error("Too many wrong codes. This email is locked for 15 minutes.");
+      } else {
+        const remaining = Math.max(0, MAX_ATTEMPTS - (readAttempts()[emailKey]?.count ?? 0));
+        toast.error(
+          (msg.includes("expired")
+            ? "That code has expired. Please request a new confirmation email."
+            : "That code doesn't match. Please double-check and try again.") +
+            ` ${remaining} attempt${remaining === 1 ? "" : "s"} left.`,
+        );
+      }
     } finally {
       setVerifying(false);
     }
@@ -265,6 +371,15 @@ export default function AuthConfirm() {
 
           {showResend && (
             <form onSubmit={handleVerifyCode} className="space-y-3 border-t border-border/50 pt-4">
+              {isLocked && (
+                <Alert variant="destructive">
+                  <AlertTitle>Too many wrong codes</AlertTitle>
+                  <AlertDescription>
+                    For your security, code entry for {email} is paused for about {lockMinutes} more minute
+                    {lockMinutes === 1 ? "" : "s"}. You can use a different email address in the meantime.
+                  </AlertDescription>
+                </Alert>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="confirm-code">6-digit code from the email</Label>
                 <Input
@@ -274,11 +389,22 @@ export default function AuthConfirm() {
                   placeholder="123456"
                   maxLength={6}
                   value={code}
+                  disabled={isLocked}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   className="text-center text-2xl tracking-[0.5em]"
                 />
+                {!isLocked && attemptsLeft < MAX_ATTEMPTS && (
+                  <p className="text-xs text-muted-foreground">
+                    {attemptsLeft} attempt{attemptsLeft === 1 ? "" : "s"} left before this email is paused for 15 minutes.
+                  </p>
+                )}
               </div>
-              <Button type="submit" variant="secondary" className="w-full" disabled={verifying || code.length !== 6}>
+              <Button
+                type="submit"
+                variant="secondary"
+                className="w-full"
+                disabled={verifying || code.length !== 6 || isLocked}
+              >
                 {verifying ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -287,6 +413,9 @@ export default function AuthConfirm() {
                 ) : (
                   "Confirm with code"
                 )}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={handleTryAnotherEmail}>
+                Try another email
               </Button>
             </form>
           )}
