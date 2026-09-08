@@ -52,6 +52,7 @@ export default function AuthConfirm() {
   const [resent, setResent] = useState(false);
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
+  const [otpType, setOtpType] = useState<"signup" | "magiclink">("signup");
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
   const [autoCancelled, setAutoCancelled] = useState(false);
 
@@ -63,10 +64,22 @@ export default function AuthConfirm() {
     }
     setVerifying(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
-      if (error) throw error;
-      toast.success("Email confirmed.");
-      navigate("/dashboard", { replace: true });
+      // The code may have been issued as a signup, magic-link or generic email
+      // OTP depending on the account state, so try each accepted type.
+      const preferred = (otpType === "magiclink" ? "magiclink" : "signup") as "magiclink" | "signup";
+      const candidates: Array<"signup" | "magiclink" | "email"> = [preferred, "email", preferred === "signup" ? "magiclink" : "signup"];
+      let lastError: any = null;
+      for (const type of candidates) {
+        const { error } = await supabase.auth.verifyOtp({ email, token: code, type });
+        if (!error) {
+          toast.success("Email confirmed.");
+          navigate("/dashboard", { replace: true });
+          return;
+        }
+        lastError = error;
+        if ((error.message || "").toLowerCase().includes("expired")) break;
+      }
+      throw lastError;
     } catch (err: any) {
       const msg = (err?.message || "").toLowerCase();
       toast.error(
@@ -110,7 +123,10 @@ export default function AuthConfirm() {
         if (fbError) throw fbError;
       } else if (data?.error) {
         throw new Error(data.error);
+      } else if (data?.otp_type === "magiclink" || data?.otp_type === "signup") {
+        setOtpType(data.otp_type);
       }
+      setCode("");
 
       setResent(true);
       toast.success("Confirmation email sent. Check your inbox.");
