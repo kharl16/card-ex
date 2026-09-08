@@ -220,6 +220,35 @@ export default function AuthConfirm() {
             </form>
           )}
 
+          {showResend && (
+            <form onSubmit={handleVerifyCode} className="space-y-3 border-t border-border/50 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="confirm-code">6-digit code from the email</Label>
+                <Input
+                  id="confirm-code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="123456"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className="text-center text-2xl tracking-[0.5em]"
+                />
+              </div>
+              <Button type="submit" variant="secondary" className="w-full" disabled={verifying || code.length !== 6}>
+                {verifying ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  "Confirm with code"
+                )}
+              </Button>
+            </form>
+          )}
+
+
           <div className="flex items-center justify-between gap-2 pt-2 text-sm">
             <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
               Go to Sign in
