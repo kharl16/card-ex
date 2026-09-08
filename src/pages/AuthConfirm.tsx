@@ -50,8 +50,35 @@ export default function AuthConfirm() {
   });
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  const [code, setCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
   const [autoCancelled, setAutoCancelled] = useState(false);
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Please enter your email address first.");
+      return;
+    }
+    setVerifying(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+      if (error) throw error;
+      toast.success("Email confirmed.");
+      navigate("/dashboard", { replace: true });
+    } catch (err: any) {
+      const msg = (err?.message || "").toLowerCase();
+      toast.error(
+        msg.includes("expired")
+          ? "That code has expired. Please request a new confirmation email."
+          : "That code doesn't match. Please double-check and try again.",
+      );
+    } finally {
+      setVerifying(false);
+    }
+  };
+
 
   // Persist email to localStorage whenever it changes
   useEffect(() => {
