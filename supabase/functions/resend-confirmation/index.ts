@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
     });
 
     let actionLink = data?.properties?.action_link as string | undefined;
+    let emailOtp = data?.properties?.email_otp as string | undefined;
 
     if (error || !actionLink) {
       const msg = (error?.message ?? "").toLowerCase();
@@ -58,6 +59,7 @@ Deno.serve(async (req) => {
           options: { redirectTo },
         });
         actionLink = retry.data?.properties?.action_link as string | undefined;
+        emailOtp = retry.data?.properties?.email_otp as string | undefined;
         if (!actionLink) {
           return json({ error: "This email is already confirmed. Please sign in instead." }, 200);
         }
@@ -66,6 +68,7 @@ Deno.serve(async (req) => {
         return json({ error: "We couldn't create a new confirmation link. Please try again." }, 500);
       }
     }
+
 
     if (!RESEND_API_KEY) {
       return json({ error: "Email service is not configured." }, 500);
@@ -81,6 +84,11 @@ Deno.serve(async (req) => {
             Confirm your email
           </a>
         </p>
+        ${emailOtp ? `
+        <p style="text-align:center;color:#ccc;margin:0 0 8px;">Or enter this 6-digit code on the confirmation page:</p>
+        <div style="font-size:34px;font-weight:bold;letter-spacing:8px;color:#D4AF37;text-align:center;padding:14px;background:#1a1a1a;border-radius:8px;margin:0 0 16px;">
+          ${emailOtp}
+        </div>` : ""}
         <p style="color:#888;font-size:13px;">If the button doesn't work, request a new confirmation email from the sign-in page.</p>
       </div>`;
 
@@ -92,9 +100,12 @@ Deno.serve(async (req) => {
         to: [email],
         subject: "Confirm your Card-Ex email",
         html,
-        text: "Confirm your Card-Ex email by opening this message in a mail app and tapping the confirm button.",
+        text: emailOtp
+          ? `Confirm your Card-Ex email. Your 6-digit confirmation code is ${emailOtp}. Enter it on the confirmation page, or tap the confirm button in this email.`
+          : "Confirm your Card-Ex email by opening this message in a mail app and tapping the confirm button.",
       }),
     });
+
 
     if (!res.ok) {
       const body = await res.text();

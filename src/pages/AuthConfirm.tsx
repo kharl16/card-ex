@@ -50,8 +50,35 @@ export default function AuthConfirm() {
   });
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  const [code, setCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
   const [autoCancelled, setAutoCancelled] = useState(false);
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Please enter your email address first.");
+      return;
+    }
+    setVerifying(true);
+    try {
+      const { error } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+      if (error) throw error;
+      toast.success("Email confirmed.");
+      navigate("/dashboard", { replace: true });
+    } catch (err: any) {
+      const msg = (err?.message || "").toLowerCase();
+      toast.error(
+        msg.includes("expired")
+          ? "That code has expired. Please request a new confirmation email."
+          : "That code doesn't match. Please double-check and try again.",
+      );
+    } finally {
+      setVerifying(false);
+    }
+  };
+
 
   // Persist email to localStorage whenever it changes
   useEffect(() => {
@@ -219,6 +246,35 @@ export default function AuthConfirm() {
 
             </form>
           )}
+
+          {showResend && (
+            <form onSubmit={handleVerifyCode} className="space-y-3 border-t border-border/50 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="confirm-code">6-digit code from the email</Label>
+                <Input
+                  id="confirm-code"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  placeholder="123456"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  className="text-center text-2xl tracking-[0.5em]"
+                />
+              </div>
+              <Button type="submit" variant="secondary" className="w-full" disabled={verifying || code.length !== 6}>
+                {verifying ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Verifying...
+                  </>
+                ) : (
+                  "Confirm with code"
+                )}
+              </Button>
+            </form>
+          )}
+
 
           <div className="flex items-center justify-between gap-2 pt-2 text-sm">
             <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
