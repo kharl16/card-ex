@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
     });
 
     let actionLink = data?.properties?.action_link as string | undefined;
+    let emailOtp = data?.properties?.email_otp as string | undefined;
 
     if (error || !actionLink) {
       const msg = (error?.message ?? "").toLowerCase();
@@ -58,6 +59,7 @@ Deno.serve(async (req) => {
           options: { redirectTo },
         });
         actionLink = retry.data?.properties?.action_link as string | undefined;
+        emailOtp = retry.data?.properties?.email_otp as string | undefined;
         if (!actionLink) {
           return json({ error: "This email is already confirmed. Please sign in instead." }, 200);
         }
@@ -66,6 +68,7 @@ Deno.serve(async (req) => {
         return json({ error: "We couldn't create a new confirmation link. Please try again." }, 500);
       }
     }
+
 
     if (!RESEND_API_KEY) {
       return json({ error: "Email service is not configured." }, 500);
