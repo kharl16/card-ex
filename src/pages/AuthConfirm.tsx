@@ -11,6 +11,31 @@ import { toast } from "sonner";
 import { getAuthCallbackUrl } from "@/lib/authUrl";
 
 const EMAIL_STORAGE_KEY = "auth_confirm_email";
+const LOCKOUT_STORAGE_KEY = "auth_confirm_code_attempts";
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS = 15 * 60 * 1000;
+
+type AttemptRecord = { count: number; lockedUntil: number };
+
+function readAttempts(): Record<string, AttemptRecord> {
+  try {
+    return JSON.parse(localStorage.getItem(LOCKOUT_STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function writeAttempts(data: Record<string, AttemptRecord>) {
+  try {
+    localStorage.setItem(LOCKOUT_STORAGE_KEY, JSON.stringify(data));
+  } catch {
+    // storage unavailable
+  }
+}
+
+function normalizeEmail(email: string) {
+  return email.trim().toLowerCase();
+}
 
 type Status = "success" | "expired" | "error" | "verified_no_session" | "pending";
 
