@@ -80,11 +80,83 @@ export default function AuthConfirm() {
   const [otpType, setOtpType] = useState<"signup" | "magiclink">("signup");
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
   const [autoCancelled, setAutoCancelled] = useState(false);
+  const [lockedUntil, setLockedUntil] = useState<number>(0);
+  const [attemptsLeft, setAttemptsLeft] = useState<number>(MAX_ATTEMPTS);
+  const [now, setNow] = useState(Date.now());
+
+  const isLocked = lockedUntil > now;
+  const lockMinutes = Math.max(1, Math.ceil((lockedUntil - now) / 60000));
+
+  // Load the lockout state for whichever email is currently entered.
+  useEffect(() => {
+    const key = normalizeEmail(email);
+    if (!key) {
+      setLockedUntil(0);
+      setAttemptsLeft(MAX_ATTEMPTS);
+      return;
+    }
+    const rec = readAttempts()[key];
+    if (!rec || (rec.lockedUntil && rec.lockedUntil <= Date.now())) {
+      setLockedUntil(0);
+      setAttemptsLeft(MAX_ATTEMPTS);
+      return;
+    }
+    setLockedUntil(rec.lockedUntil || 0);
+    setAttemptsLeft(Math.max(0, MAX_ATTEMPTS - (rec.count || 0)));
+  }, [email]);
+
+  // Tick so the lockout expires on screen without a refresh.
+  useEffect(() => {
+    if (!lockedUntil) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [lockedUntil]);
+
+  const registerFailure = (emailKey: string) => {
+    const all = readAttempts();
+    const prev = all[emailKey];
+    const count = (prev && prev.lockedUntil > Date.now() ? prev.count : (prev?.count ?? 0)) + 1;
+    const locked = count >= MAX_ATTEMPTS ? Date.now() + LOCKOUT_MS : 0;
+    all[emailKey] = { count, lockedUntil: locked };
+    writeAttempts(all);
+    setAttemptsLeft(Math.max(0, MAX_ATTEMPTS - count));
+    setLockedUntil(locked);
+    setNow(Date.now());
+    return locked > 0;
+  };
+
+  const clearFailures = (emailKey: string) => {
+    const all = readAttempts();
+    delete all[emailKey];
+    writeAttempts(all);
+    setAttemptsLeft(MAX_ATTEMPTS);
+    setLockedUntil(0);
+  };
+
+  const handleTryAnotherEmail = () => {
+    setEmail("");
+    setCode("");
+    setResent(false);
+    setAutoCancelled(true);
+    setAutoCountdown(null);
+    setLockedUntil(0);
+    setAttemptsLeft(MAX_ATTEMPTS);
+    try {
+      localStorage.removeItem(EMAIL_STORAGE_KEY);
+    } catch {
+      // storage unavailable
+    }
+  };
 
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       toast.error("Please enter your email address first.");
+      return;
+    }
+    const emailKey = normalizeEmail(email);
+    if (lockedUntil > Date.now()) {
+      toast.error(`Too many wrong codes. Try again in ${lockMinutes} minute${lockMinutes === 1 ? "" : "s"}.`);
       return;
     }
     setVerifying(true);
