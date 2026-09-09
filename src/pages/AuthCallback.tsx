@@ -192,6 +192,7 @@ export default function AuthCallback() {
 
     return () => {
       mounted = false;
+      clearTimeout(watchdog);
       cleanupSubscription?.();
     };
   }, [navigate, searchParams]);
