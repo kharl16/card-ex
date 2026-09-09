@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, AlertTriangle, Mail, MailWarning, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { getAuthCallbackUrl } from "@/lib/authUrl";
+import { resolveAuthenticatedDestination } from "@/lib/authDestination";
 
 const EMAIL_STORAGE_KEY = "auth_confirm_email";
 const LOCKOUT_STORAGE_KEY = "auth_confirm_code_attempts";
+const OTP_TYPE_STORAGE_KEY = "auth_confirm_otp_type";
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_MS = 15 * 60 * 1000;
 
@@ -35,6 +36,32 @@ function writeAttempts(data: Record<string, AttemptRecord>) {
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
+}
+
+type ConfirmationOtpType = "signup" | "magiclink";
+
+function readOtpType(email: string): ConfirmationOtpType {
+  try {
+    const stored = JSON.parse(localStorage.getItem(OTP_TYPE_STORAGE_KEY) || "{}") as Record<string, ConfirmationOtpType>;
+    return stored[normalizeEmail(email)] === "magiclink" ? "magiclink" : "signup";
+  } catch {
+    return "signup";
+  }
+}
+
+function writeOtpType(email: string, type: ConfirmationOtpType) {
+  try {
+    let stored: Record<string, ConfirmationOtpType> = {};
+    try {
+      stored = JSON.parse(localStorage.getItem(OTP_TYPE_STORAGE_KEY) || "{}") as Record<string, ConfirmationOtpType>;
+    } catch {
+      // Replace legacy scalar or malformed state.
+    }
+    stored[normalizeEmail(email)] = type;
+    localStorage.setItem(OTP_TYPE_STORAGE_KEY, JSON.stringify(stored));
+  } catch {
+    // storage unavailable
+  }
 }
 
 type Status = "success" | "expired" | "error" | "verified_no_session" | "pending";
@@ -77,12 +104,13 @@ export default function AuthConfirm() {
   const [resent, setResent] = useState(false);
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const [otpType, setOtpType] = useState<"signup" | "magiclink">("signup");
+  const [otpType, setOtpType] = useState<ConfirmationOtpType>(() => readOtpType(urlEmail));
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
   const [autoCancelled, setAutoCancelled] = useState(false);
   const [lockedUntil, setLockedUntil] = useState<number>(0);
   const [attemptsLeft, setAttemptsLeft] = useState<number>(MAX_ATTEMPTS);
   const [now, setNow] = useState(Date.now());
+  const resendInFlight = useRef(false);
 
   const isLocked = lockedUntil > now;
   const lockMinutes = Math.max(1, Math.ceil((lockedUntil - now) / 60000));
@@ -103,6 +131,10 @@ export default function AuthConfirm() {
     }
     setLockedUntil(rec.lockedUntil || 0);
     setAttemptsLeft(Math.max(0, MAX_ATTEMPTS - (rec.count || 0)));
+  }, [email]);
+
+  useEffect(() => {
+    setOtpType(readOtpType(email));
   }, [email]);
 
   // Tick so the lockout expires on screen without a refresh.
@@ -161,23 +193,17 @@ export default function AuthConfirm() {
     }
     setVerifying(true);
     try {
-      // The code may have been issued as a signup, magic-link or generic email
-      // OTP depending on the account state, so try each accepted type.
-      const preferred = (otpType === "magiclink" ? "magiclink" : "signup") as "magiclink" | "signup";
-      const candidates: Array<"signup" | "magiclink" | "email"> = [preferred, "email", preferred === "signup" ? "magiclink" : "signup"];
-      let lastError: any = null;
-      for (const type of candidates) {
-        const { error } = await supabase.auth.verifyOtp({ email, token: code, type });
-        if (!error) {
-          clearFailures(emailKey);
-          toast.success("Email confirmed.");
-          navigate("/dashboard", { replace: true });
-          return;
-        }
-        lastError = error;
-        if ((error.message || "").toLowerCase().includes("expired")) break;
-      }
-      throw lastError;
+      // Verify exactly the challenge type returned by the resend endpoint.
+      // Trying several types consumes server attempts and can reject a valid code.
+      const { data, error } = await supabase.auth.verifyOtp({ email: emailKey, token: code, type: otpType });
+      if (error) throw error;
+      const verifiedUser = data.user ?? data.session?.user;
+      if (!verifiedUser) throw new Error("Email verified, but no account session was created.");
+
+      clearFailures(emailKey);
+      toast.success("Email confirmed.");
+      const destination = await resolveAuthenticatedDestination(verifiedUser);
+      navigate(destination, { replace: true });
     } catch (err: any) {
       const msg = (err?.message || "").toLowerCase();
       const nowLocked = registerFailure(emailKey);
@@ -211,26 +237,23 @@ export default function AuthConfirm() {
   }, [email]);
 
   const doResend = async (emailToUse: string) => {
+    if (resendInFlight.current) return;
+    resendInFlight.current = true;
     setResending(true);
     try {
       // Server-side resend: generates a fresh link and delivers it through our
       // own sender, so it works even when the old link expired or was used.
       const { data, error } = await supabase.functions.invoke("resend-confirmation", {
-        body: { email: emailToUse, redirect_to: getAuthCallbackUrl() },
+        body: { email: normalizeEmail(emailToUse) },
       });
 
       if (error) {
-        // Fall back to the built-in mailer if the function is unavailable.
-        const { error: fbError } = await supabase.auth.resend({
-          type: "signup",
-          email: emailToUse,
-          options: { emailRedirectTo: getAuthCallbackUrl() },
-        });
-        if (fbError) throw fbError;
+        throw error;
       } else if (data?.error) {
         throw new Error(data.error);
       } else if (data?.otp_type === "magiclink" || data?.otp_type === "signup") {
         setOtpType(data.otp_type);
+        writeOtpType(emailToUse, data.otp_type);
       }
       setCode("");
 
@@ -239,6 +262,7 @@ export default function AuthConfirm() {
     } catch (err: any) {
       toast.error(err?.message || "Could not resend the confirmation email.");
     } finally {
+      resendInFlight.current = false;
       setResending(false);
     }
   };
