@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -91,6 +91,7 @@ export default function AuthConfirm() {
   const [lockedUntil, setLockedUntil] = useState<number>(0);
   const [attemptsLeft, setAttemptsLeft] = useState<number>(MAX_ATTEMPTS);
   const [now, setNow] = useState(Date.now());
+  const resendInFlight = useRef(false);
 
   const isLocked = lockedUntil > now;
   const lockMinutes = Math.max(1, Math.ceil((lockedUntil - now) / 60000));
@@ -213,6 +214,8 @@ export default function AuthConfirm() {
   }, [email]);
 
   const doResend = async (emailToUse: string) => {
+    if (resendInFlight.current) return;
+    resendInFlight.current = true;
     setResending(true);
     try {
       // Server-side resend: generates a fresh link and delivers it through our
@@ -240,6 +243,7 @@ export default function AuthConfirm() {
     } catch (err: any) {
       toast.error(err?.message || "Could not resend the confirmation email.");
     } finally {
+      resendInFlight.current = false;
       setResending(false);
     }
   };

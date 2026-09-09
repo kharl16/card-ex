@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAndClearAuthNext, safeRedirectPath } from "@/lib/authUrl";
@@ -24,7 +25,7 @@ export default function AuthCallback() {
       return nextParam ? safeRedirectPath(nextParam) : getAndClearAuthNext();
     };
 
-    const continueAfterAuthentication = async (user: NonNullable<Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"]>) => {
+    const continueAfterAuthentication = async (user: User) => {
       const requested = requestedDestination();
       if (requested !== "/dashboard") return requested;
       return resolveAuthenticatedDestination(user);
