@@ -2,12 +2,7 @@
 // Uses the service role to generate a fresh signup link and delivers it via
 // Resend (custom domain), bypassing GoTrue's built-in mailer rate limits.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -28,49 +23,34 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { email, redirect_to } = await req.json().catch(() => ({}));
+    const { email } = await req.json().catch(() => ({}));
     if (typeof email !== "string" || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       return json({ error: "Please enter a valid email address." }, 400);
     }
-    const redirectTo = typeof redirect_to === "string" && redirect_to.startsWith("http")
-      ? redirect_to
-      : "https://tagex.app/auth/callback";
-
     const sb = createClient(SUPABASE_URL, SERVICE_ROLE, { auth: { persistSession: false } });
 
-    // Generate a fresh confirmation link (works even if older links expired).
+    // The signup already created the account. A magic-link challenge safely
+    // confirms an existing unverified address without changing its password.
     const { data, error } = await sb.auth.admin.generateLink({
-      type: "signup",
+      type: "magiclink",
       email,
-      password: crypto.randomUUID(), // ignored for existing users
-      options: { redirectTo },
+      options: { redirectTo: "https://tagex.app/auth/callback" },
     });
 
-    let actionLink = data?.properties?.action_link as string | undefined;
-    let emailOtp = data?.properties?.email_otp as string | undefined;
-    let otpType: "signup" | "magiclink" = "signup";
-
-    if (error || !actionLink) {
-      const msg = (error?.message ?? "").toLowerCase();
-      if (msg.includes("already been registered") || msg.includes("already registered")) {
-        // Existing unconfirmed users: magiclink still confirms the address.
-        const retry = await sb.auth.admin.generateLink({
-          type: "magiclink",
-          email,
-          options: { redirectTo },
-        });
-        actionLink = retry.data?.properties?.action_link as string | undefined;
-        emailOtp = retry.data?.properties?.email_otp as string | undefined;
-        otpType = "magiclink";
-        if (!actionLink) {
-          return json({ error: "This email is already confirmed. Please sign in instead." }, 200);
-        }
-      } else {
-        console.error("generateLink failed:", error?.message);
-        return json({ error: "We couldn't create a new confirmation link. Please try again." }, 500);
-      }
+    const emailOtp = data?.properties?.email_otp;
+    const hashedToken = data?.properties?.hashed_token;
+    const verificationType = data?.properties?.verification_type;
+    if (error || !emailOtp || !hashedToken || verificationType !== "magiclink") {
+      console.error("generateLink failed:", error?.message ?? "missing challenge properties");
+      return json({ error: "We couldn't create a new confirmation link. Please try again." }, 500);
     }
 
+    // Keep the Supabase project URL out of the message and verify the hash in
+    // our browser callback. This works across browsers and devices without PKCE.
+    const confirmUrl = new URL("https://tagex.app/auth/callback");
+    confirmUrl.searchParams.set("token_hash", hashedToken);
+    confirmUrl.searchParams.set("type", verificationType);
+    confirmUrl.searchParams.set("email", email);
 
     if (!RESEND_API_KEY) {
       return json({ error: "Email service is not configured." }, 500);
@@ -81,7 +61,7 @@ Deno.serve(async (req) => {
         <h2 style="color:#D4AF37;margin-top:0;">Confirm your email</h2>
         <p>Tap the button below to confirm your Card-Ex account. This link opens in a new tab so you can switch back easily.</p>
         <p style="text-align:center;margin:24px 0;">
-          <a href="${actionLink}" target="_blank" rel="noopener noreferrer"
+          <a href="${confirmUrl.toString()}" target="_blank" rel="noopener noreferrer"
              style="display:inline-block;padding:14px 28px;background:#D4AF37;color:#0a0a0a;font-weight:bold;border-radius:8px;text-decoration:none;">
             Confirm your email
           </a>
@@ -115,7 +95,7 @@ Deno.serve(async (req) => {
       return json({ error: "We couldn't send the email right now. Please try again shortly." }, 502);
     }
 
-    return json({ ok: true, otp_type: otpType });
+    return json({ ok: true, otp_type: verificationType });
   } catch (e) {
     console.error("resend-confirmation error:", (e as Error).message);
     return json({ error: "Something went wrong. Please try again." }, 500);

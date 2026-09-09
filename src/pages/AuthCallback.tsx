@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { getAndClearAuthNext, safeRedirectPath, getAppUrl } from "@/lib/authUrl";
+import { getAndClearAuthNext, safeRedirectPath } from "@/lib/authUrl";
+import { resolveAuthenticatedDestination } from "@/lib/authDestination";
 import { Button } from "@/components/ui/button";
 import { recordAuthEvent } from "@/lib/authClient";
 
@@ -18,9 +19,15 @@ export default function AuthCallback() {
     let mounted = true;
     let cleanupSubscription: (() => void) | undefined;
 
-    const redirectToDestination = () => {
+    const requestedDestination = () => {
       const nextParam = searchParams.get("next");
       return nextParam ? safeRedirectPath(nextParam) : getAndClearAuthNext();
+    };
+
+    const continueAfterAuthentication = async (user: NonNullable<Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"]>) => {
+      const requested = requestedDestination();
+      if (requested !== "/dashboard") return requested;
+      return resolveAuthenticatedDestination(user);
     };
 
     const handleCallback = async () => {
@@ -53,7 +60,30 @@ export default function AuthCallback() {
         return;
       }
 
-      // ── 1. Handle PKCE code exchange (email confirmation links) ──
+      // ── 1. Handle branded token-hash links (server-generated confirmation) ──
+      const tokenHash = searchParams.get("token_hash");
+      const verificationType = searchParams.get("type");
+      const allowedTypes = ["signup", "magiclink", "recovery", "invite", "email_change"] as const;
+      const validType = allowedTypes.find((type) => type === verificationType);
+
+      if (tokenHash && validType) {
+        const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: validType });
+        if (error) {
+          const expired = error.message.toLowerCase().includes("expired") || error.message.toLowerCase().includes("invalid");
+          const email = searchParams.get("email");
+          const emailParam = email ? `&email=${encodeURIComponent(email)}` : "";
+          navigate(`/auth/confirm?status=${expired ? "expired" : "error"}${emailParam}`, { replace: true });
+          return;
+        }
+        const verifiedUser = data.user ?? data.session?.user;
+        if (verifiedUser && mounted) {
+          setStatus("success");
+          navigate(await continueAfterAuthentication(verifiedUser), { replace: true });
+          return;
+        }
+      }
+
+      // ── 2. Handle PKCE code exchange (OAuth/client-generated links) ──
       const code = searchParams.get("code");
       if (code) {
         if (import.meta.env.DEV) {
@@ -65,13 +95,13 @@ export default function AuthCallback() {
           // Code exchange failed — likely opened in different browser
         } else if (data.session && mounted) {
           setStatus("success");
-          const destination = redirectToDestination();
+          const destination = await continueAfterAuthentication(data.session.user);
           navigate(destination, { replace: true });
           return;
         }
       }
 
-      // ── 2. Handle hash-based tokens (implicit flow / magic links) ──
+      // ── 3. Handle hash-based tokens (implicit flow / magic links) ──
       const accessToken = hashParams.get("access_token");
       const refreshToken = hashParams.get("refresh_token");
 
@@ -82,7 +112,7 @@ export default function AuthCallback() {
         });
         if (!error && data.session && mounted) {
           setStatus("success");
-          const destination = redirectToDestination();
+          const destination = await continueAfterAuthentication(data.session.user);
           navigate(destination, { replace: true });
           return;
         }
@@ -91,7 +121,7 @@ export default function AuthCallback() {
         }
       }
 
-      // ── 3. Check for an existing session ──
+      // ── 4. Check for an existing session ──
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) {
@@ -106,26 +136,27 @@ export default function AuthCallback() {
         setStatus("success");
         const provider = (session.user?.app_metadata as { provider?: string })?.provider ?? "email";
         void recordAuthEvent("login", provider);
-        const destination = redirectToDestination();
+        const destination = await continueAfterAuthentication(session.user);
         navigate(destination, { replace: true });
         return;
       }
 
 
-      // ── 4. No session — if we had a code param, verification likely succeeded
+      // ── 5. No session — if we had a code param, verification likely succeeded
       //       but user opened link in a different browser ──
       if (code && mounted) {
         navigate(`/auth/confirm?status=verified_no_session`, { replace: true });
         return;
       }
 
-      // ── 5. Listen for auth state changes ──
+      // ── 6. Listen for auth state changes ──
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if (!mounted) return;
         if (session) {
           setStatus("success");
-          const destination = redirectToDestination();
-          navigate(destination, { replace: true });
+          void continueAfterAuthentication(session.user).then((destination) => {
+            if (mounted) navigate(destination, { replace: true });
+          });
         } else if (event === "SIGNED_OUT") {
           setStatus("error");
           navigate("/auth", { replace: true });
@@ -134,7 +165,7 @@ export default function AuthCallback() {
 
       cleanupSubscription = () => subscription.unsubscribe();
 
-      // ── 6. Timeout fallback ──
+      // ── 7. Timeout fallback ──
       setTimeout(() => {
         if (mounted && status === "loading") {
           navigate(`/auth/confirm?status=verified_no_session`, { replace: true });
