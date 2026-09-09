@@ -116,6 +116,8 @@ export default function AuthConfirm() {
   const lockMinutes = Math.max(1, Math.ceil((lockedUntil - now) / 60000));
 
   // Load the lockout state for whichever email is currently entered.
+  // If the stored lockout has already expired, clear it so the user gets a
+  // fresh set of attempts instead of being instantly re-locked on the next typo.
   useEffect(() => {
     const key = normalizeEmail(email);
     if (!key) {
@@ -123,8 +125,16 @@ export default function AuthConfirm() {
       setAttemptsLeft(MAX_ATTEMPTS);
       return;
     }
-    const rec = readAttempts()[key];
-    if (!rec || (rec.lockedUntil && rec.lockedUntil <= Date.now())) {
+    const all = readAttempts();
+    const rec = all[key];
+    if (!rec) {
+      setLockedUntil(0);
+      setAttemptsLeft(MAX_ATTEMPTS);
+      return;
+    }
+    if (rec.lockedUntil && rec.lockedUntil <= Date.now()) {
+      delete all[key];
+      writeAttempts(all);
       setLockedUntil(0);
       setAttemptsLeft(MAX_ATTEMPTS);
       return;
@@ -137,12 +147,26 @@ export default function AuthConfirm() {
     setOtpType(readOtpType(email));
   }, [email]);
 
-  // Tick so the lockout expires on screen without a refresh.
+  // Tick so the lockout expires on screen without a refresh, and clear the
+  // stale record once the pause is over so the next failure starts at count 1.
   useEffect(() => {
     if (!lockedUntil) return;
-    const t = setInterval(() => setNow(Date.now()), 1000);
+    const t = setInterval(() => {
+      const nowMs = Date.now();
+      setNow(nowMs);
+      if (lockedUntil <= nowMs) {
+        const key = normalizeEmail(email);
+        if (key) {
+          const all = readAttempts();
+          delete all[key];
+          writeAttempts(all);
+        }
+        setLockedUntil(0);
+        setAttemptsLeft(MAX_ATTEMPTS);
+      }
+    }, 1000);
     return () => clearInterval(t);
-  }, [lockedUntil]);
+  }, [lockedUntil, email]);
 
   const registerFailure = (emailKey: string) => {
     const all = readAttempts();
