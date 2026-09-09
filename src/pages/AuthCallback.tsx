@@ -28,7 +28,15 @@ export default function AuthCallback() {
     const continueAfterAuthentication = async (user: User) => {
       const requested = requestedDestination();
       if (requested !== "/dashboard") return requested;
-      return resolveAuthenticatedDestination(user);
+      // Never let a slow/blocked lookup strand the user on the spinner.
+      try {
+        return await Promise.race([
+          resolveAuthenticatedDestination(user),
+          new Promise<string>((resolve) => setTimeout(() => resolve("/dashboard"), 4000)),
+        ]);
+      } catch {
+        return "/dashboard";
+      }
     };
 
     const handleCallback = async () => {
@@ -166,18 +174,25 @@ export default function AuthCallback() {
 
       cleanupSubscription = () => subscription.unsubscribe();
 
-      // ── 7. Timeout fallback ──
-      setTimeout(() => {
-        if (mounted && status === "loading") {
-          navigate(`/auth/confirm?status=verified_no_session`, { replace: true });
-        }
-      }, 8000);
     };
 
-    handleCallback();
+    // Global watchdog: if nothing has resolved, send the user somewhere useful
+    // instead of leaving the spinner on screen forever.
+    const watchdog = setTimeout(async () => {
+      if (!mounted) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!mounted) return;
+      navigate(session ? "/dashboard" : "/auth/confirm?status=verified_no_session", { replace: true });
+    }, 9000);
+
+    handleCallback().catch((err) => {
+      console.error("[AuthCallback] Unexpected failure:", err);
+      if (mounted) navigate("/auth/confirm?status=error", { replace: true });
+    });
 
     return () => {
       mounted = false;
+      clearTimeout(watchdog);
       cleanupSubscription?.();
     };
   }, [navigate, searchParams]);
