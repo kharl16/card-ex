@@ -28,7 +28,15 @@ export default function AuthCallback() {
     const continueAfterAuthentication = async (user: User) => {
       const requested = requestedDestination();
       if (requested !== "/dashboard") return requested;
-      return resolveAuthenticatedDestination(user);
+      // Never let a slow/blocked lookup strand the user on the spinner.
+      try {
+        return await Promise.race([
+          resolveAuthenticatedDestination(user),
+          new Promise<string>((resolve) => setTimeout(() => resolve("/dashboard"), 4000)),
+        ]);
+      } catch {
+        return "/dashboard";
+      }
     };
 
     const handleCallback = async () => {
