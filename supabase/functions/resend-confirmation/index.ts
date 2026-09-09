@@ -1,8 +1,13 @@
 // Resends the "Confirm your email" link reliably.
-// Uses the service role to generate a fresh signup link and delivers it via
+// Uses the service role to generate a fresh challenge and delivers it via
 // Resend (custom domain), bypassing GoTrue's built-in mailer rate limits.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

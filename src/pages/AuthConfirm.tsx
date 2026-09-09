@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CheckCircle2, AlertTriangle, Mail, MailWarning, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { getAuthCallbackUrl } from "@/lib/authUrl";
 import { resolveAuthenticatedDestination } from "@/lib/authDestination";
 
 const EMAIL_STORAGE_KEY = "auth_confirm_email";
@@ -37,6 +36,32 @@ function writeAttempts(data: Record<string, AttemptRecord>) {
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
+}
+
+type ConfirmationOtpType = "signup" | "magiclink";
+
+function readOtpType(email: string): ConfirmationOtpType {
+  try {
+    const stored = JSON.parse(localStorage.getItem(OTP_TYPE_STORAGE_KEY) || "{}") as Record<string, ConfirmationOtpType>;
+    return stored[normalizeEmail(email)] === "magiclink" ? "magiclink" : "signup";
+  } catch {
+    return "signup";
+  }
+}
+
+function writeOtpType(email: string, type: ConfirmationOtpType) {
+  try {
+    let stored: Record<string, ConfirmationOtpType> = {};
+    try {
+      stored = JSON.parse(localStorage.getItem(OTP_TYPE_STORAGE_KEY) || "{}") as Record<string, ConfirmationOtpType>;
+    } catch {
+      // Replace legacy scalar or malformed state.
+    }
+    stored[normalizeEmail(email)] = type;
+    localStorage.setItem(OTP_TYPE_STORAGE_KEY, JSON.stringify(stored));
+  } catch {
+    // storage unavailable
+  }
 }
 
 type Status = "success" | "expired" | "error" | "verified_no_session" | "pending";
@@ -79,13 +104,7 @@ export default function AuthConfirm() {
   const [resent, setResent] = useState(false);
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
-  const [otpType, setOtpType] = useState<"signup" | "magiclink">(() => {
-    try {
-      return localStorage.getItem(OTP_TYPE_STORAGE_KEY) === "signup" ? "signup" : "magiclink";
-    } catch {
-      return "magiclink";
-    }
-  });
+  const [otpType, setOtpType] = useState<ConfirmationOtpType>(() => readOtpType(urlEmail));
   const [autoCountdown, setAutoCountdown] = useState<number | null>(null);
   const [autoCancelled, setAutoCancelled] = useState(false);
   const [lockedUntil, setLockedUntil] = useState<number>(0);
@@ -112,6 +131,10 @@ export default function AuthConfirm() {
     }
     setLockedUntil(rec.lockedUntil || 0);
     setAttemptsLeft(Math.max(0, MAX_ATTEMPTS - (rec.count || 0)));
+  }, [email]);
+
+  useEffect(() => {
+    setOtpType(readOtpType(email));
   }, [email]);
 
   // Tick so the lockout expires on screen without a refresh.
@@ -221,7 +244,7 @@ export default function AuthConfirm() {
       // Server-side resend: generates a fresh link and delivers it through our
       // own sender, so it works even when the old link expired or was used.
       const { data, error } = await supabase.functions.invoke("resend-confirmation", {
-        body: { email: emailToUse, redirect_to: getAuthCallbackUrl() },
+        body: { email: normalizeEmail(emailToUse) },
       });
 
       if (error) {
@@ -230,11 +253,7 @@ export default function AuthConfirm() {
         throw new Error(data.error);
       } else if (data?.otp_type === "magiclink" || data?.otp_type === "signup") {
         setOtpType(data.otp_type);
-        try {
-          localStorage.setItem(OTP_TYPE_STORAGE_KEY, data.otp_type);
-        } catch {
-          // storage unavailable
-        }
+        writeOtpType(emailToUse, data.otp_type);
       }
       setCode("");
 
