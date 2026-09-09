@@ -23,7 +23,7 @@ interface CardData {
 export default function Billing() {
   const { cardId } = useParams<{ cardId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isPermanentSuperAdmin } = useAuth();
   const { data: plans, isLoading: plansLoading } = useCardPlans();
   const submitPayment = useSubmitPayment();
 
@@ -180,23 +180,25 @@ export default function Billing() {
               </CardContent>
             </Card>
 
-            {/* Payment Method */}
-            <Card>
-              <CardHeader>
-                <CardTitle>2. Select Payment Method</CardTitle>
-                <CardDescription>
-                  Choose how you want to pay
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <PaymentMethodSelector
-                  selectedMethod={paymentMethod}
-                  onSelectMethod={setPaymentMethod}
-                  providerReference={providerReference}
-                  onProviderReferenceChange={setProviderReference}
-                />
-              </CardContent>
-            </Card>
+            {/* Payment Method — manual payment restricted to permanent super admin */}
+            {isPermanentSuperAdmin && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>2. Select Payment Method</CardTitle>
+                  <CardDescription>
+                    Choose how you want to pay
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PaymentMethodSelector
+                    selectedMethod={paymentMethod}
+                    onSelectMethod={setPaymentMethod}
+                    providerReference={providerReference}
+                    onProviderReferenceChange={setProviderReference}
+                  />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Order Summary Sidebar */}
@@ -278,17 +280,21 @@ export default function Billing() {
                   </div>
                 </Button>
 
-                <Separator />
+                {isPermanentSuperAdmin && (
+                  <>
+                    <Separator />
 
-                <Button
-                  className="w-full"
-                  size="lg"
-                  variant="outline"
-                  onClick={handleSubmitPayment}
-                  disabled={!selectedPlanId || !paymentMethod || submitPayment.isPending}
-                >
-                  {submitPayment.isPending ? "Processing..." : "Submit Manual Payment"}
-                </Button>
+                    <Button
+                      className="w-full"
+                      size="lg"
+                      variant="outline"
+                      onClick={handleSubmitPayment}
+                      disabled={!selectedPlanId || !paymentMethod || submitPayment.isPending}
+                    >
+                      {submitPayment.isPending ? "Processing..." : "Submit Manual Payment"}
+                    </Button>
+                  </>
+                )}
 
 
                 <p className="text-xs text-center text-muted-foreground">
