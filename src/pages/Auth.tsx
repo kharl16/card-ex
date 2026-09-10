@@ -26,7 +26,11 @@ export default function Auth() {
     rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
       ? rawRedirect
       : "/dashboard";
-  const [mode, setMode] = useState<Mode>("choose");
+  const initialMode = ((): Mode => {
+    const m = searchParams.get("mode");
+    return m === "forgot" || m === "signin" || m === "signup" ? m : "choose";
+  })();
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
