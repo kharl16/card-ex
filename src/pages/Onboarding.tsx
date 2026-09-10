@@ -46,7 +46,7 @@ export default function Onboarding() {
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [facebookUrl, setFacebookUrl] = useState("");
+  const [facebookUrl, setFacebookUrl] = useState("https://facebook.com/");
   const [iamId, setIamId] = useState("");
   const [isIamMember, setIsIamMember] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
