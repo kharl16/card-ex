@@ -75,7 +75,7 @@ export function AdminCreateCardDialog({
   const [email, setEmail] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("");
   const [iamId, setIamId] = useState("");
-  const [isIamMember, setIsIamMember] = useState(false);
+  const [isIamMember, setIsIamMember] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Prefill from profile when opening
@@ -101,7 +101,7 @@ export function AdminCreateCardDialog({
         setIsIamMember(true);
         setIamId(String(profile.iam_id));
       } else {
-        setIsIamMember(false);
+        setIsIamMember(true);
         setIamId("");
       }
 

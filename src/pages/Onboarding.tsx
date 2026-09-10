@@ -48,7 +48,7 @@ export default function Onboarding() {
   const [email, setEmail] = useState("");
   const [facebookUrl, setFacebookUrl] = useState("https://facebook.com/");
   const [iamId, setIamId] = useState("");
-  const [isIamMember, setIsIamMember] = useState(false);
+  const [isIamMember, setIsIamMember] = useState(true);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const iamIdMissing = isIamMember && !/^\d{8}$/.test(iamId);
