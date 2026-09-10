@@ -465,6 +465,14 @@ export default function AuthConfirm() {
               <Button type="button" variant="ghost" className="w-full" onClick={handleTryAnotherEmail}>
                 Try another email
               </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => navigate("/auth?mode=forgot")}
+              >
+                Reset my password instead
+              </Button>
             </form>
           )}
 
