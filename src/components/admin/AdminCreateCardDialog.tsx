@@ -96,7 +96,7 @@ export function AdminCreateCardDialog({
       setFirstName(parts[0] ?? "");
       setLastName(parts.slice(1).join(" ") ?? "");
       setPhone(profile?.phone || "");
-      setFacebookUrl(profile?.facebook_url || "");
+      setFacebookUrl(profile?.facebook_url || "https://facebook.com/");
       if (profile?.iam_id) {
         setIsIamMember(true);
         setIamId(String(profile.iam_id));
