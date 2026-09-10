@@ -12,7 +12,7 @@ import { TurnstileWidget, turnstileEnabled, readTurnstileToken, resetTurnstile }
 import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
-import { getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
+import { getAppUrl, getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
 import { SEO } from "@/components/SEO";
 
 type Mode = "choose" | "signin" | "signup" | "forgot";
@@ -148,8 +148,8 @@ export default function Auth() {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+        redirectTo: `${getAppUrl()}/reset-password`,
       });
       if (error) throw error;
       toast.success("If an account with that email exists, a password reset link has been sent.");
