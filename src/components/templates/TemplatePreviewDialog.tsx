@@ -38,6 +38,8 @@ export function TemplatePreviewDialog({
     products_carousel_url: null,
     products_carousel_url_digits: null,
     slug: "preview",
+    brochure_images: ((layoutData as any).brochure_images as unknown as Json) ?? [],
+    showcase_display_mode: ((layoutData as any).showcase_display_mode as string) ?? "carousel",
     ad_banner: null,
     image_carousels: (layoutData.image_carousels as unknown as Json) ?? null,
     show_daily_quote: layoutData.show_daily_quote ?? false,
