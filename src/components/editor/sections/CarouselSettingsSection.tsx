@@ -14,6 +14,9 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { BookOpen, Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
 import { parseVideoUrl, detectVideoSource, type VideoItem } from "@/lib/videoUtils";
+import { toast } from "sonner";
+import ShowcaseModeToggle from "@/components/showcase/ShowcaseModeToggle";
+import { SHOWCASE_ORDER } from "@/lib/showcase";
 import {
   type CarouselKey,
   type CarouselSection,
