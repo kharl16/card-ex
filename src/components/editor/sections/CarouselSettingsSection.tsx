@@ -989,6 +989,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                     ownerId={card.user_id}
                     images={(() => {
                       const columnMap: Record<CarouselKey, string> = {
+                        brochure: "brochure_images",
                         products: "product_images",
                         packages: "package_images",
                         testimonies: "testimony_images",
