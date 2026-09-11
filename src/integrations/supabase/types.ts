@@ -879,6 +879,7 @@ export type Database = {
           ad_banner: Json | null
           avatar_url: string | null
           bio: string | null
+          brochure_images: Json
           card_type: string | null
           carousel_enabled: boolean
           carousel_settings: Json | null
@@ -925,6 +926,7 @@ export type Database = {
           share_url: string | null
           show_daily_quote: boolean
           show_referral_earnings: boolean
+          showcase_display_mode: string
           slug: string
           social_links: Json | null
           suffix: string | null
@@ -944,6 +946,7 @@ export type Database = {
           ad_banner?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          brochure_images?: Json
           card_type?: string | null
           carousel_enabled?: boolean
           carousel_settings?: Json | null
@@ -990,6 +993,7 @@ export type Database = {
           share_url?: string | null
           show_daily_quote?: boolean
           show_referral_earnings?: boolean
+          showcase_display_mode?: string
           slug: string
           social_links?: Json | null
           suffix?: string | null
@@ -1009,6 +1013,7 @@ export type Database = {
           ad_banner?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          brochure_images?: Json
           card_type?: string | null
           carousel_enabled?: boolean
           carousel_settings?: Json | null
@@ -1055,6 +1060,7 @@ export type Database = {
           share_url?: string | null
           show_daily_quote?: boolean
           show_referral_earnings?: boolean
+          showcase_display_mode?: string
           slug?: string
           social_links?: Json | null
           suffix?: string | null
@@ -3390,6 +3396,7 @@ export type Database = {
           ad_banner: Json | null
           avatar_url: string | null
           bio: string | null
+          brochure_images: Json | null
           card_type: string | null
           carousel_enabled: boolean | null
           carousel_settings: Json | null
@@ -3418,6 +3425,7 @@ export type Database = {
           qr_code_url: string | null
           share_url: string | null
           show_daily_quote: boolean | null
+          showcase_display_mode: string | null
           slug: string | null
           social_links: Json | null
           suffix: string | null
@@ -3435,6 +3443,7 @@ export type Database = {
           ad_banner?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          brochure_images?: Json | null
           card_type?: string | null
           carousel_enabled?: boolean | null
           carousel_settings?: Json | null
@@ -3463,6 +3472,7 @@ export type Database = {
           qr_code_url?: string | null
           share_url?: string | null
           show_daily_quote?: boolean | null
+          showcase_display_mode?: string | null
           slug?: string | null
           social_links?: Json | null
           suffix?: string | null
@@ -3480,6 +3490,7 @@ export type Database = {
           ad_banner?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          brochure_images?: Json | null
           card_type?: string | null
           carousel_enabled?: boolean | null
           carousel_settings?: Json | null
@@ -3508,6 +3519,7 @@ export type Database = {
           qr_code_url?: string | null
           share_url?: string | null
           show_daily_quote?: boolean | null
+          showcase_display_mode?: string | null
           slug?: string | null
           social_links?: Json | null
           suffix?: string | null
