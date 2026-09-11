@@ -122,6 +122,8 @@ export default function CarouselSharePage() {
     if (!card) return [];
     
     switch (kind) {
+      case "brochure":
+        return normalizeImages((card as any).brochure_images);
       case "products":
         return normalizeImages(card.product_images);
       case "packages":
