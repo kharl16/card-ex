@@ -176,10 +176,34 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
     videos: 25,
   };
 
+  const showcaseMode: "carousel" | "immersive" =
+    (card as any).showcase_display_mode === "immersive" ? "immersive" : "carousel";
+
   return (
     <div className="space-y-4">
+      <Card>
+        <CardContent className="pt-6">
+          <ShowcaseModeToggle
+            value={showcaseMode}
+            onChange={(mode) => {
+              if (mode === showcaseMode) return;
+              onCardChange({ showcase_display_mode: mode } as any);
+              toast.success("Showcase style updated.");
+            }}
+          />
+        </CardContent>
+      </Card>
+
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as CarouselKey)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="brochure" className="flex items-center gap-2">
+            {CAROUSEL_ICONS.brochure}
+            <span className="hidden sm:inline">Brochure</span>
+          </TabsTrigger>
+          <TabsTrigger value="videos" className="flex items-center gap-2">
+            {CAROUSEL_ICONS.videos}
+            <span className="hidden sm:inline">Videos</span>
+          </TabsTrigger>
           <TabsTrigger value="products" className="flex items-center gap-2">
             {CAROUSEL_ICONS.products}
             <span className="hidden sm:inline">Products</span>
@@ -192,13 +216,9 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
             {CAROUSEL_ICONS.testimonies}
             <span className="hidden sm:inline">Testimonies</span>
           </TabsTrigger>
-          <TabsTrigger value="videos" className="flex items-center gap-2">
-            {CAROUSEL_ICONS.videos}
-            <span className="hidden sm:inline">Videos</span>
-          </TabsTrigger>
         </TabsList>
 
-        {(["products", "packages", "testimonies", "videos"] as CarouselKey[]).map((key) => (
+        {(SHOWCASE_ORDER as CarouselKey[]).map((key) => (
           <TabsContent key={key} value={key} className="space-y-6 mt-4">
             <p className="text-sm text-muted-foreground">{CAROUSEL_DESCRIPTIONS[key]}</p>
 
