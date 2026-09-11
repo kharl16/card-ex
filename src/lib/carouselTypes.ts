@@ -1,7 +1,7 @@
 // Carousel types for the three independent carousel sections
 // All stored in cards.carousel_settings JSON column
 
-export type CarouselKey = "products" | "packages" | "testimonies" | "videos";
+export type CarouselKey = "brochure" | "products" | "packages" | "testimonies" | "videos";
 
 export type CarouselBackgroundType = "solid" | "gradient" | "transparent";
 export type CarouselGradientDirection = "to-r" | "to-l" | "to-b" | "to-t" | "to-tr" | "to-br" | "to-tl" | "to-bl";
@@ -27,7 +27,7 @@ export type CTAVariant = "solid" | "outline" | "ghost";
 export type CTAShape = "pill" | "rounded" | "square";
 export type CTASize = "sm" | "md" | "lg";
 export type CTAWidth = "fit" | "full";
-export type CTAScrollTarget = "top" | "contact" | "carousel_products" | "carousel_packages" | "carousel_testimonies";
+export type CTAScrollTarget = "top" | "contact" | "carousel_brochure" | "carousel_products" | "carousel_packages" | "carousel_testimonies";
 export type CTAContactMethod = "messenger" | "whatsapp" | "viber" | "sms" | "email" | "phone";
 
 export type CTAGlowColorMode = "primary" | "background" | "custom";
@@ -97,6 +97,7 @@ export interface CarouselSection {
 }
 
 export interface CarouselSettingsData {
+  brochure: CarouselSection;
   products: CarouselSection;
   packages: CarouselSection;
   testimonies: CarouselSection;
@@ -105,6 +106,14 @@ export interface CarouselSettingsData {
 
 // Default CTA styles per carousel type
 export const DEFAULT_CTA_STYLES: Record<CarouselKey, CTAStyle> = {
+  brochure: {
+    variant: "outline",
+    shape: "pill",
+    size: "md",
+    width: "fit",
+    glow: true,
+    glowIntensity: 25,
+  },
   products: {
     variant: "solid",
     shape: "pill",
@@ -141,6 +150,7 @@ export const DEFAULT_CTA_STYLES: Record<CarouselKey, CTAStyle> = {
 
 // Default CTA labels per carousel type
 export const DEFAULT_CTA_LABELS: Record<CarouselKey, string> = {
+  brochure: "View Brochure",
   products: "Inquire Now",
   packages: "View Packages",
   testimonies: "Message Us",
@@ -151,7 +161,7 @@ export const DEFAULT_CTA_LABELS: Record<CarouselKey, string> = {
 export function createDefaultCarouselSection(key: CarouselKey): CarouselSection {
   const maxImages = key === "testimonies" ? 200 : key === "videos" ? 25 : 50;
   const direction = key === "packages" ? "rtl" : "ltr";
-  const title = key.charAt(0).toUpperCase() + key.slice(1);
+  const title = key === "brochure" ? "Company Brochure" : key.charAt(0).toUpperCase() + key.slice(1);
 
   return {
     title,
@@ -185,6 +195,7 @@ export function createDefaultCarouselSection(key: CarouselKey): CarouselSection 
 // Create default carousel settings with all three sections
 export function createDefaultCarouselSettings(): CarouselSettingsData {
   return {
+    brochure: createDefaultCarouselSection("brochure"),
     products: createDefaultCarouselSection("products"),
     packages: createDefaultCarouselSection("packages"),
     testimonies: createDefaultCarouselSection("testimonies"),
@@ -201,6 +212,7 @@ export function mergeCarouselSettings(
   if (!existing) return defaults;
 
   return {
+    brochure: mergeSection(defaults.brochure, existing.brochure),
     products: mergeSection(defaults.products, existing.products),
     packages: mergeSection(defaults.packages, existing.packages),
     testimonies: mergeSection(defaults.testimonies, existing.testimonies),
