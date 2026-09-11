@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRenderer";
+import CardShowcase from "@/components/showcase/CardShowcase";
 import { useGlobalProductImages } from "@/hooks/useGlobalProductImages";
 import { useGlobalPackageImages } from "@/hooks/useGlobalPackageImages";
 import { useGlobalTestimonyImages } from "@/hooks/useGlobalTestimonyImages";
@@ -475,121 +476,19 @@ export default function CardView({
         {/* Referral Earnings Badge — public proof of successful referrals */}
         {card?.id && (card as any).show_referral_earnings && <ReferralEarningsBadge cardId={card.id} variant="card" />}
 
-        {/* Carousel Sections */}
-        {(() => {
-          const carouselSettings = mergeCarouselSettings(
-            (card as any).carousel_settings as Partial<CarouselSettingsData> | null
-          );
-          const contactInfo = { phone: card.phone, email: card.email, website: card.website };
-
-          const normalizeCarouselImages = (raw: any): { url: string; alt?: string; order?: number; description?: string; shareText?: string; srp?: string; hidden?: boolean }[] => {
-            if (!raw || !Array.isArray(raw)) return [];
-
-            return raw
-              .map((img: any, idx: number) => ({
-                url: (typeof img?.url === "string" ? img.url : img?.image_url) as string | undefined,
-                alt: (img?.alt ?? img?.alt_text ?? img?.title ?? img?.name) as string | undefined,
-                order: (img?.order ?? img?.sort_order ?? idx) as number,
-                description: (img?.description ?? img?.desc) as string | undefined,
-                shareText: (img?.shareText ?? img?.share_text ?? img?.caption) as string | undefined,
-                srp: (img?.srp ?? img?.SRP ?? img?.price_srp) as string | undefined,
-                hidden: img?.hidden === true,
-              }))
-              .filter((img) => !!img.url);
-          };
-
-          const ownProductImages = normalizeCarouselImages((card as any).product_images);
-          const globalAsCarousel = visibleGlobals
-            .flatMap((g) => [g.url, (g as any).url_2].filter(Boolean).map((u) => ({ ...g, url: u as string })))
-            .map((g, idx) => ({
-              url: g.url,
-              alt: g.caption ?? undefined,
-              order: ownProductImages.length + idx,
-              description: undefined,
-              shareText: g.caption ?? undefined,
-              srp: (g as any).srp ?? undefined,
-            }));
-          const productImagesData = [...ownProductImages, ...globalAsCarousel];
-          const ownPackageImages = normalizeCarouselImages((card as any).package_images);
-          const globalPackagesAsCarousel = visibleGlobalPackages
-            .flatMap((g) => [g.url, (g as any).url_2].filter(Boolean).map((u) => ({ ...g, url: u as string })))
-            .map((g, idx) => ({
-              url: g.url,
-              alt: g.caption ?? undefined,
-              order: ownPackageImages.length + idx,
-              description: undefined,
-              shareText: g.caption ?? undefined,
-              srp: (g as any).srp ?? undefined,
-            }));
-          const packageImagesData = [...ownPackageImages, ...globalPackagesAsCarousel];
-          const ownTestimonyImages = normalizeCarouselImages((card as any).testimony_images);
-          const globalTestimoniesAsCarousel = visibleGlobalTestimonies.map((g, idx) => ({
-            url: g.url,
-            alt: g.caption ?? undefined,
-            order: ownTestimonyImages.length + idx,
-            description: undefined,
-            shareText: g.caption ?? undefined,
-            srp: undefined,
-          }));
-          const testimonyImagesData = [...ownTestimonyImages, ...globalTestimoniesAsCarousel];
-          const videoItems = Array.isArray((card as any).video_items) ? (card as any).video_items : [];
-          const cardSlug = card.slug;
-          
-          return (
-            <>
-              {productImagesData.length > 0 && (
-                <div className="px-6 mt-2 mb-1">
-                  <CarouselSectionRenderer
-                    carouselKey="products"
-                    section={carouselSettings.products}
-                    images={productImagesData}
-                    contactInfo={contactInfo}
-                    isInteractive={isInteractive}
-                    shareUrl={publicCardUrl}
-                    cardSlug={cardSlug}
-                  />
-                </div>
-              )}
-              {packageImagesData.length > 0 && (
-                <div className="px-6 my-1">
-                  <CarouselSectionRenderer
-                    carouselKey="packages"
-                    section={carouselSettings.packages}
-                    images={packageImagesData}
-                    contactInfo={contactInfo}
-                    isInteractive={isInteractive}
-                    shareUrl={publicCardUrl}
-                    cardSlug={cardSlug}
-                  />
-                </div>
-              )}
-              {testimonyImagesData.length > 0 && (
-                <div className="px-6 my-1">
-                  <CarouselSectionRenderer
-                    carouselKey="testimonies"
-                    section={carouselSettings.testimonies}
-                    images={testimonyImagesData}
-                    contactInfo={contactInfo}
-                    isInteractive={isInteractive}
-                    shareUrl={publicCardUrl}
-                    cardSlug={cardSlug}
-                  />
-                </div>
-              )}
-              {videoItems.length > 0 && (
-                <div className="px-6 my-1">
-                  <VideoSectionRenderer
-                    section={carouselSettings.videos}
-                    videos={videoItems}
-                    contactInfo={contactInfo}
-                    isInteractive={isInteractive}
-                    shareUrl={publicCardUrl}
-                  />
-                </div>
-              )}
-            </>
-          );
-        })()}
+        {/* Showcase — Company Brochure, Videos, Products, Packages, Testimonies */}
+        <div className="mt-2">
+          <CardShowcase
+            card={card}
+            globals={{
+              products: visibleGlobals as any,
+              packages: visibleGlobalPackages as any,
+              testimonies: visibleGlobalTestimonies as any,
+            }}
+            isInteractive={isInteractive}
+            shareUrl={publicCardUrl}
+          />
+        </div>
 
         {/* Gold Divider + Section Label before Social Links */}
         {resolvedSocialLinks.length > 0 && (

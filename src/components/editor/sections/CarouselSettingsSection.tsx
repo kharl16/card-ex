@@ -12,8 +12,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
+import { BookOpen, Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
 import { parseVideoUrl, detectVideoSource, type VideoItem } from "@/lib/videoUtils";
+import { toast } from "sonner";
+import ShowcaseModeToggle from "@/components/showcase/ShowcaseModeToggle";
+import { SHOWCASE_ORDER } from "@/lib/showcase";
 import {
   type CarouselKey,
   type CarouselSection,
@@ -46,6 +49,7 @@ interface CarouselSettingsSectionProps {
 }
 
 const CAROUSEL_ICONS: Record<CarouselKey, React.ReactNode> = {
+  brochure: <BookOpen className="h-4 w-4" />,
   products: <Package className="h-4 w-4" />,
   packages: <Image className="h-4 w-4" />,
   testimonies: <MessageSquare className="h-4 w-4" />,
@@ -53,6 +57,7 @@ const CAROUSEL_ICONS: Record<CarouselKey, React.ReactNode> = {
 };
 
 const CAROUSEL_DESCRIPTIONS: Record<CarouselKey, string> = {
+  brochure: "Your company brochure pages (max 50 images, shown first on the card)",
   products: "Showcase your products (max 50 images, scrolls right→left)",
   packages: "Display packages or services (max 50 images, scrolls left→right)",
   testimonies: "Show customer testimonials (max 200 images, scrolls right→left)",
@@ -157,6 +162,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
   const updateImages = (key: CarouselKey, images: CarouselImage[]) => {
     // Save images to the new dedicated columns
     const columnMap: Record<CarouselKey, string> = {
+      brochure: "brochure_images",
       products: "product_images",
       packages: "package_images",
       testimonies: "testimony_images",
@@ -166,16 +172,41 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
   };
 
   const MAX_IMAGES: Record<CarouselKey, number> = {
+    brochure: 50,
     products: 50,
     packages: 50,
     testimonies: 200,
     videos: 25,
   };
 
+  const showcaseMode: "carousel" | "immersive" =
+    (card as any).showcase_display_mode === "immersive" ? "immersive" : "carousel";
+
   return (
     <div className="space-y-4">
+      <Card>
+        <CardContent className="pt-6">
+          <ShowcaseModeToggle
+            value={showcaseMode}
+            onChange={(mode) => {
+              if (mode === showcaseMode) return;
+              onCardChange({ showcase_display_mode: mode } as any);
+              toast.success("Showcase style updated.");
+            }}
+          />
+        </CardContent>
+      </Card>
+
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as CarouselKey)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="brochure" className="flex items-center gap-2">
+            {CAROUSEL_ICONS.brochure}
+            <span className="hidden sm:inline">Brochure</span>
+          </TabsTrigger>
+          <TabsTrigger value="videos" className="flex items-center gap-2">
+            {CAROUSEL_ICONS.videos}
+            <span className="hidden sm:inline">Videos</span>
+          </TabsTrigger>
           <TabsTrigger value="products" className="flex items-center gap-2">
             {CAROUSEL_ICONS.products}
             <span className="hidden sm:inline">Products</span>
@@ -188,13 +219,9 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
             {CAROUSEL_ICONS.testimonies}
             <span className="hidden sm:inline">Testimonies</span>
           </TabsTrigger>
-          <TabsTrigger value="videos" className="flex items-center gap-2">
-            {CAROUSEL_ICONS.videos}
-            <span className="hidden sm:inline">Videos</span>
-          </TabsTrigger>
         </TabsList>
 
-        {(["products", "packages", "testimonies", "videos"] as CarouselKey[]).map((key) => (
+        {(SHOWCASE_ORDER as CarouselKey[]).map((key) => (
           <TabsContent key={key} value={key} className="space-y-6 mt-4">
             <p className="text-sm text-muted-foreground">{CAROUSEL_DESCRIPTIONS[key]}</p>
 
@@ -985,6 +1012,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                     ownerId={card.user_id}
                     images={(() => {
                       const columnMap: Record<CarouselKey, string> = {
+                        brochure: "brochure_images",
                         products: "product_images",
                         packages: "package_images",
                         testimonies: "testimony_images",

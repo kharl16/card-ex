@@ -19,6 +19,7 @@ import { getPublicCardUrl } from "@/lib/cardUrl";
 import type { CarouselKey } from "@/lib/carouselTypes";
 
 const CAROUSEL_LABELS: Record<CarouselKey, string> = {
+  brochure: "Company Brochure",
   products: "Products",
   packages: "Packages", 
   testimonies: "Testimonies",
@@ -121,6 +122,8 @@ export default function CarouselSharePage() {
     if (!card) return [];
     
     switch (kind) {
+      case "brochure":
+        return normalizeImages((card as any).brochure_images);
       case "products":
         return normalizeImages(card.product_images);
       case "packages":

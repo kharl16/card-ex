@@ -270,6 +270,7 @@ export default function CarouselSectionRenderer({
 
   // Map carouselKey to CarouselKind for share component
   const carouselKindMap: Record<CarouselKey, CarouselKind> = {
+    brochure: "brochure",
     products: "products",
     packages: "packages",
     testimonies: "testimonies",
