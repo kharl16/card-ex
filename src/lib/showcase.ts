@@ -77,7 +77,7 @@ export function normalizeCarouselImages(raw: unknown): CarouselImage[] {
       srp: (img?.srp ?? img?.SRP ?? img?.price_srp) as string | undefined,
       hidden: img?.hidden === true,
     }))
-    .filter((img): img is CarouselImage => !!img.url);
+    .filter((img) => !!img.url) as CarouselImage[];
 }
 
 /** Expand a global image row (which may carry a second URL) into carousel images */

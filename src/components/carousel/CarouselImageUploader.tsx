@@ -486,6 +486,7 @@ export default function CarouselImageUploader({
   const visibleCount = images.filter((img) => !img.hidden).length;
 
   const carouselLabels: Record<CarouselKey, string> = {
+    brochure: "Company Brochure",
     products: "Products",
     packages: "Packages",
     testimonies: "Testimonies",

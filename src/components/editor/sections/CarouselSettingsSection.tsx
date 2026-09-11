@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
-import { Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
+import { BookOpen, Package, Image, MessageSquare, Settings, Palette, MousePointerClick, Upload, Film, Plus, Trash2, GripVertical, Eye, EyeOff } from "lucide-react";
 import { parseVideoUrl, detectVideoSource, type VideoItem } from "@/lib/videoUtils";
 import {
   type CarouselKey,
@@ -46,6 +46,7 @@ interface CarouselSettingsSectionProps {
 }
 
 const CAROUSEL_ICONS: Record<CarouselKey, React.ReactNode> = {
+  brochure: <BookOpen className="h-4 w-4" />,
   products: <Package className="h-4 w-4" />,
   packages: <Image className="h-4 w-4" />,
   testimonies: <MessageSquare className="h-4 w-4" />,
@@ -53,6 +54,7 @@ const CAROUSEL_ICONS: Record<CarouselKey, React.ReactNode> = {
 };
 
 const CAROUSEL_DESCRIPTIONS: Record<CarouselKey, string> = {
+  brochure: "Your company brochure pages (max 50 images, shown first on the card)",
   products: "Showcase your products (max 50 images, scrolls right→left)",
   packages: "Display packages or services (max 50 images, scrolls left→right)",
   testimonies: "Show customer testimonials (max 200 images, scrolls right→left)",
@@ -157,6 +159,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
   const updateImages = (key: CarouselKey, images: CarouselImage[]) => {
     // Save images to the new dedicated columns
     const columnMap: Record<CarouselKey, string> = {
+      brochure: "brochure_images",
       products: "product_images",
       packages: "package_images",
       testimonies: "testimony_images",
@@ -166,6 +169,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
   };
 
   const MAX_IMAGES: Record<CarouselKey, number> = {
+    brochure: 50,
     products: 50,
     packages: 50,
     testimonies: 200,
