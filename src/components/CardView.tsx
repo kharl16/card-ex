@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import CardExCarousel from "@/components/CardExCarousel";
 import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRenderer";
+import CardShowcase from "@/components/showcase/CardShowcase";
 import { useGlobalProductImages } from "@/hooks/useGlobalProductImages";
 import { useGlobalPackageImages } from "@/hooks/useGlobalPackageImages";
 import { useGlobalTestimonyImages } from "@/hooks/useGlobalTestimonyImages";
