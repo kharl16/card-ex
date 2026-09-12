@@ -1,25 +1,64 @@
 /**
- * Device fingerprinting for one-device-per-account enforcement.
- * Combines stable browser/OS signals + a persistent random token in localStorage.
- * Stored hashed (SHA-256) on the server so reading the DB never reveals the raw value.
+ * Device fingerprinting for trusted-device enforcement.
+ *
+ * v2 (stable): the identity is anchored on a persistent random token stored in
+ * BOTH localStorage and a long-lived cookie, combined only with signals that do
+ * NOT change when the browser auto-updates (browser family + OS family).
+ *
+ * Volatile signals from v1 (full user-agent string incl. version, screen size,
+ * colour depth, timezone, language, canvas hash) are deliberately excluded —
+ * they changed on every browser update and forced a new email code.
+ *
+ * A legacy v1 hash is still computed so the server can silently migrate an
+ * already-trusted device instead of re-challenging the user once.
  */
 
 const DEVICE_TOKEN_KEY = "tagex_device_token_v1";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 730; // 2 years
+
+function readCookieToken(): string | null {
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)tagex_device_token=([a-f0-9]{32,})/);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCookieToken(token: string) {
+  try {
+    document.cookie = `tagex_device_token=${token}; path=/; max-age=${COOKIE_MAX_AGE}; SameSite=Lax${
+      location.protocol === "https:" ? "; Secure" : ""
+    }`;
+  } catch {
+    /* cookies blocked */
+  }
+}
 
 function getOrCreateDeviceToken(): string {
+  let token: string | null = null;
   try {
-    let token = localStorage.getItem(DEVICE_TOKEN_KEY);
-    if (!token) {
-      const bytes = crypto.getRandomValues(new Uint8Array(32));
-      token = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
-      localStorage.setItem(DEVICE_TOKEN_KEY, token);
-    }
-    return token;
+    token = localStorage.getItem(DEVICE_TOKEN_KEY);
   } catch {
-    // Private mode / storage blocked → generate ephemeral token (will be treated as new device every time)
-    const bytes = crypto.getRandomValues(new Uint8Array(32));
-    return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+    /* storage blocked */
   }
+
+  // Cookie acts as a backup when site data / localStorage was cleared.
+  if (!token) token = readCookieToken();
+
+  if (!token) {
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    token = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  try {
+    localStorage.setItem(DEVICE_TOKEN_KEY, token);
+  } catch {
+    /* storage blocked */
+  }
+  writeCookieToken(token);
+
+  return token;
 }
 
 function getCanvasFingerprint(): string {
@@ -51,24 +90,52 @@ async function sha256(input: string): Promise<string> {
 
 export interface DeviceFingerprint {
   hash: string;
+  /** v1 hash — sent so the server can migrate an existing trusted device. */
+  legacyHash: string;
   label: string;
   userAgent: string;
+}
+
+/** Browser family only, without the version number (survives auto-updates). */
+function browserFamily(ua: string): string {
+  if (/Edg\//.test(ua)) return "edge";
+  if (/OPR\//.test(ua)) return "opera";
+  if (/Firefox\//.test(ua)) return "firefox";
+  if (/SamsungBrowser\//.test(ua)) return "samsung";
+  if (/Chrome\//.test(ua)) return "chrome";
+  if (/Safari\//.test(ua)) return "safari";
+  return "other";
+}
+
+/** OS family only, without the version number. */
+function osFamily(ua: string, platform: string): string {
+  if (/iPhone|iPad|iPod/.test(ua)) return "ios";
+  if (/Android/.test(ua)) return "android";
+  if (/Mac/.test(platform) || /Mac OS X/.test(ua)) return "macos";
+  if (/Win/.test(platform) || /Windows/.test(ua)) return "windows";
+  if (/Linux/.test(platform) || /Linux/.test(ua)) return "linux";
+  return "other";
 }
 
 export async function getDeviceFingerprint(): Promise<DeviceFingerprint> {
   const token = getOrCreateDeviceToken();
   const ua = navigator.userAgent;
+  const platform = (navigator as any).userAgentData?.platform || navigator.platform || "unknown";
+
+  // Stable v2 signature.
+  const hash = await sha256(["v2", token, browserFamily(ua), osFamily(ua, platform)].join("|"));
+
+  // Legacy v1 signature (volatile) — for one-time server-side migration.
   const screen = `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`;
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const lang = navigator.language;
-  const platform = (navigator as any).userAgentData?.platform || navigator.platform || "unknown";
-  const canvas = getCanvasFingerprint();
-
-  const raw = [token, ua, screen, tz, lang, platform, canvas].join("|");
-  const hash = await sha256(raw);
+  const legacyHash = await sha256(
+    [token, ua, screen, tz, lang, platform, getCanvasFingerprint()].join("|"),
+  );
 
   return {
     hash,
+    legacyHash,
     label: generateDeviceLabel(ua, platform),
     userAgent: ua,
   };
@@ -97,6 +164,11 @@ export function clearDeviceToken() {
   try {
     localStorage.removeItem(DEVICE_TOKEN_KEY);
   } catch {
-    // ignore
+    /* ignore */
+  }
+  try {
+    document.cookie = "tagex_device_token=; path=/; max-age=0; SameSite=Lax";
+  } catch {
+    /* ignore */
   }
 }
