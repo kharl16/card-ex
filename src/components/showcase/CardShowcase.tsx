@@ -48,6 +48,8 @@ export default function CardShowcase({
       <div className="my-2 overflow-hidden rounded-2xl">
         <ImmersiveShowcase
           categories={categories}
+          settings={settings}
+          contactInfo={contactInfo}
           isInteractive={isInteractive}
           shareUrl={shareUrl}
         />
