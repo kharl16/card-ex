@@ -155,8 +155,39 @@ Deno.serve(async (req) => {
 
     // ─── CHECK / REGISTER DEVICE ─────────────────────────────────────────
     if (action === "check") {
-      const { fingerprint_hash, device_label } = body;
+      const { fingerprint_hash, legacy_fingerprint_hash, device_label } = body;
       if (!fingerprint_hash) return json({ error: "Missing fingerprint" }, 400);
+
+      // One-time migration: a device trusted under the old (volatile) signature
+      // is re-keyed to the new stable one instead of being challenged again.
+      if (legacy_fingerprint_hash && legacy_fingerprint_hash !== fingerprint_hash) {
+        const { data: legacyRow } = await sb
+          .from("trusted_devices")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("device_fingerprint_hash", legacy_fingerprint_hash)
+          .is("revoked_at", null)
+          .maybeSingle();
+
+        if (legacyRow) {
+          const { data: alreadyMigrated } = await sb
+            .from("trusted_devices")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("device_fingerprint_hash", fingerprint_hash)
+            .is("revoked_at", null)
+            .maybeSingle();
+
+          if (alreadyMigrated) {
+            await sb.from("trusted_devices").delete().eq("id", legacyRow.id);
+          } else {
+            await sb
+              .from("trusted_devices")
+              .update({ device_fingerprint_hash: fingerprint_hash })
+              .eq("id", legacyRow.id);
+          }
+        }
+      }
 
       // Already trusted?
       const { data: trusted } = await sb

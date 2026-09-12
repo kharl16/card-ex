@@ -71,7 +71,12 @@ export default function RequireTrustedDevice({ children }: { children: React.Rea
     try {
       const fp = await getDeviceFingerprint();
       const { data, error } = await supabase.functions.invoke("device-auth", {
-        body: { action: "check", fingerprint_hash: fp.hash, device_label: fp.label },
+        body: {
+          action: "check",
+          fingerprint_hash: fp.hash,
+          legacy_fingerprint_hash: fp.legacyHash,
+          device_label: fp.label,
+        },
       });
 
       if (error) throw error;
