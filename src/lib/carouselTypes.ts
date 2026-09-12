@@ -151,8 +151,8 @@ export const DEFAULT_CTA_STYLES: Record<CarouselKey, CTAStyle> = {
 // Default CTA labels per carousel type
 export const DEFAULT_CTA_LABELS: Record<CarouselKey, string> = {
   brochure: "View Brochure",
-  products: "Inquire Now",
-  packages: "View Packages",
+  products: "Shop Now",
+  packages: "Choose a Package",
   testimonies: "Message Us",
   videos: "Watch More",
 };
