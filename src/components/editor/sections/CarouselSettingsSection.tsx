@@ -39,6 +39,7 @@ import CarouselImageUploader from "@/components/carousel/CarouselImageUploader";
 import GlobalProductsManager from "@/components/GlobalProductsManager";
 import GlobalPackagesManager from "@/components/GlobalPackagesManager";
 import GlobalTestimoniesManager from "@/components/GlobalTestimoniesManager";
+import GlobalBrochuresManager from "@/components/GlobalBrochuresManager";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;
@@ -1059,6 +1060,24 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                 </CardHeader>
                 <CardContent>
                   <GlobalPackagesManager cardId={card.id} />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Shared brochure pages — only on Brochure tab. Same pattern as Shared Product Photos. */}
+            {key === "brochure" && card?.id && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    Shared Brochure Photos
+                  </CardTitle>
+                  <CardDescription>
+                    Brochure pages added by the admin that appear on every card. Hide any you don't want on your card — your own uploads above are always yours.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <GlobalBrochuresManager cardId={card.id} />
                 </CardContent>
               </Card>
             )}

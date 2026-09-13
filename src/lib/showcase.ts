@@ -55,6 +55,7 @@ export interface GlobalImageLike {
 }
 
 export interface ShowcaseGlobals {
+  brochure?: GlobalImageLike[];
   products?: GlobalImageLike[];
   packages?: GlobalImageLike[];
   testimonies?: GlobalImageLike[];
@@ -125,7 +126,11 @@ export function buildShowcaseCategories(
   settings: CarouselSettingsData,
   globals: ShowcaseGlobals = {}
 ): ShowcaseCategory[] {
-  const brochureImages = normalizeCarouselImages(card?.brochure_images);
+  const ownBrochure = normalizeCarouselImages(card?.brochure_images);
+  const brochureImages = [
+    ...ownBrochure,
+    ...globalsToCarouselImages(globals.brochure, ownBrochure.length, true),
+  ];
 
   const ownProducts = normalizeCarouselImages(card?.product_images);
   const productImages = [

@@ -8,13 +8,13 @@ import { ImagePlus, Trash2 } from "lucide-react";
 const ALLOWED = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 interface Props {
-  table: "global_product_images" | "global_package_images";
+  table: "global_product_images" | "global_package_images" | "global_brochure_images";
   rowId: string;
   url: string;
   url2: string | null;
   caption: string | null;
   isActive: boolean;
-  kind: "product" | "package";
+  kind: "product" | "package" | "carousel";
   folder: string;
   onChanged: () => void | Promise<void>;
 }
