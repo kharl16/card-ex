@@ -286,6 +286,10 @@ export function buildCardSnapshot(
     
     // Video items
     video_items: Array.isArray(card.video_items) ? card.video_items : [],
+
+    // Brochure + showcase style
+    brochure_images: normalizeCarouselImages(card.brochure_images, "brochure_images"),
+    showcase_display_mode: (card as any).showcase_display_mode || "carousel",
     
     // Source reference
     source_card_id: card.id || null,
