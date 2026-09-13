@@ -44,6 +44,7 @@ import RecentPage from "./pages/resources/RecentPage";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminAITraining from "./pages/admin/AdminAITraining";
 import AdminGlobalProducts from "./pages/admin/AdminGlobalProducts";
+import AdminGlobalBrochures from "./pages/admin/AdminGlobalBrochures";
 import AdminGlobalPackages from "./pages/admin/AdminGlobalPackages";
 import AdminGlobalTestimonies from "./pages/admin/AdminGlobalTestimonies";
 import AdminOtpAudit from "./pages/admin/AdminOtpAudit";
