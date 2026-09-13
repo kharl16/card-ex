@@ -37,6 +37,7 @@ import CarouselSectionRenderer from "@/components/carousel/CarouselSectionRender
 import CardShowcase from "@/components/showcase/CardShowcase";
 import { useGlobalProductImages } from "@/hooks/useGlobalProductImages";
 import { useGlobalPackageImages } from "@/hooks/useGlobalPackageImages";
+import { useGlobalBrochureImages } from "@/hooks/useGlobalBrochureImages";
 import { useGlobalTestimonyImages } from "@/hooks/useGlobalTestimonyImages";
 import VideoSectionRenderer from "@/components/video/VideoSectionRenderer";
 import RiderHeader from "@/components/RiderHeader";
@@ -256,6 +257,8 @@ export default function CardView({
   // Global package photos shared across all cards (with this card's hide overrides applied)
   const { visibleGlobals: visibleGlobalPackages } = useGlobalPackageImages(card?.id);
   const { visibleGlobals: visibleGlobalTestimonies } = useGlobalTestimonyImages(card?.id);
+  // Global brochure pages shared across all cards (with this card's hide overrides applied)
+  const { visibleGlobals: visibleGlobalBrochure } = useGlobalBrochureImages(card?.id);
 
   // Bio expand/collapse (desktop only — mobile always shows full text)
   const [bioExpanded, setBioExpanded] = useState(false);
