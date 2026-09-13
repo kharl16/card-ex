@@ -93,6 +93,11 @@ export interface CardSnapshot {
   
   // Video items
   video_items: any[];
+
+  // Company brochure images + showcase presentation style
+  brochure_images: CarouselImage[];
+  showcase_display_mode: string;
+  
   
   // Source reference
   source_card_id: string | null;
@@ -281,6 +286,10 @@ export function buildCardSnapshot(
     
     // Video items
     video_items: Array.isArray(card.video_items) ? card.video_items : [],
+
+    // Brochure + showcase style
+    brochure_images: normalizeCarouselImages(card.brochure_images, "brochure_images"),
+    showcase_display_mode: (card as any).showcase_display_mode || "carousel",
     
     // Source reference
     source_card_id: card.id || null,
@@ -358,6 +367,10 @@ export function buildCardInsertFromSnapshot(
     
     // Video items (JSONB)
     video_items: snapshot.video_items,
+
+    // Brochure + showcase style
+    brochure_images: snapshot.brochure_images ?? [],
+    showcase_display_mode: snapshot.showcase_display_mode ?? "carousel",
     
     // Card type
     card_type: 'publishable',
