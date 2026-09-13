@@ -602,6 +602,35 @@ export type Database = {
           },
         ]
       }
+      card_global_brochure_overrides: {
+        Row: {
+          card_id: string
+          created_at: string
+          global_brochure_image_id: string
+          id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          global_brochure_image_id: string
+          id?: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          global_brochure_image_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_global_brochure_overrides_global_brochure_image_id_fkey"
+            columns: ["global_brochure_image_id"]
+            isOneToOne: false
+            referencedRelation: "global_brochure_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_global_image_overrides: {
         Row: {
           card_id: string
@@ -1436,6 +1465,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      global_brochure_images: {
+        Row: {
+          caption: string | null
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          sort_index: number
+          srp: string | null
+          updated_at: string
+          url: string
+          url_2: string | null
+        }
+        Insert: {
+          caption?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          srp?: string | null
+          updated_at?: string
+          url: string
+          url_2?: string | null
+        }
+        Update: {
+          caption?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          srp?: string | null
+          updated_at?: string
+          url?: string
+          url_2?: string | null
+        }
+        Relationships: []
       }
       global_package_images: {
         Row: {
