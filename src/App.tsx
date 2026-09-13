@@ -293,6 +293,16 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/admin/global-brochures"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminGlobalBrochures />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
           path="/admin/global-products"
           element={
             <PageTransition>
