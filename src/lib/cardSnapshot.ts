@@ -93,6 +93,11 @@ export interface CardSnapshot {
   
   // Video items
   video_items: any[];
+
+  // Company brochure images + showcase presentation style
+  brochure_images: CarouselImage[];
+  showcase_display_mode: string;
+  
   
   // Source reference
   source_card_id: string | null;
