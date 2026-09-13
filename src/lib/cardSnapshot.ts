@@ -367,6 +367,10 @@ export function buildCardInsertFromSnapshot(
     
     // Video items (JSONB)
     video_items: snapshot.video_items,
+
+    // Brochure + showcase style
+    brochure_images: snapshot.brochure_images ?? [],
+    showcase_display_mode: snapshot.showcase_display_mode ?? "carousel",
     
     // Card type
     card_type: 'publishable',
