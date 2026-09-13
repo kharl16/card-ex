@@ -39,6 +39,7 @@ import CarouselImageUploader from "@/components/carousel/CarouselImageUploader";
 import GlobalProductsManager from "@/components/GlobalProductsManager";
 import GlobalPackagesManager from "@/components/GlobalPackagesManager";
 import GlobalTestimoniesManager from "@/components/GlobalTestimoniesManager";
+import GlobalBrochuresManager from "@/components/GlobalBrochuresManager";
 import type { Tables } from "@/integrations/supabase/types";
 
 type CardData = Tables<"cards">;

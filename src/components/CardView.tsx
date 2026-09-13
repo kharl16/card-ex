@@ -484,6 +484,7 @@ export default function CardView({
           <CardShowcase
             card={card}
             globals={{
+              brochure: visibleGlobalBrochure as any,
               products: visibleGlobals as any,
               packages: visibleGlobalPackages as any,
               testimonies: visibleGlobalTestimonies as any,
