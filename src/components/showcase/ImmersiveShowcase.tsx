@@ -233,7 +233,7 @@ export default function ImmersiveShowcase({
 
   const heroRow = rows[0];
   const heroTile = heroRow.tiles[0];
-  const viewAllRow = rows.find((r) => r.key === viewAllKey) ?? null;
+  const viewAllRow = rows.find((r) => r.rowId === viewAllKey) ?? null;
 
   return (
     <div
