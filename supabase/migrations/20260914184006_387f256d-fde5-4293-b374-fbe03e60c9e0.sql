@@ -1,0 +1,3 @@
+CREATE POLICY "Admins can update media" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'media' AND (is_resource_admin(auth.uid()) OR is_super_admin(auth.uid()))) WITH CHECK (bucket_id = 'media' AND (is_resource_admin(auth.uid()) OR is_super_admin(auth.uid())));
+
+CREATE POLICY "Admins can delete media" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'media' AND (is_resource_admin(auth.uid()) OR is_super_admin(auth.uid())));
