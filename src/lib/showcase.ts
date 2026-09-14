@@ -228,13 +228,18 @@ export function buildShowcaseCategories(
 
     return {
       key,
-      title: section?.title || SHOWCASE_LABELS[key],
+      title:
+        key === "brochure"
+          ? section?.title || globals.brochureTitle || SHOWCASE_LABELS[key]
+          : section?.title || SHOWCASE_LABELS[key],
       // Pass the unfiltered arrays to the classic renderers — they do their own
       // hidden-item filtering — while `count` reflects what visitors can see.
       images: byKey[key].images,
       videos: byKey[key].videos,
       count,
       isVisible: section?.settings?.enabled !== false && count > 0,
+      intro: key === "brochure" ? globals.brochureIntro ?? null : undefined,
+      groups: key === "brochure" ? brochureGroups : undefined,
     };
   });
 }
