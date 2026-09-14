@@ -304,6 +304,26 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/admin/global-brochures/preview"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminBrochurePreview />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/brochure-templates"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminBrochureTemplates />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
           path="/admin/global-products"
           element={
             <PageTransition>
