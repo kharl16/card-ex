@@ -27,8 +27,11 @@ interface ImmersiveShowcaseProps {
 }
 
 interface RowModel {
+  /** Unique per rendered row (a category may render several brochure sections) */
+  rowId: string;
   key: CarouselKey;
   title: string;
+  body?: string | null;
   aspect: "portrait" | "video";
   tiles: ShowcaseRowTile[];
   images: LightboxImage[];
