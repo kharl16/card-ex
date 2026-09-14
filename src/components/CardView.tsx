@@ -258,7 +258,11 @@ export default function CardView({
   const { visibleGlobals: visibleGlobalPackages } = useGlobalPackageImages(card?.id);
   const { visibleGlobals: visibleGlobalTestimonies } = useGlobalTestimonyImages(card?.id);
   // Global brochure pages shared across all cards (with this card's hide overrides applied)
-  const { visibleGlobals: visibleGlobalBrochure } = useGlobalBrochureImages(card?.id);
+  const {
+    visibleGlobals: visibleGlobalBrochure,
+    brochure: globalBrochureMeta,
+    sections: globalBrochureSections,
+  } = useGlobalBrochureImages(card?.id);
 
   // Bio expand/collapse (desktop only — mobile always shows full text)
   const [bioExpanded, setBioExpanded] = useState(false);
