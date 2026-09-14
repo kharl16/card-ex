@@ -33,6 +33,14 @@ export const SHOWCASE_LABELS: Record<CarouselKey, string> = {
   testimonies: "Testimonies",
 };
 
+/** A titled group of images inside a category (used by the structured brochure) */
+export interface ShowcaseGroup {
+  id: string;
+  heading: string;
+  body?: string | null;
+  images: CarouselImage[];
+}
+
 export interface ShowcaseCategory {
   key: CarouselKey;
   /** Owner-configured title, falling back to the canonical label */
@@ -45,6 +53,10 @@ export interface ShowcaseCategory {
   count: number;
   /** True when the owner has this section enabled and it has content */
   isVisible: boolean;
+  /** Optional intro text shown above the category (brochure only) */
+  intro?: string | null;
+  /** Optional titled sub-sections; when present renderers show one row per group */
+  groups?: ShowcaseGroup[];
 }
 
 export interface GlobalImageLike {
@@ -52,10 +64,21 @@ export interface GlobalImageLike {
   url_2?: string | null;
   caption?: string | null;
   srp?: string | null;
+  section_id?: string | null;
+}
+
+export interface BrochureSectionMeta {
+  id: string;
+  heading: string;
+  body?: string | null;
 }
 
 export interface ShowcaseGlobals {
   brochure?: GlobalImageLike[];
+  /** Structured brochure metadata from the shared Global Brochures library */
+  brochureTitle?: string | null;
+  brochureIntro?: string | null;
+  brochureSections?: BrochureSectionMeta[];
   products?: GlobalImageLike[];
   packages?: GlobalImageLike[];
   testimonies?: GlobalImageLike[];
