@@ -489,6 +489,9 @@ export default function CardView({
             card={card}
             globals={{
               brochure: visibleGlobalBrochure as any,
+              brochureTitle: globalBrochureMeta?.title ?? null,
+              brochureIntro: globalBrochureMeta?.intro ?? null,
+              brochureSections: globalBrochureSections as any,
               products: visibleGlobals as any,
               packages: visibleGlobalPackages as any,
               testimonies: visibleGlobalTestimonies as any,
