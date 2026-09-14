@@ -150,10 +150,47 @@ export function buildShowcaseCategories(
   globals: ShowcaseGlobals = {}
 ): ShowcaseCategory[] {
   const ownBrochure = normalizeCarouselImages(card?.brochure_images);
+  const sharedBrochure = globals.brochure ?? [];
   const brochureImages = [
     ...ownBrochure,
-    ...globalsToCarouselImages(globals.brochure, ownBrochure.length, true),
+    ...globalsToCarouselImages(sharedBrochure, ownBrochure.length, true),
   ];
+
+  // Structured brochure: one group per shared brochure section. Pages that are
+  // not assigned to a section (and the card's own uploads) stay in a lead group
+  // so nothing ever disappears.
+  const brochureSections = globals.brochureSections ?? [];
+  let brochureGroups: ShowcaseGroup[] | undefined;
+  if (brochureSections.length > 0) {
+    const groups: ShowcaseGroup[] = [];
+    const unsectioned = sharedBrochure.filter(
+      (g) => !g.section_id || !brochureSections.some((s) => s.id === g.section_id)
+    );
+    const leadImages = [
+      ...ownBrochure,
+      ...globalsToCarouselImages(unsectioned, ownBrochure.length, true),
+    ];
+    if (leadImages.length > 0) {
+      groups.push({
+        id: "brochure-lead",
+        heading: globals.brochureTitle || SHOWCASE_LABELS.brochure,
+        body: null,
+        images: leadImages,
+      });
+    }
+    brochureSections.forEach((s) => {
+      const images = globalsToCarouselImages(
+        sharedBrochure.filter((g) => g.section_id === s.id),
+        0,
+        true
+      );
+      if (images.length > 0) {
+        groups.push({ id: s.id, heading: s.heading || "", body: s.body ?? null, images });
+      }
+    });
+    if (groups.length > 0) brochureGroups = groups;
+  }
+
 
   const ownProducts = normalizeCarouselImages(card?.product_images);
   const productImages = [
