@@ -180,5 +180,14 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
 
   const visibleGlobals = allGlobals.filter((g) => !hiddenIds.has(g.id));
 
-  return { allGlobals, hiddenIds, visibleGlobals, loading, reload: load, setHiddenLocal };
+  return {
+    allGlobals,
+    hiddenIds,
+    visibleGlobals,
+    brochure,
+    sections,
+    loading,
+    reload: load,
+    setHiddenLocal,
+  };
 }
