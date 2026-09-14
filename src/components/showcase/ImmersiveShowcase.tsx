@@ -142,13 +142,13 @@ export default function ImmersiveShowcase({
       .filter((row) => row.tiles.length > 0);
   }, [categories, settings]);
 
-  const [activeImageRow, setActiveImageRow] = useState<CarouselKey | null>(null);
+  const [activeImageRow, setActiveImageRow] = useState<string | null>(null);
   const [videoOpen, setVideoOpen] = useState(false);
   const [videoIndex, setVideoIndex] = useState(0);
-  const [viewAllKey, setViewAllKey] = useState<CarouselKey | null>(null);
+  const [viewAllKey, setViewAllKey] = useState<string | null>(null);
   const [ctaModal, setCtaModal] = useState<{ label: string; content: React.ReactNode } | null>(null);
 
-  const activeImages = rows.find((r) => r.key === activeImageRow)?.images ?? [];
+  const activeImages = rows.find((r) => r.rowId === activeImageRow)?.images ?? [];
   const lightbox = useLightbox({ images: activeImages, enabled: isInteractive });
 
   const videoRow = rows.find((r) => r.key === "videos");
@@ -156,9 +156,9 @@ export default function ImmersiveShowcase({
 
   if (rows.length === 0) return null;
 
-  const openImages = (rowKey: CarouselKey, index: number) => {
+  const openImages = (rowId: string, index: number) => {
     if (!isInteractive) return;
-    setActiveImageRow(rowKey);
+    setActiveImageRow(rowId);
     // Defer so the lightbox reads the newly selected row's images.
     requestAnimationFrame(() => lightbox.openLightbox(index));
   };
@@ -171,7 +171,7 @@ export default function ImmersiveShowcase({
 
   const handleSelect = (row: RowModel, index: number) => {
     if (row.key === "videos") openVideo(index);
-    else openImages(row.key, index);
+    else openImages(row.rowId, index);
   };
 
   const handleCta = (row: RowModel) => {
