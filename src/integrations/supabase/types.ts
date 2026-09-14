@@ -484,6 +484,39 @@ export type Database = {
         }
         Relationships: []
       }
+      brochure_templates: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          name: string
+          payload: Json
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          payload?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          payload?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       card_appointments: {
         Row: {
           appointment_date: string
@@ -1468,12 +1501,14 @@ export type Database = {
       }
       global_brochure_images: {
         Row: {
+          brochure_id: string | null
           caption: string | null
           company_id: string | null
           created_at: string
           created_by: string | null
           id: string
           is_active: boolean
+          section_id: string | null
           sort_index: number
           srp: string | null
           updated_at: string
@@ -1481,12 +1516,14 @@ export type Database = {
           url_2: string | null
         }
         Insert: {
+          brochure_id?: string | null
           caption?: string | null
           company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           is_active?: boolean
+          section_id?: string | null
           sort_index?: number
           srp?: string | null
           updated_at?: string
@@ -1494,17 +1531,108 @@ export type Database = {
           url_2?: string | null
         }
         Update: {
+          brochure_id?: string | null
           caption?: string | null
           company_id?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           is_active?: boolean
+          section_id?: string | null
           sort_index?: number
           srp?: string | null
           updated_at?: string
           url?: string
           url_2?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_brochure_images_brochure_id_fkey"
+            columns: ["brochure_id"]
+            isOneToOne: false
+            referencedRelation: "global_brochures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_brochure_images_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "global_brochure_sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      global_brochure_sections: {
+        Row: {
+          body: string | null
+          brochure_id: string
+          created_at: string
+          heading: string
+          id: string
+          sort_index: number
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          brochure_id: string
+          created_at?: string
+          heading?: string
+          id?: string
+          sort_index?: number
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          brochure_id?: string
+          created_at?: string
+          heading?: string
+          id?: string
+          sort_index?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_brochure_sections_brochure_id_fkey"
+            columns: ["brochure_id"]
+            isOneToOne: false
+            referencedRelation: "global_brochures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      global_brochures: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          intro: string | null
+          is_active: boolean
+          sort_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          intro?: string | null
+          is_active?: boolean
+          sort_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          intro?: string | null
+          is_active?: boolean
+          sort_index?: number
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

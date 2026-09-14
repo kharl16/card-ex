@@ -27,8 +27,11 @@ interface ImmersiveShowcaseProps {
 }
 
 interface RowModel {
+  /** Unique per rendered row (a category may render several brochure sections) */
+  rowId: string;
   key: CarouselKey;
   title: string;
+  body?: string | null;
   aspect: "portrait" | "video";
   tiles: ShowcaseRowTile[];
   images: LightboxImage[];
@@ -56,16 +59,52 @@ export default function ImmersiveShowcase({
   isInteractive = true,
   shareUrl,
 }: ImmersiveShowcaseProps) {
-  const rows: RowModel[] = useMemo(
-    () =>
-      categories
-        .filter((category) => category.isVisible)
-        .map((category) => {
-          const cta = settings[category.key]?.cta;
+  const rows: RowModel[] = useMemo(() => {
+    const buildImageRow = (
+      rowId: string,
+      key: CarouselKey,
+      title: string,
+      imgs: typeof categories[number]["images"],
+      cta: CarouselSection["cta"] | undefined,
+      body?: string | null
+    ): RowModel => {
+      const images = imgs.filter((img) => !img.hidden);
+      return {
+        rowId,
+        key,
+        title,
+        body,
+        aspect: "portrait" as const,
+        videos: [],
+        cta,
+        images: images.map((img) => ({
+          url: img.url,
+          alt: img.alt,
+          shareText: img.shareText,
+          description: img.description,
+          srp: img.srp,
+        })),
+        tiles: images.map((img, index) => ({
+          id: `${rowId}-${index}`,
+          src: img.url,
+          alt: img.alt || `${title} ${index + 1}`,
+          caption: img.alt || img.description || undefined,
+          srp: img.srp,
+          originalIndex: index,
+        })),
+      };
+    };
 
-          if (category.key === "videos") {
-            const videos = category.videos.filter((v) => !v.hidden);
-            return {
+    return categories
+      .filter((category) => category.isVisible)
+      .flatMap((category): RowModel[] => {
+        const cta = settings[category.key]?.cta;
+
+        if (category.key === "videos") {
+          const videos = category.videos.filter((v) => !v.hidden);
+          return [
+            {
+              rowId: category.key,
               key: category.key,
               title: category.title,
               aspect: "video" as const,
@@ -80,44 +119,36 @@ export default function ImmersiveShowcase({
                 isVideo: true,
                 originalIndex: index,
               })),
-            };
-          }
+            },
+          ];
+        }
 
-          const images = category.images.filter((img) => !img.hidden);
-          return {
-            key: category.key,
-            title: category.title,
-            aspect: "portrait" as const,
-            videos: [],
-            cta,
-            images: images.map((img) => ({
-              url: img.url,
-              alt: img.alt,
-              shareText: img.shareText,
-              description: img.description,
-              srp: img.srp,
-            })),
-            tiles: images.map((img, index) => ({
-              id: `${category.key}-${index}`,
-              src: img.url,
-              alt: img.alt || `${category.title} ${index + 1}`,
-              caption: img.alt || img.description || undefined,
-              srp: img.srp,
-              originalIndex: index,
-            })),
-          };
-        })
-        .filter((row) => row.tiles.length > 0),
-    [categories, settings]
-  );
+        // Structured brochure renders one row per brochure section.
+        if (category.groups?.length) {
+          return category.groups.map((group) =>
+            buildImageRow(
+              `${category.key}-${group.id}`,
+              category.key,
+              group.heading || category.title,
+              group.images,
+              cta,
+              group.body
+            )
+          );
+        }
 
-  const [activeImageRow, setActiveImageRow] = useState<CarouselKey | null>(null);
+        return [buildImageRow(category.key, category.key, category.title, category.images, cta)];
+      })
+      .filter((row) => row.tiles.length > 0);
+  }, [categories, settings]);
+
+  const [activeImageRow, setActiveImageRow] = useState<string | null>(null);
   const [videoOpen, setVideoOpen] = useState(false);
   const [videoIndex, setVideoIndex] = useState(0);
-  const [viewAllKey, setViewAllKey] = useState<CarouselKey | null>(null);
+  const [viewAllKey, setViewAllKey] = useState<string | null>(null);
   const [ctaModal, setCtaModal] = useState<{ label: string; content: React.ReactNode } | null>(null);
 
-  const activeImages = rows.find((r) => r.key === activeImageRow)?.images ?? [];
+  const activeImages = rows.find((r) => r.rowId === activeImageRow)?.images ?? [];
   const lightbox = useLightbox({ images: activeImages, enabled: isInteractive });
 
   const videoRow = rows.find((r) => r.key === "videos");
@@ -125,9 +156,9 @@ export default function ImmersiveShowcase({
 
   if (rows.length === 0) return null;
 
-  const openImages = (rowKey: CarouselKey, index: number) => {
+  const openImages = (rowId: string, index: number) => {
     if (!isInteractive) return;
-    setActiveImageRow(rowKey);
+    setActiveImageRow(rowId);
     // Defer so the lightbox reads the newly selected row's images.
     requestAnimationFrame(() => lightbox.openLightbox(index));
   };
@@ -140,7 +171,7 @@ export default function ImmersiveShowcase({
 
   const handleSelect = (row: RowModel, index: number) => {
     if (row.key === "videos") openVideo(index);
-    else openImages(row.key, index);
+    else openImages(row.rowId, index);
   };
 
   const handleCta = (row: RowModel) => {
@@ -202,7 +233,7 @@ export default function ImmersiveShowcase({
 
   const heroRow = rows[0];
   const heroTile = heroRow.tiles[0];
-  const viewAllRow = rows.find((r) => r.key === viewAllKey) ?? null;
+  const viewAllRow = rows.find((r) => r.rowId === viewAllKey) ?? null;
 
   return (
     <div
@@ -224,24 +255,35 @@ export default function ImmersiveShowcase({
           categoryLabel={heroRow.title}
           isVideo={heroRow.key === "videos"}
           onOpen={() => handleSelect(heroRow, 0)}
-          onBrowse={() => setViewAllKey(heroRow.key)}
+          onBrowse={() => setViewAllKey(heroRow.rowId)}
         />
       )}
 
       <div className="relative z-10 pt-2 pb-4">
-        {rows.map((row) => (
-          <ShowcaseRow
-            key={row.key}
-            id={`showcase-${row.key}`}
-            title={row.title}
-            tiles={row.tiles}
-            totalCount={row.tiles.length}
-            aspect={row.aspect}
-            onSelect={(index) => handleSelect(row, index)}
-            onViewAll={() => setViewAllKey(row.key)}
-            ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
-            onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
-          />
+        {rows.map((row, rowIdx) => (
+          <div key={row.rowId}>
+            <ShowcaseRow
+              // Anchor links target the first row of each category.
+              id={
+                rows.findIndex((r) => r.key === row.key) === rowIdx
+                  ? `showcase-${row.key}`
+                  : undefined
+              }
+              title={row.title}
+              tiles={row.tiles}
+              totalCount={row.tiles.length}
+              aspect={row.aspect}
+              onSelect={(index) => handleSelect(row, index)}
+              onViewAll={() => setViewAllKey(row.rowId)}
+              ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
+              onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
+            />
+            {row.body && (
+              <p className="px-4 md:px-8 pb-4 text-sm leading-relaxed text-muted-foreground">
+                {row.body}
+              </p>
+            )}
+          </div>
         ))}
       </div>
 

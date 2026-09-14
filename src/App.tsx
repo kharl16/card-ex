@@ -45,6 +45,8 @@ import AdminResources from "./pages/admin/AdminResources";
 import AdminAITraining from "./pages/admin/AdminAITraining";
 import AdminGlobalProducts from "./pages/admin/AdminGlobalProducts";
 import AdminGlobalBrochures from "./pages/admin/AdminGlobalBrochures";
+import AdminBrochurePreview from "./pages/admin/AdminBrochurePreview";
+import AdminBrochureTemplates from "./pages/admin/AdminBrochureTemplates";
 import AdminGlobalPackages from "./pages/admin/AdminGlobalPackages";
 import AdminGlobalTestimonies from "./pages/admin/AdminGlobalTestimonies";
 import AdminOtpAudit from "./pages/admin/AdminOtpAudit";
@@ -299,6 +301,26 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <AdminGlobalBrochures />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/global-brochures/preview"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminBrochurePreview />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/brochure-templates"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminBrochureTemplates />
               </RequireAuth>
             </PageTransition>
           }

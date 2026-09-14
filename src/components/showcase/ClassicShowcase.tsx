@@ -51,6 +51,33 @@ export default function ClassicShowcase({
           );
         }
 
+        // Structured brochure: one titled block per brochure section.
+        if (category.groups?.length) {
+          return (
+            <div key={category.key} className="px-6 my-1 space-y-2">
+              {category.intro && (
+                <p className="text-sm leading-relaxed opacity-80">{category.intro}</p>
+              )}
+              {category.groups.map((group) => (
+                <div key={group.id} className="space-y-1">
+                  <CarouselSectionRenderer
+                    carouselKey={category.key}
+                    section={{ ...settings[category.key], title: group.heading || category.title }}
+                    images={group.images}
+                    contactInfo={contactInfo}
+                    isInteractive={isInteractive}
+                    shareUrl={shareUrl}
+                    cardSlug={cardSlug}
+                  />
+                  {group.body && (
+                    <p className="text-sm leading-relaxed opacity-75">{group.body}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        }
+
         return (
           <div key={category.key} className="px-6 my-1">
             <CarouselSectionRenderer

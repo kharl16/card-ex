@@ -33,6 +33,14 @@ export const SHOWCASE_LABELS: Record<CarouselKey, string> = {
   testimonies: "Testimonies",
 };
 
+/** A titled group of images inside a category (used by the structured brochure) */
+export interface ShowcaseGroup {
+  id: string;
+  heading: string;
+  body?: string | null;
+  images: CarouselImage[];
+}
+
 export interface ShowcaseCategory {
   key: CarouselKey;
   /** Owner-configured title, falling back to the canonical label */
@@ -45,6 +53,10 @@ export interface ShowcaseCategory {
   count: number;
   /** True when the owner has this section enabled and it has content */
   isVisible: boolean;
+  /** Optional intro text shown above the category (brochure only) */
+  intro?: string | null;
+  /** Optional titled sub-sections; when present renderers show one row per group */
+  groups?: ShowcaseGroup[];
 }
 
 export interface GlobalImageLike {
@@ -52,10 +64,21 @@ export interface GlobalImageLike {
   url_2?: string | null;
   caption?: string | null;
   srp?: string | null;
+  section_id?: string | null;
+}
+
+export interface BrochureSectionMeta {
+  id: string;
+  heading: string;
+  body?: string | null;
 }
 
 export interface ShowcaseGlobals {
   brochure?: GlobalImageLike[];
+  /** Structured brochure metadata from the shared Global Brochures library */
+  brochureTitle?: string | null;
+  brochureIntro?: string | null;
+  brochureSections?: BrochureSectionMeta[];
   products?: GlobalImageLike[];
   packages?: GlobalImageLike[];
   testimonies?: GlobalImageLike[];
@@ -127,10 +150,47 @@ export function buildShowcaseCategories(
   globals: ShowcaseGlobals = {}
 ): ShowcaseCategory[] {
   const ownBrochure = normalizeCarouselImages(card?.brochure_images);
+  const sharedBrochure = globals.brochure ?? [];
   const brochureImages = [
     ...ownBrochure,
-    ...globalsToCarouselImages(globals.brochure, ownBrochure.length, true),
+    ...globalsToCarouselImages(sharedBrochure, ownBrochure.length, true),
   ];
+
+  // Structured brochure: one group per shared brochure section. Pages that are
+  // not assigned to a section (and the card's own uploads) stay in a lead group
+  // so nothing ever disappears.
+  const brochureSections = globals.brochureSections ?? [];
+  let brochureGroups: ShowcaseGroup[] | undefined;
+  if (brochureSections.length > 0) {
+    const groups: ShowcaseGroup[] = [];
+    const unsectioned = sharedBrochure.filter(
+      (g) => !g.section_id || !brochureSections.some((s) => s.id === g.section_id)
+    );
+    const leadImages = [
+      ...ownBrochure,
+      ...globalsToCarouselImages(unsectioned, ownBrochure.length, true),
+    ];
+    if (leadImages.length > 0) {
+      groups.push({
+        id: "brochure-lead",
+        heading: globals.brochureTitle || SHOWCASE_LABELS.brochure,
+        body: null,
+        images: leadImages,
+      });
+    }
+    brochureSections.forEach((s) => {
+      const images = globalsToCarouselImages(
+        sharedBrochure.filter((g) => g.section_id === s.id),
+        0,
+        true
+      );
+      if (images.length > 0) {
+        groups.push({ id: s.id, heading: s.heading || "", body: s.body ?? null, images });
+      }
+    });
+    if (groups.length > 0) brochureGroups = groups;
+  }
+
 
   const ownProducts = normalizeCarouselImages(card?.product_images);
   const productImages = [
@@ -168,13 +228,18 @@ export function buildShowcaseCategories(
 
     return {
       key,
-      title: section?.title || SHOWCASE_LABELS[key],
+      title:
+        key === "brochure"
+          ? section?.title || globals.brochureTitle || SHOWCASE_LABELS[key]
+          : section?.title || SHOWCASE_LABELS[key],
       // Pass the unfiltered arrays to the classic renderers — they do their own
       // hidden-item filtering — while `count` reflects what visitors can see.
       images: byKey[key].images,
       videos: byKey[key].videos,
       count,
       isVisible: section?.settings?.enabled !== false && count > 0,
+      intro: key === "brochure" ? globals.brochureIntro ?? null : undefined,
+      groups: key === "brochure" ? brochureGroups : undefined,
     };
   });
 }

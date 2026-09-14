@@ -9,6 +9,20 @@ export type GlobalBrochureImage = {
   srp: string | null;
   sort_index: number;
   is_active: boolean;
+  section_id?: string | null;
+};
+
+export type GlobalBrochureMeta = {
+  id: string;
+  title: string;
+  intro: string | null;
+};
+
+export type GlobalBrochureSection = {
+  id: string;
+  heading: string;
+  body: string | null;
+  sort_index: number;
 };
 
 /**
@@ -18,6 +32,8 @@ export type GlobalBrochureImage = {
 export function useGlobalBrochureImages(cardId: string | null | undefined) {
   const [allGlobals, setAllGlobals] = useState<GlobalBrochureImage[]>([]);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [brochure, setBrochure] = useState<GlobalBrochureMeta | null>(null);
+  const [sections, setSections] = useState<GlobalBrochureSection[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -32,20 +48,39 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
         .maybeSingle();
       companyId = (cardRow as { company_id: string | null } | null)?.company_id ?? null;
     }
-    if (!companyId) {
-      const { data: def } = await supabase.rpc("default_company_id");
-      companyId = (def as string | null) ?? null;
+    const { data: def } = await supabase.rpc("default_company_id");
+    const defaultCompanyId = (def as string | null) ?? null;
+    if (!companyId) companyId = defaultCompanyId;
+
+    const fetchImages = async (company: string | null) => {
+      let q = supabase
+        .from("global_brochure_images")
+        .select("id,url,url_2,caption,srp,sort_index,is_active,section_id")
+        .eq("is_active", true)
+        .order("sort_index", { ascending: true });
+      if (company) q = q.eq("company_id", company);
+      const { data } = await q;
+      return (data as GlobalBrochureImage[]) ?? [];
+    };
+
+    let images = await fetchImages(companyId);
+    // Cards whose company has no library of its own still show the default
+    // company's shared brochure, so every card gets the pages.
+    if (images.length === 0 && defaultCompanyId && defaultCompanyId !== companyId) {
+      images = await fetchImages(defaultCompanyId);
+      companyId = defaultCompanyId;
     }
 
-    let globalsQuery = supabase
-      .from("global_brochure_images")
-      .select("id,url,url_2,caption,srp,sort_index,is_active")
+    let brochureQuery = supabase
+      .from("global_brochures")
+      .select("id,title,intro,sort_index")
       .eq("is_active", true)
-      .order("sort_index", { ascending: true });
-    if (companyId) globalsQuery = globalsQuery.eq("company_id", companyId);
+      .order("sort_index", { ascending: true })
+      .limit(1);
+    if (companyId) brochureQuery = brochureQuery.eq("company_id", companyId);
 
-    const [{ data: globals }, overridesResult] = await Promise.all([
-      globalsQuery,
+    const [{ data: brochureRows }, overridesResult] = await Promise.all([
+      brochureQuery,
       cardId
         ? supabase
             .from("card_global_brochure_overrides")
@@ -54,7 +89,21 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
         : Promise.resolve({ data: [] as { global_brochure_image_id: string }[] }),
     ]);
 
-    setAllGlobals((globals as GlobalBrochureImage[]) ?? []);
+    const meta = ((brochureRows as GlobalBrochureMeta[]) ?? [])[0] ?? null;
+    setBrochure(meta);
+
+    if (meta) {
+      const { data: sectionRows } = await supabase
+        .from("global_brochure_sections")
+        .select("id,heading,body,sort_index")
+        .eq("brochure_id", meta.id)
+        .order("sort_index", { ascending: true });
+      setSections((sectionRows as GlobalBrochureSection[]) ?? []);
+    } else {
+      setSections([]);
+    }
+
+    setAllGlobals(images);
     setHiddenIds(
       new Set(
         ((overridesResult.data as { global_brochure_image_id: string }[]) ?? []).map(
@@ -131,5 +180,14 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
 
   const visibleGlobals = allGlobals.filter((g) => !hiddenIds.has(g.id));
 
-  return { allGlobals, hiddenIds, visibleGlobals, loading, reload: load, setHiddenLocal };
+  return {
+    allGlobals,
+    hiddenIds,
+    visibleGlobals,
+    brochure,
+    sections,
+    loading,
+    reload: load,
+    setHiddenLocal,
+  };
 }
