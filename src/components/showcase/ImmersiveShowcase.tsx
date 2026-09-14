@@ -255,24 +255,35 @@ export default function ImmersiveShowcase({
           categoryLabel={heroRow.title}
           isVideo={heroRow.key === "videos"}
           onOpen={() => handleSelect(heroRow, 0)}
-          onBrowse={() => setViewAllKey(heroRow.key)}
+          onBrowse={() => setViewAllKey(heroRow.rowId)}
         />
       )}
 
       <div className="relative z-10 pt-2 pb-4">
-        {rows.map((row) => (
-          <ShowcaseRow
-            key={row.key}
-            id={`showcase-${row.key}`}
-            title={row.title}
-            tiles={row.tiles}
-            totalCount={row.tiles.length}
-            aspect={row.aspect}
-            onSelect={(index) => handleSelect(row, index)}
-            onViewAll={() => setViewAllKey(row.key)}
-            ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
-            onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
-          />
+        {rows.map((row, rowIdx) => (
+          <div key={row.rowId}>
+            <ShowcaseRow
+              // Anchor links target the first row of each category.
+              id={
+                rows.findIndex((r) => r.key === row.key) === rowIdx
+                  ? `showcase-${row.key}`
+                  : undefined
+              }
+              title={row.title}
+              tiles={row.tiles}
+              totalCount={row.tiles.length}
+              aspect={row.aspect}
+              onSelect={(index) => handleSelect(row, index)}
+              onViewAll={() => setViewAllKey(row.rowId)}
+              ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
+              onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
+            />
+            {row.body && (
+              <p className="px-4 md:px-8 pb-4 text-sm leading-relaxed text-muted-foreground">
+                {row.body}
+              </p>
+            )}
+          </div>
         ))}
       </div>
 
