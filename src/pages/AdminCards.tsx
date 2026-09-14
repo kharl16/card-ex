@@ -1017,6 +1017,18 @@ export default function AdminCards() {
             <Globe className="h-4 w-4" />
             Global Brochure Photos
           </Button>
+          <Button
+            onClick={() => navigate("/admin/global-brochures/preview")}
+            variant="outline"
+            className="gap-2"
+          >
+            <Globe className="h-4 w-4" />
+            Brochure Preview
+          </Button>
+          <Button onClick={() => navigate("/admin/brochure-templates")} variant="outline" className="gap-2">
+            <Globe className="h-4 w-4" />
+            Brochure Templates
+          </Button>
           <Button onClick={() => navigate("/admin/global-products")} variant="outline" className="gap-2">
             <Globe className="h-4 w-4" />
             Global Product Photos
