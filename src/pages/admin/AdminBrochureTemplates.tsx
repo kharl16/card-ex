@@ -361,6 +361,8 @@ export default function AdminBrochureTemplates() {
                 <p className="font-medium">{t.name}</p>
                 <p className="text-sm text-muted-foreground">
                   {t.payload?.included_image_ids?.length ?? 0} page(s)
+                  {t.payload?.sections?.length ? ` · ${t.payload.sections.length} section(s)` : ""}
+                  {t.payload?.title ? ` · "${t.payload.title}"` : ""}
                   {t.description ? ` — ${t.description}` : ""}
                 </p>
               </div>
