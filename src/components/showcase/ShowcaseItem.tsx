@@ -32,6 +32,7 @@ export default function ShowcaseItem({
   srp,
   isVideo = false,
   aspect = "portrait",
+  pageShape,
   onSelect,
   className,
 }: ShowcaseItemProps) {
