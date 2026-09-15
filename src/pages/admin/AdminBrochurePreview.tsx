@@ -149,7 +149,13 @@ export default function AdminBrochurePreview() {
             <section key={g.id} className="space-y-3">
               {g.heading && <h2 className="text-2xl font-semibold">{g.heading}</h2>}
               {g.body && <p className="text-muted-foreground">{g.body}</p>}
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              <div
+                className={
+                  orientation === "landscape"
+                    ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                    : "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+                }
+              >
                 {g.images.map((img, ii) => (
                   <button
                     key={img.id}
