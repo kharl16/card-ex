@@ -275,6 +275,14 @@ export default function AdminBrochureTemplates() {
             <Input value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} placeholder="Read the Brochure" />
           </div>
           <div>
+            <Label>Brochure page title</Label>
+            <Input value={pageTitle} onChange={(e) => setPageTitle(e.target.value)} placeholder="Company Brochure" />
+          </div>
+          <div>
+            <Label>Brochure intro (optional)</Label>
+            <Textarea value={pageIntro} onChange={(e) => setPageIntro(e.target.value)} placeholder="A short welcome paragraph shown above the pages" />
+          </div>
+          <div className="sm:col-span-2">
             <Label>Notes (optional)</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
@@ -282,32 +290,55 @@ export default function AdminBrochureTemplates() {
 
         <div>
           <Label>Pages included</Label>
+          <p className="text-xs text-muted-foreground">
+            Pages stay grouped under their section headings, and the card shows the same layout.
+          </p>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (
-            <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {images.map((img) => {
-                const checked = included.has(img.id);
-                return (
-                  <label key={img.id} className="flex cursor-pointer flex-col gap-1 rounded-lg border border-border p-2">
-                    <img src={img.url} alt={img.caption || "Brochure page"} loading="lazy" className="aspect-[3/4] w-full rounded object-cover" />
-                    <span className="flex items-center gap-2 text-xs">
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(v) =>
-                          setIncluded((prev) => {
-                            const next = new Set(prev);
-                            if (v) next.add(img.id);
-                            else next.delete(img.id);
-                            return next;
-                          })
-                        }
-                      />
-                      {img.caption || "Page"}
-                    </span>
-                  </label>
-                );
-              })}
+            <div className="mt-2 space-y-5">
+              {[
+                ...librarySections.map((s) => ({
+                  key: s.id,
+                  heading: s.heading || "Untitled section",
+                  body: s.body,
+                  items: images.filter((i) => i.section_id === s.id),
+                })),
+                {
+                  key: "__none__",
+                  heading: "Unsectioned pages",
+                  body: null as string | null,
+                  items: images.filter((i) => !i.section_id || !librarySections.some((s) => s.id === i.section_id)),
+                },
+              ]
+                .filter((group) => group.items.length > 0)
+                .map((group) => (
+                  <div key={group.key}>
+                    <p className="text-sm font-medium">{group.heading}</p>
+                    {group.body && <p className="text-xs text-muted-foreground">{group.body}</p>}
+                    <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      {group.items.map((img) => (
+                        <label key={img.id} className="flex cursor-pointer flex-col gap-1 rounded-lg border border-border p-2">
+                          <img src={img.url} alt={img.caption || "Brochure page"} loading="lazy" className="aspect-[3/4] w-full rounded object-cover" />
+                          <span className="flex items-center gap-2 text-xs">
+                            <Checkbox
+                              checked={included.has(img.id)}
+                              onCheckedChange={(v) =>
+                                setIncluded((prev) => {
+                                  const next = new Set(prev);
+                                  if (v) next.add(img.id);
+                                  else next.delete(img.id);
+                                  return next;
+                                })
+                              }
+                            />
+                            {img.caption || "Page"}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
             </div>
           )}
         </div>
