@@ -205,6 +205,19 @@ export default function AdminBrochureTemplates() {
         };
       }
 
+      // The real page layout — title, intro and sections with their pages —
+      // so the card renders a brochure, not just a strip of photos.
+      const sections = (payload.sections ?? []).filter((s) => (s.image_ids?.length ?? 0) > 0);
+      if (payload.title || payload.intro || sections.length) {
+        brochureSection.layout = {
+          title: payload.title || payload.section_title || "Company Brochure",
+          intro: payload.intro ?? null,
+          sections,
+        };
+      } else {
+        delete brochureSection.layout;
+      }
+
       const { error: updErr } = await supabase
         .from("cards")
         .update({ carousel_settings: { ...settings, brochure: brochureSection } as any })
