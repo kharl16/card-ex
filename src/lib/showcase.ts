@@ -60,6 +60,7 @@ export interface ShowcaseCategory {
 }
 
 export interface GlobalImageLike {
+  id?: string;
   url: string;
   url_2?: string | null;
   caption?: string | null;
@@ -71,6 +72,8 @@ export interface BrochureSectionMeta {
   id: string;
   heading: string;
   body?: string | null;
+  /** Explicit page ids for this section (set by an applied brochure template) */
+  imageIds?: string[];
 }
 
 export interface ShowcaseGlobals {
