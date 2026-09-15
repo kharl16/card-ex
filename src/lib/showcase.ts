@@ -166,8 +166,12 @@ export function buildShowcaseCategories(
   let brochureGroups: ShowcaseGroup[] | undefined;
   if (brochureSections.length > 0) {
     const groups: ShowcaseGroup[] = [];
+    // A page belongs to a section either by its library assignment or because an
+    // applied brochure template listed it explicitly.
+    const belongsTo = (g: GlobalImageLike, s: BrochureSectionMeta) =>
+      s.imageIds?.length ? !!g.id && s.imageIds.includes(g.id) : g.section_id === s.id;
     const unsectioned = sharedBrochure.filter(
-      (g) => !g.section_id || !brochureSections.some((s) => s.id === g.section_id)
+      (g) => !brochureSections.some((s) => belongsTo(g, s))
     );
     const leadImages = [
       ...ownBrochure,
