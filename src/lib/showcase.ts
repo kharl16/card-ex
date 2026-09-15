@@ -13,6 +13,7 @@
  */
 
 import type { CarouselImage, CarouselKey, CarouselSettingsData } from "@/lib/carouselTypes";
+import type { BrochurePageShape } from "@/lib/carouselTypes";
 import type { VideoItem } from "@/lib/videoUtils";
 
 export type ShowcaseDisplayMode = "carousel" | "immersive";
@@ -57,6 +58,8 @@ export interface ShowcaseCategory {
   intro?: string | null;
   /** Optional titled sub-sections; when present renderers show one row per group */
   groups?: ShowcaseGroup[];
+  /** Resolved brochure-only page shape. */
+  pageShape?: BrochurePageShape;
 }
 
 export interface GlobalImageLike {
@@ -82,6 +85,7 @@ export interface ShowcaseGlobals {
   brochureTitle?: string | null;
   brochureIntro?: string | null;
   brochureSections?: BrochureSectionMeta[];
+  brochurePageShape?: BrochurePageShape;
   products?: GlobalImageLike[];
   packages?: GlobalImageLike[];
   testimonies?: GlobalImageLike[];
@@ -247,6 +251,10 @@ export function buildShowcaseCategories(
       isVisible: section?.settings?.enabled !== false && count > 0,
       intro: key === "brochure" ? globals.brochureIntro ?? null : undefined,
       groups: key === "brochure" ? brochureGroups : undefined,
+      pageShape:
+        key === "brochure"
+          ? settings.brochure.settings.pageShape ?? globals.brochurePageShape ?? "portrait"
+          : undefined,
     };
   });
 }

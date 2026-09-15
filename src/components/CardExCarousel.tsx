@@ -18,6 +18,7 @@ import type { CarouselKind } from "@/lib/share";
 import { getRenderUrl } from "@/lib/images";
 import type { ImageKind } from "@/lib/images";
 import SafeImage from "@/components/SafeImage";
+import type { BrochurePageShape } from "@/lib/carouselTypes";
 
 // Types
 export type CardExCarouselMode = "roulette" | "ring3d" | "flat";
@@ -85,6 +86,7 @@ export interface CardExCarouselProps {
   matchedIndices?: number[];
   /** Ordinal (0-based) into matchedIndices indicating the active match */
   activeMatchOrdinal?: number;
+  pageShape?: BrochurePageShape;
 }
 
 // Check for reduced motion preference
@@ -107,8 +109,16 @@ const imageSizeConfig = {
   lg: { height: "h-[260px] sm:h-[300px]" },
 };
 
-const getCarouselSlideAspectRatio = (carouselKind: CarouselKind) =>
-  carouselKind === "packages" ? "4 / 3" : "1 / 1";
+const getCarouselSlideAspectRatio = (
+  carouselKind: CarouselKind,
+  pageShape?: BrochurePageShape,
+) => {
+  if (carouselKind === "brochure") {
+    if (pageShape === "landscape") return "16 / 9";
+    if (pageShape === "portrait") return "3 / 4";
+  }
+  return carouselKind === "packages" ? "4 / 3" : "1 / 1";
+};
 
 const kindToImageKind = (carouselKind: CarouselKind): ImageKind => {
   if (carouselKind === "packages") return "package";
@@ -133,6 +143,7 @@ interface RouletteModeProps {
   searchQuery?: string;
   matchedIndices?: number[];
   activeMatchOrdinal?: number;
+  pageShape?: BrochurePageShape;
 }
 
 function RouletteMode({
@@ -151,9 +162,11 @@ function RouletteMode({
   searchQuery = "",
   matchedIndices = [],
   activeMatchOrdinal = 0,
+  pageShape,
 }: RouletteModeProps) {
   // Products/testimonies stay square; packages use a landscape rectangular stage.
-  const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
+  const [naturalRatios, setNaturalRatios] = useState<Record<string, number>>({});
+  const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind, pageShape);
   const reducedMotion = prefersReducedMotion();
   const count = items.length;
   const loopImages = [...items, ...items]; // Duplicate for seamless looping
@@ -294,7 +307,7 @@ function RouletteMode({
                           isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
                           isActiveMatch && "ring-4 ring-amber-300"
                         )}
-                        style={{ aspectRatio: slideAspectRatio }}
+                         style={{ aspectRatio: pageShape === "original" ? naturalRatios[img.id] ?? "3 / 4" : slideAspectRatio }}
                         onClick={() => handleImageClick(logicalIndex)}
                         aria-label={img.alt || `View image ${logicalIndex + 1}`}
                       >
@@ -303,6 +316,12 @@ function RouletteMode({
                           alt={img.alt ?? ""}
                           loading={Math.abs(logicalIndex - Math.round(logicalCenter)) > 1 ? "lazy" : "eager"}
                           decoding="async"
+                           imgClassName="object-contain"
+                           onDimensions={({ width, height }) =>
+                             setNaturalRatios((current) =>
+                               current[img.id] === width / height ? current : { ...current, [img.id]: width / height }
+                             )
+                           }
                         />
                         {img.badge && (
                           <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
@@ -452,6 +471,7 @@ interface FlatModeProps {
   searchQuery?: string;
   matchedIndices?: number[];
   activeMatchOrdinal?: number;
+  pageShape?: BrochurePageShape;
 }
 
 function FlatMode({
@@ -465,8 +485,10 @@ function FlatMode({
   searchQuery = "",
   matchedIndices = [],
   activeMatchOrdinal = 0,
+  pageShape,
 }: FlatModeProps) {
-  const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind);
+  const [naturalRatios, setNaturalRatios] = useState<Record<string, number>>({});
+  const slideAspectRatio = getCarouselSlideAspectRatio(carouselKind, pageShape);
   const reducedMotion = prefersReducedMotion();
   const [api, setApi] = useState<CarouselApi>();
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -573,7 +595,7 @@ function FlatMode({
                         isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
                         isActiveMatch && "ring-4 ring-amber-300"
                       )}
-                      style={{ aspectRatio: slideAspectRatio }}
+                      style={{ aspectRatio: pageShape === "original" ? naturalRatios[item.id] ?? "3 / 4" : slideAspectRatio }}
                       onClick={() => handleImageClick(index)}
                       aria-label={item.alt || `View image ${index + 1}`}
                     >
@@ -582,6 +604,12 @@ function FlatMode({
                         alt={item.alt ?? ""}
                         loading="lazy"
                         decoding="async"
+                         imgClassName="object-contain"
+                         onDimensions={({ width, height }) =>
+                           setNaturalRatios((current) =>
+                             current[item.id] === width / height ? current : { ...current, [item.id]: width / height }
+                           )
+                         }
                       />
                       {item.badge && (
                         <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground">
@@ -658,6 +686,7 @@ export default function CardExCarousel({
   searchQuery = "",
   matchedIndices = [],
   activeMatchOrdinal = 0,
+  pageShape,
 }: CardExCarouselProps) {
   const allItems = items || [];
   const totalCount = allItems.length;
@@ -722,6 +751,7 @@ export default function CardExCarousel({
           searchQuery={searchQuery}
           matchedIndices={matchedIndices}
           activeMatchOrdinal={activeMatchOrdinal}
+          pageShape={pageShape}
         />
       )}
       {mode === "ring3d" && (
@@ -746,6 +776,7 @@ export default function CardExCarousel({
           searchQuery={searchQuery}
           matchedIndices={matchedIndices}
           activeMatchOrdinal={activeMatchOrdinal}
+          pageShape={pageShape}
         />
       )}
       {hasMore && (

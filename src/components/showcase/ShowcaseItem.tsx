@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import SafeImage from "@/components/SafeImage";
+import type { BrochurePageShape } from "@/lib/carouselTypes";
 
 interface ShowcaseItemProps {
   /** Poster / thumbnail image */
@@ -14,7 +15,8 @@ interface ShowcaseItemProps {
   /** Renders a play affordance for video tiles */
   isVideo?: boolean;
   /** Portrait tiles for images, landscape (16:9) for videos */
-  aspect?: "portrait" | "video";
+  aspect?: "portrait" | "landscape" | "original" | "video";
+  pageShape?: BrochurePageShape;
   onSelect: () => void;
   className?: string;
 }
@@ -33,6 +35,8 @@ export default function ShowcaseItem({
   onSelect,
   className,
 }: ShowcaseItemProps) {
+  const [naturalRatio, setNaturalRatio] = useState<number | null>(null);
+  const resolvedAspect = pageShape ?? aspect;
   return (
     <button
       type="button"
@@ -44,11 +48,14 @@ export default function ShowcaseItem({
         "hover:z-10 hover:scale-[1.06] focus-visible:z-10 focus-visible:scale-[1.06]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         "motion-reduce:transition-none motion-reduce:hover:scale-100",
-        aspect === "video"
+        resolvedAspect === "video" || resolvedAspect === "landscape"
           ? "w-[240px] sm:w-[280px] lg:w-[320px] aspect-video"
-          : "w-[132px] sm:w-[156px] lg:w-[180px] aspect-[3/4]",
+          : resolvedAspect === "original"
+            ? "w-[168px] sm:w-[196px] lg:w-[224px]"
+            : "w-[132px] sm:w-[156px] lg:w-[180px] aspect-[3/4]",
         className
       )}
+      style={resolvedAspect === "original" ? { aspectRatio: naturalRatio ?? 3 / 4 } : undefined}
     >
       <SafeImage
         src={src}
@@ -56,6 +63,8 @@ export default function ShowcaseItem({
         loading="lazy"
         decoding="async"
         className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-90"
+        imgClassName="object-contain"
+        onDimensions={({ width, height }) => setNaturalRatio(width / height)}
       />
 
       {isVideo && (

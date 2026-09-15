@@ -8,7 +8,7 @@ import ShowcaseRow, { type ShowcaseRowTile } from "@/components/showcase/Showcas
 import ShowcaseViewAllDialog from "@/components/showcase/ShowcaseViewAllDialog";
 import { getThumbnailUrl, type VideoItem } from "@/lib/videoUtils";
 import type { ShowcaseCategory } from "@/lib/showcase";
-import type { CarouselKey, CarouselSettingsData, CarouselSection } from "@/lib/carouselTypes";
+import type { BrochurePageShape, CarouselKey, CarouselSettingsData, CarouselSection } from "@/lib/carouselTypes";
 import type { LightboxImage } from "@/hooks/useLightbox";
 import { toast } from "sonner";
 
@@ -32,7 +32,8 @@ interface RowModel {
   key: CarouselKey;
   title: string;
   body?: string | null;
-  aspect: "portrait" | "video";
+  aspect: "portrait" | "landscape" | "original" | "video";
+  pageShape?: BrochurePageShape;
   tiles: ShowcaseRowTile[];
   images: LightboxImage[];
   videos: VideoItem[];
@@ -75,6 +76,7 @@ export default function ImmersiveShowcase({
         title,
         body,
         aspect: "portrait" as const,
+        pageShape: key === "brochure" ? categories.find((category) => category.key === key)?.pageShape : undefined,
         videos: [],
         cta,
         images: images.map((img) => ({
@@ -277,6 +279,7 @@ export default function ImmersiveShowcase({
               onViewAll={() => setViewAllKey(row.rowId)}
               ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
               onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
+              pageShape={row.pageShape}
             />
             {row.body && (
               <p className="px-4 md:px-8 pb-4 text-sm leading-relaxed text-muted-foreground">
@@ -294,6 +297,7 @@ export default function ImmersiveShowcase({
           title={viewAllRow.title}
           tiles={viewAllRow.tiles}
           aspect={viewAllRow.aspect}
+          pageShape={viewAllRow.pageShape}
           onSelect={(index) => {
             const tile = viewAllRow.tiles[index];
             handleSelect(viewAllRow, tile?.originalIndex ?? index);

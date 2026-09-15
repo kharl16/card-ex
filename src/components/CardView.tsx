@@ -491,6 +491,7 @@ export default function CardView({
               brochure: visibleGlobalBrochure as any,
               brochureTitle: globalBrochureMeta?.title ?? null,
               brochureIntro: globalBrochureMeta?.intro ?? null,
+              brochurePageShape: globalBrochureMeta?.page_shape ?? "portrait",
               brochureSections: globalBrochureSections as any,
               products: visibleGlobals as any,
               packages: visibleGlobalPackages as any,

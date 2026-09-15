@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import type { BrochurePageShape } from "@/lib/carouselTypes";
 
 export type GlobalBrochureImage = {
   id: string;
@@ -16,6 +17,7 @@ export type GlobalBrochureMeta = {
   id: string;
   title: string;
   intro: string | null;
+  page_shape: BrochurePageShape;
 };
 
 export type GlobalBrochureSection = {
@@ -86,7 +88,7 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
 
     let brochureQuery = supabase
       .from("global_brochures")
-      .select("id,title,intro,sort_index")
+        .select("id,title,intro,page_shape,sort_index")
       .eq("is_active", true)
       .order("sort_index", { ascending: true })
       .limit(1);
@@ -111,6 +113,7 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
         id: libraryMeta?.id ?? "card-layout",
         title: layout.title || libraryMeta?.title || "Company Brochure",
         intro: layout.intro ?? libraryMeta?.intro ?? null,
+        page_shape: libraryMeta?.page_shape ?? "portrait",
       });
       setSections(
         (layout.sections ?? []).map((s, i) => ({
