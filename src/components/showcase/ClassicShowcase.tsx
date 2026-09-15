@@ -68,6 +68,7 @@ export default function ClassicShowcase({
                     isInteractive={isInteractive}
                     shareUrl={shareUrl}
                     cardSlug={cardSlug}
+                    pageShape={category.pageShape}
                   />
                   {group.body && (
                     <p className="text-sm leading-relaxed opacity-75">{group.body}</p>
@@ -88,6 +89,7 @@ export default function ClassicShowcase({
               isInteractive={isInteractive}
               shareUrl={shareUrl}
               cardSlug={cardSlug}
+              pageShape={category.pageShape}
             />
           </div>
         );

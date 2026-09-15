@@ -17,6 +17,7 @@ interface Props {
   kind: "product" | "package" | "carousel";
   folder: string;
   onChanged: () => void | Promise<void>;
+  aspectClass?: string;
 }
 
 /**
@@ -34,6 +35,7 @@ export default function GlobalImageSlots({
   kind,
   folder,
   onChanged,
+  aspectClass = "aspect-square",
 }: Props) {
   const [slot, setSlot] = useState<1 | 2>(1);
   const [busy, setBusy] = useState(false);
@@ -124,7 +126,7 @@ export default function GlobalImageSlots({
         )}
       </div>
 
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+      <div className={`relative overflow-hidden rounded-lg bg-muted ${aspectClass}`}>
         {current ? (
           <img
             src={getRenderUrl(current, kind, "default")}

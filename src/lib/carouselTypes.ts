@@ -60,6 +60,7 @@ export interface CarouselCTA {
 }
 
 export type ImageSize = "sm" | "md" | "lg";
+export type BrochurePageShape = "portrait" | "landscape" | "original";
 
 export interface CarouselSettings {
   enabled: boolean;
@@ -68,6 +69,8 @@ export interface CarouselSettings {
   maxImages: number;
   imageSize?: ImageSize;
   imageGap?: number; // pixels (0-32), default 12
+  /** Brochure-only page presentation. When omitted, the company default is used. */
+  pageShape?: BrochurePageShape;
 }
 
 export interface CarouselImage {

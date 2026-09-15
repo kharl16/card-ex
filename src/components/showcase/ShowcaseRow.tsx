@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ShowcaseItem from "@/components/showcase/ShowcaseItem";
 import CarouselSearchBar from "@/components/carousel/CarouselSearchBar";
+import type { BrochurePageShape } from "@/lib/carouselTypes";
 
 export interface ShowcaseRowTile {
   id: string;
@@ -21,7 +22,8 @@ interface ShowcaseRowProps {
   tiles: ShowcaseRowTile[];
   /** Total items in the category (may exceed the tiles rendered in the row) */
   totalCount: number;
-  aspect?: "portrait" | "video";
+  aspect?: "portrait" | "landscape" | "original" | "video";
+  pageShape?: BrochurePageShape;
   onSelect: (originalIndex: number) => void;
   onViewAll?: () => void;
   /** Owner-configured call-to-action shown beneath the row */
@@ -44,6 +46,7 @@ export default function ShowcaseRow({
   onViewAll,
   ctaLabel,
   onCta,
+  pageShape,
 }: ShowcaseRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -209,6 +212,7 @@ export default function ShowcaseRow({
                   srp={tile.srp}
                   isVideo={tile.isVideo}
                   aspect={aspect}
+                  pageShape={pageShape}
                   onSelect={() => onSelect(tile.originalIndex)}
                   className={cn(
                     searchQuery.trim() &&

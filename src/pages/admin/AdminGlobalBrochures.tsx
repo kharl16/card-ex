@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Trash2, Eye, EyeOff, Plus, BookOpen, LayoutTemplate } from "lucide-react";
 import GlobalImageSlots from "@/components/admin/GlobalImageSlots";
+import type { BrochurePageShape } from "@/lib/carouselTypes";
 
 type Row = {
   id: string;
@@ -34,6 +35,7 @@ type Brochure = {
   id: string;
   title: string;
   intro: string | null;
+  page_shape: BrochurePageShape;
 };
 
 type Section = {
@@ -74,7 +76,7 @@ export default function AdminGlobalBrochures() {
         .order("sort_index", { ascending: true }),
       supabase
         .from("global_brochures")
-        .select("id,title,intro,sort_index")
+        .select("id,title,intro,page_shape,sort_index")
         .eq("company_id", activeCompanyId)
         .order("sort_index", { ascending: true })
         .limit(1),
@@ -122,7 +124,7 @@ export default function AdminGlobalBrochures() {
         title: "Company Brochure",
         created_by: user.id,
       })
-      .select("id,title,intro")
+      .select("id,title,intro,page_shape")
       .single();
     if (error) {
       toast.error(error.message);
@@ -142,6 +144,20 @@ export default function AdminGlobalBrochures() {
     else {
       setBrochure({ ...b, ...payload } as Brochure);
       toast.success("Brochure saved");
+    }
+  }
+
+  async function savePageShape(pageShape: BrochurePageShape) {
+    const b = await ensureBrochure();
+    if (!b) return;
+    const { error } = await supabase
+      .from("global_brochures")
+      .update({ page_shape: pageShape })
+      .eq("id", b.id);
+    if (error) toast.error(error.message);
+    else {
+      setBrochure({ ...b, page_shape: pageShape });
+      toast.success("Brochure page shape saved");
     }
   }
 
@@ -326,6 +342,25 @@ export default function AdminGlobalBrochures() {
       {/* Brochure page setup: title, intro, sections */}
       <div className="mb-8 rounded-xl border border-border bg-card p-4 space-y-4">
         <h2 className="text-lg font-semibold">Brochure page</h2>
+        <div className="space-y-2">
+          <Label>Default page shape</Label>
+          <div className="grid grid-cols-3 gap-2">
+            {(["portrait", "landscape", "original"] as const).map((shape) => (
+              <Button
+                key={shape}
+                type="button"
+                variant={(brochure?.page_shape ?? "portrait") === shape ? "default" : "outline"}
+                onClick={() => savePageShape(shape)}
+                className="capitalize"
+              >
+                {shape}
+              </Button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Used by every card unless its editor chooses a different shape.
+          </p>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <Label>Brochure title</Label>
@@ -453,6 +488,13 @@ export default function AdminGlobalBrochures() {
                 kind="carousel"
                 folder="global-brochures"
                 onChanged={load}
+                aspectClass={
+                  (brochure?.page_shape ?? "portrait") === "landscape"
+                    ? "aspect-video"
+                    : (brochure?.page_shape ?? "portrait") === "original"
+                      ? "aspect-auto min-h-48"
+                      : "aspect-[3/4]"
+                }
               />
               <Input
                 defaultValue={r.caption ?? ""}

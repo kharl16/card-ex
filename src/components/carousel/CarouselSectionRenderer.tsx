@@ -14,6 +14,7 @@ import {
   getCarouselBackgroundCSS,
   getCTAButtonClasses,
   getCTAStableStateClasses,
+  type BrochurePageShape,
 } from "@/lib/carouselTypes";
 import { toast } from "sonner";
 import type { CarouselKind } from "@/lib/share";
@@ -38,6 +39,7 @@ interface CarouselSectionRendererProps {
   shareUrl?: string;
   /** Card slug for share page navigation */
   cardSlug?: string;
+  pageShape?: BrochurePageShape;
 }
 
 export default function CarouselSectionRenderer({
@@ -50,6 +52,7 @@ export default function CarouselSectionRenderer({
   shareEnabled = true,
   shareUrl,
   cardSlug,
+  pageShape,
 }: CarouselSectionRendererProps) {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -368,6 +371,7 @@ export default function CarouselSectionRenderer({
             searchQuery={searchQuery}
             matchedIndices={matchedIndices}
             activeMatchOrdinal={activeMatchOrdinal}
+            pageShape={carouselKey === "brochure" ? pageShape : undefined}
           />
 
         </div>

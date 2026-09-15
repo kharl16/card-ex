@@ -2,13 +2,15 @@ import React from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ShowcaseItem from "@/components/showcase/ShowcaseItem";
 import type { ShowcaseRowTile } from "@/components/showcase/ShowcaseRow";
+import type { BrochurePageShape } from "@/lib/carouselTypes";
 
 interface ShowcaseViewAllDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   tiles: ShowcaseRowTile[];
-  aspect?: "portrait" | "video";
+  aspect?: "portrait" | "landscape" | "original" | "video";
+  pageShape?: BrochurePageShape;
   onSelect: (index: number) => void;
 }
 
@@ -20,6 +22,7 @@ export default function ShowcaseViewAllDialog({
   tiles,
   aspect = "portrait",
   onSelect,
+  pageShape,
 }: ShowcaseViewAllDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -33,7 +36,7 @@ export default function ShowcaseViewAllDialog({
 
         <div
           className={
-            aspect === "video"
+            aspect === "video" || pageShape === "landscape"
               ? "grid grid-cols-1 gap-3 sm:grid-cols-2"
               : "grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5"
           }
@@ -47,6 +50,7 @@ export default function ShowcaseViewAllDialog({
               srp={tile.srp}
               isVideo={tile.isVideo}
               aspect={aspect}
+              pageShape={pageShape}
               onSelect={() => {
                 onOpenChange(false);
                 onSelect(index);
