@@ -102,18 +102,37 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
         : Promise.resolve({ data: [] as { global_brochure_image_id: string }[] }),
     ]);
 
-    const meta = ((brochureRows as GlobalBrochureMeta[]) ?? [])[0] ?? null;
-    setBrochure(meta);
+    const libraryMeta = ((brochureRows as GlobalBrochureMeta[]) ?? [])[0] ?? null;
 
-    if (meta) {
-      const { data: sectionRows } = await supabase
-        .from("global_brochure_sections")
-        .select("id,heading,body,sort_index")
-        .eq("brochure_id", meta.id)
-        .order("sort_index", { ascending: true });
-      setSections((sectionRows as GlobalBrochureSection[]) ?? []);
+    // A brochure template applied to this card wins over the company library,
+    // so the card shows exactly the page layout the admin set up for it.
+    if (layout) {
+      setBrochure({
+        id: libraryMeta?.id ?? "card-layout",
+        title: layout.title || libraryMeta?.title || "Company Brochure",
+        intro: layout.intro ?? libraryMeta?.intro ?? null,
+      });
+      setSections(
+        (layout.sections ?? []).map((s, i) => ({
+          id: s.id,
+          heading: s.heading,
+          body: s.body ?? null,
+          sort_index: i,
+          imageIds: s.image_ids ?? [],
+        }))
+      );
     } else {
-      setSections([]);
+      setBrochure(libraryMeta);
+      if (libraryMeta) {
+        const { data: sectionRows } = await supabase
+          .from("global_brochure_sections")
+          .select("id,heading,body,sort_index")
+          .eq("brochure_id", libraryMeta.id)
+          .order("sort_index", { ascending: true });
+        setSections((sectionRows as GlobalBrochureSection[]) ?? []);
+      } else {
+        setSections([]);
+      }
     }
 
     setAllGlobals(images);
