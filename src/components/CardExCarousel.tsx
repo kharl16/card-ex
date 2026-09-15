@@ -742,8 +742,6 @@ export default function CardExCarousel({
           autoPlayMs={autoPlayMs}
           visibleSlides={responsiveVisibleSlides}
           showLightbox={showLightbox}
-          carouselKind={carouselKind}
-          pageShape={pageShape}
           onEvent={onEvent}
           depth={depth}
           spotlightEnabled={spotlightEnabled}
@@ -766,6 +764,8 @@ export default function CardExCarousel({
           depth={depth}
           spotlightEnabled={spotlightEnabled}
           showLightbox={showLightbox}
+          carouselKind={carouselKind}
+          pageShape={pageShape}
         />
       )}
       {mode === "flat" && (
