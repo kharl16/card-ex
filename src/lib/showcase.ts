@@ -60,6 +60,7 @@ export interface ShowcaseCategory {
 }
 
 export interface GlobalImageLike {
+  id?: string;
   url: string;
   url_2?: string | null;
   caption?: string | null;
@@ -71,6 +72,8 @@ export interface BrochureSectionMeta {
   id: string;
   heading: string;
   body?: string | null;
+  /** Explicit page ids for this section (set by an applied brochure template) */
+  imageIds?: string[];
 }
 
 export interface ShowcaseGlobals {
@@ -163,8 +166,12 @@ export function buildShowcaseCategories(
   let brochureGroups: ShowcaseGroup[] | undefined;
   if (brochureSections.length > 0) {
     const groups: ShowcaseGroup[] = [];
+    // A page belongs to a section either by its library assignment or because an
+    // applied brochure template listed it explicitly.
+    const belongsTo = (g: GlobalImageLike, s: BrochureSectionMeta) =>
+      s.imageIds?.length ? !!g.id && s.imageIds.includes(g.id) : g.section_id === s.id;
     const unsectioned = sharedBrochure.filter(
-      (g) => !g.section_id || !brochureSections.some((s) => s.id === g.section_id)
+      (g) => !brochureSections.some((s) => belongsTo(g, s))
     );
     const leadImages = [
       ...ownBrochure,
@@ -180,7 +187,7 @@ export function buildShowcaseCategories(
     }
     brochureSections.forEach((s) => {
       const images = globalsToCarouselImages(
-        sharedBrochure.filter((g) => g.section_id === s.id),
+        sharedBrochure.filter((g) => belongsTo(g, s)),
         0,
         true
       );

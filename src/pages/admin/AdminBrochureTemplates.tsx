@@ -13,12 +13,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { ArrowLeft, Trash2, Save, Wand2 } from "lucide-react";
 
-type ImageRow = { id: string; url: string; caption: string | null; sort_index: number };
+type ImageRow = {
+  id: string;
+  url: string;
+  caption: string | null;
+  sort_index: number;
+  section_id: string | null;
+};
+
+type SectionRow = { id: string; heading: string; body: string | null; sort_index: number };
+
+type TemplateSection = { id: string; heading: string; body?: string | null; image_ids?: string[] };
 
 type TemplatePayload = {
   section_title?: string;
   cta_label?: string;
   included_image_ids?: string[];
+  /** Real page layout captured from the brochure library */
+  title?: string;
+  intro?: string | null;
+  sections?: TemplateSection[];
 };
 
 type Template = {
@@ -40,12 +54,15 @@ export default function AdminBrochureTemplates() {
   const navigate = useNavigate();
 
   const [images, setImages] = useState<ImageRow[]>([]);
+  const [librarySections, setLibrarySections] = useState<SectionRow[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [sectionTitle, setSectionTitle] = useState("Company Brochure");
+  const [pageTitle, setPageTitle] = useState("Company Brochure");
+  const [pageIntro, setPageIntro] = useState("");
   const [ctaLabel, setCtaLabel] = useState("");
   const [included, setIncluded] = useState<Set<string>>(new Set());
 
@@ -57,10 +74,10 @@ export default function AdminBrochureTemplates() {
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
     setLoading(true);
-    const [imgRes, tplRes] = await Promise.all([
+    const [imgRes, tplRes, brochureRes] = await Promise.all([
       supabase
         .from("global_brochure_images")
-        .select("id,url,caption,sort_index")
+        .select("id,url,caption,sort_index,section_id")
         .eq("company_id", activeCompanyId)
         .eq("is_active", true)
         .order("sort_index", { ascending: true }),
@@ -69,11 +86,32 @@ export default function AdminBrochureTemplates() {
         .select("id,name,description,payload")
         .eq("company_id", activeCompanyId)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("global_brochures")
+        .select("id,title,intro,sort_index")
+        .eq("company_id", activeCompanyId)
+        .order("sort_index", { ascending: true })
+        .limit(1),
     ]);
     const imgs = (imgRes.data as ImageRow[]) ?? [];
     setImages(imgs);
     setTemplates((tplRes.data as Template[]) ?? []);
     setIncluded(new Set(imgs.map((i) => i.id)));
+
+    const meta = ((brochureRes.data as { id: string; title: string; intro: string | null }[]) ?? [])[0] ?? null;
+    setPageTitle(meta?.title || "Company Brochure");
+    setPageIntro(meta?.intro || "");
+    setSectionTitle(meta?.title || "Company Brochure");
+    if (meta) {
+      const { data: secRows } = await supabase
+        .from("global_brochure_sections")
+        .select("id,heading,body,sort_index")
+        .eq("brochure_id", meta.id)
+        .order("sort_index", { ascending: true });
+      setLibrarySections((secRows as SectionRow[]) ?? []);
+    } else {
+      setLibrarySections([]);
+    }
     setLoading(false);
   }, [activeCompanyId]);
 
@@ -94,6 +132,16 @@ export default function AdminBrochureTemplates() {
       section_title: sectionTitle.trim() || "Company Brochure",
       cta_label: ctaLabel.trim() || undefined,
       included_image_ids: Array.from(included),
+      title: pageTitle.trim() || "Company Brochure",
+      intro: pageIntro.trim() || null,
+      // Capture the real page layout: each section with its heading, text and
+      // the included pages that belong to it.
+      sections: librarySections.map((s) => ({
+        id: s.id,
+        heading: s.heading,
+        body: s.body,
+        image_ids: images.filter((i) => i.section_id === s.id && included.has(i.id)).map((i) => i.id),
+      })),
     };
     const { error } = await supabase.from("brochure_templates").insert({
       company_id: activeCompanyId,
@@ -157,6 +205,19 @@ export default function AdminBrochureTemplates() {
         };
       }
 
+      // The real page layout — title, intro and sections with their pages —
+      // so the card renders a brochure, not just a strip of photos.
+      const sections = (payload.sections ?? []).filter((s) => (s.image_ids?.length ?? 0) > 0);
+      if (payload.title || payload.intro || sections.length) {
+        brochureSection.layout = {
+          title: payload.title || payload.section_title || "Company Brochure",
+          intro: payload.intro ?? null,
+          sections,
+        };
+      } else {
+        delete brochureSection.layout;
+      }
+
       const { error: updErr } = await supabase
         .from("cards")
         .update({ carousel_settings: { ...settings, brochure: brochureSection } as any })
@@ -214,6 +275,14 @@ export default function AdminBrochureTemplates() {
             <Input value={ctaLabel} onChange={(e) => setCtaLabel(e.target.value)} placeholder="Read the Brochure" />
           </div>
           <div>
+            <Label>Brochure page title</Label>
+            <Input value={pageTitle} onChange={(e) => setPageTitle(e.target.value)} placeholder="Company Brochure" />
+          </div>
+          <div>
+            <Label>Brochure intro (optional)</Label>
+            <Textarea value={pageIntro} onChange={(e) => setPageIntro(e.target.value)} placeholder="A short welcome paragraph shown above the pages" />
+          </div>
+          <div className="sm:col-span-2">
             <Label>Notes (optional)</Label>
             <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
@@ -221,32 +290,55 @@ export default function AdminBrochureTemplates() {
 
         <div>
           <Label>Pages included</Label>
+          <p className="text-xs text-muted-foreground">
+            Pages stay grouped under their section headings, and the card shows the same layout.
+          </p>
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading…</p>
           ) : (
-            <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {images.map((img) => {
-                const checked = included.has(img.id);
-                return (
-                  <label key={img.id} className="flex cursor-pointer flex-col gap-1 rounded-lg border border-border p-2">
-                    <img src={img.url} alt={img.caption || "Brochure page"} loading="lazy" className="aspect-[3/4] w-full rounded object-cover" />
-                    <span className="flex items-center gap-2 text-xs">
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(v) =>
-                          setIncluded((prev) => {
-                            const next = new Set(prev);
-                            if (v) next.add(img.id);
-                            else next.delete(img.id);
-                            return next;
-                          })
-                        }
-                      />
-                      {img.caption || "Page"}
-                    </span>
-                  </label>
-                );
-              })}
+            <div className="mt-2 space-y-5">
+              {[
+                ...librarySections.map((s) => ({
+                  key: s.id,
+                  heading: s.heading || "Untitled section",
+                  body: s.body,
+                  items: images.filter((i) => i.section_id === s.id),
+                })),
+                {
+                  key: "__none__",
+                  heading: "Unsectioned pages",
+                  body: null as string | null,
+                  items: images.filter((i) => !i.section_id || !librarySections.some((s) => s.id === i.section_id)),
+                },
+              ]
+                .filter((group) => group.items.length > 0)
+                .map((group) => (
+                  <div key={group.key}>
+                    <p className="text-sm font-medium">{group.heading}</p>
+                    {group.body && <p className="text-xs text-muted-foreground">{group.body}</p>}
+                    <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      {group.items.map((img) => (
+                        <label key={img.id} className="flex cursor-pointer flex-col gap-1 rounded-lg border border-border p-2">
+                          <img src={img.url} alt={img.caption || "Brochure page"} loading="lazy" className="aspect-[3/4] w-full rounded object-cover" />
+                          <span className="flex items-center gap-2 text-xs">
+                            <Checkbox
+                              checked={included.has(img.id)}
+                              onCheckedChange={(v) =>
+                                setIncluded((prev) => {
+                                  const next = new Set(prev);
+                                  if (v) next.add(img.id);
+                                  else next.delete(img.id);
+                                  return next;
+                                })
+                              }
+                            />
+                            {img.caption || "Page"}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                ))}
             </div>
           )}
         </div>
@@ -269,6 +361,8 @@ export default function AdminBrochureTemplates() {
                 <p className="font-medium">{t.name}</p>
                 <p className="text-sm text-muted-foreground">
                   {t.payload?.included_image_ids?.length ?? 0} page(s)
+                  {t.payload?.sections?.length ? ` · ${t.payload.sections.length} section(s)` : ""}
+                  {t.payload?.title ? ` · "${t.payload.title}"` : ""}
                   {t.description ? ` — ${t.description}` : ""}
                 </p>
               </div>
