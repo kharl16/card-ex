@@ -49,13 +49,17 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
     setLoading(true);
 
     let companyId: string | null = null;
+    let layout: CardBrochureLayout | null = null;
     if (cardId) {
       const { data: cardRow } = await supabase
         .from("cards")
-        .select("company_id")
+        .select("company_id,carousel_settings")
         .eq("id", cardId)
         .maybeSingle();
       companyId = (cardRow as { company_id: string | null } | null)?.company_id ?? null;
+      const settings = (cardRow as any)?.carousel_settings as Record<string, any> | null;
+      const stored = settings?.brochure?.layout as CardBrochureLayout | undefined;
+      if (stored && (stored.title || stored.intro || stored.sections?.length)) layout = stored;
     }
     const { data: def } = await supabase.rpc("default_company_id");
     const defaultCompanyId = (def as string | null) ?? null;
