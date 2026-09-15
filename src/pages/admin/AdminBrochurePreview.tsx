@@ -114,10 +114,27 @@ export default function AdminBrochurePreview() {
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to library
       </Button>
 
-      <header className="mb-8 text-center">
+      <header className="mb-6 text-center">
         <h1 className="text-4xl font-bold">{title}</h1>
         {intro && <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">{intro}</p>}
       </header>
+
+      <div className="mb-8 flex flex-wrap items-center justify-center gap-2">
+        <span className="text-sm text-muted-foreground">Page shape:</span>
+        {(["portrait", "landscape", "original"] as const).map((o) => (
+          <Button
+            key={o}
+            type="button"
+            size="sm"
+            variant={orientation === o ? "default" : "outline"}
+            onClick={() => setOrientation(o)}
+            className="capitalize"
+          >
+            {o}
+          </Button>
+        ))}
+      </div>
+
 
       {loading ? (
         <div className="text-muted-foreground">Loading…</div>
