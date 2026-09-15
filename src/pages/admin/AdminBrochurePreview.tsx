@@ -167,7 +167,13 @@ export default function AdminBrochurePreview() {
                       src={img.url}
                       alt={img.caption || `${title} page`}
                       loading="lazy"
-                      className="aspect-[3/4] w-full object-cover transition-transform group-hover:scale-105"
+                      className={
+                        orientation === "original"
+                          ? "h-auto w-full object-contain transition-transform group-hover:scale-105"
+                          : orientation === "landscape"
+                            ? "aspect-[4/3] w-full object-contain transition-transform group-hover:scale-105"
+                            : "aspect-[3/4] w-full object-cover transition-transform group-hover:scale-105"
+                      }
                     />
                     {img.caption && (
                       <span className="block px-2 py-1 text-xs text-muted-foreground">{img.caption}</span>
