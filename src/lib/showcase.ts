@@ -187,7 +187,7 @@ export function buildShowcaseCategories(
     }
     brochureSections.forEach((s) => {
       const images = globalsToCarouselImages(
-        sharedBrochure.filter((g) => g.section_id === s.id),
+        sharedBrochure.filter((g) => belongsTo(g, s)),
         0,
         true
       );
