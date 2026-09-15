@@ -74,10 +74,10 @@ export default function AdminBrochureTemplates() {
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
     setLoading(true);
-    const [imgRes, tplRes] = await Promise.all([
+    const [imgRes, tplRes, brochureRes] = await Promise.all([
       supabase
         .from("global_brochure_images")
-        .select("id,url,caption,sort_index")
+        .select("id,url,caption,sort_index,section_id")
         .eq("company_id", activeCompanyId)
         .eq("is_active", true)
         .order("sort_index", { ascending: true }),
@@ -86,11 +86,32 @@ export default function AdminBrochureTemplates() {
         .select("id,name,description,payload")
         .eq("company_id", activeCompanyId)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("global_brochures")
+        .select("id,title,intro,sort_index")
+        .eq("company_id", activeCompanyId)
+        .order("sort_index", { ascending: true })
+        .limit(1),
     ]);
     const imgs = (imgRes.data as ImageRow[]) ?? [];
     setImages(imgs);
     setTemplates((tplRes.data as Template[]) ?? []);
     setIncluded(new Set(imgs.map((i) => i.id)));
+
+    const meta = ((brochureRes.data as { id: string; title: string; intro: string | null }[]) ?? [])[0] ?? null;
+    setPageTitle(meta?.title || "Company Brochure");
+    setPageIntro(meta?.intro || "");
+    setSectionTitle(meta?.title || "Company Brochure");
+    if (meta) {
+      const { data: secRows } = await supabase
+        .from("global_brochure_sections")
+        .select("id,heading,body,sort_index")
+        .eq("brochure_id", meta.id)
+        .order("sort_index", { ascending: true });
+      setLibrarySections((secRows as SectionRow[]) ?? []);
+    } else {
+      setLibrarySections([]);
+    }
     setLoading(false);
   }, [activeCompanyId]);
 
