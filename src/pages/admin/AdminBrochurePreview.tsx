@@ -33,6 +33,7 @@ export default function AdminBrochurePreview() {
   const [intro, setIntro] = useState<string | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [orientation, setOrientation] = useState<"portrait" | "landscape" | "original">("portrait");
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -114,10 +115,27 @@ export default function AdminBrochurePreview() {
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to library
       </Button>
 
-      <header className="mb-8 text-center">
+      <header className="mb-6 text-center">
         <h1 className="text-4xl font-bold">{title}</h1>
         {intro && <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">{intro}</p>}
       </header>
+
+      <div className="mb-8 flex flex-wrap items-center justify-center gap-2">
+        <span className="text-sm text-muted-foreground">Page shape:</span>
+        {(["portrait", "landscape", "original"] as const).map((o) => (
+          <Button
+            key={o}
+            type="button"
+            size="sm"
+            variant={orientation === o ? "default" : "outline"}
+            onClick={() => setOrientation(o)}
+            className="capitalize"
+          >
+            {o}
+          </Button>
+        ))}
+      </div>
+
 
       {loading ? (
         <div className="text-muted-foreground">Loading…</div>
@@ -131,7 +149,13 @@ export default function AdminBrochurePreview() {
             <section key={g.id} className="space-y-3">
               {g.heading && <h2 className="text-2xl font-semibold">{g.heading}</h2>}
               {g.body && <p className="text-muted-foreground">{g.body}</p>}
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              <div
+                className={
+                  orientation === "landscape"
+                    ? "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                    : "grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
+                }
+              >
                 {g.images.map((img, ii) => (
                   <button
                     key={img.id}
@@ -143,7 +167,13 @@ export default function AdminBrochurePreview() {
                       src={img.url}
                       alt={img.caption || `${title} page`}
                       loading="lazy"
-                      className="aspect-[3/4] w-full object-cover transition-transform group-hover:scale-105"
+                      className={
+                        orientation === "original"
+                          ? "h-auto w-full object-contain transition-transform group-hover:scale-105"
+                          : orientation === "landscape"
+                            ? "aspect-[4/3] w-full object-contain transition-transform group-hover:scale-105"
+                            : "aspect-[3/4] w-full object-cover transition-transform group-hover:scale-105"
+                      }
                     />
                     {img.caption && (
                       <span className="block px-2 py-1 text-xs text-muted-foreground">{img.caption}</span>
