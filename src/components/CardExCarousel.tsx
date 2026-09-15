@@ -417,6 +417,7 @@ interface Ring3DModeProps {
   spotlightEnabled: boolean;
   showLightbox: boolean;
   carouselKind?: CarouselKind;
+  pageShape?: BrochurePageShape;
 }
 
 function Ring3DMode({
@@ -427,6 +428,7 @@ function Ring3DMode({
   spotlightEnabled,
   showLightbox,
   carouselKind = "products",
+  pageShape,
 }: Ring3DModeProps) {
   const reducedMotion = prefersReducedMotion();
   const imageUrls = items.map((item) => item.url);
@@ -450,7 +452,7 @@ function Ring3DMode({
       <Carousel3DRing
         images={imageUrls}
         height={380}
-        aspectRatio={getCarouselSlideAspectRatio(carouselKind)}
+        aspectRatio={getCarouselSlideAspectRatio(carouselKind, pageShape)}
         speedDeg={reducedMotion ? 0 : baseSpeed}
         autoplay={!reducedMotion && autoPlayMs !== null}
         activeScale={depthConfig[depth].scale}
@@ -740,6 +742,8 @@ export default function CardExCarousel({
           autoPlayMs={autoPlayMs}
           visibleSlides={responsiveVisibleSlides}
           showLightbox={showLightbox}
+          carouselKind={carouselKind}
+          pageShape={pageShape}
           onEvent={onEvent}
           depth={depth}
           spotlightEnabled={spotlightEnabled}
