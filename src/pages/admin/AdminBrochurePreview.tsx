@@ -33,6 +33,7 @@ export default function AdminBrochurePreview() {
   const [intro, setIntro] = useState<string | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [orientation, setOrientation] = useState<"portrait" | "landscape" | "original">("portrait");
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
