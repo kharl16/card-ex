@@ -13,12 +13,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { ArrowLeft, Trash2, Save, Wand2 } from "lucide-react";
 
-type ImageRow = { id: string; url: string; caption: string | null; sort_index: number };
+type ImageRow = {
+  id: string;
+  url: string;
+  caption: string | null;
+  sort_index: number;
+  section_id: string | null;
+};
+
+type SectionRow = { id: string; heading: string; body: string | null; sort_index: number };
+
+type TemplateSection = { id: string; heading: string; body?: string | null; image_ids?: string[] };
 
 type TemplatePayload = {
   section_title?: string;
   cta_label?: string;
   included_image_ids?: string[];
+  /** Real page layout captured from the brochure library */
+  title?: string;
+  intro?: string | null;
+  sections?: TemplateSection[];
 };
 
 type Template = {
