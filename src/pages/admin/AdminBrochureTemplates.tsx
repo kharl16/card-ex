@@ -132,6 +132,16 @@ export default function AdminBrochureTemplates() {
       section_title: sectionTitle.trim() || "Company Brochure",
       cta_label: ctaLabel.trim() || undefined,
       included_image_ids: Array.from(included),
+      title: pageTitle.trim() || "Company Brochure",
+      intro: pageIntro.trim() || null,
+      // Capture the real page layout: each section with its heading, text and
+      // the included pages that belong to it.
+      sections: librarySections.map((s) => ({
+        id: s.id,
+        heading: s.heading,
+        body: s.body,
+        image_ids: images.filter((i) => i.section_id === s.id && included.has(i.id)).map((i) => i.id),
+      })),
     };
     const { error } = await supabase.from("brochure_templates").insert({
       company_id: activeCompanyId,
