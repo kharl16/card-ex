@@ -291,10 +291,13 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                   <div className="space-y-2">
                     <Label>Brochure page shape</Label>
                     <Select
-                      value={carouselSettings.brochure.settings.pageShape ?? "portrait"}
+                      value={carouselSettings.brochure.settings.pageShape ?? "company"}
                       onValueChange={(value) =>
                         updateSettings("brochure", {
-                          pageShape: value as "portrait" | "landscape" | "original",
+                          pageShape:
+                            value === "company"
+                              ? undefined
+                              : (value as "portrait" | "landscape" | "original"),
                         })
                       }
                     >
@@ -302,6 +305,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="company">Company default</SelectItem>
                         <SelectItem value="portrait">Portrait</SelectItem>
                         <SelectItem value="landscape">Landscape</SelectItem>
                         <SelectItem value="original">Original image shape</SelectItem>
