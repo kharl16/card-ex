@@ -12,6 +12,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2, Save, Wand2 } from "lucide-react";
+import type { BrochurePageShape } from "@/lib/carouselTypes";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type ImageRow = {
   id: string;
@@ -33,6 +35,7 @@ type TemplatePayload = {
   title?: string;
   intro?: string | null;
   sections?: TemplateSection[];
+  page_shape?: BrochurePageShape;
 };
 
 type Template = {
@@ -63,6 +66,7 @@ export default function AdminBrochureTemplates() {
   const [sectionTitle, setSectionTitle] = useState("Company Brochure");
   const [pageTitle, setPageTitle] = useState("Company Brochure");
   const [pageIntro, setPageIntro] = useState("");
+  const [pageShape, setPageShape] = useState<BrochurePageShape>("portrait");
   const [ctaLabel, setCtaLabel] = useState("");
   const [included, setIncluded] = useState<Set<string>>(new Set());
 
@@ -88,7 +92,7 @@ export default function AdminBrochureTemplates() {
         .order("created_at", { ascending: false }),
       supabase
         .from("global_brochures")
-        .select("id,title,intro,sort_index")
+        .select("id,title,intro,page_shape,sort_index")
         .eq("company_id", activeCompanyId)
         .order("sort_index", { ascending: true })
         .limit(1),
@@ -98,10 +102,11 @@ export default function AdminBrochureTemplates() {
     setTemplates((tplRes.data as Template[]) ?? []);
     setIncluded(new Set(imgs.map((i) => i.id)));
 
-    const meta = ((brochureRes.data as { id: string; title: string; intro: string | null }[]) ?? [])[0] ?? null;
+    const meta = ((brochureRes.data as { id: string; title: string; intro: string | null; page_shape: BrochurePageShape }[]) ?? [])[0] ?? null;
     setPageTitle(meta?.title || "Company Brochure");
     setPageIntro(meta?.intro || "");
     setSectionTitle(meta?.title || "Company Brochure");
+    setPageShape(meta?.page_shape ?? "portrait");
     if (meta) {
       const { data: secRows } = await supabase
         .from("global_brochure_sections")
@@ -134,6 +139,7 @@ export default function AdminBrochureTemplates() {
       included_image_ids: Array.from(included),
       title: pageTitle.trim() || "Company Brochure",
       intro: pageIntro.trim() || null,
+      page_shape: pageShape,
       // Capture the real page layout: each section with its heading, text and
       // the included pages that belong to it.
       sections: librarySections.map((s) => ({
@@ -196,7 +202,11 @@ export default function AdminBrochureTemplates() {
       const settings = ((cardRow as any)?.carousel_settings as Record<string, any>) || {};
       const brochureSection = { ...(settings.brochure || {}) };
       brochureSection.title = payload.section_title || "Company Brochure";
-      brochureSection.settings = { ...(brochureSection.settings || {}), enabled: true };
+      brochureSection.settings = {
+        ...(brochureSection.settings || {}),
+        enabled: true,
+        pageShape: payload.page_shape ?? "portrait",
+      };
       if (payload.cta_label) {
         brochureSection.cta = {
           ...(brochureSection.cta || {}),
@@ -277,6 +287,17 @@ export default function AdminBrochureTemplates() {
           <div>
             <Label>Brochure page title</Label>
             <Input value={pageTitle} onChange={(e) => setPageTitle(e.target.value)} placeholder="Company Brochure" />
+          </div>
+          <div>
+            <Label>Page shape</Label>
+            <Select value={pageShape} onValueChange={(value) => setPageShape(value as BrochurePageShape)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="portrait">Portrait</SelectItem>
+                <SelectItem value="landscape">Landscape</SelectItem>
+                <SelectItem value="original">Original image shape</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Brochure intro (optional)</Label>

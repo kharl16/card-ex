@@ -8,6 +8,7 @@ import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import LightboxDialog from "@/components/LightboxDialog";
 import { useLightbox, type LightboxImage } from "@/hooks/useLightbox";
+import type { BrochurePageShape } from "@/lib/carouselTypes";
 
 type Image = {
   id: string;
@@ -33,7 +34,7 @@ export default function AdminBrochurePreview() {
   const [intro, setIntro] = useState<string | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
-  const [orientation, setOrientation] = useState<"portrait" | "landscape" | "original">("portrait");
+  const [orientation, setOrientation] = useState<BrochurePageShape>("portrait");
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -55,16 +56,17 @@ export default function AdminBrochurePreview() {
           .order("sort_index", { ascending: true }),
         supabase
           .from("global_brochures")
-          .select("id,title,intro,sort_index")
+          .select("id,title,intro,page_shape,sort_index")
           .eq("company_id", activeCompanyId)
           .order("sort_index", { ascending: true })
           .limit(1),
       ]);
 
       const images = (imagesRes.data as Image[]) ?? [];
-      const meta = ((brochureRes.data as { id: string; title: string; intro: string | null }[]) ?? [])[0];
+      const meta = ((brochureRes.data as { id: string; title: string; intro: string | null; page_shape: BrochurePageShape }[]) ?? [])[0];
       setTitle(meta?.title || "Company Brochure");
       setIntro(meta?.intro ?? null);
+      setOrientation(meta?.page_shape ?? "portrait");
 
       let sectionRows: { id: string; heading: string; body: string | null }[] = [];
       if (meta) {
@@ -172,7 +174,7 @@ export default function AdminBrochurePreview() {
                           ? "h-auto w-full object-contain transition-transform group-hover:scale-105"
                           : orientation === "landscape"
                             ? "aspect-[4/3] w-full object-contain transition-transform group-hover:scale-105"
-                            : "aspect-[3/4] w-full object-cover transition-transform group-hover:scale-105"
+                            : "aspect-[3/4] w-full object-contain transition-transform group-hover:scale-105"
                       }
                     />
                     {img.caption && (

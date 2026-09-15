@@ -287,6 +287,29 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
                   </Select>
                 </div>
 
+                {key === "brochure" && (
+                  <div className="space-y-2">
+                    <Label>Brochure page shape</Label>
+                    <Select
+                      value={carouselSettings.brochure.settings.pageShape ?? "portrait"}
+                      onValueChange={(value) =>
+                        updateSettings("brochure", {
+                          pageShape: value as "portrait" | "landscape" | "original",
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="portrait">Portrait</SelectItem>
+                        <SelectItem value="landscape">Landscape</SelectItem>
+                        <SelectItem value="original">Original image shape</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 {/* Image Gap Slider */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
