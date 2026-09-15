@@ -1608,6 +1608,7 @@ export type Database = {
           id: string
           intro: string | null
           is_active: boolean
+          page_shape: string
           sort_index: number
           title: string
           updated_at: string
@@ -1619,6 +1620,7 @@ export type Database = {
           id?: string
           intro?: string | null
           is_active?: boolean
+          page_shape?: string
           sort_index?: number
           title?: string
           updated_at?: string
@@ -1630,6 +1632,7 @@ export type Database = {
           id?: string
           intro?: string | null
           is_active?: boolean
+          page_shape?: string
           sort_index?: number
           title?: string
           updated_at?: string
