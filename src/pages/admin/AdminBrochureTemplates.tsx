@@ -54,12 +54,15 @@ export default function AdminBrochureTemplates() {
   const navigate = useNavigate();
 
   const [images, setImages] = useState<ImageRow[]>([]);
+  const [librarySections, setLibrarySections] = useState<SectionRow[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [sectionTitle, setSectionTitle] = useState("Company Brochure");
+  const [pageTitle, setPageTitle] = useState("Company Brochure");
+  const [pageIntro, setPageIntro] = useState("");
   const [ctaLabel, setCtaLabel] = useState("");
   const [included, setIncluded] = useState<Set<string>>(new Set());
 
