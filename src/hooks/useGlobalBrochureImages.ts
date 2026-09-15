@@ -23,6 +23,15 @@ export type GlobalBrochureSection = {
   heading: string;
   body: string | null;
   sort_index: number;
+  /** When set (applied brochure template), these page ids belong to the section */
+  imageIds?: string[];
+};
+
+/** Page layout stored on a card by an applied brochure template */
+export type CardBrochureLayout = {
+  title?: string | null;
+  intro?: string | null;
+  sections?: { id: string; heading: string; body?: string | null; image_ids?: string[] }[];
 };
 
 /**
