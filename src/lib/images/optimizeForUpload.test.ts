@@ -28,7 +28,7 @@ describe("detectWhiteEdgeCrop", () => {
     const image = pixels(100, 60);
     paintWhite(image, 0, 0, 8, 60);
     paintWhite(image, 92, 0, 100, 60);
-    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 7, y: 0, width: 86, height: 60 });
+    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 8, y: 0, width: 84, height: 60 });
   });
 
   it("removes four-sided edge bands", () => {
@@ -37,7 +37,7 @@ describe("detectWhiteEdgeCrop", () => {
     paintWhite(image, 0, 94, 100, 100);
     paintWhite(image, 0, 0, 6, 100);
     paintWhite(image, 94, 0, 100, 100);
-    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 5, y: 5, width: 90, height: 90 });
+    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 6, y: 6, width: 88, height: 88 });
   });
 
   it("keeps an already edge-to-edge page unchanged", () => {
@@ -47,6 +47,32 @@ describe("detectWhiteEdgeCrop", () => {
   it("does not remove an intentional white area that does not fill an edge", () => {
     const image = pixels(100, 60);
     paintWhite(image, 0, 10, 20, 50);
+    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 0, y: 0, width: 100, height: 60 });
+  });
+
+  it("removes JPEG-softened off-white edge halos", () => {
+    const image = pixels(100, 60);
+    for (let y = 0; y < image.height; y += 1) {
+      for (let x = 0; x < 4; x += 1) {
+        const i = (y * image.width + x) * 4;
+        image.data[i] = 239;
+        image.data[i + 1] = 237;
+        image.data[i + 2] = 234;
+      }
+    }
+    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 4, y: 0, width: 96, height: 60 });
+  });
+
+  it("keeps bright colored artwork at the edge", () => {
+    const image = pixels(100, 60);
+    for (let y = 0; y < image.height; y += 1) {
+      for (let x = 0; x < 5; x += 1) {
+        const i = (y * image.width + x) * 4;
+        image.data[i] = 250;
+        image.data[i + 1] = 236;
+        image.data[i + 2] = 190;
+      }
+    }
     expect(detectWhiteEdgeCrop(image)).toEqual({ x: 0, y: 0, width: 100, height: 60 });
   });
 });
