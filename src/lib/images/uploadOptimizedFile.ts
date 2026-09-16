@@ -16,6 +16,8 @@ export interface UploadOptimizedOptions {
   kind: ImageKind;
   /** Force JPEG/WebP even if source PNG has alpha. */
   forceOpaque?: boolean;
+  /** Conservatively remove near-white bands connected to the image edges. */
+  trimWhiteEdges?: boolean;
 }
 
 export interface UploadOptimizedResult {
@@ -27,9 +29,9 @@ export interface UploadOptimizedResult {
 
 export async function uploadOptimizedFile(
   file: File | Blob,
-  { bucket, folder, kind, forceOpaque }: UploadOptimizedOptions
+  { bucket, folder, kind, forceOpaque, trimWhiteEdges }: UploadOptimizedOptions
 ): Promise<UploadOptimizedResult> {
-  const optimized = await optimizeForUpload(file, { kind, forceOpaque });
+  const optimized = await optimizeForUpload(file, { kind, forceOpaque, trimWhiteEdges });
   const path = `${folder.replace(/\/+$/, "")}/${kind}/${optimized.contentHash}.${optimized.extension}`;
 
   const { data, error } = await supabase.storage.from(bucket).upload(path, optimized.blob, {

@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2, Eye, EyeOff, Plus, BookOpen, LayoutTemplate } from "lucide-react";
+import { ArrowLeft, Trash2, Eye, EyeOff, Plus, BookOpen, LayoutTemplate, WandSparkles } from "lucide-react";
 import GlobalImageSlots from "@/components/admin/GlobalImageSlots";
 import type { BrochurePageShape } from "@/lib/carouselTypes";
 
@@ -63,6 +63,7 @@ export default function AdminGlobalBrochures() {
   const [busy, setBusy] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [captionInput, setCaptionInput] = useState("");
+  const [cleanProgress, setCleanProgress] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
@@ -226,6 +227,7 @@ export default function AdminGlobalBrochures() {
         bucket: "media",
         folder: "global-brochures",
         kind: "carousel",
+        trimWhiteEdges: true,
       });
       return publicUrl;
     } catch (e: any) {
@@ -267,10 +269,59 @@ export default function AdminGlobalBrochures() {
   async function onAddUrl() {
     if (!urlInput.trim()) return;
     setBusy(true);
-    await addRow(urlInput.trim(), captionInput);
-    setUrlInput("");
-    setCaptionInput("");
+    try {
+      const response = await fetch(urlInput.trim(), { mode: "cors" });
+      if (!response.ok) throw new Error("Image could not be downloaded");
+      const blob = await response.blob();
+      if (!ALLOWED.includes(blob.type)) throw new Error("URL must point to a JPEG, PNG, GIF, or WebP image");
+      if (blob.size > 10 * 1024 * 1024) throw new Error("Image is larger than 10MB");
+      const file = new File([blob], "brochure-url-image", { type: blob.type });
+      const cleanedUrl = await uploadFile(file);
+      if (cleanedUrl) {
+        await addRow(cleanedUrl, captionInput);
+        setUrlInput("");
+        setCaptionInput("");
+      }
+    } catch (error) {
+      toast.error(`${(error as Error).message}. Download it and upload the file directly.`);
+    }
     setBusy(false);
+  }
+
+  async function cleanExistingPages() {
+    if (rows.length === 0 || !confirm("Clean white edges from all existing brochure pages? Original stored files will be kept.")) return;
+    setBusy(true);
+    let cleaned = 0;
+    let skipped = 0;
+    const slots = rows.flatMap((row) => [
+      { row, field: "url" as const, url: row.url },
+      ...(row.url_2 ? [{ row, field: "url_2" as const, url: row.url_2 }] : []),
+    ]);
+    for (let index = 0; index < slots.length; index += 1) {
+      const item = slots[index];
+      setCleanProgress(`${index + 1} of ${slots.length}`);
+      try {
+        const response = await fetch(item.url, { mode: "cors" });
+        if (!response.ok) throw new Error("Download failed");
+        const blob = await response.blob();
+        const file = new File([blob], `brochure-${item.row.id}`, { type: blob.type || "image/jpeg" });
+        const nextUrl = await uploadFile(file);
+        if (!nextUrl) throw new Error("Processing failed");
+        const { error } = await supabase
+          .from("global_brochure_images")
+          .update({ [item.field]: nextUrl })
+          .eq("id", item.row.id);
+        if (error) throw error;
+        cleaned += 1;
+      } catch {
+        skipped += 1;
+      }
+    }
+    setCleanProgress(null);
+    setBusy(false);
+    await load();
+    if (skipped) toast.warning(`Cleaned ${cleaned} page photo(s); ${skipped} could not be processed.`);
+    else toast.success(`Cleaned ${cleaned} brochure page photo(s).`);
   }
 
   async function toggleActive(row: Row) {
@@ -335,6 +386,10 @@ export default function AdminGlobalBrochures() {
           </Button>
           <Button variant="outline" onClick={() => navigate("/admin/brochure-templates")}>
             <LayoutTemplate className="mr-2 h-4 w-4" /> Templates
+          </Button>
+          <Button variant="outline" onClick={cleanExistingPages} disabled={busy || rows.length === 0}>
+            <WandSparkles className="mr-2 h-4 w-4" />
+            {cleanProgress ? `Cleaning ${cleanProgress}` : "Clean existing pages"}
           </Button>
         </div>
       </div>
@@ -487,6 +542,7 @@ export default function AdminGlobalBrochures() {
                 isActive={r.is_active}
                 kind="carousel"
                 folder="global-brochures"
+                trimWhiteEdges
                 onChanged={load}
                 aspectClass={
                   (brochure?.page_shape ?? "portrait") === "landscape"

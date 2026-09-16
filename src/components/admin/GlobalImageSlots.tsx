@@ -18,6 +18,7 @@ interface Props {
   folder: string;
   onChanged: () => void | Promise<void>;
   aspectClass?: string;
+  trimWhiteEdges?: boolean;
 }
 
 /**
@@ -36,6 +37,7 @@ export default function GlobalImageSlots({
   folder,
   onChanged,
   aspectClass = "aspect-square",
+  trimWhiteEdges = false,
 }: Props) {
   const [slot, setSlot] = useState<1 | 2>(1);
   const [busy, setBusy] = useState(false);
@@ -66,7 +68,12 @@ export default function GlobalImageSlots({
     }
     setBusy(true);
     try {
-      const { publicUrl } = await uploadOptimizedFile(file, { bucket: "media", folder, kind });
+      const { publicUrl } = await uploadOptimizedFile(file, {
+        bucket: "media",
+        folder,
+        kind,
+        trimWhiteEdges,
+      });
       await save(publicUrl);
     } catch (e) {
       toast.error(`Upload failed: ${(e as Error).message}`);
