@@ -59,6 +59,10 @@ const WHITE_CHANNEL_MIN = 232;
 const WHITE_CHANNEL_SPREAD_MAX = 14;
 const WHITE_ROW_CONFIDENCE = 0.96;
 const MAX_TRIM_FRACTION = 0.22;
+// JPEG resampling leaves a very thin blended seam where a white margin meets
+// artwork. Once a real white band is confirmed, move two analysis pixels past
+// that transition so the exported brochure cannot retain the fringe.
+const EDGE_SEAM_BLEED = 2;
 
 const isNearWhite = (data: Uint8ClampedArray, offset: number) => {
   const red = data[offset];
@@ -107,6 +111,11 @@ export function detectWhiteEdgeCrop(image: PixelBuffer): CropRect {
   while (right > width - 1 - maxX && whiteColumn(right)) right -= 1;
   while (top < maxY && whiteRow(top)) top += 1;
   while (bottom > height - 1 - maxY && whiteRow(bottom)) bottom -= 1;
+
+  if (left > 0) left = Math.min(left + EDGE_SEAM_BLEED, right);
+  if (right < width - 1) right = Math.max(right - EDGE_SEAM_BLEED, left);
+  if (top > 0) top = Math.min(top + EDGE_SEAM_BLEED, bottom);
+  if (bottom < height - 1) bottom = Math.max(bottom - EDGE_SEAM_BLEED, top);
 
   const cropWidth = right - left + 1;
   const cropHeight = bottom - top + 1;

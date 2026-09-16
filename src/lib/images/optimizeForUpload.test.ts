@@ -28,7 +28,7 @@ describe("detectWhiteEdgeCrop", () => {
     const image = pixels(100, 60);
     paintWhite(image, 0, 0, 8, 60);
     paintWhite(image, 92, 0, 100, 60);
-    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 8, y: 0, width: 84, height: 60 });
+    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 10, y: 0, width: 80, height: 60 });
   });
 
   it("removes four-sided edge bands", () => {
@@ -37,7 +37,7 @@ describe("detectWhiteEdgeCrop", () => {
     paintWhite(image, 0, 94, 100, 100);
     paintWhite(image, 0, 0, 6, 100);
     paintWhite(image, 94, 0, 100, 100);
-    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 6, y: 6, width: 88, height: 88 });
+    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 8, y: 8, width: 84, height: 84 });
   });
 
   it("keeps an already edge-to-edge page unchanged", () => {
@@ -60,7 +60,21 @@ describe("detectWhiteEdgeCrop", () => {
         image.data[i + 2] = 234;
       }
     }
-    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 4, y: 0, width: 96, height: 60 });
+    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 6, y: 0, width: 94, height: 60 });
+  });
+
+  it("removes the blended seam immediately after a confirmed white margin", () => {
+    const image = pixels(100, 60);
+    paintWhite(image, 0, 0, 5, 60);
+    for (let y = 0; y < image.height; y += 1) {
+      for (let x = 5; x < 7; x += 1) {
+        const i = (y * image.width + x) * 4;
+        image.data[i] = 224;
+        image.data[i + 1] = 221;
+        image.data[i + 2] = 218;
+      }
+    }
+    expect(detectWhiteEdgeCrop(image)).toEqual({ x: 7, y: 0, width: 93, height: 60 });
   });
 
   it("keeps bright colored artwork at the edge", () => {
