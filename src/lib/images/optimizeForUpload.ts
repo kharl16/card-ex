@@ -52,15 +52,26 @@ export interface CropRect {
   height: number;
 }
 
-const WHITE_CHANNEL_MIN = 242;
-const WHITE_ROW_CONFIDENCE = 0.985;
+// Scanned/exported brochure whites are rarely pure white after JPEG encoding.
+// Keep this tolerant enough to catch warm/grey compression halos while still
+// requiring almost the entire edge line to be blank.
+const WHITE_CHANNEL_MIN = 232;
+const WHITE_CHANNEL_SPREAD_MAX = 14;
+const WHITE_ROW_CONFIDENCE = 0.96;
 const MAX_TRIM_FRACTION = 0.22;
 
-const isNearWhite = (data: Uint8ClampedArray, offset: number) =>
-  data[offset + 3] > 245 &&
-  data[offset] >= WHITE_CHANNEL_MIN &&
-  data[offset + 1] >= WHITE_CHANNEL_MIN &&
-  data[offset + 2] >= WHITE_CHANNEL_MIN;
+const isNearWhite = (data: Uint8ClampedArray, offset: number) => {
+  const red = data[offset];
+  const green = data[offset + 1];
+  const blue = data[offset + 2];
+  const darkest = Math.min(red, green, blue);
+  const lightest = Math.max(red, green, blue);
+  return (
+    data[offset + 3] > 245 &&
+    darkest >= WHITE_CHANNEL_MIN &&
+    lightest - darkest <= WHITE_CHANNEL_SPREAD_MAX
+  );
+};
 
 /**
  * Finds only highly uniform, near-white bands touching an image edge.
@@ -96,12 +107,6 @@ export function detectWhiteEdgeCrop(image: PixelBuffer): CropRect {
   while (right > width - 1 - maxX && whiteColumn(right)) right -= 1;
   while (top < maxY && whiteRow(top)) top += 1;
   while (bottom > height - 1 - maxY && whiteRow(bottom)) bottom -= 1;
-
-  // Keep a one-pixel safety boundary and ignore tiny JPEG-noise trims.
-  left = left >= 3 ? Math.max(0, left - 1) : 0;
-  right = width - 1 - right >= 3 ? Math.min(width - 1, right + 1) : width - 1;
-  top = top >= 3 ? Math.max(0, top - 1) : 0;
-  bottom = height - 1 - bottom >= 3 ? Math.min(height - 1, bottom + 1) : height - 1;
 
   const cropWidth = right - left + 1;
   const cropHeight = bottom - top + 1;
