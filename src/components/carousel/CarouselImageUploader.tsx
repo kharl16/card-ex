@@ -14,7 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Upload, X, GripVertical, Trash2, ImagePlus, Pencil, Eye, EyeOff } from "lucide-react";
+import { Upload, X, GripVertical, Trash2, ImagePlus, Pencil, Eye, EyeOff, Loader2, WandSparkles } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import {
   DndContext,
@@ -86,11 +86,11 @@ function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange
         isVisible ? "border-border" : "border-dashed border-muted-foreground/40"
       }`}
     >
-      <div className="aspect-video relative">
+      <div className="aspect-video relative bg-black/60">
         <img
           src={image.url}
           alt={image.alt || "Carousel image"}
-          className={`w-full h-full object-cover transition ${
+          className={`w-full h-full object-contain transition ${
             isVisible ? "" : "grayscale opacity-50"
           }`}
         />
@@ -265,6 +265,7 @@ export default function CarouselImageUploader({
   const [showEditor, setShowEditor] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [cleaning, setCleaning] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -355,7 +356,8 @@ export default function CarouselImageUploader({
         const { publicUrl, optimizedBytes } = await uploadOptimizedFile(blob, {
           bucket: "cardex-products",
           folder: `${ownerId}/${cardId}/${carouselKey}`,
-          kind: "carousel",
+          kind: carouselKey === "testimonies" ? "testimony" : "carousel",
+          trimWhiteEdges: carouselKey === "testimonies",
         });
 
         totalCompressedSize += optimizedBytes;
@@ -485,6 +487,39 @@ export default function CarouselImageUploader({
 
   const visibleCount = images.filter((img) => !img.hidden).length;
 
+  const cleanExistingTestimonies = useCallback(async () => {
+    if (carouselKey !== "testimonies" || images.length === 0) return;
+    if (!confirm("Clean white edges from these testimony photos? Original stored files will be kept.")) return;
+
+    setCleaning(true);
+    let cleaned = 0;
+    let skipped = 0;
+    const nextImages = [...images];
+
+    for (let index = 0; index < images.length; index += 1) {
+      try {
+        const response = await fetch(images[index].url, { mode: "cors" });
+        if (!response.ok) throw new Error("Download failed");
+        const blob = await response.blob();
+        const { publicUrl } = await uploadOptimizedFile(blob, {
+          bucket: "cardex-products",
+          folder: `${ownerId}/${cardId}/${carouselKey}`,
+          kind: "testimony",
+          trimWhiteEdges: true,
+        });
+        nextImages[index] = { ...images[index], url: publicUrl };
+        cleaned += 1;
+      } catch {
+        skipped += 1;
+      }
+    }
+
+    if (cleaned > 0) onImagesChange(nextImages);
+    setCleaning(false);
+    if (skipped) toast.warning(`Cleaned ${cleaned} testimony photo(s); ${skipped} could not be processed.`);
+    else toast.success(`Cleaned ${cleaned} testimony photo(s).`);
+  }, [cardId, carouselKey, images, onImagesChange, ownerId]);
+
   const carouselLabels: Record<CarouselKey, string> = {
     brochure: "Company Brochure",
     products: "Products",
@@ -495,7 +530,7 @@ export default function CarouselImageUploader({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Label className="text-sm font-medium">
           {carouselLabels[carouselKey]} Images ({images.length}/{maxImages})
         </Label>
@@ -503,6 +538,12 @@ export default function CarouselImageUploader({
           <span className="text-xs text-muted-foreground">
             {visibleCount} visible · {images.length - visibleCount} hidden
           </span>
+        )}
+        {carouselKey === "testimonies" && images.length > 0 && (
+          <Button type="button" variant="outline" size="sm" onClick={cleanExistingTestimonies} disabled={cleaning || uploading}>
+            {cleaning ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
+            {cleaning ? "Cleaning…" : "Clean white edges"}
+          </Button>
         )}
       </div>
 
@@ -552,7 +593,7 @@ export default function CarouselImageUploader({
           className="file:mr-4 file:px-3 file:py-1 file:rounded-md file:bg-primary file:text-primary-foreground file:font-medium file:border-0 file:cursor-pointer hover:file:opacity-90"
         />
         <p className="text-xs text-muted-foreground">
-          Images are automatically compressed. Crop/edit before upload. Max 10MB per image. {maxImages - images.length} slots remaining.
+          Images are automatically compressed{carouselKey === "testimonies" ? " and white outer margins are removed" : ""}. Crop/edit before upload. Max 10MB per image. {maxImages - images.length} slots remaining.
         </p>
       </div>
 

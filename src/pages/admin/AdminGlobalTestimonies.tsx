@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ArrowLeft, Trash2, Eye, EyeOff, Sparkles, Loader2, GripVertical } from "lucide-react";
+import { ArrowLeft, Trash2, Eye, EyeOff, Sparkles, Loader2, GripVertical, WandSparkles } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -50,6 +50,7 @@ export default function AdminGlobalTestimonies() {
   const [bulkExtracting, setBulkExtracting] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [captionInput, setCaptionInput] = useState("");
+  const [cleanProgress, setCleanProgress] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
@@ -89,6 +90,7 @@ export default function AdminGlobalTestimonies() {
         bucket: "media",
         folder: "global-testimonies",
         kind: "testimony",
+        trimWhiteEdges: true,
       });
       return publicUrl;
     } catch (e: any) {
@@ -130,10 +132,50 @@ export default function AdminGlobalTestimonies() {
   async function onAddUrl() {
     if (!urlInput.trim()) return;
     setBusy(true);
-    await addRow(urlInput.trim(), captionInput);
-    setUrlInput("");
-    setCaptionInput("");
+    try {
+      const response = await fetch(urlInput.trim(), { mode: "cors" });
+      if (!response.ok) throw new Error("Image could not be downloaded");
+      const blob = await response.blob();
+      if (!ALLOWED.includes(blob.type)) throw new Error("URL must point to a JPEG, PNG, GIF, or WebP image");
+      if (blob.size > 10 * 1024 * 1024) throw new Error("Image is larger than 10MB");
+      const cleanedUrl = await uploadFile(new File([blob], "testimony-url-image", { type: blob.type }));
+      if (cleanedUrl) {
+        await addRow(cleanedUrl, captionInput);
+        setUrlInput("");
+        setCaptionInput("");
+      }
+    } catch (error) {
+      toast.error(`${(error as Error).message}. Download it and upload the file directly.`);
+    }
     setBusy(false);
+  }
+
+  async function cleanExistingPhotos() {
+    if (rows.length === 0 || !confirm("Clean white edges from all existing global testimony photos? Original stored files will be kept.")) return;
+    setBusy(true);
+    let cleaned = 0;
+    let skipped = 0;
+    for (let index = 0; index < rows.length; index += 1) {
+      const row = rows[index];
+      setCleanProgress(`${index + 1} of ${rows.length}`);
+      try {
+        const response = await fetch(row.url, { mode: "cors" });
+        if (!response.ok) throw new Error("Download failed");
+        const blob = await response.blob();
+        const nextUrl = await uploadFile(new File([blob], `testimony-${row.id}`, { type: blob.type || "image/jpeg" }));
+        if (!nextUrl) throw new Error("Processing failed");
+        const { error } = await supabase.from("global_testimony_images").update({ url: nextUrl }).eq("id", row.id);
+        if (error) throw error;
+        cleaned += 1;
+      } catch {
+        skipped += 1;
+      }
+    }
+    setCleanProgress(null);
+    setBusy(false);
+    await load();
+    if (skipped) toast.warning(`Cleaned ${cleaned} testimony photo(s); ${skipped} could not be processed.`);
+    else toast.success(`Cleaned ${cleaned} testimony photo(s).`);
   }
 
   async function toggleActive(row: Row) {
@@ -291,6 +333,10 @@ export default function AdminGlobalTestimonies() {
         </div>
         <div className="flex items-center gap-2">
           <CompanySwitcher />
+          <Button onClick={cleanExistingPhotos} disabled={busy || loading || rows.length === 0} variant="outline">
+            {cleanProgress ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <WandSparkles className="mr-2 h-4 w-4" />}
+            {cleanProgress ? `Cleaning ${cleanProgress}` : "Clean existing photos"}
+          </Button>
           <Button onClick={onExtractAllMissing} disabled={bulkExtracting || loading} variant="outline">
             {bulkExtracting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
             Auto-caption missing
@@ -398,8 +444,8 @@ function SortableCard({
       style={style}
       className="rounded-xl border border-border bg-card p-3 space-y-2"
     >
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
-        <img src={getRenderUrl(r.url, "testimony", "thumb")} alt={r.caption ?? ""} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+      <div className="relative aspect-video overflow-hidden rounded-lg bg-black/60">
+        <img src={getRenderUrl(r.url, "testimony", "thumb")} alt={r.caption ?? ""} loading="lazy" decoding="async" className="h-full w-full object-contain" />
         {!r.is_active && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-xs font-medium text-white">
             HIDDEN GLOBALLY

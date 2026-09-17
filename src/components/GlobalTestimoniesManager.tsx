@@ -71,11 +71,11 @@ export default function GlobalTestimoniesManager({ cardId }: Props) {
                 hidden ? "border-border/40 opacity-60" : "border-primary/40"
               }`}
             >
-              <div className="relative">
+               <div className="relative h-28 bg-black/60">
                 <img
                   src={g.url}
                   alt={g.caption ?? ""}
-                  className="h-28 w-full object-cover"
+                   className="h-full w-full object-contain"
                 />
                 <button
                   type="button"
