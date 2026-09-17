@@ -75,7 +75,7 @@ export default function ImmersiveShowcase({
         key,
         title,
         body,
-        aspect: "portrait" as const,
+        aspect: key === "testimonies" ? "original" as const : "portrait" as const,
         pageShape: key === "brochure" ? categories.find((category) => category.key === key)?.pageShape : undefined,
         videos: [],
         cta,
