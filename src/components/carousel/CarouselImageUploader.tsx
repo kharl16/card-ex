@@ -86,7 +86,7 @@ function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange
         isVisible ? "border-border" : "border-dashed border-muted-foreground/40"
       }`}
     >
-      <div className={carouselPreviewClassName(image)}>
+      <div className="aspect-video relative bg-black/60">
         <img
           src={image.url}
           alt={image.alt || "Carousel image"}
@@ -145,10 +145,6 @@ function SortableImageItem({ image, index, onDelete, onEdit, onDescriptionChange
       </div>
     </div>
   );
-}
-
-function carouselPreviewClassName(_image: CarouselImage) {
-  return "aspect-video relative bg-black/60";
 }
 
 // Edit dialog for image alt text, caption, and description
