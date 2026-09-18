@@ -60,7 +60,38 @@ const SafeImage: React.FC<SafeImageProps> = ({
     [maxMegapixels, onDimensions]
   );
 
-  const handleError = useCallback(() => setStatus("error"), []);
+  // Images restored from the browser cache can finish loading before React
+  // attaches onLoad, which previously left the tile stuck on the skeleton.
+  // Settle from the element itself as soon as it is mounted / src changes.
+  const attachRef = useCallback(
+    (el: HTMLImageElement | null) => {
+      imgRef.current = el;
+      if (el?.complete) settle(el);
+    },
+    [settle]
+  );
+
+  useEffect(() => {
+    const el = imgRef.current;
+    if (el?.complete && el.currentSrc) settle(el);
+  }, [src, settle]);
+
+  const retriedRef = useRef<string | null>(null);
+
+  const handleError = useCallback(() => {
+    const el = imgRef.current;
+    // One silent retry — transient CDN/network failures are the usual cause of
+    // a whole row appearing blank.
+    if (el && retriedRef.current !== src) {
+      retriedRef.current = src;
+      const bust = `${src}${src.includes("?") ? "&" : "?"}r=1`;
+      window.setTimeout(() => {
+        if (imgRef.current) imgRef.current.src = bust;
+      }, 400);
+      return;
+    }
+    setStatus("error");
+  }, [src]);
 
   return (
     <div className={cn("relative w-full h-full overflow-hidden", wrapperClassName, className)} style={style}>
