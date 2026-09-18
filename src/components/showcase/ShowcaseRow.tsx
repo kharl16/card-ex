@@ -64,6 +64,18 @@ export default function ShowcaseRow({
 
   const matchCount = searchQuery.trim() ? filteredTiles.length : 0;
 
+  // Infinite loop: render 3 copies of the tiles and silently re-center the
+  // scroll position whenever the user swipes into a cloned copy. Disabled
+  // while searching so match highlighting stays unambiguous.
+  const isLooping = !searchQuery.trim() && filteredTiles.length > 1;
+
+  const renderedTiles = useMemo(() => {
+    if (!isLooping) return filteredTiles.map((tile) => ({ tile, key: tile.id }));
+    return [0, 1, 2].flatMap((copy) =>
+      filteredTiles.map((tile) => ({ tile, key: `${tile.id}__c${copy}` }))
+    );
+  }, [filteredTiles, isLooping]);
+
   useEffect(() => {
     if (activeMatchOrdinal >= filteredTiles.length) setActiveMatchOrdinal(0);
   }, [filteredTiles.length, activeMatchOrdinal]);
@@ -100,9 +112,21 @@ export default function ShowcaseRow({
   const updateArrows = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
+    if (isLooping) {
+      // Seamlessly jump one copy-width when swiping into a cloned region.
+      const third = el.scrollWidth / 3;
+      if (third > 0) {
+        if (el.scrollLeft < third) el.scrollLeft += third;
+        else if (el.scrollLeft >= third * 2) el.scrollLeft -= third;
+      }
+      const overflow = el.scrollWidth > el.clientWidth + 8;
+      setCanScrollLeft(overflow);
+      setCanScrollRight(overflow);
+      return;
+    }
     setCanScrollLeft(el.scrollLeft > 8);
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-  }, []);
+  }, [isLooping]);
 
   useEffect(() => {
     updateArrows();
@@ -115,6 +139,17 @@ export default function ShowcaseRow({
       window.removeEventListener("resize", updateArrows);
     };
   }, [updateArrows, tiles.length]);
+
+  // Start (and re-start) on the middle copy so both directions can loop.
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || !isLooping) return;
+    const frame = requestAnimationFrame(() => {
+      el.scrollLeft = el.scrollWidth / 3;
+      updateArrows();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isLooping, filteredTiles.length, updateArrows]);
 
   const scrollByPage = (direction: -1 | 1) => {
     const el = scrollerRef.current;
@@ -203,8 +238,8 @@ export default function ShowcaseRow({
           {filteredTiles.length === 0 ? (
             <p className="px-1 py-6 text-sm text-white/50">No matches in {title}.</p>
           ) : (
-            filteredTiles.map((tile, index) => (
-              <div key={tile.id} data-tile-id={tile.id} className="snap-start">
+            renderedTiles.map(({ tile, key }, index) => (
+              <div key={key} data-tile-id={key} className="snap-start">
                 <ShowcaseItem
                   src={tile.src}
                   alt={tile.alt}
