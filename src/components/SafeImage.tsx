@@ -106,10 +106,10 @@ const SafeImage: React.FC<SafeImageProps> = ({
       )}
       {status !== "error" && (
         <img
-          ref={imgRef}
+          ref={attachRef}
           src={src}
           alt={alt}
-          onLoad={handleLoad}
+          onLoad={(e) => settle(e.currentTarget)}
           onError={handleError}
           draggable={false}
           {...imgProps}
