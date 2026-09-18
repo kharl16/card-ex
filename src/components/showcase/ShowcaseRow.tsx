@@ -64,6 +64,18 @@ export default function ShowcaseRow({
 
   const matchCount = searchQuery.trim() ? filteredTiles.length : 0;
 
+  // Infinite loop: render 3 copies of the tiles and silently re-center the
+  // scroll position whenever the user swipes into a cloned copy. Disabled
+  // while searching so match highlighting stays unambiguous.
+  const isLooping = !searchQuery.trim() && filteredTiles.length > 1;
+
+  const renderedTiles = useMemo(() => {
+    if (!isLooping) return filteredTiles.map((tile) => ({ tile, key: tile.id }));
+    return [0, 1, 2].flatMap((copy) =>
+      filteredTiles.map((tile) => ({ tile, key: `${tile.id}__c${copy}` }))
+    );
+  }, [filteredTiles, isLooping]);
+
   useEffect(() => {
     if (activeMatchOrdinal >= filteredTiles.length) setActiveMatchOrdinal(0);
   }, [filteredTiles.length, activeMatchOrdinal]);
