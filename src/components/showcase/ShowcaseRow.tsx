@@ -114,10 +114,21 @@ export default function ShowcaseRow({
     if (!el) return;
     if (isLooping) {
       // Seamlessly jump one copy-width when swiping into a cloned region.
+      // Temporarily disable smooth scrolling so the jump is instant instead of
+      // animating across the whole track.
       const third = el.scrollWidth / 3;
       if (third > 0) {
-        if (el.scrollLeft < third) el.scrollLeft += third;
-        else if (el.scrollLeft >= third * 2) el.scrollLeft -= third;
+        const needsJump = el.scrollLeft < third * 0.5 || el.scrollLeft >= third * 2.5;
+        if (needsJump) {
+          const previous = el.style.scrollBehavior;
+          el.style.scrollBehavior = "auto";
+          if (el.scrollLeft < third * 0.5) el.scrollLeft += third;
+          else el.scrollLeft -= third;
+          // Restore after the browser applies the instant jump.
+          requestAnimationFrame(() => {
+            el.style.scrollBehavior = previous;
+          });
+        }
       }
       const overflow = el.scrollWidth > el.clientWidth + 8;
       setCanScrollLeft(overflow);
@@ -145,7 +156,10 @@ export default function ShowcaseRow({
     const el = scrollerRef.current;
     if (!el || !isLooping) return;
     const frame = requestAnimationFrame(() => {
+      const previous = el.style.scrollBehavior;
+      el.style.scrollBehavior = "auto";
       el.scrollLeft = el.scrollWidth / 3;
+      el.style.scrollBehavior = previous;
       updateArrows();
     });
     return () => cancelAnimationFrame(frame);
