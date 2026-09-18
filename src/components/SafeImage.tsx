@@ -44,9 +44,9 @@ const SafeImage: React.FC<SafeImageProps> = ({
     setStatus("loading");
   }, [src]);
 
-  const handleLoad = useCallback(
-    (e: React.SyntheticEvent<HTMLImageElement>) => {
-      const el = e.currentTarget;
+  const settle = useCallback(
+    (el: HTMLImageElement | null) => {
+      if (!el) return;
       const w = el.naturalWidth;
       const h = el.naturalHeight;
       // Guard: 0×0 usually = decode failure; oversized = likely corrupt or unsafe to render.
