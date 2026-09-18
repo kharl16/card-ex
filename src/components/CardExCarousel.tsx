@@ -348,18 +348,18 @@ function RouletteMode({
                           </span>
                         </div>
                       )}
-                      {carouselKind === "testimonies" && (img.description || img.alt) && (
+                      {(img.alt || img.title || img.description) && (
                         <div
                           className="mt-1.5 px-2 flex justify-center"
                           style={{ position: "relative", zIndex: isActive ? 31 : 1 }}
                         >
                           <span
                             className={cn(
-                              "block max-w-full truncate text-center text-[11px] font-medium transition-all",
+                              "block max-w-full line-clamp-2 min-h-[2.5em] text-center text-[11px] font-medium leading-tight transition-all",
                               isActive ? "text-foreground" : "text-foreground/60"
                             )}
                           >
-                            {img.description || img.alt}
+                            {img.alt || img.title || img.description}
                           </span>
                         </div>
                       )}
@@ -635,6 +635,21 @@ function FlatMode({
                           )}
                         >
                           SRP {item.srp}
+                        </span>
+                      </div>
+                    )}
+                    {(item.alt || item.title || item.description) && (
+                      <div
+                        className="mt-1.5 flex justify-center px-2"
+                        style={{ position: "relative", zIndex: isActive ? 31 : 1 }}
+                      >
+                        <span
+                          className={cn(
+                            "block min-h-[2.5em] max-w-full line-clamp-2 text-center text-[11px] font-medium leading-tight transition-all",
+                            isActive ? "text-foreground" : "text-foreground/60"
+                          )}
+                        >
+                          {item.alt || item.title || item.description}
                         </span>
                       </div>
                     )}
