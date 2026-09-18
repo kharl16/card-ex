@@ -238,8 +238,8 @@ export default function ShowcaseRow({
           {filteredTiles.length === 0 ? (
             <p className="px-1 py-6 text-sm text-white/50">No matches in {title}.</p>
           ) : (
-            filteredTiles.map((tile, index) => (
-              <div key={tile.id} data-tile-id={tile.id} className="snap-start">
+            renderedTiles.map(({ tile, key }, index) => (
+              <div key={key} data-tile-id={key} className="snap-start">
                 <ShowcaseItem
                   src={tile.src}
                   alt={tile.alt}
