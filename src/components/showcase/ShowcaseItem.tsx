@@ -23,7 +23,7 @@ interface ShowcaseItemProps {
 
 /**
  * A single focusable tile inside an immersive showcase row.
- * Hover/focus scales the tile and reveals its caption overlay.
+ * Hover/focus scales the tile while its caption and price remain visible.
  */
 export default function ShowcaseItem({
   src,
@@ -80,7 +80,7 @@ export default function ShowcaseItem({
       )}
 
       {srp && (
-        <span className="absolute right-1.5 top-1.5 rounded-full bg-black/70 px-2 py-0.5 text-[10px] font-semibold text-primary ring-1 ring-primary/40">
+        <span className="absolute left-1/2 top-1.5 max-w-[calc(100%-0.75rem)] -translate-x-1/2 truncate rounded-full bg-black/70 px-2 py-0.5 text-center text-[10px] font-semibold text-primary ring-1 ring-primary/40">
           {srp}
         </span>
       )}
@@ -89,9 +89,7 @@ export default function ShowcaseItem({
         <span
           className={cn(
             "absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-2 pb-2 pt-6",
-            "text-left text-[11px] font-medium leading-tight text-white",
-            "line-clamp-2 opacity-0 transition-opacity duration-300",
-            "group-hover:opacity-100 group-focus-visible:opacity-100"
+            "line-clamp-2 text-center text-[11px] font-medium leading-tight text-white"
           )}
         >
           {caption}
