@@ -140,11 +140,12 @@ function normalizeVideos(raw: unknown): VideoItem[] {
 }
 
 /**
- * Read the card's stored showcase display mode. Anything unrecognised — including
- * cards created before this feature existed — falls back to the classic carousel.
+ * Read the card's stored showcase display mode. Immersive is the platform
+ * default — anything unrecognised falls back to it; only an explicit
+ * "carousel" selects the classic view.
  */
 export function getShowcaseDisplayMode(card: any): ShowcaseDisplayMode {
-  return card?.showcase_display_mode === "immersive" ? "immersive" : "carousel";
+  return card?.showcase_display_mode === "carousel" ? "carousel" : "immersive";
 }
 
 /**

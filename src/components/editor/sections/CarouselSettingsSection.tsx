@@ -181,7 +181,7 @@ export function CarouselSettingsSection({ card, onCardChange }: CarouselSettings
   };
 
   const showcaseMode: "carousel" | "immersive" =
-    (card as any).showcase_display_mode === "immersive" ? "immersive" : "carousel";
+    (card as any).showcase_display_mode === "carousel" ? "carousel" : "immersive";
 
   return (
     <div className="space-y-4">
