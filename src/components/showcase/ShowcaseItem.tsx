@@ -86,14 +86,16 @@ export default function ShowcaseItem({
       )}
 
       {caption && (
-        <span
-          className={cn(
-            "absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent px-2 pb-2 pt-6",
-            "line-clamp-2 text-center text-[11px] font-medium leading-tight text-white"
-          )}
-        >
-          {caption}
-        </span>
+        <div className="absolute inset-x-0 bottom-2 overflow-hidden">
+          <span
+            className={cn(
+              "block bg-gradient-to-t from-black/90 via-black/60 to-transparent px-2 pt-9",
+              "line-clamp-3 text-center text-[11px] font-medium leading-tight text-white"
+            )}
+          >
+            {caption}
+          </span>
+        </div>
       )}
     </button>
   );

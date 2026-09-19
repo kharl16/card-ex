@@ -350,12 +350,12 @@ function RouletteMode({
                       )}
                       {(img.alt || img.title || img.description) && (
                         <div
-                          className="mt-1.5 px-2 flex justify-center"
+                          className="mt-1.5 px-2 flex justify-center overflow-hidden"
                           style={{ position: "relative", zIndex: isActive ? 31 : 1 }}
                         >
                           <span
                             className={cn(
-                              "block max-w-full line-clamp-2 min-h-[2.5em] text-center text-[11px] font-medium leading-tight transition-all",
+                              "block max-w-full line-clamp-3 min-h-[3.75em] text-center text-[11px] font-medium leading-tight transition-all",
                               isActive ? "text-foreground" : "text-foreground/60"
                             )}
                           >
@@ -640,12 +640,12 @@ function FlatMode({
                     )}
                     {(item.alt || item.title || item.description) && (
                       <div
-                        className="mt-1.5 flex justify-center px-2"
+                        className="mt-1.5 flex justify-center px-2 overflow-hidden"
                         style={{ position: "relative", zIndex: isActive ? 31 : 1 }}
                       >
                         <span
                           className={cn(
-                            "block min-h-[2.5em] max-w-full line-clamp-2 text-center text-[11px] font-medium leading-tight transition-all",
+                            "block min-h-[3.75em] max-w-full line-clamp-3 text-center text-[11px] font-medium leading-tight transition-all",
                             isActive ? "text-foreground" : "text-foreground/60"
                           )}
                         >
