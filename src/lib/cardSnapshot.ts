@@ -289,7 +289,7 @@ export function buildCardSnapshot(
 
     // Brochure + showcase style
     brochure_images: normalizeCarouselImages(card.brochure_images, "brochure_images"),
-    showcase_display_mode: (card as any).showcase_display_mode || "carousel",
+    showcase_display_mode: (card as any).showcase_display_mode || "immersive",
     
     // Source reference
     source_card_id: card.id || null,
@@ -370,7 +370,7 @@ export function buildCardInsertFromSnapshot(
 
     // Brochure + showcase style
     brochure_images: snapshot.brochure_images ?? [],
-    showcase_display_mode: snapshot.showcase_display_mode ?? "carousel",
+    showcase_display_mode: snapshot.showcase_display_mode ?? "immersive",
     
     // Card type
     card_type: 'publishable',
