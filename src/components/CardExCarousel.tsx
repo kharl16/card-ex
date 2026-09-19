@@ -355,7 +355,7 @@ function RouletteMode({
                         >
                           <span
                             className={cn(
-                              "block max-w-full line-clamp-2 min-h-[2.5em] text-center text-[11px] font-medium leading-tight transition-all",
+                              "block max-w-full line-clamp-3 min-h-[3.75em] text-center text-[11px] font-medium leading-tight transition-all",
                               isActive ? "text-foreground" : "text-foreground/60"
                             )}
                           >
@@ -645,7 +645,7 @@ function FlatMode({
                       >
                         <span
                           className={cn(
-                            "block min-h-[2.5em] max-w-full line-clamp-2 text-center text-[11px] font-medium leading-tight transition-all",
+                            "block min-h-[3.75em] max-w-full line-clamp-3 text-center text-[11px] font-medium leading-tight transition-all",
                             isActive ? "text-foreground" : "text-foreground/60"
                           )}
                         >
