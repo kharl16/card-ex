@@ -350,7 +350,7 @@ function RouletteMode({
                       )}
                       {(img.alt || img.title || img.description) && (
                         <div
-                          className="mt-1.5 px-2 flex justify-center"
+                          className="mt-1.5 px-2 flex justify-center overflow-hidden"
                           style={{ position: "relative", zIndex: isActive ? 31 : 1 }}
                         >
                           <span
@@ -640,7 +640,7 @@ function FlatMode({
                     )}
                     {(item.alt || item.title || item.description) && (
                       <div
-                        className="mt-1.5 flex justify-center px-2"
+                        className="mt-1.5 flex justify-center px-2 overflow-hidden"
                         style={{ position: "relative", zIndex: isActive ? 31 : 1 }}
                       >
                         <span
