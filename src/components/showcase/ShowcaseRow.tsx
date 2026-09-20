@@ -248,6 +248,7 @@ export default function ShowcaseRow({
           ref={scrollerRef}
           className={cn(
             "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 sm:gap-3 sm:px-5",
+            singleItem && "gap-4 sm:gap-5",
             "snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none]",
             "[&::-webkit-scrollbar]:hidden"
           )}
@@ -261,7 +262,7 @@ export default function ShowcaseRow({
                 data-tile-id={key}
                 className={cn(
                   "snap-start",
-                  singleItem && "basis-full shrink-0"
+                  singleItem && "shrink-0 basis-[calc(100%-2rem)] sm:basis-[calc(100%-2.5rem)]"
                 )}
               >
                 <ShowcaseItem
@@ -271,7 +272,7 @@ export default function ShowcaseRow({
                   srp={tile.srp}
                   isVideo={tile.isVideo}
                   aspect={aspect}
-                  pageShape={pageShape}
+                  pageShape={singleItem ? "landscape" : pageShape}
                   onSelect={() => onSelect(tile.originalIndex)}
                   className={cn(
                     singleItem && "w-full sm:w-full lg:w-full",
