@@ -24,6 +24,8 @@ interface ShowcaseRowProps {
   totalCount: number;
   aspect?: "portrait" | "landscape" | "original" | "video";
   pageShape?: BrochurePageShape;
+  /** Shows one large tile per viewport, used for brochure pages. */
+  singleItem?: boolean;
   onSelect: (originalIndex: number) => void;
   onViewAll?: () => void;
   /** Owner-configured call-to-action shown beneath the row */
@@ -47,6 +49,7 @@ export default function ShowcaseRow({
   ctaLabel,
   onCta,
   pageShape,
+  singleItem = false,
 }: ShowcaseRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -253,7 +256,14 @@ export default function ShowcaseRow({
             <p className="px-1 py-6 text-sm text-white/50">No matches in {title}.</p>
           ) : (
             renderedTiles.map(({ tile, key }, index) => (
-              <div key={key} data-tile-id={key} className="snap-start">
+              <div
+                key={key}
+                data-tile-id={key}
+                className={cn(
+                  "snap-start",
+                  singleItem && "w-[calc(100%-2rem)] shrink-0 sm:w-[calc(100%-2.5rem)]"
+                )}
+              >
                 <ShowcaseItem
                   src={tile.src}
                   alt={tile.alt}
@@ -264,6 +274,7 @@ export default function ShowcaseRow({
                   pageShape={pageShape}
                   onSelect={() => onSelect(tile.originalIndex)}
                   className={cn(
+                    singleItem && "w-full sm:w-full lg:w-full",
                     searchQuery.trim() &&
                       index === activeMatchOrdinal &&
                       "ring-2 ring-primary ring-offset-2 ring-offset-black"

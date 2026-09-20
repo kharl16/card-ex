@@ -280,6 +280,7 @@ export default function ImmersiveShowcase({
               ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
               onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
               pageShape={row.pageShape}
+              singleItem={row.key === "brochure"}
             />
             {row.body && (
               <p className="px-4 md:px-8 pb-4 text-sm leading-relaxed text-muted-foreground">
