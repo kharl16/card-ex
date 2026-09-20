@@ -247,7 +247,7 @@ export default function ShowcaseRow({
         <div
           ref={scrollerRef}
           className={cn(
-            "flex gap-2.5 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 sm:gap-3 sm:px-5",
+            "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 sm:gap-3 sm:px-5",
             "snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none]",
             "[&::-webkit-scrollbar]:hidden"
           )}
@@ -261,7 +261,7 @@ export default function ShowcaseRow({
                 data-tile-id={key}
                 className={cn(
                   "snap-start",
-                  singleItem && "shrink-0 [flex-basis:calc(100%-2rem)] sm:[flex-basis:calc(100%-2.5rem)]"
+                  singleItem && "basis-full shrink-0"
                 )}
               >
                 <ShowcaseItem
