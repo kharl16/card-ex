@@ -261,7 +261,7 @@ export default function ShowcaseRow({
                 data-tile-id={key}
                 className={cn(
                   "snap-start",
-                  singleItem && "w-[calc(100%-2rem)] shrink-0 sm:w-[calc(100%-2.5rem)]"
+                  singleItem && "shrink-0 [flex-basis:calc(100%-2rem)] sm:[flex-basis:calc(100%-2.5rem)]"
                 )}
               >
                 <ShowcaseItem
