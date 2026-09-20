@@ -144,8 +144,13 @@ export default function AdminGlobalTestimonies() {
         setUrlInput("");
         setCaptionInput("");
       }
-    } catch (error) {
-      toast.error(`${(error as Error).message}. Download it and upload the file directly.`);
+    } catch {
+      // The browser could not download the image (cross-origin block, odd
+      // content type, etc.). Fall back to saving the link as-is, like before.
+      await addRow(urlInput.trim(), captionInput);
+      setUrlInput("");
+      setCaptionInput("");
+      toast.info("Added using the original link — white-edge cleanup was skipped.");
     }
     setBusy(false);
   }
