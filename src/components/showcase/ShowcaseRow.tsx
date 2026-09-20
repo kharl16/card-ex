@@ -24,6 +24,8 @@ interface ShowcaseRowProps {
   totalCount: number;
   aspect?: "portrait" | "landscape" | "original" | "video";
   pageShape?: BrochurePageShape;
+  /** Shows one large tile per viewport, used for brochure pages. */
+  singleItem?: boolean;
   onSelect: (originalIndex: number) => void;
   onViewAll?: () => void;
   /** Owner-configured call-to-action shown beneath the row */
@@ -47,6 +49,7 @@ export default function ShowcaseRow({
   ctaLabel,
   onCta,
   pageShape,
+  singleItem = false,
 }: ShowcaseRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -244,7 +247,8 @@ export default function ShowcaseRow({
         <div
           ref={scrollerRef}
           className={cn(
-            "flex gap-2.5 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 sm:gap-3 sm:px-5",
+            "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 sm:gap-3 sm:px-5",
+            singleItem && "gap-4 sm:gap-5",
             "snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none]",
             "[&::-webkit-scrollbar]:hidden"
           )}
@@ -253,7 +257,14 @@ export default function ShowcaseRow({
             <p className="px-1 py-6 text-sm text-white/50">No matches in {title}.</p>
           ) : (
             renderedTiles.map(({ tile, key }, index) => (
-              <div key={key} data-tile-id={key} className="snap-start">
+              <div
+                key={key}
+                data-tile-id={key}
+                className={cn(
+                  "snap-start",
+                  singleItem && "shrink-0 basis-full"
+                )}
+              >
                 <ShowcaseItem
                   src={tile.src}
                   alt={tile.alt}
@@ -261,9 +272,10 @@ export default function ShowcaseRow({
                   srp={tile.srp}
                   isVideo={tile.isVideo}
                   aspect={aspect}
-                  pageShape={pageShape}
+                  pageShape={singleItem ? "landscape" : pageShape}
                   onSelect={() => onSelect(tile.originalIndex)}
                   className={cn(
+                    singleItem && "w-full sm:w-full lg:w-full",
                     searchQuery.trim() &&
                       index === activeMatchOrdinal &&
                       "ring-2 ring-primary ring-offset-2 ring-offset-black"

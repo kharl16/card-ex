@@ -44,58 +44,67 @@ export default function ShowcaseItem({
       onClick={onSelect}
       aria-label={alt}
       className={cn(
-        "group relative shrink-0 overflow-hidden rounded-xl bg-black/40 ring-1 ring-white/10",
+        "group relative flex shrink-0 flex-col overflow-hidden rounded-xl bg-black/40 ring-1 ring-white/10",
         "transition-transform duration-300 ease-out will-change-transform",
         "hover:z-10 hover:scale-[1.06] focus-visible:z-10 focus-visible:scale-[1.06]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         "motion-reduce:transition-none motion-reduce:hover:scale-100",
         resolvedAspect === "video" || resolvedAspect === "landscape"
-          ? "w-[240px] sm:w-[280px] lg:w-[320px] aspect-video"
+          ? "w-[240px] sm:w-[280px] lg:w-[320px]"
           : resolvedAspect === "original"
             ? "w-[168px] sm:w-[196px] lg:w-[224px]"
-            : "w-[132px] sm:w-[156px] lg:w-[180px] aspect-[3/4]",
+            : "w-[132px] sm:w-[156px] lg:w-[180px]",
         className
       )}
-      style={resolvedAspect === "original" ? { aspectRatio: naturalRatio ?? 3 / 4 } : undefined}
     >
-      <SafeImage
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-90"
-        imgClassName="object-contain"
-        onDimensions={({ width, height }) => setNaturalRatio(width / height)}
-      />
+      <div
+        className={cn(
+          "relative w-full shrink-0 overflow-hidden bg-black/40",
+          resolvedAspect === "video" || resolvedAspect === "landscape"
+            ? "aspect-video"
+            : resolvedAspect === "portrait"
+              ? "aspect-[3/4]"
+              : undefined
+        )}
+        style={resolvedAspect === "original" ? { aspectRatio: naturalRatio ?? 3 / 4 } : undefined}
+      >
+        <SafeImage
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-90"
+          imgClassName="object-contain"
+          onDimensions={({ width, height }) => setNaturalRatio(width / height)}
+        />
 
-      {isVideo && (
-        <span
-          aria-hidden="true"
-          className="absolute inset-0 flex items-center justify-center"
-        >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/60 ring-1 ring-white/40 backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
-            <Play className="h-5 w-5 translate-x-[1px] fill-white text-white" />
-          </span>
-        </span>
-      )}
-
-      {srp && (
-        <span className="absolute left-1/2 top-1.5 max-w-[calc(100%-0.75rem)] -translate-x-1/2 truncate rounded-full bg-black/70 px-2 py-0.5 text-center text-[10px] font-semibold text-primary ring-1 ring-primary/40">
-          {srp}
-        </span>
-      )}
-
-      {caption && (
-        <div className="absolute inset-x-0 bottom-2 overflow-hidden">
+        {isVideo && (
           <span
-            className={cn(
-              "block bg-gradient-to-t from-black/90 via-black/60 to-transparent px-2 pt-9",
-              "line-clamp-3 text-center text-[11px] font-medium leading-tight text-white"
-            )}
+            aria-hidden="true"
+            className="absolute inset-0 flex items-center justify-center"
           >
-            {caption}
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/60 ring-1 ring-white/40 backdrop-blur-sm transition-transform duration-300 group-hover:scale-110">
+              <Play className="h-5 w-5 translate-x-[1px] fill-white text-white" />
+            </span>
           </span>
-        </div>
+        )}
+      </div>
+
+      {(srp || caption) && (
+        <span
+          className="flex min-h-[4.75rem] w-full flex-col items-center justify-center gap-1.5 border-t border-white/10 px-2 py-2.5"
+        >
+          {srp && (
+            <span className="max-w-full truncate rounded-full bg-black/70 px-2.5 py-0.5 text-center text-[10px] font-semibold text-primary ring-1 ring-primary/40">
+              {srp}
+            </span>
+          )}
+          {caption && (
+            <span className="block min-h-[3.75em] max-w-full overflow-hidden text-center text-[11px] font-medium leading-tight text-white line-clamp-3">
+              {caption}
+            </span>
+          )}
+        </span>
       )}
     </button>
   );
