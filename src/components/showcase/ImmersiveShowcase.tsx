@@ -280,7 +280,7 @@ export default function ImmersiveShowcase({
               ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
               onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
               pageShape={row.pageShape}
-              singleItem={row.key === "brochure"}
+              featuredLayout
             />
             {row.body && (
               <p className="px-4 md:px-8 pb-4 text-sm leading-relaxed text-muted-foreground">
@@ -298,7 +298,7 @@ export default function ImmersiveShowcase({
           title={viewAllRow.title}
           tiles={viewAllRow.tiles}
           aspect={viewAllRow.aspect}
-          pageShape={viewAllRow.pageShape}
+          pageShape="original"
           onSelect={(index) => {
             const tile = viewAllRow.tiles[index];
             handleSelect(viewAllRow, tile?.originalIndex ?? index);
