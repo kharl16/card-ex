@@ -308,10 +308,7 @@ function RouletteMode({
                           isActiveMatch && "ring-4 ring-amber-300"
                         )}
                          style={{
-                           aspectRatio:
-                             pageShape === "original" || carouselKind === "testimonies"
-                               ? naturalRatios[img.id] ?? "16 / 9"
-                               : slideAspectRatio,
+                           aspectRatio: naturalRatios[img.id] ?? slideAspectRatio,
                          }}
                         onClick={() => handleImageClick(logicalIndex)}
                         aria-label={img.alt || `View image ${logicalIndex + 1}`}
@@ -602,7 +599,7 @@ function FlatMode({
                         isMatched && "ring-2 ring-amber-400/80 shadow-[0_0_20px_-2px_rgba(251,191,36,0.55)]",
                         isActiveMatch && "ring-4 ring-amber-300"
                       )}
-                      style={{ aspectRatio: pageShape === "original" ? naturalRatios[item.id] ?? "3 / 4" : slideAspectRatio }}
+                      style={{ aspectRatio: naturalRatios[item.id] ?? slideAspectRatio }}
                       onClick={() => handleImageClick(index)}
                       aria-label={item.alt || `View image ${index + 1}`}
                     >

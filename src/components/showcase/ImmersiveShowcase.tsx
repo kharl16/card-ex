@@ -298,7 +298,7 @@ export default function ImmersiveShowcase({
           title={viewAllRow.title}
           tiles={viewAllRow.tiles}
           aspect={viewAllRow.aspect}
-          pageShape={viewAllRow.pageShape}
+          pageShape="original"
           onSelect={(index) => {
             const tile = viewAllRow.tiles[index];
             handleSelect(viewAllRow, tile?.originalIndex ?? index);
