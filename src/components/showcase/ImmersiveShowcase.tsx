@@ -40,6 +40,14 @@ interface RowModel {
   cta?: CarouselSection["cta"];
 }
 
+const ROW_LAYOUT: Record<CarouselKey, { portraitItems: 1 | 2 | 3; landscapeItems: 2 | 3 | 4 }> = {
+  brochure: { portraitItems: 1, landscapeItems: 2 },
+  videos: { portraitItems: 1, landscapeItems: 2 },
+  products: { portraitItems: 3, landscapeItems: 4 },
+  packages: { portraitItems: 2, landscapeItems: 3 },
+  testimonies: { portraitItems: 2, landscapeItems: 3 },
+};
+
 const SCROLL_TARGETS: Record<string, string> = {
   top: "body",
   contact: "#contact-section",
@@ -280,7 +288,8 @@ export default function ImmersiveShowcase({
               ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
               onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
               pageShape={row.pageShape}
-              featuredLayout
+              portraitItems={ROW_LAYOUT[row.key].portraitItems}
+              landscapeItems={ROW_LAYOUT[row.key].landscapeItems}
             />
             {row.body && (
               <p className="px-4 md:px-8 pb-4 text-sm leading-relaxed text-muted-foreground">
