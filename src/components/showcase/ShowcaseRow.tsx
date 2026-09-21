@@ -24,8 +24,9 @@ interface ShowcaseRowProps {
   totalCount: number;
   aspect?: "portrait" | "landscape" | "original" | "video";
   pageShape?: BrochurePageShape;
-  /** Shows one large tile per viewport, with 2–3 tiles on landscape phones. */
-  featuredLayout?: boolean;
+  /** Number of complete tiles visible in portrait and landscape phone layouts. */
+  portraitItems?: 1 | 2 | 3;
+  landscapeItems?: 2 | 3 | 4;
   onSelect: (originalIndex: number) => void;
   onViewAll?: () => void;
   /** Owner-configured call-to-action shown beneath the row */
@@ -49,7 +50,8 @@ export default function ShowcaseRow({
   ctaLabel,
   onCta,
   pageShape,
-  featuredLayout = false,
+  portraitItems = 1,
+  landscapeItems = 2,
 }: ShowcaseRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -176,6 +178,17 @@ export default function ShowcaseRow({
 
   if (tiles.length === 0) return null;
 
+  const portraitWidth = {
+    1: "basis-full",
+    2: "basis-[calc((100%_-_0.625rem)/2)]",
+    3: "basis-[calc((100%_-_1.25rem)/3)]",
+  }[portraitItems];
+  const landscapeWidth = {
+    2: "[@media_(orientation:landscape)_and_(max-width:932px)_and_(max-height:500px)]:!basis-[calc((100%_-_0.625rem)/2)]",
+    3: "[@media_(orientation:landscape)_and_(max-width:932px)_and_(max-height:500px)]:!basis-[calc((100%_-_1.25rem)/3)]",
+    4: "[@media_(orientation:landscape)_and_(max-width:932px)_and_(max-height:500px)]:!basis-[calc((100%_-_1.875rem)/4)]",
+  }[landscapeItems];
+
   return (
     <section
       id={id}
@@ -247,8 +260,7 @@ export default function ShowcaseRow({
         <div
           ref={scrollerRef}
           className={cn(
-            "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 sm:gap-3 sm:px-5",
-            featuredLayout && "gap-4 sm:gap-5",
+            "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 sm:px-5",
             "snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none]",
             "[&::-webkit-scrollbar]:hidden"
           )}
@@ -261,12 +273,9 @@ export default function ShowcaseRow({
                 key={key}
                 data-tile-id={key}
                 className={cn(
-                  "snap-start",
-                  featuredLayout && [
-                    "shrink-0 basis-full",
-                    "[@media_(orientation:landscape)_and_(max-width:700px)_and_(max-height:500px)]:basis-[calc((100%-1rem)/2)]",
-                    "[@media_(orientation:landscape)_and_(min-width:701px)_and_(max-width:932px)_and_(max-height:500px)]:basis-[calc((100%-2rem)/3)]",
-                  ]
+                  "shrink-0 snap-start",
+                  portraitWidth,
+                  landscapeWidth
                 )}
               >
                 <ShowcaseItem
@@ -276,10 +285,10 @@ export default function ShowcaseRow({
                   srp={tile.srp}
                   isVideo={tile.isVideo}
                   aspect={aspect}
-                  pageShape={featuredLayout ? "original" : pageShape}
+                  pageShape="original"
                   onSelect={() => onSelect(tile.originalIndex)}
                   className={cn(
-                    featuredLayout && "!w-full",
+                    "!w-full",
                     searchQuery.trim() &&
                       index === activeMatchOrdinal &&
                       "ring-2 ring-primary ring-offset-2 ring-offset-black"
