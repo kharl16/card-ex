@@ -24,8 +24,8 @@ interface ShowcaseRowProps {
   totalCount: number;
   aspect?: "portrait" | "landscape" | "original" | "video";
   pageShape?: BrochurePageShape;
-  /** Shows one large tile per viewport, used for brochure pages. */
-  singleItem?: boolean;
+  /** Shows one large tile per viewport, with 2–3 tiles on landscape phones. */
+  featuredLayout?: boolean;
   onSelect: (originalIndex: number) => void;
   onViewAll?: () => void;
   /** Owner-configured call-to-action shown beneath the row */
@@ -49,7 +49,7 @@ export default function ShowcaseRow({
   ctaLabel,
   onCta,
   pageShape,
-  singleItem = false,
+  featuredLayout = false,
 }: ShowcaseRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -248,7 +248,7 @@ export default function ShowcaseRow({
           ref={scrollerRef}
           className={cn(
             "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 sm:gap-3 sm:px-5",
-            singleItem && "gap-4 sm:gap-5",
+            featuredLayout && "gap-4 sm:gap-5",
             "snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none]",
             "[&::-webkit-scrollbar]:hidden"
           )}
@@ -262,7 +262,11 @@ export default function ShowcaseRow({
                 data-tile-id={key}
                 className={cn(
                   "snap-start",
-                  singleItem && "shrink-0 basis-full"
+                  featuredLayout && [
+                    "shrink-0 basis-full",
+                    "[@media_(orientation:landscape)_and_(max-width:700px)_and_(max-height:500px)]:basis-[calc((100%-1rem)/2)]",
+                    "[@media_(orientation:landscape)_and_(min-width:701px)_and_(max-width:932px)_and_(max-height:500px)]:basis-[calc((100%-2rem)/3)]",
+                  ]
                 )}
               >
                 <ShowcaseItem
@@ -272,10 +276,10 @@ export default function ShowcaseRow({
                   srp={tile.srp}
                   isVideo={tile.isVideo}
                   aspect={aspect}
-                  pageShape={singleItem ? "landscape" : pageShape}
+                  pageShape={featuredLayout ? "original" : pageShape}
                   onSelect={() => onSelect(tile.originalIndex)}
                   className={cn(
-                    singleItem && "w-full sm:w-full lg:w-full",
+                    featuredLayout && "!w-full",
                     searchQuery.trim() &&
                       index === activeMatchOrdinal &&
                       "ring-2 ring-primary ring-offset-2 ring-offset-black"
