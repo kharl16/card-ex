@@ -17,6 +17,9 @@ interface ShowcaseItemProps {
   /** Portrait tiles for images, landscape (16:9) for videos */
   aspect?: "portrait" | "landscape" | "original" | "video";
   pageShape?: BrochurePageShape;
+  /** Shared media ratio used to align every tile in the same row. */
+  mediaAspectRatio?: number;
+  onDimensions?: (dims: { width: number; height: number }) => void;
   onSelect: () => void;
   className?: string;
 }
@@ -33,6 +36,8 @@ export default function ShowcaseItem({
   isVideo = false,
   aspect = "portrait",
   pageShape,
+  mediaAspectRatio,
+  onDimensions,
   onSelect,
   className,
 }: ShowcaseItemProps) {
@@ -66,7 +71,11 @@ export default function ShowcaseItem({
               ? "aspect-[3/4]"
               : undefined
         )}
-        style={resolvedAspect === "original" ? { aspectRatio: naturalRatio ?? 3 / 4 } : undefined}
+        style={
+          resolvedAspect === "original"
+            ? { aspectRatio: mediaAspectRatio ?? naturalRatio ?? 3 / 4 }
+            : undefined
+        }
       >
         <SafeImage
           src={src}
@@ -75,7 +84,10 @@ export default function ShowcaseItem({
           decoding="async"
           className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-90"
           imgClassName="object-contain"
-          onDimensions={({ width, height }) => setNaturalRatio(width / height)}
+          onDimensions={({ width, height }) => {
+            setNaturalRatio(width / height);
+            onDimensions?.({ width, height });
+          }}
         />
 
         {isVideo && (
