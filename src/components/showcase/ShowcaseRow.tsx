@@ -59,6 +59,7 @@ export default function ShowcaseRow({
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const [tileRatios, setTileRatios] = useState<Record<string, number>>({});
 
   const filteredTiles = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -72,6 +73,26 @@ export default function ShowcaseRow({
   // scroll position whenever the user swipes into a cloned copy. Disabled
   // while searching so match highlighting stays unambiguous.
   const isLooping = !searchQuery.trim() && filteredTiles.length > 1;
+
+  // A shared ratio based on the row's shortest natural entry keeps every
+  // media frame aligned and prevents a tall item from creating empty space.
+  const rowAspectRatio = useMemo(() => {
+    const ratios = filteredTiles
+      .map((tile) => tileRatios[tile.id])
+      .filter((ratio): ratio is number => typeof ratio === "number" && ratio > 0);
+    return ratios.length ? Math.max(...ratios) : undefined;
+  }, [filteredTiles, tileRatios]);
+
+  const rememberDimensions = useCallback(
+    (tileId: string, { width, height }: { width: number; height: number }) => {
+      if (!width || !height) return;
+      const ratio = width / height;
+      setTileRatios((current) =>
+        current[tileId] === ratio ? current : { ...current, [tileId]: ratio }
+      );
+    },
+    []
+  );
 
   const renderedTiles = useMemo(() => {
     if (!isLooping) return filteredTiles.map((tile) => ({ tile, key: tile.id }));
@@ -234,7 +255,7 @@ export default function ShowcaseRow({
           {filteredTiles.length === 0 ? (
             <p className="px-1 py-6 text-sm text-white/50">No matches in {title}.</p>
           ) : (
-            renderedTiles.map(({ tile, key }, index) => (
+            renderedTiles.map(({ tile, key }) => (
               <div
                 key={key}
                 data-tile-id={key}
@@ -252,6 +273,8 @@ export default function ShowcaseRow({
                   isVideo={tile.isVideo}
                   aspect={aspect}
                   pageShape="original"
+                  mediaAspectRatio={rowAspectRatio}
+                  onDimensions={(dims) => rememberDimensions(tile.id, dims)}
                   onSelect={() => onSelect(tile.originalIndex)}
                   className={cn(
                     "!w-full",
