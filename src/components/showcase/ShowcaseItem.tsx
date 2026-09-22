@@ -44,7 +44,7 @@ export default function ShowcaseItem({
       onClick={onSelect}
       aria-label={alt}
       className={cn(
-        "group relative flex shrink-0 flex-col overflow-hidden rounded-xl bg-black/40 ring-1 ring-white/10",
+        "group relative flex shrink-0 flex-col overflow-hidden rounded-lg bg-black/40 ring-1 ring-white/10",
         "transition-transform duration-300 ease-out will-change-transform",
         "hover:z-10 hover:scale-[1.06] focus-visible:z-10 focus-visible:scale-[1.06]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
@@ -92,7 +92,7 @@ export default function ShowcaseItem({
 
       {(srp || caption) && (
         <span
-          className="flex min-h-[4.75rem] w-full flex-col items-center justify-center gap-1.5 border-t border-white/10 px-2 py-2.5"
+          className="flex min-h-[4.25rem] w-full flex-col items-center justify-center gap-1 border-t border-white/10 px-1.5 py-2"
         >
           {srp && (
             <span className="max-w-full truncate rounded-full bg-black/70 px-2.5 py-0.5 text-center text-[10px] font-semibold text-primary ring-1 ring-primary/40">

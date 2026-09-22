@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ShowcaseItem from "@/components/showcase/ShowcaseItem";
-import CarouselSearchBar from "@/components/carousel/CarouselSearchBar";
 import type { BrochurePageShape } from "@/lib/carouselTypes";
 
 export interface ShowcaseRowTile {
@@ -27,6 +26,8 @@ interface ShowcaseRowProps {
   /** Number of complete tiles visible in portrait and landscape phone layouts. */
   portraitItems?: 1 | 2 | 3;
   landscapeItems?: 2 | 3 | 4;
+  searchQuery?: string;
+  activeTileId?: string;
   onSelect: (originalIndex: number) => void;
   onViewAll?: () => void;
   /** Owner-configured call-to-action shown beneath the row */
@@ -52,12 +53,12 @@ export default function ShowcaseRow({
   pageShape,
   portraitItems = 1,
   landscapeItems = 2,
+  searchQuery = "",
+  activeTileId,
 }: ShowcaseRowProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeMatchOrdinal, setActiveMatchOrdinal] = useState(0);
 
   const filteredTiles = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -66,8 +67,6 @@ export default function ShowcaseRow({
       [t.alt, t.caption, t.srp].filter(Boolean).join(" ").toLowerCase().includes(q)
     );
   }, [tiles, searchQuery]);
-
-  const matchCount = searchQuery.trim() ? filteredTiles.length : 0;
 
   // Infinite loop: render 3 copies of the tiles and silently re-center the
   // scroll position whenever the user swipes into a cloned copy. Disabled
@@ -81,10 +80,6 @@ export default function ShowcaseRow({
     );
   }, [filteredTiles, isLooping]);
 
-  useEffect(() => {
-    if (activeMatchOrdinal >= filteredTiles.length) setActiveMatchOrdinal(0);
-  }, [filteredTiles.length, activeMatchOrdinal]);
-
   const jumpToMatch = useCallback(
     (ordinal: number) => {
       const el = scrollerRef.current;
@@ -96,23 +91,11 @@ export default function ShowcaseRow({
     [filteredTiles]
   );
 
-  const handleSearchPrev = useCallback(() => {
-    if (matchCount === 0) return;
-    setActiveMatchOrdinal((o) => {
-      const next = (o - 1 + matchCount) % matchCount;
-      jumpToMatch(next);
-      return next;
-    });
-  }, [matchCount, jumpToMatch]);
-
-  const handleSearchNext = useCallback(() => {
-    if (matchCount === 0) return;
-    setActiveMatchOrdinal((o) => {
-      const next = (o + 1) % matchCount;
-      jumpToMatch(next);
-      return next;
-    });
-  }, [matchCount, jumpToMatch]);
+  useEffect(() => {
+    if (!activeTileId) return;
+    const ordinal = filteredTiles.findIndex((tile) => tile.id === activeTileId);
+    if (ordinal >= 0) jumpToMatch(ordinal);
+  }, [activeTileId, filteredTiles, jumpToMatch]);
 
   const updateArrows = useCallback(() => {
     const el = scrollerRef.current;
@@ -194,13 +177,13 @@ export default function ShowcaseRow({
       id={id}
       aria-label={title}
       className={cn(
-        "group/row relative mx-3 mb-4 sm:mx-5 sm:mb-6",
+        "group/row relative mx-3 mb-2 sm:mx-5 sm:mb-3",
         "rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md",
         "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_18px_40px_-24px_rgba(0,0,0,0.9)]",
-        "py-3 sm:py-4"
+        "py-2 sm:py-2.5"
       )}
     >
-      <div className="mb-2 flex items-end justify-between gap-3 px-4 sm:px-5">
+      <div className="mb-1 flex items-end justify-between gap-3 px-3 sm:px-4">
         <h2 className="text-base font-semibold tracking-wide text-white sm:text-lg">
           {title}
           <span className="ml-2 align-middle text-xs font-normal text-white/50">
@@ -217,23 +200,6 @@ export default function ShowcaseRow({
           </button>
         )}
       </div>
-
-      {tiles.length > 1 && (
-        <div className="mb-2 px-4 sm:px-5">
-          <CarouselSearchBar
-            query={searchQuery}
-            onQueryChange={(q) => {
-              setSearchQuery(q);
-              setActiveMatchOrdinal(0);
-            }}
-            matchCount={matchCount}
-            currentMatch={matchCount === 0 ? 0 : activeMatchOrdinal + 1}
-            onPrev={handleSearchPrev}
-            onNext={handleSearchNext}
-            placeholder={`Search ${title.toLowerCase()}...`}
-          />
-        </div>
-      )}
 
       <div className="relative">
         {canScrollLeft && (
@@ -260,7 +226,7 @@ export default function ShowcaseRow({
         <div
           ref={scrollerRef}
           className={cn(
-            "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-4 pb-2 pt-1 sm:px-5",
+            "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-3 pb-1 pt-0.5 sm:px-4",
             "snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none]",
             "[&::-webkit-scrollbar]:hidden"
           )}
@@ -289,8 +255,7 @@ export default function ShowcaseRow({
                   onSelect={() => onSelect(tile.originalIndex)}
                   className={cn(
                     "!w-full",
-                    searchQuery.trim() &&
-                      index === activeMatchOrdinal &&
+                    searchQuery.trim() && tile.id === activeTileId &&
                       "ring-2 ring-primary ring-offset-2 ring-offset-black"
                   )}
                 />
@@ -301,7 +266,7 @@ export default function ShowcaseRow({
       </div>
 
       {onCta && ctaLabel && (
-        <div className="flex justify-center px-4 pt-1 sm:px-5">
+        <div className="flex justify-center px-3 pt-0.5 sm:px-4">
           <button
             type="button"
             onClick={onCta}

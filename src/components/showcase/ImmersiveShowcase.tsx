@@ -6,6 +6,7 @@ import { useLightbox } from "@/hooks/useLightbox";
 import ShowcaseHero from "@/components/showcase/ShowcaseHero";
 import ShowcaseRow, { type ShowcaseRowTile } from "@/components/showcase/ShowcaseRow";
 import ShowcaseViewAllDialog from "@/components/showcase/ShowcaseViewAllDialog";
+import CarouselSearchBar from "@/components/carousel/CarouselSearchBar";
 import { getThumbnailUrl, type VideoItem } from "@/lib/videoUtils";
 import type { ShowcaseCategory } from "@/lib/showcase";
 import type { BrochurePageShape, CarouselKey, CarouselSettingsData, CarouselSection } from "@/lib/carouselTypes";
@@ -157,6 +158,36 @@ export default function ImmersiveShowcase({
   const [videoIndex, setVideoIndex] = useState(0);
   const [viewAllKey, setViewAllKey] = useState<string | null>(null);
   const [ctaModal, setCtaModal] = useState<{ label: string; content: React.ReactNode } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activeMatchIndex, setActiveMatchIndex] = useState(0);
+
+  const searchMatches = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return [];
+    return rows.flatMap((row) =>
+      row.tiles
+        .filter((tile) =>
+          [tile.alt, tile.caption, tile.srp]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase()
+            .includes(query)
+        )
+        .map((tile) => ({ rowId: row.rowId, tileId: tile.id }))
+    );
+  }, [rows, searchQuery]);
+
+  const visibleRows = useMemo(() => {
+    if (!searchQuery.trim()) return rows;
+    const matchingRowIds = new Set(searchMatches.map((match) => match.rowId));
+    return rows.filter((row) => matchingRowIds.has(row.rowId));
+  }, [rows, searchMatches, searchQuery]);
+
+  const activeMatch = searchMatches[activeMatchIndex];
+
+  React.useEffect(() => {
+    if (activeMatchIndex >= searchMatches.length) setActiveMatchIndex(0);
+  }, [activeMatchIndex, searchMatches.length]);
 
   const activeImages = rows.find((r) => r.rowId === activeImageRow)?.images ?? [];
   const lightbox = useLightbox({ images: activeImages, enabled: isInteractive });
@@ -269,8 +300,39 @@ export default function ImmersiveShowcase({
         />
       )}
 
-      <div className="relative z-10 pt-2 pb-4">
-        {rows.map((row, rowIdx) => (
+      <div className="relative z-10 pb-3 pt-2">
+        <div className="mx-3 mb-2 sm:mx-5 sm:mb-3">
+          <CarouselSearchBar
+            query={searchQuery}
+            onQueryChange={(query) => {
+              setSearchQuery(query);
+              setActiveMatchIndex(0);
+            }}
+            matchCount={searchMatches.length}
+            currentMatch={searchMatches.length === 0 ? 0 : activeMatchIndex + 1}
+            onPrev={() =>
+              setActiveMatchIndex((index) =>
+                searchMatches.length ? (index - 1 + searchMatches.length) % searchMatches.length : 0
+              )
+            }
+            onNext={() =>
+              setActiveMatchIndex((index) =>
+                searchMatches.length ? (index + 1) % searchMatches.length : 0
+              )
+            }
+            placeholder="Search brochure, videos, products, packages, testimonies..."
+          />
+        </div>
+
+        {searchQuery.trim() && visibleRows.length === 0 && (
+          <p className="mx-3 rounded-lg border border-border/50 px-4 py-6 text-center text-sm text-muted-foreground sm:mx-5">
+            No showcase matches found.
+          </p>
+        )}
+
+        {visibleRows.map((row) => {
+          const rowIdx = rows.findIndex((candidate) => candidate.rowId === row.rowId);
+          return (
           <div key={row.rowId}>
             <ShowcaseRow
               // Anchor links target the first row of each category.
@@ -290,14 +352,17 @@ export default function ImmersiveShowcase({
               pageShape={row.pageShape}
               portraitItems={ROW_LAYOUT[row.key].portraitItems}
               landscapeItems={ROW_LAYOUT[row.key].landscapeItems}
+              searchQuery={searchQuery}
+              activeTileId={activeMatch?.rowId === row.rowId ? activeMatch.tileId : undefined}
             />
             {row.body && (
-              <p className="px-4 md:px-8 pb-4 text-sm leading-relaxed text-muted-foreground">
+              <p className="px-4 pb-2 text-sm leading-relaxed text-muted-foreground md:px-8">
                 {row.body}
               </p>
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {viewAllRow && (
