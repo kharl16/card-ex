@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, Trash2, Eye, EyeOff } from "lucide-react";
 import GlobalImageSlots from "@/components/admin/GlobalImageSlots";
+import AdminPhotoUploader from "@/components/admin/AdminPhotoUploader";
 
 type Row = {
   id: string;
@@ -187,10 +188,7 @@ export default function AdminGlobalPackages() {
       </div>
 
       <div className="mb-8 rounded-xl border border-border bg-card p-4 space-y-4">
-        <div>
-          <Label>Upload images (JPEG/PNG/GIF/WebP, max 10MB each)</Label>
-          <Input type="file" accept="image/*" multiple disabled={busy} onChange={(e) => onFileChoose(e.target.files)} />
-        </div>
+        <AdminPhotoUploader busy={busy} onFilesSelected={onFileChoose} label="Upload package photos" />
         <div className="space-y-2">
           <Label>…or add by URL</Label>
           <div className="flex flex-col gap-2 sm:flex-row">

@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner";
 import { ArrowLeft, Trash2, Eye, EyeOff, Plus, BookOpen, LayoutTemplate, WandSparkles } from "lucide-react";
 import GlobalImageSlots from "@/components/admin/GlobalImageSlots";
+import AdminPhotoUploader from "@/components/admin/AdminPhotoUploader";
 import type { BrochurePageShape } from "@/lib/carouselTypes";
 
 type Row = {
@@ -501,10 +502,7 @@ export default function AdminGlobalBrochures() {
       </div>
 
       <div className="mb-8 rounded-xl border border-border bg-card p-4 space-y-4">
-        <div>
-          <Label>Upload images (JPEG/PNG/GIF/WebP, max 10MB each)</Label>
-          <Input type="file" accept="image/*" multiple disabled={busy} onChange={(e) => onFileChoose(e.target.files)} />
-        </div>
+        <AdminPhotoUploader busy={busy} onFilesSelected={onFileChoose} label="Upload brochure photos" />
         <div className="space-y-2">
           <Label>…or add by URL</Label>
           <div className="flex flex-col gap-2 sm:flex-row">
