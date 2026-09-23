@@ -324,45 +324,51 @@ export default function ImmersiveShowcase({
           />
         </div>
 
-        {searchQuery.trim() && visibleRows.length === 0 && (
-          <p className="mx-3 rounded-lg border border-border/50 px-4 py-6 text-center text-sm text-muted-foreground sm:mx-5">
-            No showcase matches found.
-          </p>
-        )}
+        <div
+          className="mx-1 max-h-[68svh] min-h-80 overflow-y-auto overscroll-contain border-y border-border/50 pr-1 [scrollbar-gutter:stable] sm:mx-2 md:max-h-[72vh]"
+          aria-label="Scrollable showcase sections"
+          tabIndex={0}
+        >
+          {searchQuery.trim() && visibleRows.length === 0 && (
+            <p className="mx-3 rounded-lg border border-border/50 px-4 py-6 text-center text-sm text-muted-foreground sm:mx-5">
+              No showcase matches found.
+            </p>
+          )}
 
-        {visibleRows.map((row) => {
-          const rowIdx = rows.findIndex((candidate) => candidate.rowId === row.rowId);
-          return (
-          <div key={row.rowId}>
-            <ShowcaseRow
-              // Anchor links target the first row of each category.
-              id={
-                rows.findIndex((r) => r.key === row.key) === rowIdx
-                  ? `showcase-${row.key}`
-                  : undefined
-              }
-              title={row.title}
-              tiles={row.tiles}
-              totalCount={row.tiles.length}
-              aspect={row.aspect}
-              onSelect={(index) => handleSelect(row, index)}
-              onViewAll={() => setViewAllKey(row.rowId)}
-              ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
-              onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
-              pageShape={row.pageShape}
-              portraitItems={ROW_LAYOUT[row.key].portraitItems}
-              landscapeItems={ROW_LAYOUT[row.key].landscapeItems}
-              searchQuery={searchQuery}
-              activeTileId={activeMatch?.rowId === row.rowId ? activeMatch.tileId : undefined}
-            />
-            {row.body && (
-              <p className="px-4 pb-2 text-sm leading-relaxed text-muted-foreground md:px-8">
-                {row.body}
-              </p>
-            )}
-          </div>
-          );
-        })}
+          {visibleRows.map((row) => {
+            const rowIdx = rows.findIndex((candidate) => candidate.rowId === row.rowId);
+            return (
+            <div key={row.rowId}>
+              <ShowcaseRow
+                // Anchor links target the first row of each category.
+                id={
+                  rows.findIndex((r) => r.key === row.key) === rowIdx
+                    ? `showcase-${row.key}`
+                    : undefined
+                }
+                title={row.title}
+                tiles={row.tiles}
+                totalCount={row.tiles.length}
+                aspect={row.aspect}
+                onSelect={(index) => handleSelect(row, index)}
+                onViewAll={() => setViewAllKey(row.rowId)}
+                ctaLabel={row.cta?.enabled ? row.cta.label || undefined : undefined}
+                onCta={row.cta?.enabled ? () => handleCta(row) : undefined}
+                pageShape={row.pageShape}
+                portraitItems={ROW_LAYOUT[row.key].portraitItems}
+                landscapeItems={ROW_LAYOUT[row.key].landscapeItems}
+                searchQuery={searchQuery}
+                activeTileId={activeMatch?.rowId === row.rowId ? activeMatch.tileId : undefined}
+              />
+              {row.body && (
+                <p className="px-4 pb-2 text-sm leading-relaxed text-muted-foreground md:px-8">
+                  {row.body}
+                </p>
+              )}
+            </div>
+            );
+          })}
+        </div>
       </div>
 
       {viewAllRow && (
