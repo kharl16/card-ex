@@ -68,7 +68,6 @@ export default function AdminGlobalBrochures() {
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
-    setLoading(true);
 
     const [imagesRes, brochureRes] = await Promise.all([
       supabase
@@ -184,13 +183,22 @@ export default function AdminGlobalBrochures() {
 
   async function moveSection(section: Section, dir: -1 | 1) {
     const idx = sections.findIndex((s) => s.id === section.id);
-    const swap = sections[idx + dir];
-    if (!swap) return;
-    await Promise.all([
-      supabase.from("global_brochure_sections").update({ sort_index: swap.sort_index }).eq("id", section.id),
-      supabase.from("global_brochure_sections").update({ sort_index: section.sort_index }).eq("id", swap.id),
-    ]);
-    await load();
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= sections.length) return;
+    const ordered = [...sections];
+    [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
+    const changed = ordered.map((s, i) => ({ s, i })).filter(({ s, i }) => s.sort_index !== i);
+    setSections(ordered.map((s, i) => ({ ...s, sort_index: i })));
+    const results = await Promise.all(
+      changed.map(({ s, i }) =>
+        supabase.from("global_brochure_sections").update({ sort_index: i }).eq("id", s.id)
+      )
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) {
+      toast.error(failed.error.message);
+      await load();
+    }
   }
 
   async function removeSection(section: Section) {
@@ -360,13 +368,25 @@ export default function AdminGlobalBrochures() {
 
   async function move(row: Row, dir: -1 | 1) {
     const idx = rows.findIndex((r) => r.id === row.id);
-    const swap = rows[idx + dir];
-    if (!swap) return;
-    await Promise.all([
-      supabase.from("global_brochure_images").update({ sort_index: swap.sort_index }).eq("id", row.id),
-      supabase.from("global_brochure_images").update({ sort_index: row.sort_index }).eq("id", swap.id),
-    ]);
-    await load();
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= rows.length) return;
+    const ordered = [...rows];
+    [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
+    // Renumber sequentially so duplicate sort values can never block a move.
+    const changed = ordered
+      .map((r, i) => ({ r, i }))
+      .filter(({ r, i }) => r.sort_index !== i);
+    setRows(ordered.map((r, i) => ({ ...r, sort_index: i })));
+    const results = await Promise.all(
+      changed.map(({ r, i }) =>
+        supabase.from("global_brochure_images").update({ sort_index: i }).eq("id", r.id)
+      )
+    );
+    const failed = results.find((res) => res.error);
+    if (failed?.error) {
+      toast.error(failed.error.message);
+      await load();
+    }
   }
 
   if (authLoading) return <div className="p-8 text-muted-foreground">Loading…</div>;
