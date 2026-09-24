@@ -80,7 +80,13 @@ export default function ShowcaseRow({
     const ratios = filteredTiles
       .map((tile) => tileRatios[tile.id])
       .filter((ratio): ratio is number => typeof ratio === "number" && ratio > 0);
-    return ratios.length ? Math.max(...ratios) : undefined;
+    if (!ratios.length) return undefined;
+    // Ignore rare landscape/square outliers so they don't shrink a row of
+    // portrait photos (e.g. one wide testimony among tall testimonies).
+    // Landscape tiles still fit inside the shared frame via object-contain.
+    const portraitRatios = ratios.filter((ratio) => ratio <= 1);
+    const pool = portraitRatios.length ? portraitRatios : ratios;
+    return Math.max(...pool);
   }, [filteredTiles, tileRatios]);
 
   const rememberDimensions = useCallback(
