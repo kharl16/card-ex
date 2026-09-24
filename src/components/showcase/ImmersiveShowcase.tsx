@@ -1,9 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
+import { BookOpen, Package, Play, ShoppingBag, Star, type LucideIcon } from "lucide-react";
 import LightboxDialog from "@/components/LightboxDialog";
 import VideoFullscreenDialog from "@/components/video/VideoFullscreenDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useLightbox } from "@/hooks/useLightbox";
-import ShowcaseHero from "@/components/showcase/ShowcaseHero";
 import ShowcaseRow, { type ShowcaseRowTile } from "@/components/showcase/ShowcaseRow";
 import ShowcaseViewAllDialog from "@/components/showcase/ShowcaseViewAllDialog";
 import CarouselSearchBar from "@/components/carousel/CarouselSearchBar";
@@ -47,6 +48,14 @@ const ROW_LAYOUT: Record<CarouselKey, { portraitItems: 1 | 2 | 3; landscapeItems
   products: { portraitItems: 3, landscapeItems: 4 },
   packages: { portraitItems: 2, landscapeItems: 3 },
   testimonies: { portraitItems: 2, landscapeItems: 3 },
+};
+
+const CATEGORY_SHORTCUTS: Record<CarouselKey, { label: string; icon: LucideIcon }> = {
+  brochure: { label: "Brochure", icon: BookOpen },
+  videos: { label: "Videos", icon: Play },
+  products: { label: "Products", icon: ShoppingBag },
+  packages: { label: "Packages", icon: Package },
+  testimonies: { label: "Testimonies", icon: Star },
 };
 
 const SCROLL_TARGETS: Record<string, string> = {
@@ -160,6 +169,12 @@ export default function ImmersiveShowcase({
   const [ctaModal, setCtaModal] = useState<{ label: string; content: React.ReactNode } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMatchIndex, setActiveMatchIndex] = useState(0);
+  const sectionsRef = useRef<HTMLDivElement>(null);
+
+  const visibleCategoryKeys = useMemo(
+    () => Array.from(new Set(rows.map((row) => row.key))),
+    [rows]
+  );
 
   const searchMatches = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -213,6 +228,14 @@ export default function ImmersiveShowcase({
   const handleSelect = (row: RowModel, index: number) => {
     if (row.key === "videos") openVideo(index);
     else openImages(row.rowId, index);
+  };
+
+  const jumpToCategory = (key: CarouselKey) => {
+    const container = sectionsRef.current;
+    const target = container?.querySelector<HTMLElement>(`[data-showcase-category="${key}"]`);
+    if (!container || !target) return;
+    container.scrollTo({ top: target.offsetTop - container.offsetTop, behavior: "smooth" });
+    target.focus({ preventScroll: true });
   };
 
   const handleCta = (row: RowModel) => {
@@ -272,8 +295,6 @@ export default function ImmersiveShowcase({
     }
   };
 
-  const heroRow = rows[0];
-  const heroTile = heroRow.tiles[0];
   const viewAllRow = rows.find((r) => r.rowId === viewAllKey) ?? null;
 
   return (
@@ -288,19 +309,29 @@ export default function ImmersiveShowcase({
         ].join(", "),
       }}
     >
-      {heroTile?.src && (
-        <ShowcaseHero
-          src={heroTile.src}
-          title={heroTile.alt}
-          subtitle={heroTile.caption}
-          categoryLabel={heroRow.title}
-          isVideo={heroRow.key === "videos"}
-          onOpen={() => handleSelect(heroRow, 0)}
-          onBrowse={() => setViewAllKey(heroRow.rowId)}
-        />
-      )}
-
       <div className="relative z-10 pb-3 pt-2">
+        <nav
+          aria-label="Showcase categories"
+          className="mb-2 flex max-w-full gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-5"
+        >
+          {visibleCategoryKeys.map((key) => {
+            const shortcut = CATEGORY_SHORTCUTS[key];
+            const Icon = shortcut.icon;
+            return (
+              <Button
+                key={key}
+                type="button"
+                variant="outline"
+                onClick={() => jumpToCategory(key)}
+                className="h-11 shrink-0 rounded-full border-primary/40 bg-card/70 px-4 text-foreground shadow-sm backdrop-blur-md hover:border-primary hover:bg-primary/10 hover:text-primary"
+              >
+                <Icon aria-hidden="true" />
+                {shortcut.label}
+              </Button>
+            );
+          })}
+        </nav>
+
         <div className="mx-3 mb-2 sm:mx-5 sm:mb-3">
           <CarouselSearchBar
             query={searchQuery}
@@ -325,6 +356,7 @@ export default function ImmersiveShowcase({
         </div>
 
         <div
+          ref={sectionsRef}
           className="mx-1 max-h-[68svh] min-h-80 overflow-y-auto overscroll-contain border-y border-border/50 pr-1 [scrollbar-gutter:stable] sm:mx-2 md:max-h-[72vh]"
           aria-label="Scrollable showcase sections"
           tabIndex={0}
@@ -337,15 +369,17 @@ export default function ImmersiveShowcase({
 
           {visibleRows.map((row) => {
             const rowIdx = rows.findIndex((candidate) => candidate.rowId === row.rowId);
+            const isCategoryStart = rows.findIndex((candidate) => candidate.key === row.key) === rowIdx;
             return (
-            <div key={row.rowId}>
+            <div
+              key={row.rowId}
+              data-showcase-category={isCategoryStart ? row.key : undefined}
+              tabIndex={isCategoryStart ? -1 : undefined}
+              className="scroll-mt-2 focus:outline-none"
+            >
               <ShowcaseRow
                 // Anchor links target the first row of each category.
-                id={
-                  rows.findIndex((r) => r.key === row.key) === rowIdx
-                    ? `showcase-${row.key}`
-                    : undefined
-                }
+                id={isCategoryStart ? `showcase-${row.key}` : undefined}
                 title={row.title}
                 tiles={row.tiles}
                 totalCount={row.tiles.length}
