@@ -183,13 +183,22 @@ export default function AdminGlobalBrochures() {
 
   async function moveSection(section: Section, dir: -1 | 1) {
     const idx = sections.findIndex((s) => s.id === section.id);
-    const swap = sections[idx + dir];
-    if (!swap) return;
-    await Promise.all([
-      supabase.from("global_brochure_sections").update({ sort_index: swap.sort_index }).eq("id", section.id),
-      supabase.from("global_brochure_sections").update({ sort_index: section.sort_index }).eq("id", swap.id),
-    ]);
-    await load();
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= sections.length) return;
+    const ordered = [...sections];
+    [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
+    const changed = ordered.map((s, i) => ({ s, i })).filter(({ s, i }) => s.sort_index !== i);
+    setSections(ordered.map((s, i) => ({ ...s, sort_index: i })));
+    const results = await Promise.all(
+      changed.map(({ s, i }) =>
+        supabase.from("global_brochure_sections").update({ sort_index: i }).eq("id", s.id)
+      )
+    );
+    const failed = results.find((r) => r.error);
+    if (failed?.error) {
+      toast.error(failed.error.message);
+      await load();
+    }
   }
 
   async function removeSection(section: Section) {
