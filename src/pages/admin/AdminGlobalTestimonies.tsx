@@ -55,7 +55,6 @@ export default function AdminGlobalTestimonies() {
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
-    setLoading(true);
     const { data, error } = await supabase
       .from("global_testimony_images")
       .select("id,url,caption,sort_index,is_active")

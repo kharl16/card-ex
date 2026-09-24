@@ -37,7 +37,6 @@ export default function AdminGlobalPackages() {
 
   const load = useCallback(async () => {
     if (!activeCompanyId) return;
-    setLoading(true);
     const { data, error } = await supabase
       .from("global_package_images")
       .select("id,url,url_2,caption,srp,sort_index,is_active")
@@ -159,13 +158,25 @@ export default function AdminGlobalPackages() {
 
   async function move(row: Row, dir: -1 | 1) {
     const idx = rows.findIndex((r) => r.id === row.id);
-    const swap = rows[idx + dir];
-    if (!swap) return;
-    await Promise.all([
-      supabase.from("global_package_images").update({ sort_index: swap.sort_index }).eq("id", row.id),
-      supabase.from("global_package_images").update({ sort_index: row.sort_index }).eq("id", swap.id),
-    ]);
-    await load();
+    const target = idx + dir;
+    if (idx < 0 || target < 0 || target >= rows.length) return;
+    const ordered = [...rows];
+    [ordered[idx], ordered[target]] = [ordered[target], ordered[idx]];
+    // Renumber sequentially so duplicate sort values can never block a move.
+    const changed = ordered
+      .map((r, i) => ({ r, i }))
+      .filter(({ r, i }) => r.sort_index !== i);
+    setRows(ordered.map((r, i) => ({ ...r, sort_index: i })));
+    const results = await Promise.all(
+      changed.map(({ r, i }) =>
+        supabase.from("global_package_images").update({ sort_index: i }).eq("id", r.id)
+      )
+    );
+    const failed = results.find((res) => res.error);
+    if (failed?.error) {
+      toast.error(failed.error.message);
+      await load();
+    }
   }
 
   if (authLoading) return <div className="p-8 text-muted-foreground">Loading…</div>;
