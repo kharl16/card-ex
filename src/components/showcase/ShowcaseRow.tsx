@@ -300,9 +300,9 @@ export default function ShowcaseRow({
             type="button"
             onClick={onCta}
             className={cn(
-              "inline-flex min-h-[44px] items-center justify-center rounded-full px-6 py-2",
+              "inline-flex min-h-[33px] items-center justify-center rounded-full px-[18px] py-1.5",
               "bg-gradient-to-b from-amber-300 via-primary to-amber-600",
-              "text-sm font-semibold tracking-wide text-black",
+              "text-[11px] font-semibold tracking-wide text-black",
               "shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.7),0_0_0_1px_hsl(var(--primary)/0.4)]",
               "transition-transform hover:scale-[1.03] active:scale-[0.98]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-black"
