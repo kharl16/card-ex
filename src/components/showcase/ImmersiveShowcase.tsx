@@ -312,24 +312,26 @@ export default function ImmersiveShowcase({
       <div className="relative z-10 pb-3 pt-2">
         <nav
           aria-label="Showcase categories"
-          className="mb-2 flex max-w-full gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-5"
+          className="mb-2 max-w-full overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-5"
         >
-          {visibleCategoryKeys.map((key) => {
-            const shortcut = CATEGORY_SHORTCUTS[key];
-            const Icon = shortcut.icon;
-            return (
-              <Button
-                key={key}
-                type="button"
-                variant="outline"
-                onClick={() => jumpToCategory(key)}
-                className="h-11 shrink-0 rounded-full border-primary/40 bg-card/70 px-4 text-foreground shadow-sm backdrop-blur-md hover:border-primary hover:bg-primary/10 hover:text-primary"
-              >
-                <Icon aria-hidden="true" />
-                {shortcut.label}
-              </Button>
-            );
-          })}
+          <div className="flex w-max min-w-full items-center justify-between gap-2">
+            {visibleCategoryKeys.map((key) => {
+              const shortcut = CATEGORY_SHORTCUTS[key];
+              const Icon = shortcut.icon;
+              return (
+                <Button
+                  key={key}
+                  type="button"
+                  variant="outline"
+                  onClick={() => jumpToCategory(key)}
+                  className="h-11 flex-1 rounded-full border-primary/40 bg-card/70 px-3 text-foreground shadow-sm backdrop-blur-md hover:border-primary hover:bg-primary/10 hover:text-primary"
+                >
+                  <Icon aria-hidden="true" />
+                  {shortcut.label}
+                </Button>
+              );
+            })}
+          </div>
         </nav>
 
         <div className="mx-3 mb-2 sm:mx-5 sm:mb-3">

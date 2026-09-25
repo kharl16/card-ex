@@ -104,7 +104,7 @@ export default function ShowcaseItem({
 
       {(srp || caption) && (
         <span
-          className="flex min-h-[4.25rem] w-full flex-col items-center justify-center gap-1 border-t border-white/10 px-1.5 py-2"
+          className="flex w-full flex-col items-center gap-0.5 border-t border-white/10 px-1.5 py-1"
         >
           {srp && (
             <span className="max-w-full truncate rounded-full bg-black/70 px-2.5 py-0.5 text-center text-[10px] font-semibold text-primary ring-1 ring-primary/40">
@@ -112,7 +112,7 @@ export default function ShowcaseItem({
             </span>
           )}
           {caption && (
-            <span className="block min-h-[3.75em] max-w-full overflow-hidden text-center text-[11px] font-medium leading-tight text-white line-clamp-3">
+            <span className="block max-w-full overflow-hidden text-center text-[11px] font-medium leading-[1.35] text-white line-clamp-3">
               {caption}
             </span>
           )}
