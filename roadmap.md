@@ -1,2 +1,2 @@
-- [ ] Center and justify the five showcase shortcuts while keeping phone scrolling.
-- [ ] Reduce empty space between media and captions/prices in all five showcase rows.
+- [x] Center and justify the five showcase shortcuts while keeping phone scrolling.
+- [x] Reduce empty space between media and captions/prices in all five showcase rows.
