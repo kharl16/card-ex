@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ImageOff } from "lucide-react";
+import { ImageOff, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export interface SafeImageProps
   extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, "onLoad" | "onError"> {
@@ -37,11 +38,20 @@ const SafeImage: React.FC<SafeImageProps> = ({
   ...imgProps
 }) => {
   const [status, setStatus] = useState<"loading" | "loaded" | "error">("loading");
+  const [attempt, setAttempt] = useState(0);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dimensionsRef = useRef(onDimensions);
+  dimensionsRef.current = onDimensions;
+
+  const requestSrc = attempt === 0 ? src : `${src}${src.includes("?") ? "&" : "?"}retry=${attempt}`;
 
   // Reset state whenever the source changes so the skeleton reappears.
   useEffect(() => {
     setStatus("loading");
+    setAttempt(0);
+    if (retryTimer.current) clearTimeout(retryTimer.current);
+    return () => { if (retryTimer.current) clearTimeout(retryTimer.current); };
   }, [src]);
 
   const settle = useCallback(
@@ -54,10 +64,10 @@ const SafeImage: React.FC<SafeImageProps> = ({
         setStatus("error");
         return;
       }
-      onDimensions?.({ width: w, height: h });
+      dimensionsRef.current?.({ width: w, height: h });
       setStatus("loaded");
     },
-    [maxMegapixels, onDimensions]
+    [maxMegapixels]
   );
 
   // Images restored from the browser cache can finish loading before React
@@ -66,32 +76,36 @@ const SafeImage: React.FC<SafeImageProps> = ({
   const attachRef = useCallback(
     (el: HTMLImageElement | null) => {
       imgRef.current = el;
-      if (el?.complete) settle(el);
+      if (el?.complete && el.naturalWidth) settle(el);
     },
     [settle]
   );
 
   useEffect(() => {
     const el = imgRef.current;
-    if (el?.complete && el.currentSrc) settle(el);
-  }, [src, settle]);
-
-  const retriedRef = useRef<string | null>(null);
+    if (el?.complete && el.naturalWidth) settle(el);
+  }, [requestSrc, settle]);
 
   const handleError = useCallback(() => {
-    const el = imgRef.current;
-    // One silent retry — transient CDN/network failures are the usual cause of
-    // a whole row appearing blank.
-    if (el && retriedRef.current !== src) {
-      retriedRef.current = src;
-      const bust = `${src}${src.includes("?") ? "&" : "?"}r=1`;
-      window.setTimeout(() => {
-        if (imgRef.current) imgRef.current.src = bust;
-      }, 400);
+    if (retryTimer.current) clearTimeout(retryTimer.current);
+    if (attempt >= 3) {
+      setStatus("error");
       return;
     }
-    setStatus("error");
-  }, [src]);
+    // Keep retrying a transient CDN/network failure without imperative DOM
+    // mutations (which React can overwrite on the next carousel render).
+    retryTimer.current = setTimeout(() => setAttempt((value) => value + 1), 400 * (attempt + 1));
+  }, [attempt]);
+
+  useEffect(() => {
+    if (status !== "error") return;
+    const retry = () => {
+      setStatus("loading");
+      setAttempt((value) => value + 1);
+    };
+    window.addEventListener("online", retry);
+    return () => window.removeEventListener("online", retry);
+  }, [status]);
 
   return (
     <div className={cn("relative w-full h-full overflow-hidden", wrapperClassName, className)} style={style}>
@@ -102,12 +116,18 @@ const SafeImage: React.FC<SafeImageProps> = ({
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 text-white/70 text-xs">
           <ImageOff className="h-6 w-6" />
           <span>Image unavailable</span>
+          <Button type="button" variant="ghost" size="sm" onClick={() => {
+            setStatus("loading");
+            setAttempt((value) => value + 1);
+          }} aria-label={`Retry loading ${alt || "image"}`}>
+            <RefreshCw className="h-4 w-4" /> Retry
+          </Button>
         </div>
       )}
       {status !== "error" && (
         <img
           ref={attachRef}
-          src={src}
+          src={requestSrc}
           alt={alt}
           onLoad={(e) => settle(e.currentTarget)}
           onError={handleError}

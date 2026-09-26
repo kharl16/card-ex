@@ -60,6 +60,8 @@ export default function ShowcaseRow({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [tileRatios, setTileRatios] = useState<Record<string, number>>({});
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touching = useRef(false);
 
   const filteredTiles = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -124,35 +126,49 @@ export default function ShowcaseRow({
     if (ordinal >= 0) jumpToMatch(ordinal);
   }, [activeTileId, filteredTiles, jumpToMatch]);
 
+  const copyWidth = useCallback((el: HTMLDivElement) => {
+    const first = el.children[0] as HTMLElement | undefined;
+    const middle = el.children[filteredTiles.length] as HTMLElement | undefined;
+    return first && middle ? middle.offsetLeft - first.offsetLeft : 0;
+  }, [filteredTiles.length]);
+
+  const recenter = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el || !isLooping || touching.current) return;
+    const width = copyWidth(el);
+    if (!width) return;
+    const first = el.children[0] as HTMLElement;
+    const start = first.offsetLeft;
+    const x = el.scrollLeft;
+    // Never move the track under a finger or while momentum is running. Jump
+    // only after scrolling settles, to the identical tile in the middle copy.
+    if (x >= start + width && x < start + width * 2) return;
+    const equivalent = start + width + (((x - start) % width) + width) % width;
+    const behavior = el.style.scrollBehavior;
+    const snap = el.style.scrollSnapType;
+    el.style.scrollBehavior = "auto";
+    el.style.scrollSnapType = "none";
+    el.scrollLeft = equivalent;
+    requestAnimationFrame(() => {
+      el.style.scrollBehavior = behavior;
+      el.style.scrollSnapType = snap;
+    });
+  }, [isLooping, copyWidth]);
+
   const updateArrows = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
     if (isLooping) {
-      // Seamlessly jump one copy-width when swiping into a cloned region.
-      // Temporarily disable smooth scrolling so the jump is instant instead of
-      // animating across the whole track.
-      const third = el.scrollWidth / 3;
-      if (third > 0) {
-        const needsJump = el.scrollLeft < third * 0.5 || el.scrollLeft >= third * 2.5;
-        if (needsJump) {
-          const previous = el.style.scrollBehavior;
-          el.style.scrollBehavior = "auto";
-          if (el.scrollLeft < third * 0.5) el.scrollLeft += third;
-          else el.scrollLeft -= third;
-          // Restore after the browser applies the instant jump.
-          requestAnimationFrame(() => {
-            el.style.scrollBehavior = previous;
-          });
-        }
-      }
       const overflow = el.scrollWidth > el.clientWidth + 8;
       setCanScrollLeft(overflow);
       setCanScrollRight(overflow);
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      settleTimer.current = setTimeout(recenter, 180);
       return;
     }
     setCanScrollLeft(el.scrollLeft > 8);
     setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
-  }, [isLooping]);
+  }, [isLooping, recenter]);
 
   useEffect(() => {
     updateArrows();
@@ -161,6 +177,7 @@ export default function ShowcaseRow({
     el.addEventListener("scroll", updateArrows, { passive: true });
     window.addEventListener("resize", updateArrows);
     return () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
       el.removeEventListener("scroll", updateArrows);
       window.removeEventListener("resize", updateArrows);
     };
@@ -173,12 +190,12 @@ export default function ShowcaseRow({
     const frame = requestAnimationFrame(() => {
       const previous = el.style.scrollBehavior;
       el.style.scrollBehavior = "auto";
-      el.scrollLeft = el.scrollWidth / 3;
+      el.scrollLeft = copyWidth(el);
       el.style.scrollBehavior = previous;
       updateArrows();
     });
     return () => cancelAnimationFrame(frame);
-  }, [isLooping, filteredTiles.length, updateArrows]);
+  }, [isLooping, filteredTiles.length, copyWidth, updateArrows]);
 
   const scrollByPage = (direction: -1 | 1) => {
     const el = scrollerRef.current;
@@ -252,6 +269,13 @@ export default function ShowcaseRow({
 
         <div
           ref={scrollerRef}
+          onTouchStart={() => { touching.current = true; }}
+          onTouchEnd={() => {
+            touching.current = false;
+            if (settleTimer.current) clearTimeout(settleTimer.current);
+            settleTimer.current = setTimeout(recenter, 240);
+          }}
+          onTouchCancel={() => { touching.current = false; }}
           className={cn(
             "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-3 pb-1 pt-0.5 sm:px-4",
             "snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none]",
