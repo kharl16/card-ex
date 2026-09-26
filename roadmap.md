@@ -1,2 +1,4 @@
 - [x] Center and justify the five showcase shortcuts while keeping phone scrolling.
 - [x] Reduce empty space between media and captions/prices in all five showcase rows.
+- [ ] Stop flicker while swiping or wrapping Immersive carousel rows.
+- [ ] Recover transient image failures and keep carousel images visible while swiping.

@@ -80,8 +80,8 @@ export default function ShowcaseItem({
         <SafeImage
           src={src}
           alt={alt}
-          loading="lazy"
-          decoding="async"
+          loading="eager"
+          decoding="sync"
           className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-90"
           imgClassName="object-contain"
           onDimensions={({ width, height }) => {
