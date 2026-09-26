@@ -77,20 +77,26 @@ export default function ShowcaseItem({
             : undefined
         }
       >
-        <SafeImage
-          src={src}
-          alt={alt}
-          loading="eager"
-          decoding="sync"
-          className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-90"
-          imgClassName="object-contain"
-          onDimensions={({ width, height }) => {
-            setNaturalRatio(width / height);
-            onDimensions?.({ width, height });
-          }}
-        />
+        {src ? (
+          <SafeImage
+            src={src}
+            alt={alt}
+            loading="eager"
+            decoding="sync"
+            className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-90"
+            imgClassName="object-contain"
+            onDimensions={({ width, height }) => {
+              setNaturalRatio(width / height);
+              onDimensions?.({ width, height });
+            }}
+          />
+        ) : isVideo ? (
+          <span className="absolute inset-0 flex items-center justify-center bg-card" aria-label="Video preview">
+            <Play className="h-8 w-8 text-primary" aria-hidden="true" />
+          </span>
+        ) : null}
 
-        {isVideo && (
+        {isVideo && !!src && (
           <span
             aria-hidden="true"
             className="absolute inset-0 flex items-center justify-center"

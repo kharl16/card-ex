@@ -41,13 +41,8 @@ const SafeImage: React.FC<SafeImageProps> = ({
   const [attempt, setAttempt] = useState(0);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const sourceRef = useRef(src);
   const dimensionsRef = useRef(onDimensions);
   dimensionsRef.current = onDimensions;
-
-  if (sourceRef.current !== src) {
-    sourceRef.current = src;
-  }
 
   const requestSrc = attempt === 0 ? src : `${src}${src.includes("?") ? "&" : "?"}retry=${attempt}`;
 
