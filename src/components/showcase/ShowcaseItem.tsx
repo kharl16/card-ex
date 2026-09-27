@@ -20,6 +20,7 @@ interface ShowcaseItemProps {
   /** Shared media ratio used to align every tile in the same row. */
   mediaAspectRatio?: number;
   onDimensions?: (dims: { width: number; height: number }) => void;
+  loading?: "eager" | "lazy";
   onSelect: () => void;
   className?: string;
 }
@@ -38,6 +39,7 @@ export default function ShowcaseItem({
   pageShape,
   mediaAspectRatio,
   onDimensions,
+  loading = "eager",
   onSelect,
   className,
 }: ShowcaseItemProps) {
@@ -50,8 +52,7 @@ export default function ShowcaseItem({
       aria-label={alt}
       className={cn(
         "group relative flex shrink-0 flex-col overflow-hidden rounded-lg bg-black/40 ring-1 ring-white/10",
-        "transition-transform duration-300 ease-out will-change-transform",
-        "hover:z-10 hover:scale-[1.06] focus-visible:z-10 focus-visible:scale-[1.06]",
+         "[@media(hover:hover)]:hover:z-10 [@media(hover:hover)]:hover:scale-[1.06] focus-visible:z-10 focus-visible:scale-[1.06]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
         "motion-reduce:transition-none motion-reduce:hover:scale-100",
         resolvedAspect === "video" || resolvedAspect === "landscape"
@@ -81,9 +82,9 @@ export default function ShowcaseItem({
           <SafeImage
             src={src}
             alt={alt}
-            loading="eager"
-            decoding="sync"
-            className="h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-90"
+             loading={loading}
+             decoding="async"
+             className="h-full w-full object-cover [@media(hover:hover)]:group-hover:opacity-90"
             imgClassName="object-contain"
             onDimensions={({ width, height }) => {
               setNaturalRatio(width / height);
