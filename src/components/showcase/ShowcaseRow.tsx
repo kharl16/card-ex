@@ -61,7 +61,9 @@ export default function ShowcaseRow({
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [tileRatios, setTileRatios] = useState<Record<string, number>>({});
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const restoreFrame = useRef<number | null>(null);
   const touching = useRef(false);
+  const recentering = useRef(false);
 
   const filteredTiles = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -142,28 +144,36 @@ export default function ShowcaseRow({
     const x = el.scrollLeft;
     // Never move the track under a finger or while momentum is running. Jump
     // only after scrolling settles, to the identical tile in the middle copy.
-    if (x >= start + width && x < start + width * 2) return;
-    const equivalent = start + width + (((x - start) % width) + width) % width;
+    // scrollLeft is relative to the scrolling viewport (not offsetLeft).
+    // Move by exactly one copy so the pixels and snap target are identical.
+    if (x >= width && x < width * 2) return;
+    const equivalent = width + (((x % width) + width) % width);
+    if (restoreFrame.current !== null) cancelAnimationFrame(restoreFrame.current);
     const behavior = el.style.scrollBehavior;
     const snap = el.style.scrollSnapType;
+    recentering.current = true;
     el.style.scrollBehavior = "auto";
     el.style.scrollSnapType = "none";
     el.scrollLeft = equivalent;
-    requestAnimationFrame(() => {
+    // Let the browser paint the identical frame before restoring snapping.
+    restoreFrame.current = requestAnimationFrame(() => {
       el.style.scrollBehavior = behavior;
       el.style.scrollSnapType = snap;
+      recentering.current = false;
+      restoreFrame.current = null;
     });
   }, [isLooping, copyWidth]);
 
   const updateArrows = useCallback(() => {
     const el = scrollerRef.current;
-    if (!el) return;
+    if (!el || recentering.current) return;
     if (isLooping) {
       const overflow = el.scrollWidth > el.clientWidth + 8;
       setCanScrollLeft(overflow);
       setCanScrollRight(overflow);
       if (settleTimer.current) clearTimeout(settleTimer.current);
-      settleTimer.current = setTimeout(recenter, 180);
+      // Fallback for browsers without scrollend: never jump during momentum.
+      settleTimer.current = setTimeout(recenter, 400);
       return;
     }
     setCanScrollLeft(el.scrollLeft > 8);
@@ -175,13 +185,21 @@ export default function ShowcaseRow({
     const el = scrollerRef.current;
     if (!el) return;
     el.addEventListener("scroll", updateArrows, { passive: true });
+    const onScrollEnd = () => {
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+      recenter();
+    };
+    el.addEventListener("scrollend", onScrollEnd);
     window.addEventListener("resize", updateArrows);
     return () => {
       if (settleTimer.current) clearTimeout(settleTimer.current);
+      if (restoreFrame.current !== null) cancelAnimationFrame(restoreFrame.current);
+      recentering.current = false;
       el.removeEventListener("scroll", updateArrows);
+      el.removeEventListener("scrollend", onScrollEnd);
       window.removeEventListener("resize", updateArrows);
     };
-  }, [updateArrows, tiles.length]);
+  }, [updateArrows, recenter, tiles.length]);
 
   // Start (and re-start) on the middle copy so both directions can loop.
   useEffect(() => {
@@ -190,8 +208,10 @@ export default function ShowcaseRow({
     const frame = requestAnimationFrame(() => {
       const previous = el.style.scrollBehavior;
       el.style.scrollBehavior = "auto";
+      el.style.scrollSnapType = "none";
       el.scrollLeft = copyWidth(el);
       el.style.scrollBehavior = previous;
+      el.style.scrollSnapType = "";
       updateArrows();
     });
     return () => cancelAnimationFrame(frame);
@@ -270,14 +290,10 @@ export default function ShowcaseRow({
         <div
           ref={scrollerRef}
           onTouchStart={() => { touching.current = true; }}
-          onTouchEnd={() => {
-            touching.current = false;
-            if (settleTimer.current) clearTimeout(settleTimer.current);
-            settleTimer.current = setTimeout(recenter, 240);
-          }}
+           onTouchEnd={() => { touching.current = false; }}
           onTouchCancel={() => { touching.current = false; }}
           className={cn(
-            "flex items-start gap-2.5 overflow-x-auto scroll-smooth px-3 pb-1 pt-0.5 sm:px-4",
+             "flex items-start gap-2.5 overflow-x-auto overscroll-x-contain px-3 pb-1 pt-0.5 sm:px-4 [overflow-anchor:none]",
             "snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none]",
             "[&::-webkit-scrollbar]:hidden"
           )}
@@ -285,7 +301,7 @@ export default function ShowcaseRow({
           {filteredTiles.length === 0 ? (
             <p className="px-1 py-6 text-sm text-white/50">No matches in {title}.</p>
           ) : (
-            renderedTiles.map(({ tile, key }) => (
+             renderedTiles.map(({ tile, key }, index) => (
               <div
                 key={key}
                 data-tile-id={key}
@@ -304,6 +320,7 @@ export default function ShowcaseRow({
                   aspect={aspect}
                   pageShape="original"
                   mediaAspectRatio={rowAspectRatio}
+                   loading={isLooping && (index < filteredTiles.length || index >= filteredTiles.length * 2) ? "lazy" : "eager"}
                   onDimensions={(dims) => rememberDimensions(tile.id, dims)}
                   onSelect={() => onSelect(tile.originalIndex)}
                   className={cn(
