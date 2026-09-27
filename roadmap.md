@@ -2,5 +2,5 @@
 - [x] Reduce empty space between media and captions/prices in all five showcase rows.
 - [x] Stop flicker while swiping or wrapping Immersive carousel rows.
 - [x] Recover transient image failures and keep carousel images visible while swiping.
-- [ ] Prevent mobile momentum and snap animations from exposing Immersive loop resets.
-- [ ] Reduce mobile image decoding and repaint work during carousel swipes.
+- [x] Prevent mobile momentum and snap animations from exposing Immersive loop resets.
+- [x] Reduce mobile image decoding and repaint work during carousel swipes.

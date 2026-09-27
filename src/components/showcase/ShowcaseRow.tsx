@@ -170,8 +170,12 @@ export default function ShowcaseRow({
       setCanScrollLeft(overflow);
       setCanScrollRight(overflow);
       if (settleTimer.current) clearTimeout(settleTimer.current);
-      // Fallback for browsers without scrollend: never jump during momentum.
-      settleTimer.current = setTimeout(recenter, 400);
+      // Safari and modern Chrome report the actual end of momentum/snap.
+      // A timer is only a fallback for older browsers; on supported phones a
+      // pause between momentum frames must never trigger a visible jump.
+      if (!("onscrollend" in el)) {
+        settleTimer.current = setTimeout(recenter, 400);
+      }
       return;
     }
     setCanScrollLeft(el.scrollLeft > 8);
