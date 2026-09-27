@@ -139,8 +139,6 @@ export default function ShowcaseRow({
     if (!el || !isLooping || touching.current) return;
     const width = copyWidth(el);
     if (!width) return;
-    const first = el.children[0] as HTMLElement;
-    const start = first.offsetLeft;
     const x = el.scrollLeft;
     // Never move the track under a finger or while momentum is running. Jump
     // only after scrolling settles, to the identical tile in the middle copy.
