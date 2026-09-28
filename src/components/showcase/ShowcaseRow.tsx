@@ -243,13 +243,53 @@ export default function ShowcaseRow({
       id={id}
       aria-label={title}
       className={cn(
-        "group/row relative mx-3 mb-2 sm:mx-5 sm:mb-3",
-        "rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md",
-        "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_18px_40px_-24px_rgba(0,0,0,0.9)]",
+        "group/row relative isolate mx-3 mb-2 overflow-hidden sm:mx-5 sm:mb-3",
+        "rounded-2xl border border-white/[0.07] backdrop-blur-md",
+        "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_22px_48px_-28px_rgba(0,0,0,0.95)]",
         "py-2 sm:py-2.5"
       )}
+      style={{
+        background: [
+          "linear-gradient(180deg, rgba(14,17,25,0.92) 0%, rgba(6,8,14,0.96) 55%, rgba(4,5,10,0.98) 100%)",
+        ].join(", "),
+      }}
     >
-      <div className="mb-1 flex items-end justify-between gap-3 px-3 sm:px-4">
+      {/* Anti-glare carbon micro-texture */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.5]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(45deg, rgba(255,255,255,0.022) 0px, rgba(255,255,255,0.022) 1px, transparent 1px, transparent 3px)",
+        }}
+      />
+      {/* Pedestal floor light pooling beneath the tiles */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(75% 55% at 50% 100%, hsl(var(--primary) / 0.10) 0%, transparent 70%)",
+        }}
+      />
+      {/* Precision gold hairline horizons — fading at the edges, glowing at the centre */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.4) 28%, hsl(45 80% 70% / 0.65) 50%, hsl(var(--primary) / 0.4) 72%, transparent 100%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.28) 30%, hsl(45 80% 70% / 0.45) 50%, hsl(var(--primary) / 0.28) 70%, transparent 100%)",
+        }}
+      />
+      <div className="relative mb-1 flex items-end justify-between gap-3 px-3 sm:px-4">
         <h2 className="text-base font-semibold tracking-wide text-white sm:text-lg">
           {title}
           <span className="ml-2 align-middle text-xs font-normal text-white/50">
