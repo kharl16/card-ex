@@ -349,6 +349,7 @@ export default function ShowcaseRow({
                 data-tile-id={key}
                 className={cn(
                   "shrink-0 snap-start",
+                  "[filter:drop-shadow(0_10px_14px_rgba(0,0,0,0.75))_drop-shadow(0_2px_3px_rgba(0,0,0,0.5))]",
                   portraitWidth,
                   landscapeWidth
                 )}
