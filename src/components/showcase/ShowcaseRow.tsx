@@ -254,22 +254,36 @@ export default function ShowcaseRow({
         ].join(", "),
       }}
     >
-      {/* Anti-glare carbon micro-texture */}
+      {/* Fluted / reeded glass columns — each 18px flute has a lit crown and shadowed trough */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.5]"
+        className="pointer-events-none absolute inset-0 -z-10"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(45deg, rgba(255,255,255,0.022) 0px, rgba(255,255,255,0.022) 1px, transparent 1px, transparent 3px)",
+            "repeating-linear-gradient(90deg, rgba(0,0,0,0.55) 0px, rgba(0,0,0,0.28) 3px, rgba(255,255,255,0.045) 8px, rgba(255,255,255,0.075) 9px, rgba(255,255,255,0.035) 11px, rgba(0,0,0,0.30) 15px, rgba(0,0,0,0.55) 18px)",
+          maskImage:
+            "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,0.85) 100%)",
+          WebkitMaskImage:
+            "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,1) 45%, rgba(0,0,0,0.85) 100%)",
         }}
       />
-      {/* Pedestal floor light pooling beneath the tiles */}
+      {/* Volumetric warm amber light sweep refracting across the ridges */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(75% 55% at 50% 100%, hsl(var(--primary) / 0.10) 0%, transparent 70%)",
+            "linear-gradient(105deg, transparent 0%, hsl(42 85% 62% / 0.05) 26%, hsl(45 90% 72% / 0.11) 42%, hsl(42 85% 62% / 0.05) 58%, transparent 82%)",
+          mixBlendMode: "screen",
+        }}
+      />
+      {/* Ambient amber underglow grounding the tiles on the glass pedestal */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(85% 60% at 50% 100%, hsl(var(--primary) / 0.16) 0%, hsl(var(--primary) / 0.05) 45%, transparent 75%)",
         }}
       />
       {/* Precision gold hairline horizons — fading at the edges, glowing at the centre */}
