@@ -99,62 +99,117 @@ function ResourcesHubContent() {
 
   const isSearching = term.length > 0;
 
+  const shortcuts = [
+    { key: "featured", label: "Featured", icon: Sparkles, show: featured.length > 0 && !isSearching },
+    { key: "folders", label: "Folders", icon: FileText, show: folders.length > 0 },
+    { key: "links", label: "Links", icon: Link2, show: filteredLinks.length > 0 || isSuperAdmin },
+    { key: "ways", label: "13 Ways", icon: BookOpen, show: filteredWays.length > 0 },
+  ].filter((s) => s.show);
+
+  const jumpTo = (key: string) => {
+    document
+      .getElementById(`resources-${key}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
       <ResourcesHeader searchTerm={searchTerm} onSearchChange={setSearchTerm} />
 
-      <main className="container mx-auto px-4 py-6 space-y-10">
-        {/* Hero */}
-        {!isSearching && (
-          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/15 via-primary/5 to-background border border-primary/10 p-6 md:p-10">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <span className="text-sm font-semibold uppercase tracking-widest text-primary">
-                  Your Team Toolkit
-                </span>
+      <main className="container mx-auto px-3 py-4 sm:px-4 sm:py-6">
+        <ImmersivePavilion>
+          {/* Curator category chips */}
+          {shortcuts.length > 1 && (
+            <nav
+              aria-label="Resource sections"
+              className="mb-2 max-w-full overflow-x-auto px-3 pb-1 [scrollbar-width:none] sm:px-5 [&::-webkit-scrollbar]:hidden"
+            >
+              <div className="flex w-max min-w-full items-center justify-between gap-2">
+                {shortcuts.map(({ key, label, icon: Icon }) => (
+                  <Button
+                    key={key}
+                    type="button"
+                    variant="outline"
+                    onClick={() => jumpTo(key)}
+                    className="h-11 flex-1 gap-2 rounded-full border-primary/40 bg-card/70 px-3 text-foreground shadow-sm backdrop-blur-md hover:border-primary hover:bg-primary/10 hover:text-primary"
+                  >
+                    <Icon className="h-4 w-4" aria-hidden="true" />
+                    {label}
+                  </Button>
+                ))}
               </div>
-              <h1 className="text-3xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-primary via-primary to-primary/70 bg-clip-text text-transparent">
-                Resources Hub
-              </h1>
-              <p className="text-base md:text-lg text-muted-foreground max-w-2xl">
-                Everything in one place — files, quick links, and 13 Ways.
-                Tap the big search above to find anything instantly.
+            </nav>
+          )}
+
+          {/* Search results summary */}
+          {isSearching && (
+            <div className="mx-3 mb-3 rounded-2xl border border-primary/25 bg-card/60 p-4 backdrop-blur-md sm:mx-5">
+              <p className="text-base text-foreground">
+                Showing results for{" "}
+                <span className="font-semibold text-primary">"{searchTerm}"</span> —{" "}
+                {filteredFiles.length + filteredLinks.length + filteredWays.length} matches
               </p>
             </div>
-          </section>
-        )}
+          )}
 
-        {/* Search results summary */}
-        {isSearching && (
-          <div className="rounded-2xl border bg-card p-4">
-            <p className="text-base">
-              Showing results for{" "}
-              <span className="font-semibold text-primary">"{searchTerm}"</span> —{" "}
-              {filteredFiles.length + filteredLinks.length + filteredWays.length}{" "}
-              matches
-            </p>
-          </div>
-        )}
-
-        {/* Featured Row */}
-        {featured.length > 0 && !isSearching && (
-          <section>
-            <SectionHeader
+          {/* Featured Row */}
+          {featured.length > 0 && !isSearching && (
+            <ImmersiveShelf
+              id="resources-featured"
               icon={Sparkles}
               title="Featured & Recent"
               subtitle="Your favorites and what's new"
               viewAllHref="/resources/files"
-            />
-            <HorizontalScroll>
-              {featured.map((file) => (
-                <div
-                  key={file.id}
-                  className="min-w-[160px] w-[160px] flex-shrink-0"
-                  style={{ scrollSnapAlign: "start" }}
-                >
+            >
+              <HorizontalScroll>
+                {featured.map((file) => (
+                  <div
+                    key={file.id}
+                    className="w-[160px] min-w-[160px] flex-shrink-0 [filter:drop-shadow(0_10px_14px_rgba(0,0,0,0.75))_drop-shadow(0_2px_3px_rgba(0,0,0,0.5))]"
+                    style={{ scrollSnapAlign: "start" }}
+                  >
+                    <ResourceCard
+                      resource={file}
+                      compact
+                      isFavorite={isFavorite("file", String(file.id))}
+                      onToggleFavorite={() => toggleFavorite("file", String(file.id))}
+                      onLogEvent={(e) => logEvent("file", String(file.id), e)}
+                      onClick={() => {
+                        logEvent("file", String(file.id), "view");
+                        setPreviewFile(file);
+                      }}
+                    />
+                  </div>
+                ))}
+              </HorizontalScroll>
+            </ImmersiveShelf>
+          )}
+
+          {/* Files / Folders */}
+          {folders.length > 0 && (
+            <ImmersiveShelf
+              id="resources-folders"
+              icon={FileText}
+              title="Files"
+              subtitle="Browse by folder"
+              viewAllHref="/resources/files"
+              count={filteredFiles.length}
+            >
+              <FolderGrid folders={folders} />
+            </ImmersiveShelf>
+          )}
+
+          {/* Search-only file matches */}
+          {isSearching && filteredFiles.length > 0 && (
+            <ImmersiveShelf
+              icon={FileText}
+              title="Matching files"
+              count={filteredFiles.length}
+            >
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                {filteredFiles.slice(0, 24).map((file) => (
                   <ResourceCard
+                    key={file.id}
                     resource={file}
                     compact
                     isFavorite={isFavorite("file", String(file.id))}
@@ -165,115 +220,77 @@ function ResourcesHubContent() {
                       setPreviewFile(file);
                     }}
                   />
-                </div>
-              ))}
-            </HorizontalScroll>
-          </section>
-        )}
+                ))}
+              </div>
+            </ImmersiveShelf>
+          )}
 
-        {/* Files / Folders */}
-        {folders.length > 0 && (
-          <section>
-            <SectionHeader
-              icon={FileText}
-              title="Files"
-              subtitle="Browse by folder"
-              viewAllHref="/resources/files"
-              count={filteredFiles.length}
-            />
-            <FolderGrid folders={folders} />
-          </section>
-        )}
-
-        {/* Search-only file matches */}
-        {isSearching && filteredFiles.length > 0 && (
-          <section>
-            <SectionHeader icon={FileText} title="Matching files" count={filteredFiles.length} />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {filteredFiles.slice(0, 24).map((file) => (
-                <ResourceCard
-                  key={file.id}
-                  resource={file}
-                  compact
-                  isFavorite={isFavorite("file", String(file.id))}
-                  onToggleFavorite={() => toggleFavorite("file", String(file.id))}
-                  onLogEvent={(e) => logEvent("file", String(file.id), e)}
-                  onClick={() => {
-                    logEvent("file", String(file.id), "view");
-                    setPreviewFile(file);
-                  }}
-                />
-              ))}
-            </div>
-          </section>
-        )}
-
-
-        {/* Quick Links */}
-        {(filteredLinks.length > 0 || isSuperAdmin) && (
-          <section>
-            <SectionHeader
+          {/* Quick Links */}
+          {(filteredLinks.length > 0 || isSuperAdmin) && (
+            <ImmersiveShelf
+              id="resources-links"
               icon={Link2}
               title="Quick Links"
               subtitle="Essential resources"
               viewAllHref="/resources/links"
               count={filteredLinks.length}
-            />
-            {isSuperAdmin && (
-              <div className="mb-4">
-                <Button size="sm" className="gap-2" onClick={() => setLinkDialogOpen(true)}>
-                  <Plus className="h-4 w-4" />
-                  Add Quick Link
-                </Button>
-              </div>
-            )}
-            <QuickLinksGrid
-              links={filteredLinks.slice(0, 8)}
-              favorites={new Set()}
-              onToggleFavorite={(id) => toggleFavorite("link", id)}
-              onLogEvent={(id, e) => logEvent("link", id, e)}
-            />
-          </section>
-        )}
+            >
+              {isSuperAdmin && (
+                <div className="mb-4">
+                  <Button size="sm" className="gap-2" onClick={() => setLinkDialogOpen(true)}>
+                    <Plus className="h-4 w-4" />
+                    Add Quick Link
+                  </Button>
+                </div>
+              )}
+              <QuickLinksGrid
+                links={filteredLinks.slice(0, 8)}
+                favorites={new Set()}
+                onToggleFavorite={(id) => toggleFavorite("link", id)}
+                onLogEvent={(id, e) => logEvent("link", id, e)}
+              />
+            </ImmersiveShelf>
+          )}
 
-        {/* 13 Ways */}
-        {filteredWays.length > 0 && (
-          <section>
-            <SectionHeader
+          {/* 13 Ways */}
+          {filteredWays.length > 0 && (
+            <ImmersiveShelf
+              id="resources-ways"
               icon={BookOpen}
               title="13 Ways"
               subtitle="Wisdom and best practices"
               viewAllHref="/resources/ways"
               count={filteredWays.length}
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {filteredWays.slice(0, 3).map((way) => (
-                <Link key={way.id} to="/resources/ways">
-                  <Card className="hover:border-primary/40 transition-colors h-full">
-                    <CardContent className="p-5">
-                      <p className="text-base leading-relaxed line-clamp-4">{way.content}</p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Empty search state */}
-        {isSearching &&
-          filteredFiles.length === 0 &&
-          filteredLinks.length === 0 &&
-          filteredWays.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-lg text-muted-foreground mb-3">
-                No matches for "{searchTerm}"
-              </p>
-              <Button size="lg" onClick={() => setSearchTerm("")}>
-                Clear search
-              </Button>
-            </div>
+            >
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+                {filteredWays.slice(0, 3).map((way) => (
+                  <Link key={way.id} to="/resources/ways">
+                    <Card className="h-full border-primary/15 bg-card/60 backdrop-blur-md transition-colors hover:border-primary/40">
+                      <CardContent className="p-5">
+                        <p className="line-clamp-4 text-base leading-relaxed">{way.content}</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </ImmersiveShelf>
           )}
+
+          {/* Empty search state */}
+          {isSearching &&
+            filteredFiles.length === 0 &&
+            filteredLinks.length === 0 &&
+            filteredWays.length === 0 && (
+              <div className="px-4 py-16 text-center">
+                <p className="mb-3 text-lg text-muted-foreground">
+                  No matches for "{searchTerm}"
+                </p>
+                <Button size="lg" onClick={() => setSearchTerm("")}>
+                  Clear search
+                </Button>
+              </div>
+            )}
+        </ImmersivePavilion>
       </main>
 
       {/* Mobile bottom nav — senior-friendly */}
