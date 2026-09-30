@@ -158,6 +158,8 @@ export default function LightboxDialog({
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [aspect, setAspect] = useState<number>(1);
+  const [fullScreen, setFullScreen] = useState(false);
+  const isLandscape = aspect > 1.2;
   const panStart = useRef<{ x: number; y: number } | null>(null);
   const panOrigin = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -165,6 +167,11 @@ export default function LightboxDialog({
   useEffect(() => {
     setAspect(1);
   }, [currentImage?.url]);
+
+  // Leave full-screen gallery whenever the lightbox is closed
+  useEffect(() => {
+    if (!open) setFullScreen(false);
+  }, [open]);
 
   // Preload current + ±2 neighbors through the module-level LRU cache
   useEffect(() => {
