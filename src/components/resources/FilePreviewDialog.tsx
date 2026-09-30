@@ -537,6 +537,9 @@ function FilePreviewDialogInner({
   // Always start on the main photo when switching packages
   useEffect(() => { setSlot(0); }, [file.id]);
 
+  // Leave full screen whenever the preview closes
+  useEffect(() => { if (!open) setFullScreen(false); }, [open]);
+
   // --- Super-admin image replace / remove (image only, details untouched) ---
   const setImage = async (fileId: number, url: string | null, slotIndex: number) => {
     const column = slotIndex === 1 ? "images_2" : "images";
@@ -608,8 +611,14 @@ function FilePreviewDialogInner({
           ref={isCurrent ? imgRef : undefined}
           src={resourceImageUrl(src)}
           alt={f.file_name}
+          onLoad={(e) => {
+            if (!isCurrent) return;
+            const el = e.currentTarget;
+            if (el.naturalWidth && el.naturalHeight) setAspect(el.naturalWidth / el.naturalHeight);
+          }}
           className={cn(
-            "w-full h-full object-contain max-h-[55vh] select-none pointer-events-none",
+            "w-full h-full object-contain select-none pointer-events-none",
+            fullScreen ? "max-h-[100dvh]" : "max-h-[55vh]",
             isCurrent && resetAnim
               ? "transition-transform duration-300 ease-out"
               : isPanning ? "" : "transition-transform duration-200"
