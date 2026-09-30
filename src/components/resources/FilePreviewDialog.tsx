@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
-import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2 } from "lucide-react";
+import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2, Maximize2, Minimize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -44,6 +44,10 @@ function FilePreviewDialogInner({
   const [imageBusy, setImageBusy] = useState(false);
   // Which of the two photo slots of the CURRENT file is displayed (0 = main, 1 = alternate)
   const [slot, setSlot] = useState(0);
+  // Phone-gallery full screen mode
+  const [fullScreen, setFullScreen] = useState(false);
+  const [aspect, setAspect] = useState(1);
+  const isLandscape = aspect > 1.2;
 
 
 
