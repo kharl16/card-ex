@@ -349,30 +349,51 @@ export default function LightboxDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30">
+        <DialogContent
+          className={
+            fullScreen
+              ? "max-w-none w-screen h-[100dvh] p-0 gap-0 bg-black border-0 rounded-none translate-x-0 translate-y-0 left-0 top-0 sm:rounded-none"
+              : "max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30"
+          }
+        >
           <div className="relative flex h-full w-full flex-col overflow-hidden">
             {/* Close button */}
-            <CloseButton3D
-              variant="prominent"
-              onClick={onClose}
-              className="absolute top-4 right-4 z-20"
-              label="Close lightbox"
-            />
+            {fullScreen ? (
+              <button
+                type="button"
+                onClick={() => setFullScreen(false)}
+                aria-label="Exit full screen"
+                className="absolute top-4 right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/15 active:scale-95"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            ) : (
+              <CloseButton3D
+                variant="prominent"
+                onClick={onClose}
+                className="absolute top-4 right-4 z-20"
+                label="Close lightbox"
+              />
+            )}
 
             {/* Zoom + Download + Share controls */}
             <div className="absolute top-4 left-4 z-20 flex gap-2">
-              <Button variant="ghost" size="icon" onClick={handleZoomOut} disabled={zoomLevel <= 0.5}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom out">
-                <ZoomOut className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleResetZoom}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Reset zoom">
-                1:1
-              </Button>
-              <Button variant="ghost" size="icon" onClick={onZoomIn} disabled={zoomLevel >= 3}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom in">
-                <ZoomIn className="h-5 w-5" />
-              </Button>
+              {!fullScreen && (
+                <>
+                  <Button variant="ghost" size="icon" onClick={handleZoomOut} disabled={zoomLevel <= 0.5}
+                    className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom out">
+                    <ZoomOut className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={handleResetZoom}
+                    className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Reset zoom">
+                    1:1
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={onZoomIn} disabled={zoomLevel >= 3}
+                    className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom in">
+                    <ZoomIn className="h-5 w-5" />
+                  </Button>
+                </>
+              )}
               <Button variant="ghost" size="icon" onClick={handleDownload}
                 className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Download image">
                 <Download className="h-5 w-5" />
@@ -381,8 +402,26 @@ export default function LightboxDialog({
                 className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Share image">
                 <Share2 className="h-5 w-5" />
               </Button>
-              <LightboxSpeedControl />
+              {!fullScreen && <LightboxSpeedControl />}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => { handleResetZoom(); setFullScreen((v) => !v); }}
+                aria-label={fullScreen ? "Exit full screen" : "Full screen"}
+                title={fullScreen ? "Exit full screen" : "Full screen"}
+                className={
+                  "rounded-full text-white " +
+                  (fullScreen
+                    ? "bg-black/60 hover:bg-black/80"
+                    : isLandscape
+                      ? "bg-primary/25 hover:bg-primary/40 ring-1 ring-primary/50"
+                      : "bg-black/60 hover:bg-black/80")
+                }
+              >
+                {fullScreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+              </Button>
             </div>
+
 
             {/* Navigation arrows — use commitNav so buttons feel identical to swipes */}
             {count > 1 && (
