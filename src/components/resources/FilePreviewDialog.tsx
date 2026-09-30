@@ -713,6 +713,37 @@ function FilePreviewDialogInner({
             {currentIndex + 1} / {files.length}
           </div>
 
+          {/* Full screen toggle */}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => { commitZoom(1); setFullScreen((v) => !v); }}
+            aria-label={fullScreen ? "Exit full screen" : "Full screen"}
+            className={cn(
+              "absolute top-3 left-3 h-9 gap-1.5 rounded-full text-white text-xs backdrop-blur-md border",
+              fullScreen
+                ? "bg-black/55 hover:bg-black/75 border-white/15"
+                : isLandscape
+                  ? "bg-primary/25 hover:bg-primary/40 border-primary/50"
+                  : "bg-black/45 hover:bg-black/65 border-white/10"
+            )}
+          >
+            {fullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            {fullScreen ? "Exit" : "Full Screen"}
+          </Button>
+
+          {/* Exit button in full screen (top-right) */}
+          {fullScreen && (
+            <button
+              type="button"
+              onClick={() => setFullScreen(false)}
+              aria-label="Exit full screen"
+              className="absolute top-3 right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/15 active:scale-95"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
+
           {/* Photo 1 / Photo 2 switcher */}
           {showSlotSwitch && (
             <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-black/55 p-1 backdrop-blur-md border border-white/15">
