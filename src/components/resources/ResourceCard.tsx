@@ -1,8 +1,31 @@
 import { Heart, Play, Eye, Tag } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
 import { resourceImageUrl } from "@/lib/resourceImage";
+
+/**
+ * Turns a free-form price string into structured rows.
+ * "Copper - ₱2,400 Bronze - ₱2,100 Gold, Platinum, Jade - ₱1,500"
+ *   -> [{ label: "Copper", value: "₱2,400" }, ...]
+ * "₱500" -> [{ label: "", value: "₱500" }]
+ */
+function parsePriceTiers(raw: string): Array<{ label: string; value: string }> {
+  const tiers: Array<{ label: string; value: string }> = [];
+  const re = /([^₱]*?)₱\s*([\d.,]+)/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(raw)) !== null) {
+    const label = match[1]
+      .replace(/[-–—:•|]+\s*$/, "")
+      .replace(/^[\s,;/]+/, "")
+      .trim();
+    tiers.push({ label, value: `₱${match[2]}` });
+  }
+  if (tiers.length === 0) {
+    return [{ label: "", value: raw.trim() }];
+  }
+  return tiers;
+}
+
 
 interface ResourceCardProps {
   resource: FileResource;
@@ -65,16 +88,9 @@ export function ResourceCard({
           />
         </button>
 
-        {/* Price badge */}
-        {resource.price_dp && (
-          <Badge className="absolute top-2 left-2 bg-primary/90 text-primary-foreground backdrop-blur-md text-[9px] px-1.5 py-0.5 font-mono border-0 shadow-lg shadow-primary/20">
-            DP: {resource.price_dp}
-          </Badge>
-        )}
-
         {/* Video indicator */}
         {resource.view_video_url && (
-          <div className="absolute top-2 left-2 mt-6 bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10">
+          <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10">
             <Play className="h-3 w-3 text-white fill-white" />
           </div>
         )}
@@ -91,7 +107,31 @@ export function ResourceCard({
             {resource.folder_name}
           </p>
         )}
+
+        {/* Structured price tiers below the title */}
+        {resource.price_dp && (
+          <div className="mt-2 rounded-lg border border-primary/25 bg-black/40 backdrop-blur-sm overflow-hidden">
+            <div className="px-2 py-1 border-b border-primary/15 text-[8px] font-semibold uppercase tracking-[0.12em] text-primary/80">
+              Distributor Price
+            </div>
+            <div className="divide-y divide-primary/10">
+              {parsePriceTiers(resource.price_dp).map((tier, i) => (
+                <div key={i} className="flex items-baseline justify-between gap-2 px-2 py-1">
+                  {tier.label && (
+                    <span className="text-[9px] leading-tight text-muted-foreground min-w-0 break-words">
+                      {tier.label}
+                    </span>
+                  )}
+                  <span className="ml-auto shrink-0 font-mono text-[10px] font-semibold text-primary">
+                    {tier.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
     </div>
   );
 }
