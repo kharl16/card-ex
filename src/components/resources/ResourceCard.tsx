@@ -1,8 +1,31 @@
 import { Heart, Play, Eye, Tag } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
 import { resourceImageUrl } from "@/lib/resourceImage";
+
+/**
+ * Turns a free-form price string into structured rows.
+ * "Copper - ₱2,400 Bronze - ₱2,100 Gold, Platinum, Jade - ₱1,500"
+ *   -> [{ label: "Copper", value: "₱2,400" }, ...]
+ * "₱500" -> [{ label: "", value: "₱500" }]
+ */
+function parsePriceTiers(raw: string): Array<{ label: string; value: string }> {
+  const tiers: Array<{ label: string; value: string }> = [];
+  const re = /([^₱]*?)₱\s*([\d.,]+)/g;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(raw)) !== null) {
+    const label = match[1]
+      .replace(/[-–—:•|]+\s*$/, "")
+      .replace(/^[\s,;/]+/, "")
+      .trim();
+    tiers.push({ label, value: `₱${match[2]}` });
+  }
+  if (tiers.length === 0) {
+    return [{ label: "", value: raw.trim() }];
+  }
+  return tiers;
+}
+
 
 interface ResourceCardProps {
   resource: FileResource;
