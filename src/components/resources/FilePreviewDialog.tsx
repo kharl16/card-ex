@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
-import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2 } from "lucide-react";
+import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2, Maximize2, Minimize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -44,6 +44,10 @@ function FilePreviewDialogInner({
   const [imageBusy, setImageBusy] = useState(false);
   // Which of the two photo slots of the CURRENT file is displayed (0 = main, 1 = alternate)
   const [slot, setSlot] = useState(0);
+  // Phone-gallery full screen mode
+  const [fullScreen, setFullScreen] = useState(false);
+  const [aspect, setAspect] = useState(1);
+  const isLandscape = aspect > 1.2;
 
 
 
@@ -533,6 +537,9 @@ function FilePreviewDialogInner({
   // Always start on the main photo when switching packages
   useEffect(() => { setSlot(0); }, [file.id]);
 
+  // Leave full screen whenever the preview closes
+  useEffect(() => { if (!open) setFullScreen(false); }, [open]);
+
   // --- Super-admin image replace / remove (image only, details untouched) ---
   const setImage = async (fileId: number, url: string | null, slotIndex: number) => {
     const column = slotIndex === 1 ? "images_2" : "images";
@@ -604,8 +611,14 @@ function FilePreviewDialogInner({
           ref={isCurrent ? imgRef : undefined}
           src={resourceImageUrl(src)}
           alt={f.file_name}
+          onLoad={(e) => {
+            if (!isCurrent) return;
+            const el = e.currentTarget;
+            if (el.naturalWidth && el.naturalHeight) setAspect(el.naturalWidth / el.naturalHeight);
+          }}
           className={cn(
-            "w-full h-full object-contain max-h-[55vh] select-none pointer-events-none",
+            "w-full h-full object-contain select-none pointer-events-none",
+            fullScreen ? "max-h-[100dvh]" : "max-h-[55vh]",
             isCurrent && resetAnim
               ? "transition-transform duration-300 ease-out"
               : isPanning ? "" : "transition-transform duration-200"
@@ -626,12 +639,17 @@ function FilePreviewDialogInner({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 overflow-hidden bg-background border-border/30 shadow-2xl shadow-black/20 rounded-2xl">
+        <DialogContent className={cn(
+          fullScreen
+            ? "max-w-none w-screen h-[100dvh] left-0 top-0 translate-x-0 translate-y-0 p-0 gap-0 overflow-hidden bg-black border-0 rounded-none sm:rounded-none"
+            : "max-w-2xl w-[95vw] p-0 gap-0 overflow-hidden bg-background border-border/30 shadow-2xl shadow-black/20 rounded-2xl"
+        )}>
         {/* Image area */}
         <div
           ref={trackRef}
           className={cn(
-            "relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh]",
+            "relative bg-black/95 overflow-hidden",
+            fullScreen ? "h-[100dvh]" : "min-h-[40vh] max-h-[55vh]",
             "cursor-grab active:cursor-grabbing",
             !isZoomed ? "touch-pan-y" : "touch-none"
           )}
@@ -643,7 +661,10 @@ function FilePreviewDialogInner({
         >
           {/* Sliding track: [prev][current][next] */}
           <div
-            className="flex h-full min-h-[40vh] max-h-[55vh] will-change-transform"
+            className={cn(
+              "flex h-full will-change-transform",
+              fullScreen ? "" : "min-h-[40vh] max-h-[55vh]"
+            )}
             style={{
               width: "300%",
               transform: `translate3d(calc(-33.3333% + ${dragX}px), 0, 0)`,
@@ -691,6 +712,37 @@ function FilePreviewDialogInner({
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/50 text-white/80 text-[10px] font-medium px-3 py-1 rounded-full backdrop-blur-md border border-white/10">
             {currentIndex + 1} / {files.length}
           </div>
+
+          {/* Full screen toggle */}
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => { commitZoom(1); setFullScreen((v) => !v); }}
+            aria-label={fullScreen ? "Exit full screen" : "Full screen"}
+            className={cn(
+              "absolute top-3 left-3 h-9 gap-1.5 rounded-full text-white text-xs backdrop-blur-md border",
+              fullScreen
+                ? "bg-black/55 hover:bg-black/75 border-white/15"
+                : isLandscape
+                  ? "bg-primary/25 hover:bg-primary/40 border-primary/50"
+                  : "bg-black/45 hover:bg-black/65 border-white/10"
+            )}
+          >
+            {fullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            {fullScreen ? "Exit" : "Full Screen"}
+          </Button>
+
+          {/* Exit button in full screen (top-right) */}
+          {fullScreen && (
+            <button
+              type="button"
+              onClick={() => setFullScreen(false)}
+              aria-label="Exit full screen"
+              className="absolute top-3 right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/15 active:scale-95"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
 
           {/* Photo 1 / Photo 2 switcher */}
           {showSlotSwitch && (
@@ -747,6 +799,7 @@ function FilePreviewDialogInner({
 
 
           {/* Top-right actions (reserves space for Dialog's built-in X) */}
+          {!fullScreen && (
           <TopRightActions reserveCloseSlot>
             <Button
               size="icon"
@@ -760,11 +813,12 @@ function FilePreviewDialogInner({
               <Heart className={cn("h-4 w-4", isFavorite && "fill-current drop-shadow-[0_0_6px_rgba(239,68,68,0.5)]")} />
             </Button>
           </TopRightActions>
+          )}
         </div>
 
 
         {/* Details */}
-        <div className="p-5 space-y-4">
+        <div className={cn("p-5 space-y-4", fullScreen && "hidden")}>
           <div>
             <h2 className="font-bold text-base leading-snug line-clamp-2">
               {file.file_name}

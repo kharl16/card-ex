@@ -2,7 +2,7 @@ import React, { useCallback, useState, useRef, useEffect, useMemo } from "react"
 import { motion, useMotionValue, animate, useReducedMotion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, Download, Share2, ChevronLeft, ChevronRight, Gauge } from "lucide-react";
+import { ZoomIn, ZoomOut, Download, Share2, ChevronLeft, ChevronRight, Gauge, Maximize2, Minimize2, X } from "lucide-react";
 import { CloseButton3D } from "@/components/ui/close-button-3d";
 import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
@@ -93,12 +93,14 @@ function LightboxSlide({
   zoomLevel,
   onDimensions,
   isActive,
+  fullScreen,
 }: {
   image?: LightboxImage;
   panOffset: { x: number; y: number };
   zoomLevel: number;
   onDimensions?: (d: { width: number; height: number }) => void;
   isActive: boolean;
+  fullScreen?: boolean;
 }) {
   if (!image) return <div className="w-full h-full" aria-hidden />;
   const transformStyle = isActive
@@ -120,7 +122,10 @@ function LightboxSlide({
             onDimensions?.({ width: el.naturalWidth, height: el.naturalHeight });
           }
         }}
-        className="pointer-events-auto select-none object-contain max-w-[calc(95vw-4rem)] max-h-full w-auto h-auto"
+        className={
+          "pointer-events-auto select-none object-contain max-h-full w-auto h-auto " +
+          (fullScreen ? "max-w-[100vw]" : "max-w-[calc(95vw-4rem)]")
+        }
         style={transformStyle}
       />
     </div>
@@ -153,6 +158,8 @@ export default function LightboxDialog({
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [aspect, setAspect] = useState<number>(1);
+  const [fullScreen, setFullScreen] = useState(false);
+  const isLandscape = aspect > 1.2;
   const panStart = useRef<{ x: number; y: number } | null>(null);
   const panOrigin = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -160,6 +167,11 @@ export default function LightboxDialog({
   useEffect(() => {
     setAspect(1);
   }, [currentImage?.url]);
+
+  // Leave full-screen gallery whenever the lightbox is closed
+  useEffect(() => {
+    if (!open) setFullScreen(false);
+  }, [open]);
 
   // Preload current + ±2 neighbors through the module-level LRU cache
   useEffect(() => {
@@ -337,30 +349,51 @@ export default function LightboxDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30">
+        <DialogContent
+          className={
+            fullScreen
+              ? "max-w-none w-screen h-[100dvh] p-0 gap-0 bg-black border-0 rounded-none translate-x-0 translate-y-0 left-0 top-0 sm:rounded-none"
+              : "max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30"
+          }
+        >
           <div className="relative flex h-full w-full flex-col overflow-hidden">
             {/* Close button */}
-            <CloseButton3D
-              variant="prominent"
-              onClick={onClose}
-              className="absolute top-4 right-4 z-20"
-              label="Close lightbox"
-            />
+            {fullScreen ? (
+              <button
+                type="button"
+                onClick={() => setFullScreen(false)}
+                aria-label="Exit full screen"
+                className="absolute top-4 right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/15 active:scale-95"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            ) : (
+              <CloseButton3D
+                variant="prominent"
+                onClick={onClose}
+                className="absolute top-4 right-4 z-20"
+                label="Close lightbox"
+              />
+            )}
 
             {/* Zoom + Download + Share controls */}
             <div className="absolute top-4 left-4 z-20 flex gap-2">
-              <Button variant="ghost" size="icon" onClick={handleZoomOut} disabled={zoomLevel <= 0.5}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom out">
-                <ZoomOut className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" onClick={handleResetZoom}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Reset zoom">
-                1:1
-              </Button>
-              <Button variant="ghost" size="icon" onClick={onZoomIn} disabled={zoomLevel >= 3}
-                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom in">
-                <ZoomIn className="h-5 w-5" />
-              </Button>
+              {!fullScreen && (
+                <>
+                  <Button variant="ghost" size="icon" onClick={handleZoomOut} disabled={zoomLevel <= 0.5}
+                    className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom out">
+                    <ZoomOut className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={handleResetZoom}
+                    className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Reset zoom">
+                    1:1
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={onZoomIn} disabled={zoomLevel >= 3}
+                    className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Zoom in">
+                    <ZoomIn className="h-5 w-5" />
+                  </Button>
+                </>
+              )}
               <Button variant="ghost" size="icon" onClick={handleDownload}
                 className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Download image">
                 <Download className="h-5 w-5" />
@@ -369,8 +402,26 @@ export default function LightboxDialog({
                 className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Share image">
                 <Share2 className="h-5 w-5" />
               </Button>
-              <LightboxSpeedControl />
+              {!fullScreen && <LightboxSpeedControl />}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => { handleResetZoom(); setFullScreen((v) => !v); }}
+                aria-label={fullScreen ? "Exit full screen" : "Full screen"}
+                title={fullScreen ? "Exit full screen" : "Full screen"}
+                className={
+                  "rounded-full text-white " +
+                  (fullScreen
+                    ? "bg-black/60 hover:bg-black/80"
+                    : isLandscape
+                      ? "bg-primary/25 hover:bg-primary/40 ring-1 ring-primary/50"
+                      : "bg-black/60 hover:bg-black/80")
+                }
+              >
+                {fullScreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+              </Button>
             </div>
+
 
             {/* Navigation arrows — use commitNav so buttons feel identical to swipes */}
             {count > 1 && (
@@ -423,7 +474,7 @@ export default function LightboxDialog({
                 >
                   {/* prev slide */}
                   <div style={{ width: trackW }} className="h-full flex items-center justify-center">
-                    <LightboxSlide image={prev} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} />
+                    <LightboxSlide image={prev} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} fullScreen={fullScreen} />
                   </div>
                   {/* current slide */}
                   <div style={{ width: trackW }} className="h-full flex items-center justify-center">
@@ -432,18 +483,27 @@ export default function LightboxDialog({
                       panOffset={panOffset}
                       zoomLevel={zoomLevel}
                       isActive
+                      fullScreen={fullScreen}
                       onDimensions={({ width, height }) => setAspect(width / height)}
                     />
                   </div>
                   {/* next slide */}
                   <div style={{ width: trackW }} className="h-full flex items-center justify-center">
-                    <LightboxSlide image={next} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} />
+                    <LightboxSlide image={next} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} fullScreen={fullScreen} />
                   </div>
                 </motion.div>
               </div>
             </div>
 
+            {/* Floating counter pill in full-screen gallery mode */}
+            {fullScreen && count > 1 && (
+              <div className="pointer-events-none absolute bottom-5 left-1/2 z-30 -translate-x-1/2 rounded-full border border-white/10 bg-black/55 px-3.5 py-1 text-xs font-medium text-white/85 backdrop-blur-md">
+                {index + 1} / {count}
+              </div>
+            )}
+
             {/* Dedicated caption area below the image — never overlays photo content. */}
+            {!fullScreen && (
             <div className="relative z-[60] flex w-full shrink-0 flex-col items-center gap-1 border-t border-border/30 bg-black/95 px-4 py-3">
               {(currentImage?.shareText || currentImage?.alt || currentImage?.description || currentImage?.srp) && (
                 <div className="w-full max-w-lg space-y-0 text-center max-h-[32vh] overflow-y-auto">
@@ -470,6 +530,7 @@ export default function LightboxDialog({
                 </div>
               )}
             </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
