@@ -495,7 +495,15 @@ export default function LightboxDialog({
               </div>
             </div>
 
+            {/* Floating counter pill in full-screen gallery mode */}
+            {fullScreen && count > 1 && (
+              <div className="pointer-events-none absolute bottom-5 left-1/2 z-30 -translate-x-1/2 rounded-full border border-white/10 bg-black/55 px-3.5 py-1 text-xs font-medium text-white/85 backdrop-blur-md">
+                {index + 1} / {count}
+              </div>
+            )}
+
             {/* Dedicated caption area below the image — never overlays photo content. */}
+            {!fullScreen && (
             <div className="relative z-[60] flex w-full shrink-0 flex-col items-center gap-1 border-t border-border/30 bg-black/95 px-4 py-3">
               {(currentImage?.shareText || currentImage?.alt || currentImage?.description || currentImage?.srp) && (
                 <div className="w-full max-w-lg space-y-0 text-center max-h-[32vh] overflow-y-auto">
@@ -522,6 +530,7 @@ export default function LightboxDialog({
                 </div>
               )}
             </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
