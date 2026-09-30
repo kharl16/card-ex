@@ -2,7 +2,7 @@ import React, { useCallback, useState, useRef, useEffect, useMemo } from "react"
 import { motion, useMotionValue, animate, useReducedMotion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ZoomIn, ZoomOut, Download, Share2, ChevronLeft, ChevronRight, Gauge } from "lucide-react";
+import { ZoomIn, ZoomOut, Download, Share2, ChevronLeft, ChevronRight, Gauge, Maximize2, Minimize2, X } from "lucide-react";
 import { CloseButton3D } from "@/components/ui/close-button-3d";
 import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
@@ -93,12 +93,14 @@ function LightboxSlide({
   zoomLevel,
   onDimensions,
   isActive,
+  fullScreen,
 }: {
   image?: LightboxImage;
   panOffset: { x: number; y: number };
   zoomLevel: number;
   onDimensions?: (d: { width: number; height: number }) => void;
   isActive: boolean;
+  fullScreen?: boolean;
 }) {
   if (!image) return <div className="w-full h-full" aria-hidden />;
   const transformStyle = isActive
@@ -120,7 +122,10 @@ function LightboxSlide({
             onDimensions?.({ width: el.naturalWidth, height: el.naturalHeight });
           }
         }}
-        className="pointer-events-auto select-none object-contain max-w-[calc(95vw-4rem)] max-h-full w-auto h-auto"
+        className={
+          "pointer-events-auto select-none object-contain max-h-full w-auto h-auto " +
+          (fullScreen ? "max-w-[100vw]" : "max-w-[calc(95vw-4rem)]")
+        }
         style={transformStyle}
       />
     </div>
