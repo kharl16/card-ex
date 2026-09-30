@@ -799,6 +799,7 @@ function FilePreviewDialogInner({
 
 
           {/* Top-right actions (reserves space for Dialog's built-in X) */}
+          {!fullScreen && (
           <TopRightActions reserveCloseSlot>
             <Button
               size="icon"
@@ -812,6 +813,7 @@ function FilePreviewDialogInner({
               <Heart className={cn("h-4 w-4", isFavorite && "fill-current drop-shadow-[0_0_6px_rgba(239,68,68,0.5)]")} />
             </Button>
           </TopRightActions>
+          )}
         </div>
 
 
