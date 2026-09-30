@@ -818,7 +818,7 @@ function FilePreviewDialogInner({
 
 
         {/* Details */}
-        <div className="p-5 space-y-4">
+        <div className={cn("p-5 space-y-4", fullScreen && "hidden")}>
           <div>
             <h2 className="font-bold text-base leading-snug line-clamp-2">
               {file.file_name}
