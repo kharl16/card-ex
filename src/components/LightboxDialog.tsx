@@ -474,7 +474,7 @@ export default function LightboxDialog({
                 >
                   {/* prev slide */}
                   <div style={{ width: trackW }} className="h-full flex items-center justify-center">
-                    <LightboxSlide image={prev} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} />
+                    <LightboxSlide image={prev} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} fullScreen={fullScreen} />
                   </div>
                   {/* current slide */}
                   <div style={{ width: trackW }} className="h-full flex items-center justify-center">
@@ -483,12 +483,13 @@ export default function LightboxDialog({
                       panOffset={panOffset}
                       zoomLevel={zoomLevel}
                       isActive
+                      fullScreen={fullScreen}
                       onDimensions={({ width, height }) => setAspect(width / height)}
                     />
                   </div>
                   {/* next slide */}
                   <div style={{ width: trackW }} className="h-full flex items-center justify-center">
-                    <LightboxSlide image={next} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} />
+                    <LightboxSlide image={next} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} fullScreen={fullScreen} />
                   </div>
                 </motion.div>
               </div>
