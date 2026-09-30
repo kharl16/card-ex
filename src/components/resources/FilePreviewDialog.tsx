@@ -639,12 +639,17 @@ function FilePreviewDialogInner({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl w-[95vw] p-0 gap-0 overflow-hidden bg-background border-border/30 shadow-2xl shadow-black/20 rounded-2xl">
+        <DialogContent className={cn(
+          fullScreen
+            ? "max-w-none w-screen h-[100dvh] left-0 top-0 translate-x-0 translate-y-0 p-0 gap-0 overflow-hidden bg-black border-0 rounded-none sm:rounded-none"
+            : "max-w-2xl w-[95vw] p-0 gap-0 overflow-hidden bg-background border-border/30 shadow-2xl shadow-black/20 rounded-2xl"
+        )}>
         {/* Image area */}
         <div
           ref={trackRef}
           className={cn(
-            "relative bg-black/95 overflow-hidden min-h-[40vh] max-h-[55vh]",
+            "relative bg-black/95 overflow-hidden",
+            fullScreen ? "h-[100dvh]" : "min-h-[40vh] max-h-[55vh]",
             "cursor-grab active:cursor-grabbing",
             !isZoomed ? "touch-pan-y" : "touch-none"
           )}
@@ -656,7 +661,10 @@ function FilePreviewDialogInner({
         >
           {/* Sliding track: [prev][current][next] */}
           <div
-            className="flex h-full min-h-[40vh] max-h-[55vh] will-change-transform"
+            className={cn(
+              "flex h-full will-change-transform",
+              fullScreen ? "" : "min-h-[40vh] max-h-[55vh]"
+            )}
             style={{
               width: "300%",
               transform: `translate3d(calc(-33.3333% + ${dragX}px), 0, 0)`,
