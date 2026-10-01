@@ -49,12 +49,11 @@ export function FolderGrid({ folders, basePath = "/resources/files", selectedFol
                 {folder.folder_name}
               </h3>
             </div>
-              {isSelected && (
-                <Badge className="absolute top-2 right-2 text-[9px] px-1.5 py-0 bg-primary/90 border-0">
-                  Active
-                </Badge>
-              )}
-            </div>
+            {isSelected && (
+              <Badge className="absolute top-2 right-2 z-10 text-[9px] px-1.5 py-0 bg-primary/90 border-0">
+                Active
+              </Badge>
+            )}
           </Card>
         );
 
