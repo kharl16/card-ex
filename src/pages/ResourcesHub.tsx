@@ -264,13 +264,15 @@ function ResourcesHubContent() {
               count={filteredWays.length}
             >
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {filteredWays.slice(0, 3).map((way) => (
-                  <Link key={way.id} to="/resources/ways">
-                    <Card className="h-full border-primary/15 bg-card/60 backdrop-blur-md transition-colors hover:border-primary/40">
-                      <CardContent className="p-5">
-                        <p className="line-clamp-4 text-base leading-relaxed">{way.content}</p>
-                      </CardContent>
-                    </Card>
+                {filteredWays.slice(0, 3).map((way, i) => (
+                  <Link key={way.id} to="/resources/ways" className="group block h-full">
+                    <div className="relative h-full overflow-hidden rounded-2xl border border-primary/20 bg-background/80 p-5 shadow-[0_18px_40px_-24px_hsl(var(--primary)/0.5)] backdrop-blur-md transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-primary/50">
+                      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
+                      <div className="pointer-events-none absolute inset-0 opacity-40 [background:repeating-linear-gradient(90deg,hsl(var(--foreground)/0.03)_0px,hsl(var(--foreground)/0.03)_1px,transparent_1px,transparent_18px)]" />
+                      <div className="pointer-events-none absolute -bottom-10 left-1/2 h-24 w-3/4 -translate-x-1/2 rounded-full bg-primary/15 blur-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                      <span className="relative font-mono text-2xl font-bold text-primary/80">{String(i + 1).padStart(2, "0")}</span>
+                      <p className="relative mt-2 line-clamp-4 text-base leading-relaxed text-foreground">{way.content}</p>
+                    </div>
                   </Link>
                 ))}
               </div>

@@ -88,12 +88,13 @@ export function ResourceCard({
           />
         </button>
 
-        {/* Video indicator */}
-        {resource.view_video_url && (
-          <div className="absolute top-2 left-2 bg-black/40 backdrop-blur-md rounded-full p-1 border border-white/10">
-            <Play className="h-3 w-3 text-white fill-white" />
-          </div>
-        )}
+        {/* Format badge */}
+        <div className="absolute top-2 left-2 flex items-center gap-1 rounded-full border border-primary/40 bg-background/70 px-1.5 py-0.5 backdrop-blur-md">
+          {resource.view_video_url && <Play className="h-2.5 w-2.5 fill-primary text-primary" />}
+          <span className="text-[8px] font-semibold uppercase tracking-[0.12em] text-primary">
+            {resource.view_video_url ? "Video" : "Image"}
+          </span>
+        </div>
       </div>
 
       {/* Caption below the photo so it never overlaps image content */}

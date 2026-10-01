@@ -34,16 +34,17 @@ export function QuickLinksGrid({
         return (
           <Card
             key={link.id}
-            className="group relative overflow-hidden border-border/30 hover:border-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
+            className="group relative overflow-hidden rounded-2xl border-primary/20 bg-background/80 backdrop-blur-md hover:border-primary/50 transition-all duration-300 hover:shadow-[0_16px_36px_-20px_hsl(var(--primary)/0.55)] hover:-translate-y-0.5"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <CardContent className="relative p-4 flex items-center gap-3">
-              {/* Icon avatar */}
-              <div className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/10 flex items-center justify-center group-hover:border-primary/20 transition-colors">
-                <ExternalLink className="h-4 w-4 text-primary/60" />
+              {/* Gold monogram */}
+              <div className="flex-shrink-0 h-11 w-11 rounded-xl bg-gradient-to-br from-primary/30 to-primary/5 border border-primary/40 flex items-center justify-center shadow-[0_0_16px_-4px_hsl(var(--primary)/0.6)]">
+                <span className="text-base font-bold text-primary">{link.name.trim().charAt(0).toUpperCase()}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm truncate">{link.name}</h3>
+                <h3 className="font-semibold text-sm truncate text-foreground">{link.name}</h3>
                 <p className="text-[10px] text-muted-foreground truncate">{link.link}</p>
               </div>
               <div className="flex items-center gap-0.5 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
