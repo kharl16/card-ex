@@ -232,13 +232,17 @@ export default function LightboxDialog({
       setTrackW(w);
     };
     measure();
+    // Re-measure after paint so toggling fullScreen (which resizes the
+    // dialog without a window resize event) updates the track geometry.
+    const raf = requestAnimationFrame(measure);
     window.addEventListener("resize", measure);
     window.addEventListener("orientationchange", measure);
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener("resize", measure);
       window.removeEventListener("orientationchange", measure);
     };
-  }, [open]);
+  }, [open, fullScreen]);
 
   // Snap x back to 0 whenever the current index changes from the outside
   // (button, keyboard, or after a commit). No animation — the new "current"

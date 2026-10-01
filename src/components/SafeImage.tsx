@@ -116,7 +116,10 @@ const SafeImage: React.FC<SafeImageProps> = ({
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/40 text-white/70 text-xs">
           <ImageOff className="h-6 w-6" />
           <span>Image unavailable</span>
-          <Button type="button" variant="ghost" size="sm" onClick={() => {
+          <Button type="button" variant="ghost" size="sm" onClick={(e) => {
+            // SafeImage often sits inside a clickable tile/button — keep the
+            // retry from bubbling up and opening the viewer for a broken image.
+            e.stopPropagation();
             setStatus("loading");
             setAttempt((value) => value + 1);
           }} aria-label={`Retry loading ${alt || "image"}`}>
