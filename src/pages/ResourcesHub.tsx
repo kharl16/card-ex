@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Link2, BookOpen, Sparkles, Heart, Clock, Plus } from "lucide-react";
+import { FileText, Link2, BookOpen, Sparkles, Heart, Clock, Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ResourcesProvider } from "@/contexts/ResourcesContext";
@@ -17,9 +18,11 @@ import { ImmersiveShelf } from "@/components/resources/ImmersiveShelf";
 import type { FileResource } from "@/types/resources";
 import AdminLinkDialog from "@/components/tools/admin/AdminLinkDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 
 function ResourcesHubContent() {
   const [searchTerm, setSearchTerm] = useState("");
+  useSearchQueryParam(setSearchTerm);
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const { isSuperAdmin } = useAuth();
@@ -48,10 +51,15 @@ function ResourcesHubContent() {
     );
   }, [files, term]);
 
+  const filteredFolders = useMemo(() => {
+    if (!term) return folders;
+    return folders.filter((folder) => folder.folder_name.toLowerCase().includes(term));
+  }, [folders, term]);
+
 
   const filteredLinks = useMemo(() => {
     if (!term) return links;
-    return links.filter((l) => l.name?.toLowerCase().includes(term));
+    return links.filter((l) => l.name?.toLowerCase().includes(term) || l.link?.toLowerCase().includes(term));
   }, [links, term]);
 
   const filteredWays = useMemo(() => {
@@ -99,12 +107,13 @@ function ResourcesHubContent() {
   }
 
   const isSearching = term.length > 0;
+  const resultCount = filteredFiles.length + filteredFolders.length + filteredLinks.length + filteredWays.length;
 
   const shortcuts = [
     { key: "featured", label: "Featured", icon: Sparkles, show: featured.length > 0 && !isSearching },
-    { key: "folders", label: "Folders", icon: FileText, show: folders.length > 0 },
-    { key: "links", label: "Links", icon: Link2, show: filteredLinks.length > 0 || isSuperAdmin },
-    { key: "ways", label: "13 Ways", icon: BookOpen, show: filteredWays.length > 0 },
+    { key: "folders", label: "Folders", icon: FileText, show: !isSearching && folders.length > 0 },
+    { key: "links", label: "Links", icon: Link2, show: !isSearching && (filteredLinks.length > 0 || isSuperAdmin) },
+    { key: "ways", label: "13 Ways", icon: BookOpen, show: !isSearching && filteredWays.length > 0 },
   ].filter((s) => s.show);
 
   const jumpTo = (key: string) => {
@@ -115,10 +124,31 @@ function ResourcesHubContent() {
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-8">
-      <ResourcesHeader searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+      <ResourcesHeader searchTerm={searchTerm} onSearchChange={setSearchTerm} hideSearch />
 
       <main className="container mx-auto px-3 py-4 sm:px-4 sm:py-6">
         <ImmersivePavilion>
+          <div className="mx-3 mb-4 mt-2 sm:mx-5">
+            <label htmlFor="resources-pavilion-search" className="mb-2 block text-sm font-semibold text-primary">
+              Search Resources
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-primary" aria-hidden="true" />
+              <Input
+                id="resources-pavilion-search"
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Search files, folders, links, 13 Ways…"
+                className="h-12 rounded-lg border-primary/40 bg-card/80 pl-12 pr-12 text-base text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/30"
+              />
+              {searchTerm && (
+                <Button type="button" variant="ghost" size="icon" aria-label="Clear search" onClick={() => setSearchTerm("")} className="absolute right-1 top-1/2 h-10 w-10 -translate-y-1/2 text-muted-foreground hover:text-primary">
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
           {/* Curator category chips */}
           {shortcuts.length > 1 && (
             <nav
@@ -142,19 +172,76 @@ function ResourcesHubContent() {
             </nav>
           )}
 
-          {/* Search results summary */}
+          {/* Search results replace the browsing shelves, rather than mixing
+              unfiltered folders and limited previews into the results. */}
           {isSearching && (
-            <div className="mx-3 mb-3 rounded-2xl border border-primary/25 bg-card/60 p-4 backdrop-blur-md sm:mx-5">
-              <p className="text-base text-foreground">
-                Showing results for{" "}
-                <span className="font-semibold text-primary">"{searchTerm}"</span> —{" "}
-                {filteredFiles.length + filteredLinks.length + filteredWays.length} matches
-              </p>
-            </div>
+            <section aria-label="Search results" aria-live="polite">
+              <div className="mx-3 mb-3 border-b border-primary/25 px-1 pb-3 sm:mx-5">
+                <h2 className="text-xl font-semibold text-foreground">Results for <span className="text-primary">“{searchTerm.trim()}”</span></h2>
+                <p className="text-sm text-muted-foreground">{resultCount} {resultCount === 1 ? "result" : "results"}</p>
+              </div>
+
+              {filteredFiles.length > 0 && (
+                <ImmersiveShelf id="resources-results-files" icon={FileText} title="Files" count={filteredFiles.length}>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                    {filteredFiles.map((file) => (
+                      <ResourceCard
+                        key={file.id}
+                        resource={file}
+                        compact
+                        isFavorite={isFavorite("file", String(file.id))}
+                        onToggleFavorite={() => toggleFavorite("file", String(file.id))}
+                        onLogEvent={(e) => logEvent("file", String(file.id), e)}
+                        onClick={() => {
+                          logEvent("file", String(file.id), "view");
+                          setPreviewFile(file);
+                        }}
+                      />
+                    ))}
+                  </div>
+                </ImmersiveShelf>
+              )}
+              {filteredFolders.length > 0 && (
+                <ImmersiveShelf id="resources-results-folders" icon={FileText} title="Folders" count={filteredFolders.length}>
+                  <FolderGrid folders={filteredFolders} />
+                </ImmersiveShelf>
+              )}
+              {filteredLinks.length > 0 && (
+                <ImmersiveShelf id="resources-results-links" icon={Link2} title="Links" count={filteredLinks.length}>
+                  <QuickLinksGrid
+                    links={filteredLinks}
+                    favorites={new Set(links.filter((link) => isFavorite("link", link.id)).map((link) => link.id))}
+                    onToggleFavorite={(id) => toggleFavorite("link", id)}
+                    onLogEvent={(id, event) => logEvent("link", id, event)}
+                  />
+                </ImmersiveShelf>
+              )}
+              {filteredWays.length > 0 && (
+                <ImmersiveShelf id="resources-results-ways" icon={BookOpen} title="13 Ways" count={filteredWays.length}>
+                  <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredWays.map((way) => (
+                      <article key={way.id} className="relative overflow-hidden rounded-lg border border-primary/25 bg-card/80 p-5 shadow-[0_18px_40px_-24px_hsl(var(--primary)/0.5)]">
+                        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
+                        <span className="font-mono text-2xl font-bold text-primary/80">{String(ways.indexOf(way) + 1).padStart(2, "0")}</span>
+                        <p className="mt-2 whitespace-pre-wrap break-words text-base leading-relaxed text-foreground">{way.content}</p>
+                      </article>
+                    ))}
+                  </div>
+                </ImmersiveShelf>
+              )}
+              {resultCount === 0 && (
+                <div className="mx-3 rounded-lg border border-primary/25 bg-card/80 px-4 py-12 text-center sm:mx-5">
+                  <p className="mb-4 text-base text-muted-foreground">No matching resources found.</p>
+                  <Button variant="outline" onClick={() => setSearchTerm("")}>Clear search</Button>
+                </div>
+              )}
+            </section>
           )}
 
+          {!isSearching && (
+          <>
           {/* Featured Row */}
-          {featured.length > 0 && !isSearching && (
+          {featured.length > 0 && (
             <ImmersiveShelf
               id="resources-featured"
               icon={Sparkles}
@@ -197,32 +284,6 @@ function ResourcesHubContent() {
               count={filteredFiles.length}
             >
               <FolderGrid folders={folders} />
-            </ImmersiveShelf>
-          )}
-
-          {/* Search-only file matches */}
-          {isSearching && filteredFiles.length > 0 && (
-            <ImmersiveShelf
-              icon={FileText}
-              title="Matching files"
-              count={filteredFiles.length}
-            >
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                {filteredFiles.slice(0, 24).map((file) => (
-                  <ResourceCard
-                    key={file.id}
-                    resource={file}
-                    compact
-                    isFavorite={isFavorite("file", String(file.id))}
-                    onToggleFavorite={() => toggleFavorite("file", String(file.id))}
-                    onLogEvent={(e) => logEvent("file", String(file.id), e)}
-                    onClick={() => {
-                      logEvent("file", String(file.id), "view");
-                      setPreviewFile(file);
-                    }}
-                  />
-                ))}
-              </div>
             </ImmersiveShelf>
           )}
 
@@ -279,20 +340,8 @@ function ResourcesHubContent() {
             </ImmersiveShelf>
           )}
 
-          {/* Empty search state */}
-          {isSearching &&
-            filteredFiles.length === 0 &&
-            filteredLinks.length === 0 &&
-            filteredWays.length === 0 && (
-              <div className="px-4 py-16 text-center">
-                <p className="mb-3 text-lg text-muted-foreground">
-                  No matches for "{searchTerm}"
-                </p>
-                <Button size="lg" onClick={() => setSearchTerm("")}>
-                  Clear search
-                </Button>
-              </div>
-            )}
+          </>
+          )}
         </ImmersivePavilion>
       </main>
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useEffect, useMemo } from "react";
+import React, { useCallback, useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
 import { motion, useMotionValue, animate, useReducedMotion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -224,25 +224,29 @@ export default function LightboxDialog({
   const zoomLevelRef = useRef(zoomLevel);
   useEffect(() => { zoomLevelRef.current = zoomLevel; }, [zoomLevel]);
 
-  // Measure the track width for correct drag/commit distances
-  useEffect(() => {
+  // Watch the actual stage, not just the window: Full Screen resizes the
+  // dialog without necessarily dispatching a window resize event.
+  useLayoutEffect(() => {
     if (!open) return;
     const measure = () => {
       const w = trackRef.current?.clientWidth ?? window.innerWidth;
-      setTrackW(w);
+      if (w > 0) setTrackW(w);
     };
+    x.stop();
+    x.set(0);
     measure();
-    // Re-measure after paint so toggling fullScreen (which resizes the
-    // dialog without a window resize event) updates the track geometry.
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    if (trackRef.current) observer?.observe(trackRef.current);
     const raf = requestAnimationFrame(measure);
     window.addEventListener("resize", measure);
     window.addEventListener("orientationchange", measure);
     return () => {
+      observer?.disconnect();
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", measure);
       window.removeEventListener("orientationchange", measure);
     };
-  }, [open, fullScreen]);
+  }, [open, fullScreen, x]);
 
   // Snap x back to 0 whenever the current index changes from the outside
   // (button, keyboard, or after a commit). No animation — the new "current"
