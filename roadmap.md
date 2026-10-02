@@ -4,3 +4,5 @@
 - [x] Recover transient image failures and keep carousel images visible while swiping.
 - [x] Prevent mobile momentum and snap animations from exposing Immersive loop resets.
 - [x] Reduce mobile image decoding and repaint work during carousel swipes.
+- [ ] Show complete, grouped Resources search results inside the Pavilion for files, folders, links, and 13 Ways.
+- [ ] Keep the Actual Card lightbox track centered and snapping correctly as Full Screen changes its width.

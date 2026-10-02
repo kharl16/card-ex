@@ -11,6 +11,7 @@ interface ResourcesHeaderProps {
   onSearchChange: (value: string) => void;
   title?: string;
   showBackButton?: boolean;
+  hideSearch?: boolean;
 }
 
 export function ResourcesHeader({
@@ -18,6 +19,7 @@ export function ResourcesHeader({
   onSearchChange,
   title = "Resources Hub",
   showBackButton = false,
+  hideSearch = false,
 }: ResourcesHeaderProps) {
   const { isResourceAdmin, isResourceSuperAdmin } = useResources();
 
@@ -49,7 +51,7 @@ export function ResourcesHeader({
 
           <div className="flex items-center gap-2">
             {/* Search */}
-            <div className="relative hidden md:block w-80">
+            {!hideSearch && <div className="relative hidden md:block w-80">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search anything…"
@@ -57,7 +59,7 @@ export function ResourcesHeader({
                 onChange={(e) => onSearchChange(e.target.value)}
                 className="pl-10 h-11 text-base"
               />
-            </div>
+            </div>}
 
             {/* Navigation */}
             <nav className="flex items-center gap-1">
@@ -98,7 +100,7 @@ export function ResourcesHeader({
         </div>
 
         {/* Mobile search */}
-        <div className="pb-4 md:hidden">
+        {!hideSearch && <div className="pb-4 md:hidden">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -108,7 +110,7 @@ export function ResourcesHeader({
               className="pl-10 h-12 text-base"
             />
           </div>
-        </div>
+        </div>}
       </div>
     </header>
   );
