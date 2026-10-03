@@ -220,11 +220,15 @@ function ResourcesHubContent() {
                 <ImmersiveShelf id="resources-results-ways" icon={BookOpen} title="13 Ways" count={filteredWays.length}>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                     {filteredWays.map((way) => (
-                      <article key={way.id} className="relative overflow-hidden rounded-lg border border-primary/25 bg-card/80 p-5 shadow-[0_18px_40px_-24px_hsl(var(--primary)/0.5)]">
-                        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
-                        <span className="font-mono text-2xl font-bold text-primary/80">{String(ways.indexOf(way) + 1).padStart(2, "0")}</span>
-                        <p className="mt-2 whitespace-pre-wrap break-words text-base leading-relaxed text-foreground">{way.content}</p>
-                      </article>
+                      <Link key={way.id} to="/resources/ways" className="group block h-full">
+                        <div className="relative h-full overflow-hidden rounded-lg border border-primary/20 bg-background/80 p-5 shadow-[0_18px_40px_-24px_hsl(var(--primary)/0.5)] backdrop-blur-md transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-primary/50">
+                          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
+                          <div className="pointer-events-none absolute inset-0 opacity-40 [background:repeating-linear-gradient(90deg,hsl(var(--foreground)/0.03)_0px,hsl(var(--foreground)/0.03)_1px,transparent_1px,transparent_18px)]" />
+                          <div className="pointer-events-none absolute -bottom-10 left-1/2 h-24 w-3/4 -translate-x-1/2 rounded-full bg-primary/15 blur-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                          <span className="relative font-mono text-2xl font-bold text-primary/80">{String(ways.indexOf(way) + 1).padStart(2, "0")}</span>
+                          <p className="relative mt-2 whitespace-pre-wrap break-words text-base leading-relaxed text-foreground">{way.content}</p>
+                        </div>
+                      </Link>
                     ))}
                   </div>
                 </ImmersiveShelf>
