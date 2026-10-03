@@ -221,6 +221,7 @@ export default function LightboxDialog({
   const [trackW, setTrackW] = useState<number>(() =>
     typeof window !== "undefined" ? window.innerWidth : 1024
   );
+  const measuredTrackW = useRef(trackW);
   const zoomLevelRef = useRef(zoomLevel);
   useEffect(() => { zoomLevelRef.current = zoomLevel; }, [zoomLevel]);
 
@@ -230,7 +231,14 @@ export default function LightboxDialog({
     if (!open) return;
     const measure = () => {
       const w = trackRef.current?.clientWidth ?? window.innerWidth;
-      if (w > 0) setTrackW(w);
+      if (w > 0 && w !== measuredTrackW.current) {
+        // A dialog resize can finish after the Full Screen toggle's layout
+        // pass. Cancel any old-width snap before laying out the new slides.
+        x.stop();
+        x.set(0);
+        measuredTrackW.current = w;
+        setTrackW(w);
+      }
     };
     x.stop();
     x.set(0);
