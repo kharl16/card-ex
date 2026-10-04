@@ -69,15 +69,24 @@ export default function DraggableShareFab({ onClick, storageKey = STORAGE_KEY_DE
     const reclamp = () => moveTo(posRef.current ?? defaultPosition());
     window.addEventListener("resize", reclamp);
     window.addEventListener("orientationchange", reclamp);
-    // The lightbox is portaled; its width changes without the window resizing.
-    const observer = new MutationObserver(() => {
+    // The lightbox is portaled; opening and resizing it need not resize the window.
+    let observedViewer: HTMLElement | null = null;
+    const resizeObserver = new ResizeObserver(() => { if (!dragRef.current) reclamp(); });
+    const syncViewer = () => {
+      const viewer = document.querySelector<HTMLElement>("[data-card-lightbox][data-state='open']");
+      if (viewer === observedViewer) return;
+      if (observedViewer) resizeObserver.unobserve(observedViewer);
+      observedViewer = viewer;
+      if (viewer) resizeObserver.observe(viewer);
       if (!dragRef.current) reclamp();
-    });
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-state", "class"] });
+    };
+    const observer = new MutationObserver(syncViewer);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-state"] });
     return () => {
       window.removeEventListener("resize", reclamp);
       window.removeEventListener("orientationchange", reclamp);
       observer.disconnect();
+      resizeObserver.disconnect();
     };
   }, [moveTo]);
 
