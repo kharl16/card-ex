@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface DraggableShareFabProps {
   onClick: () => void;
@@ -7,151 +8,134 @@ interface DraggableShareFabProps {
 }
 
 const STORAGE_KEY_DEFAULT = "share_fab_pos_v1";
-const FAB_SIZE_MOBILE = 56;
-const FAB_SIZE_DESKTOP = 64;
-const EDGE_PADDING = 12;
-const DRAG_THRESHOLD = 6; // px before considered a drag (suppress click)
+const SIZE = 48;
+const EDGE = 12;
+const DRAG_THRESHOLD = 6;
+type Position = { x: number; y: number };
 
-const getDefaultPos = () => {
-  if (typeof window === "undefined") return { x: 16, y: 88 };
-  const size = window.innerWidth >= 640 ? FAB_SIZE_DESKTOP : FAB_SIZE_MOBILE;
-  // bottom-right default; offset above mobile bottom nav
-  const isMobile = window.innerWidth < 640;
-  const right = isMobile ? 16 : 32;
-  const bottom = isMobile ? 88 : 32;
+// On laptops the public card is narrower than the viewport. The photo viewer
+// temporarily expands the available drag area to the viewer itself.
+function bounds() {
+  const viewer = document.querySelector<HTMLElement>("[data-card-lightbox][data-state='open']");
+  const card = document.querySelector<HTMLElement>("[data-card-page]");
+  const rect = viewer?.getBoundingClientRect() ?? card?.getBoundingClientRect();
+  const left = rect ? Math.max(0, rect.left) : 0;
+  const right = rect ? Math.min(window.innerWidth, rect.right) : window.innerWidth;
   return {
-    x: window.innerWidth - size - right,
-    y: window.innerHeight - size - bottom,
+    minX: left + EDGE,
+    maxX: Math.max(left + EDGE, right - SIZE - EDGE),
+    minY: EDGE,
+    maxY: Math.max(EDGE, window.innerHeight - SIZE - EDGE),
   };
-};
+}
 
-const clampPos = (x: number, y: number, size: number) => {
-  if (typeof window === "undefined") return { x, y };
-  return {
-    x: Math.max(EDGE_PADDING, Math.min(window.innerWidth - size - EDGE_PADDING, x)),
-    y: Math.max(EDGE_PADDING, Math.min(window.innerHeight - size - EDGE_PADDING, y)),
-  };
-};
+function clamp({ x, y }: Position): Position {
+  const { minX, maxX, minY, maxY } = bounds();
+  return { x: Math.max(minX, Math.min(maxX, x)), y: Math.max(minY, Math.min(maxY, y)) };
+}
+
+function defaultPosition(): Position {
+  const { maxX, maxY } = bounds();
+  return { x: maxX, y: Math.max(EDGE, maxY - (window.innerWidth < 640 ? 76 : 20)) };
+}
 
 export default function DraggableShareFab({ onClick, storageKey = STORAGE_KEY_DEFAULT }: DraggableShareFabProps) {
-  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const [pos, setPos] = useState<Position | null>(null);
   const [dragging, setDragging] = useState(false);
-  const dragStateRef = useRef<{ startX: number; startY: number; origX: number; origY: number; moved: boolean } | null>(null);
-  const sizeRef = useRef<number>(typeof window !== "undefined" && window.innerWidth >= 640 ? FAB_SIZE_DESKTOP : FAB_SIZE_MOBILE);
+  const dragRef = useRef<{ startX: number; startY: number; origin: Position; moved: boolean } | null>(null);
+  const posRef = useRef<Position | null>(null);
+  const suppressClick = useRef(false);
 
-  // Hydrate from localStorage / defaults
+  const moveTo = useCallback((next: Position) => {
+    const safe = clamp(next);
+    posRef.current = safe;
+    setPos(safe);
+    return safe;
+  }, []);
+
   useEffect(() => {
+    let saved: Position | null = null;
     try {
       const raw = localStorage.getItem(storageKey);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
-          setPos(clampPos(parsed.x, parsed.y, sizeRef.current));
-          return;
-        }
+        if (Number.isFinite(parsed?.x) && Number.isFinite(parsed?.y)) saved = parsed;
       }
-    } catch {}
-    setPos(getDefaultPos());
-  }, [storageKey]);
+    } catch { /* Use the default position if storage is unavailable. */ }
+    moveTo(saved ?? defaultPosition());
+  }, [storageKey, moveTo]);
 
-  // Re-clamp on resize / orientation change
   useEffect(() => {
-    const onResize = () => {
-      sizeRef.current = window.innerWidth >= 640 ? FAB_SIZE_DESKTOP : FAB_SIZE_MOBILE;
-      setPos((p) => (p ? clampPos(p.x, p.y, sizeRef.current) : getDefaultPos()));
-    };
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
+    const reclamp = () => moveTo(posRef.current ?? defaultPosition());
+    window.addEventListener("resize", reclamp);
+    window.addEventListener("orientationchange", reclamp);
+    // The lightbox is portaled; its width changes without the window resizing.
+    const observer = new MutationObserver(() => {
+      if (!dragRef.current) reclamp();
+    });
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-state", "class"] });
     return () => {
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
+      window.removeEventListener("resize", reclamp);
+      window.removeEventListener("orientationchange", reclamp);
+      observer.disconnect();
     };
-  }, []);
+  }, [moveTo]);
 
-  const persist = useCallback(
-    (next: { x: number; y: number }) => {
-      try {
-        localStorage.setItem(storageKey, JSON.stringify(next));
-      } catch {}
-    },
-    [storageKey]
-  );
+  const persist = (next: Position) => {
+    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch { /* Non-persistent drag still works. */ }
+  };
 
   const onPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
-    if (!pos) return;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    dragStateRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      origX: pos.x,
-      origY: pos.y,
-      moved: false,
-    };
+    if (!posRef.current || e.button !== 0) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragRef.current = { startX: e.clientX, startY: e.clientY, origin: posRef.current, moved: false };
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
-    const st = dragStateRef.current;
-    if (!st) return;
-    const dx = e.clientX - st.startX;
-    const dy = e.clientY - st.startY;
-    if (!st.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
-    if (!st.moved) {
-      st.moved = true;
-      setDragging(true);
-    }
-    const next = clampPos(st.origX + dx, st.origY + dy, sizeRef.current);
-    setPos(next);
+    const drag = dragRef.current;
+    if (!drag) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    if (!drag.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+    drag.moved = true;
+    setDragging(true);
+    moveTo({ x: drag.origin.x + dx, y: drag.origin.y + dy });
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
-    const st = dragStateRef.current;
-    dragStateRef.current = null;
-    try {
-      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch {}
-    if (st?.moved && pos) {
-      persist(pos);
-      // Suppress the synthesized click after drag
-      setTimeout(() => setDragging(false), 0);
-    } else {
-      setDragging(false);
+    const drag = dragRef.current;
+    dragRef.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+    setDragging(false);
+    suppressClick.current = true;
+    if (drag?.moved) {
+      if (posRef.current) persist(posRef.current);
+    } else if (drag) {
       onClick();
     }
   };
 
   if (!pos) return null;
 
-  const size = sizeRef.current;
-
   return (
-    <button
+    <Button
       type="button"
-      aria-label="Share Card (drag to move)"
+      size="icon"
+      variant="ghost"
+      aria-label="Share card (drag to move)"
+      title="Share card · drag to move"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
-      onPointerCancel={() => {
-        dragStateRef.current = null;
-        setDragging(false);
-      }}
+      onPointerCancel={() => { dragRef.current = null; setDragging(false); }}
       onClick={(e) => {
-        // Click handling is done in onPointerUp to differentiate from drag
-        e.preventDefault();
+        if (suppressClick.current) { e.preventDefault(); suppressClick.current = false; return; }
+        onClick(); // Keyboard activation
       }}
-      style={{
-        position: "fixed",
-        left: pos.x,
-        top: pos.y,
-        width: size,
-        height: size,
-        touchAction: "none",
-        cursor: dragging ? "grabbing" : "grab",
-        transition: dragging ? "none" : "transform 150ms ease, box-shadow 150ms ease",
-      }}
-      className="z-[60] rounded-full bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--primary))]/70 text-primary-foreground shadow-2xl shadow-[hsl(var(--primary))]/40 ring-1 ring-[hsl(var(--primary))]/40 flex items-center justify-center hover:scale-105 active:scale-95"
+      style={{ left: pos.x, top: pos.y, touchAction: "none", cursor: dragging ? "grabbing" : "grab" }}
+      className="fixed z-[60] !h-12 !w-12 rounded-full border border-primary/55 bg-card/90 text-primary shadow-gold backdrop-blur-xl ring-1 ring-inset ring-primary/20 hover:bg-accent hover:text-primary focus-visible:ring-primary active:scale-95"
     >
-      <Share2 className="h-6 w-6 pointer-events-none" />
-      <span className="sr-only">Share Card</span>
-    </button>
+      <Share2 className="!h-[18px] !w-[18px]" strokeWidth={1.7} />
+    </Button>
   );
 }
