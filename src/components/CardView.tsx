@@ -817,7 +817,7 @@ export default function CardView({
         </div>
       )}
 
-      {isInteractive && publicCardUrl && (
+      {isInteractive && publicCardUrl && !shareDialogOpen && (
         <DraggableShareFab onClick={() => setShareDialogOpen(true)} />
       )}
 

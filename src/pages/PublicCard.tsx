@@ -299,7 +299,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       }}
     >
       
-      <div className="mx-auto max-w-2xl overflow-x-hidden">
+      <div data-card-page className="mx-auto max-w-2xl overflow-x-hidden">
         <CardView
           card={cardWithEffectiveTheme}
           socialLinks={socialLinks}

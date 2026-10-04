@@ -6,3 +6,5 @@
 - [x] Reduce mobile image decoding and repaint work during carousel swipes.
 - [x] Show complete, grouped Resources search results inside the Pavilion for files, folders, links, and 13 Ways.
 - [x] Keep the Actual Card lightbox track centered and snapping correctly as Full Screen changes its width.
+- [x] Refine and keep the draggable Share control within the card, including photo viewing.
+- [x] Keep the AI assistant trigger and panel within the card on laptop screens.
