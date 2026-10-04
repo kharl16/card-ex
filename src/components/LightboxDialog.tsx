@@ -367,6 +367,9 @@ export default function LightboxDialog({
       <Dialog modal={false} open={open} onOpenChange={onOpenChange}>
         <DialogContent
           data-card-lightbox
+          onInteractOutside={(event) => {
+            if ((event.target as HTMLElement)?.closest?.("[data-share-fab]")) event.preventDefault();
+          }}
           className={
             fullScreen
               ? "max-w-none w-screen h-[100dvh] p-0 gap-0 bg-black border-0 rounded-none translate-x-0 translate-y-0 left-0 top-0 sm:rounded-none"

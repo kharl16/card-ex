@@ -120,6 +120,7 @@ export default function DraggableShareFab({ onClick, storageKey = STORAGE_KEY_DE
   return (
     <Button
       type="button"
+      data-share-fab
       size="icon"
       variant="ghost"
       aria-label="Share card (drag to move)"
