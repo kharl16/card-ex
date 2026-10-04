@@ -190,7 +190,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 hover:scale-110 active:scale-95"
+           className="fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 hover:scale-110 active:scale-95"
           style={{
             background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
             boxShadow: `0 4px 20px ${accentColor}60`,
@@ -203,7 +203,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-4 z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl shadow-2xl border border-border/50 animate-in slide-in-from-bottom-4 fade-in duration-300"
+         <div className="fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl shadow-2xl border border-border/50 animate-in slide-in-from-bottom-4 fade-in duration-300"
           style={{ height: "min(480px, calc(100vh - 140px))" }}
         >
           {/* Header */}
