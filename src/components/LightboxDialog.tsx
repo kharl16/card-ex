@@ -156,8 +156,9 @@ export default function LightboxDialog({
     resetPan();
   }, [onResetZoom, resetPan]);
   // ─── Framer Motion drag track ────────────────────────────────────
-  // Track holds three slides: [prev, current, next] each 100% wide.
-  // x=0 shows current; x=-W shows next; x=+W shows prev.
+  // Track holds three equal slides: [prev, current, next]. Percentage-based
+  // visual sizing follows phone rotation immediately; trackW is only used for
+  // drag thresholds and snap distance.
   const trackRef = useRef<HTMLDivElement | null>(null);
   const x = useMotionValue(0);
   const [trackW, setTrackW] = useState<number>(() =>
@@ -406,7 +407,7 @@ export default function LightboxDialog({
               <div ref={trackRef} className="relative w-full h-full">
                 <motion.div
                   className="absolute inset-0 flex"
-                  style={{ x, width: `${trackW * 3}px`, left: `-${trackW}px` }}
+                  style={{ x, width: "300%", left: "-100%" }}
                   drag={canDrag ? "x" : false}
                   dragElastic={0.18}
                   dragMomentum={false}
@@ -424,11 +425,11 @@ export default function LightboxDialog({
                   }}
                 >
                   {/* prev slide */}
-                  <div style={{ width: trackW }} className="h-full flex items-center justify-center">
+                  <div className="h-full w-1/3 shrink-0 flex items-center justify-center">
                     <LightboxSlide image={prev} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} fullScreen={fullScreen} />
                   </div>
                   {/* current slide */}
-                  <div style={{ width: trackW }} className="h-full flex items-center justify-center">
+                  <div className="h-full w-1/3 shrink-0 flex items-center justify-center">
                     <LightboxSlide
                       image={currentImage}
                       panOffset={panOffset}
@@ -439,7 +440,7 @@ export default function LightboxDialog({
                     />
                   </div>
                   {/* next slide */}
-                  <div style={{ width: trackW }} className="h-full flex items-center justify-center">
+                  <div className="h-full w-1/3 shrink-0 flex items-center justify-center">
                     <LightboxSlide image={next} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} fullScreen={fullScreen} />
                   </div>
                 </motion.div>
