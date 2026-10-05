@@ -8,3 +8,4 @@
 - [x] Keep the Actual Card lightbox track centered and snapping correctly as Full Screen changes its width.
 - [x] Refine and keep the draggable Share control within the card, including photo viewing.
 - [x] Keep the AI assistant trigger and panel within the card on laptop screens.
+- [ ] Remove zoom-out, zoom-in, and transition-speed controls from carousel photos while keeping 1:1 reset.
