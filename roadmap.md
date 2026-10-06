@@ -10,3 +10,4 @@
 - [x] Keep the AI assistant trigger and panel within the card on laptop screens.
 - [x] Remove zoom-out, zoom-in, and transition-speed controls from carousel photos while keeping 1:1 reset.
 - [x] Prevent neighboring carousel photos from overlapping when an open mobile viewer rotates.
+- [x] Make carousel swipes settle smoothly instead of jumping directly to the next photo.
