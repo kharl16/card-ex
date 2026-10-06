@@ -10,8 +10,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
  * swipe navigation (finger-tracked drag → spring settle).
  */
 
-const STORAGE_KEY = "cardex.lightbox.transitionMs";
-export const DEFAULT_LIGHTBOX_TRANSITION_MS = 180;
+// Version the key so legacy Fast/Instant choices from the removed speed control
+// cannot keep making the now-standard gallery motion feel abrupt.
+const STORAGE_KEY = "cardex.lightbox.transitionMs.v2";
+export const DEFAULT_LIGHTBOX_TRANSITION_MS = 320;
 export const MIN_LIGHTBOX_TRANSITION_MS = 0;
 export const MAX_LIGHTBOX_TRANSITION_MS = 600;
 
@@ -28,10 +30,10 @@ export const LIGHTBOX_SPEED_PRESETS: Array<{
   spring: SpringConfig;
 }> = [
   { label: "Instant",   value: 0,   spring: { type: "spring", stiffness: 800, damping: 60 } },
-  { label: "Fast",      value: 120, spring: { type: "spring", stiffness: 500, damping: 45 } },
-  { label: "Default",   value: 180, spring: { type: "spring", stiffness: 350, damping: 38 } },
-  { label: "Smooth",    value: 280, spring: { type: "spring", stiffness: 220, damping: 32 } },
-  { label: "Cinematic", value: 450, spring: { type: "spring", stiffness: 140, damping: 28 } },
+  { label: "Fast",      value: 140, spring: { type: "spring", stiffness: 420, damping: 42 } },
+  { label: "Default",   value: 320, spring: { type: "spring", stiffness: 190, damping: 30, mass: 1.05 } },
+  { label: "Smooth",    value: 420, spring: { type: "spring", stiffness: 150, damping: 27, mass: 1.08 } },
+  { label: "Cinematic", value: 560, spring: { type: "spring", stiffness: 115, damping: 24, mass: 1.12 } },
 ];
 
 /** Map an arbitrary ms value to the nearest preset's spring config. */
