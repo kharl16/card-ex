@@ -165,6 +165,8 @@ export default function LightboxDialog({
     typeof window !== "undefined" ? window.innerWidth : 1024
   );
   const measuredTrackW = useRef(trackW);
+  const navigationInFlight = useRef(false);
+  const [navigating, setNavigating] = useState(false);
   const zoomLevelRef = useRef(zoomLevel);
   useEffect(() => { zoomLevelRef.current = zoomLevel; }, [zoomLevel]);
 
@@ -179,6 +181,8 @@ export default function LightboxDialog({
         // pass. Cancel any old-width snap before laying out the new slides.
         x.stop();
         x.set(0);
+        navigationInFlight.current = false;
+        setNavigating(false);
         measuredTrackW.current = w;
         setTrackW(w);
       }
@@ -204,6 +208,8 @@ export default function LightboxDialog({
   // slide is already what the user was looking at during the drag.
   useEffect(() => {
     x.set(0);
+    navigationInFlight.current = false;
+    setNavigating(false);
   }, [index, x]);
 
   const prev = useMemo(() => {
@@ -281,8 +287,13 @@ export default function LightboxDialog({
   // Commit helper: animate to target then step index and reset x.
   const commitNav = useCallback(
     (dir: "next" | "prev") => {
+      if (navigationInFlight.current) return;
+      navigationInFlight.current = true;
+      setNavigating(true);
       const target = dir === "next" ? -trackW : trackW;
       const doStep = () => {
+        navigationInFlight.current = false;
+        setNavigating(false);
         if (dir === "next") onNext(); else onPrev();
         // x reset happens via the [index] effect above
       };
@@ -290,7 +301,11 @@ export default function LightboxDialog({
         doStep();
         return;
       }
-      animate(x, target, { ...spring, onComplete: doStep });
+      // A quick finger release leaves velocity on the motion value. Explicitly
+      // discard it so every accepted swipe uses the same soft settle instead
+      // of occasionally racing to the next slide.
+      x.stop();
+      animate(x, target, { ...spring, velocity: 0, onComplete: doStep });
     },
     [trackW, onNext, onPrev, spring, prefersReducedMotion, effectiveTransitionMs, x]
   );
@@ -303,7 +318,7 @@ export default function LightboxDialog({
   // Drag is only enabled at zoom = 1, when we have >1 images, and not during pinch
   // Allow swipe-to-navigate whenever we're not zoomed above 1x (with tolerance
   // for pinch float precision) and no active two-finger gesture is in flight.
-  const canDrag = count > 1 && zoomLevel <= 1.01 && !pinching;
+  const canDrag = count > 1 && zoomLevel <= 1.01 && !pinching && !navigating;
 
   return (
     <>
