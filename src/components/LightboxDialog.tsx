@@ -8,7 +8,6 @@ import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
 import type { LightboxImage } from "@/hooks/useLightbox";
 import { getOriginalUrl } from "@/lib/images";
-import SafeImage from "@/components/SafeImage";
 import { preloadImage } from "@/lib/images/lightboxPreloadCache";
 
 export interface LightboxDialogProps {
@@ -64,6 +63,8 @@ function LightboxSlide({
         src={getOriginalUrl(image.url)}
         alt={image.alt ?? ""}
         draggable={false}
+        loading="eager"
+        decoding="async"
         onLoad={(e) => {
           const el = e.currentTarget;
           if (el.naturalWidth && el.naturalHeight) {
@@ -414,16 +415,17 @@ export default function LightboxDialog({
                     key={`${i}-${img.url}`}
                     className="flex h-full w-full shrink-0 snap-center snap-always items-center justify-center"
                   >
-                    {Math.abs(i - index) <= 2 ? (
-                      <LightboxSlide
-                        image={img}
-                        panOffset={i === index ? panOffset : { x: 0, y: 0 }}
-                        zoomLevel={i === index ? zoomLevel : 1}
-                        isActive={i === index}
-                        fullScreen={fullScreen}
-                        onDimensions={i === index ? ({ width, height }) => setAspect(width / height) : undefined}
-                      />
-                    ) : null}
+                    {/* Keep every photo mounted: native momentum can pass several
+                        pages before the settled index updates. Removing distant
+                        photos leaves empty pages and forces decoding on re-entry. */}
+                    <LightboxSlide
+                      image={img}
+                      panOffset={i === index ? panOffset : { x: 0, y: 0 }}
+                      zoomLevel={i === index ? zoomLevel : 1}
+                      isActive={i === index}
+                      fullScreen={fullScreen}
+                      onDimensions={i === index ? ({ width, height }) => setAspect(width / height) : undefined}
+                    />
                   </div>
                 ))}
               </div>
