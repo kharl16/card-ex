@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
-import { motion, useMotionValue, animate, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download, Share2, ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from "lucide-react";
@@ -10,7 +10,6 @@ import type { LightboxImage } from "@/hooks/useLightbox";
 import { getOriginalUrl } from "@/lib/images";
 import SafeImage from "@/components/SafeImage";
 import { preloadImage } from "@/lib/images/lightboxPreloadCache";
-import { useLightboxTransitionPref } from "@/hooks/useLightboxTransitionPref";
 
 export interface LightboxDialogProps {
   open: boolean;
@@ -98,8 +97,6 @@ export default function LightboxDialog({
   images,
   transitionMs,
 }: LightboxDialogProps) {
-  const { transitionMs: prefTransitionMs, spring } = useLightboxTransitionPref();
-  const effectiveTransitionMs = transitionMs ?? prefTransitionMs;
   const prefersReducedMotion = useReducedMotion();
 
   const [shareModalOpen, setShareModalOpen] = useState(false);
