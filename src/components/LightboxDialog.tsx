@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useRef, useEffect, useLayoutEffect, useMemo } from "react";
-import { motion, useMotionValue, animate, useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Download, Share2, ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from "lucide-react";
@@ -10,7 +10,6 @@ import type { LightboxImage } from "@/hooks/useLightbox";
 import { getOriginalUrl } from "@/lib/images";
 import SafeImage from "@/components/SafeImage";
 import { preloadImage } from "@/lib/images/lightboxPreloadCache";
-import { useLightboxTransitionPref } from "@/hooks/useLightboxTransitionPref";
 
 export interface LightboxDialogProps {
   open: boolean;
@@ -98,8 +97,6 @@ export default function LightboxDialog({
   images,
   transitionMs,
 }: LightboxDialogProps) {
-  const { transitionMs: prefTransitionMs, spring } = useLightboxTransitionPref();
-  const effectiveTransitionMs = transitionMs ?? prefTransitionMs;
   const prefersReducedMotion = useReducedMotion();
 
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -155,71 +152,77 @@ export default function LightboxDialog({
     onResetZoom();
     resetPan();
   }, [onResetZoom, resetPan]);
-  // ─── Framer Motion drag track ────────────────────────────────────
-  // Track holds three equal slides: [prev, current, next]. Percentage-based
-  // visual sizing follows phone rotation immediately; trackW is only used for
-  // drag thresholds and snap distance.
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  const x = useMotionValue(0);
-  const [trackW, setTrackW] = useState<number>(() =>
-    typeof window !== "undefined" ? window.innerWidth : 1024
-  );
-  const measuredTrackW = useRef(trackW);
-  const navigationInFlight = useRef(false);
-  const [navigating, setNavigating] = useState(false);
+  // ─── Native scroll-snap gallery ──────────────────────────────────
+  // Every photo is a full-width snap page. The phone's own scrolling handles
+  // swipe physics, so swipes can be interrupted and chained like a native
+  // gallery. The visible page is synced back to the index once scrolling rests.
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const indexRef = useRef(index);
   const zoomLevelRef = useRef(zoomLevel);
   useEffect(() => { zoomLevelRef.current = zoomLevel; }, [zoomLevel]);
 
-  // Watch the actual stage, not just the window: Full Screen resizes the
-  // dialog without necessarily dispatching a window resize event.
-  useLayoutEffect(() => {
-    if (!open) return;
-    const measure = () => {
-      const w = trackRef.current?.clientWidth ?? window.innerWidth;
-      if (w > 0 && w !== measuredTrackW.current) {
-        // A dialog resize can finish after the Full Screen toggle's layout
-        // pass. Cancel any old-width snap before laying out the new slides.
-        x.stop();
-        x.set(0);
-        navigationInFlight.current = false;
-        setNavigating(false);
-        measuredTrackW.current = w;
-        setTrackW(w);
-      }
-    };
-    x.stop();
-    x.set(0);
-    measure();
-    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
-    if (trackRef.current) observer?.observe(trackRef.current);
-    const raf = requestAnimationFrame(measure);
-    window.addEventListener("resize", measure);
-    window.addEventListener("orientationchange", measure);
-    return () => {
-      observer?.disconnect();
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", measure);
-      window.removeEventListener("orientationchange", measure);
-    };
-  }, [open, fullScreen, x]);
+  const slideList = useMemo<LightboxImage[]>(
+    () => (images && images.length > 0 ? images : currentImage ? [currentImage] : []),
+    [images, currentImage]
+  );
 
-  // Snap x back to 0 whenever the current index changes from the outside
-  // (button, keyboard, or after a commit). No animation — the new "current"
-  // slide is already what the user was looking at during the drag.
+  const syncFromScroll = useCallback(() => {
+    const el = scroller;
+    if (!el || !el.clientWidth) return;
+    const k = Math.max(0, Math.min(slideList.length - 1, Math.round(el.scrollLeft / el.clientWidth)));
+    const cur = indexRef.current;
+    if (k === cur) return;
+    const diff = k - cur;
+    for (let i = 0; i < Math.abs(diff); i++) {
+      if (diff > 0) onNext(); else onPrev();
+    }
+    indexRef.current = k;
+  }, [scroller, slideList.length, onNext, onPrev]);
+
   useEffect(() => {
-    x.set(0);
-    navigationInFlight.current = false;
-    setNavigating(false);
-  }, [index, x]);
+    if (!open || !scroller) return;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    const onScroll = () => {
+      if (t) clearTimeout(t);
+      t = setTimeout(syncFromScroll, 120);
+    };
+    const onEnd = () => {
+      if (t) clearTimeout(t);
+      syncFromScroll();
+    };
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    scroller.addEventListener("scrollend", onEnd);
+    return () => {
+      if (t) clearTimeout(t);
+      scroller.removeEventListener("scroll", onScroll);
+      scroller.removeEventListener("scrollend", onEnd);
+    };
+  }, [open, scroller, syncFromScroll]);
 
-  const prev = useMemo(() => {
-    if (!images || images.length < 2) return undefined;
-    return images[((index - 1) % images.length + images.length) % images.length];
-  }, [images, index]);
-  const next = useMemo(() => {
-    if (!images || images.length < 2) return undefined;
-    return images[(index + 1) % images.length];
-  }, [images, index]);
+  // Keep the scroller on the current photo when the index changes from
+  // outside (keyboard, opening on a specific photo) without fighting a swipe.
+  useLayoutEffect(() => {
+    indexRef.current = index;
+    if (!scroller) return;
+    const w = scroller.clientWidth;
+    if (!w) return;
+    if (Math.round(scroller.scrollLeft / w) !== index) {
+      scroller.scrollTo({ left: index * w, behavior: "auto" });
+    }
+    setPanOffset({ x: 0, y: 0 });
+  }, [scroller, index]);
+
+  // Full Screen toggles and phone rotation change the page width — re-pin
+  // to the current photo so neighbours never peek in.
+  useEffect(() => {
+    if (!open || !scroller || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      const w = scroller.clientWidth;
+      if (w) scroller.scrollTo({ left: indexRef.current * w, behavior: "auto" });
+    });
+    ro.observe(scroller);
+    return () => ro.disconnect();
+  }, [open, scroller, fullScreen]);
 
   // Pinch/two-finger detection: disable drag while a second touch is down.
   // Must be state (not a ref) so that clearing it re-renders and re-enables drag.
@@ -284,41 +287,23 @@ export default function LightboxDialog({
     };
   }, [setZoomLevel]);
 
-  // Commit helper: animate to target then step index and reset x.
+  // Arrow buttons glide to the neighbouring photo using the same native paging.
   const commitNav = useCallback(
     (dir: "next" | "prev") => {
-      if (navigationInFlight.current) return;
-      navigationInFlight.current = true;
-      setNavigating(true);
-      const target = dir === "next" ? -trackW : trackW;
-      const doStep = () => {
-        navigationInFlight.current = false;
-        setNavigating(false);
+      if (!scroller || slideList.length < 2) {
         if (dir === "next") onNext(); else onPrev();
-        // x reset happens via the [index] effect above
-      };
-      if (prefersReducedMotion || effectiveTransitionMs === 0) {
-        doStep();
         return;
       }
-      // A quick finger release leaves velocity on the motion value. Explicitly
-      // discard it so every accepted swipe uses the same soft settle instead
-      // of occasionally racing to the next slide.
-      x.stop();
-      animate(x, target, { ...spring, velocity: 0, onComplete: doStep });
+      const w = scroller.clientWidth;
+      const cur = Math.round(scroller.scrollLeft / w);
+      const n = slideList.length;
+      const target = ((cur + (dir === "next" ? 1 : -1)) % n + n) % n;
+      scroller.scrollTo({ left: target * w, behavior: prefersReducedMotion ? "auto" : "smooth" });
     },
-    [trackW, onNext, onPrev, spring, prefersReducedMotion, effectiveTransitionMs, x]
+    [scroller, slideList.length, onNext, onPrev, prefersReducedMotion]
   );
 
-  const springBack = useCallback(() => {
-    if (prefersReducedMotion) { x.set(0); return; }
-    animate(x, 0, spring);
-  }, [x, spring, prefersReducedMotion]);
-
-  // Drag is only enabled at zoom = 1, when we have >1 images, and not during pinch
-  // Allow swipe-to-navigate whenever we're not zoomed above 1x (with tolerance
-  // for pinch float precision) and no active two-finger gesture is in flight.
-  const canDrag = count > 1 && zoomLevel <= 1.01 && !pinching && !navigating;
+  const canSwipe = count > 1 && zoomLevel <= 1.01 && !pinching;
 
   return (
     <>
@@ -410,55 +395,40 @@ export default function LightboxDialog({
               </>
             )}
 
-            {/* Stage — handles pinch/zoom via native touch listeners, and hosts the
-                framer-motion drag track for one-finger horizontal swipe navigation. */}
-            <div
-              ref={stageRef}
-              className="relative min-h-0 w-full flex-1 overflow-hidden"
-              style={{ touchAction: canDrag ? "pan-y" : "none" }}
-            >
-              <div ref={trackRef} className="relative w-full h-full">
-                <motion.div
-                  className="absolute inset-0 flex"
-                  style={{ x, width: "300%", left: "-100%" }}
-                  drag={canDrag ? "x" : false}
-                  dragElastic={0.18}
-                  dragMomentum={false}
-                  dragConstraints={{ left: -trackW, right: trackW }}
-                  onDragEnd={(_, info) => {
-                    const offset = info.offset.x;
-                    const velocity = info.velocity.x;
-                    const distanceThreshold = trackW * 0.22;
-                    const velocityThreshold = 500;
-                    const goNext = offset < -distanceThreshold || velocity < -velocityThreshold;
-                    const goPrev = offset > distanceThreshold || velocity > velocityThreshold;
-                    if (goNext) commitNav("next");
-                    else if (goPrev) commitNav("prev");
-                    else springBack();
-                  }}
-                >
-                  {/* prev slide */}
-                  <div className="h-full w-1/3 shrink-0 flex items-center justify-center">
-                    <LightboxSlide image={prev} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} fullScreen={fullScreen} />
+            {/* Stage — pinch/zoom via native touch listeners; one-finger swiping is
+                handled by the phone's own scroll-snap paging, like a native gallery. */}
+            <div ref={stageRef} className="relative min-h-0 w-full flex-1 overflow-hidden">
+              <div
+                ref={setScroller}
+                data-lightbox-scroller
+                className="flex h-full w-full snap-x snap-mandatory overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                style={{
+                  overflowX: canSwipe ? "auto" : "hidden",
+                  overflowY: "hidden",
+                  touchAction: canSwipe ? "pan-x pan-y" : "none",
+                  WebkitOverflowScrolling: "touch",
+                }}
+              >
+                {slideList.map((img, i) => (
+                  <div
+                    key={`${i}-${img.url}`}
+                    className="flex h-full w-full shrink-0 snap-center snap-always items-center justify-center"
+                  >
+                    {Math.abs(i - index) <= 2 ? (
+                      <LightboxSlide
+                        image={img}
+                        panOffset={i === index ? panOffset : { x: 0, y: 0 }}
+                        zoomLevel={i === index ? zoomLevel : 1}
+                        isActive={i === index}
+                        fullScreen={fullScreen}
+                        onDimensions={i === index ? ({ width, height }) => setAspect(width / height) : undefined}
+                      />
+                    ) : null}
                   </div>
-                  {/* current slide */}
-                  <div className="h-full w-1/3 shrink-0 flex items-center justify-center">
-                    <LightboxSlide
-                      image={currentImage}
-                      panOffset={panOffset}
-                      zoomLevel={zoomLevel}
-                      isActive
-                      fullScreen={fullScreen}
-                      onDimensions={({ width, height }) => setAspect(width / height)}
-                    />
-                  </div>
-                  {/* next slide */}
-                  <div className="h-full w-1/3 shrink-0 flex items-center justify-center">
-                    <LightboxSlide image={next} panOffset={{ x: 0, y: 0 }} zoomLevel={1} isActive={false} fullScreen={fullScreen} />
-                  </div>
-                </motion.div>
+                ))}
               </div>
             </div>
+
 
             {/* Floating counter pill in full-screen gallery mode */}
             {fullScreen && count > 1 && (
