@@ -356,12 +356,10 @@ export default function LightboxDialog({
 
             {/* Reset + Download + Share controls */}
             <div className="absolute top-4 left-4 z-20 flex gap-2">
-              {!fullScreen && (
-                <Button variant="ghost" size="icon" onClick={handleResetZoom}
-                  className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Reset zoom">
-                  1:1
-                </Button>
-              )}
+              <Button variant="ghost" size="icon" onClick={handleResetZoom}
+                className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Reset zoom">
+                1:1
+              </Button>
               <Button variant="ghost" size="icon" onClick={handleDownload}
                 className="bg-black/60 hover:bg-black/80 text-white rounded-full" aria-label="Download image">
                 <Download className="h-5 w-5" />
