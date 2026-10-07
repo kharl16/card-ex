@@ -12,3 +12,4 @@
 - [x] Prevent neighboring carousel photos from overlapping when an open mobile viewer rotates.
 - [x] Make carousel swipes settle smoothly instead of jumping directly to the next photo.
 - [x] Remove release-velocity spikes and overlapping navigation from carousel swipe transitions.
+- [ ] Eliminate empty photo pages during consecutive native gallery swipes and verify persistent photo rendering.
