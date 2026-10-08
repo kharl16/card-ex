@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, fireEvent, act, cleanup } from "@testing-library/react";
+import { render, fireEvent, act, cleanup, waitFor } from "@testing-library/react";
 import { FilePreviewDialog } from "./FilePreviewDialog";
 import type { FileResource } from "@/types/resources";
 
@@ -77,7 +77,7 @@ describe("Resources native photo gallery", () => {
     fireEvent.touchStart(surface, { touches: [{ clientX: 200, clientY: 100 }, { clientX: 260, clientY: 100 }] });
     await act(async () => { fireEvent.touchMove(surface, { touches: [{ clientX: 170, clientY: 100 }, { clientX: 290, clientY: 100 }] }); });
     const image = container.querySelector('img[alt="Photo 0"]');
-    expect(image?.getAttribute("style")).toContain("scale(2)");
+    await waitFor(() => expect(image?.getAttribute("style")).toContain("scale(2)"));
     fireEvent.click(getByRole("button", { name: "Reset zoom" }));
     expect(image?.getAttribute("style")).toContain("scale(1)");
   });
