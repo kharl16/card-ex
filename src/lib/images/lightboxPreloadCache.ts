@@ -22,7 +22,7 @@ export function preloadImage(url: string, priority: FetchPriority = "auto"): HTM
     cache.set(url, existing);
     // Upgrade priority if a stronger hint arrives (e.g. neighbor became current)
     try {
-      if (priority !== "auto") (existing as any).fetchPriority = priority;
+      if (priority !== "auto") existing.fetchPriority = priority;
     } catch {
       /* ignore */
     }
@@ -32,7 +32,7 @@ export function preloadImage(url: string, priority: FetchPriority = "auto"): HTM
   const img = new Image();
   img.decoding = "async";
   try {
-    (img as any).fetchPriority = priority;
+    img.fetchPriority = priority;
   } catch {
     /* older browsers — ignore */
   }

@@ -346,8 +346,8 @@ function FilePreviewDialogInner({
     if (!wasPan) maybeHandleDoubleTap(t);
   };
 
-  // Unified single-pointer handling (mouse, pen, touch) — used for panning
-  // while zoomed and for swiping when not zoomed. Pinch is still handled by
+  // Pointer handling is reserved for panning while zoomed; native scrolling
+  // owns unzoomed swipes. Pinch is still handled by
   // the touch handlers above because Pointer Events arrive as separate streams.
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0 && e.pointerType === "mouse") return;
@@ -448,14 +448,13 @@ function FilePreviewDialogInner({
       el.removeEventListener("touchstart", onStart);
       el.removeEventListener("touchmove", onMove);
       el.removeEventListener("touchend", onEnd);
-      el.removeEventListener("touchcancel", cancelSwipe);
+      el.removeEventListener("touchcancel", cancelPan);
       el.removeEventListener("wheel", onWheel);
       el.removeEventListener("dblclick", onDblClick);
       el.removeEventListener("gesturestart", onGestureStart);
       el.removeEventListener("gesturechange", onGestureChange);
       el.removeEventListener("gestureend", onGestureEnd);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file.id, hasPrev, hasNext, commitZoom, resetZoomToActualSize, handleTouchStartCore, handleTouchMoveCore, handleTouchEndCore]);
 
   const onReactTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {

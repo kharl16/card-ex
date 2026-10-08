@@ -69,14 +69,13 @@ export function getRenderUrl(
   } catch {
     // fall through to normal transform
   }
-  // format=origin preserves PNG transparency; the CDN still serves WebP when
-  // the browser advertises support via Accept: image/webp.
+  // Omit format=origin: let the managed CDN negotiate WebP for supported
+  // browsers (including alpha) instead of forcing heavy original PNG bytes.
   return internalCdn(url, {
     width: size.width,
     height: size.height,
     resize: "contain",
     quality: 82,
-    format: "origin",
   });
 }
 
