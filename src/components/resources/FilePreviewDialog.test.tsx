@@ -78,6 +78,7 @@ describe("Resources native photo gallery", () => {
     console.log("surface", surface.outerHTML.slice(0,300));
     fireEvent.touchMove(surface, { touches: [{ clientX: 170, clientY: 100 }, { clientX: 290, clientY: 100 }] });
     const image = container.querySelector('img[alt="Photo 0"]');
+    console.log("photos", Array.from(container.querySelectorAll("img")).slice(0,2).map(x=>x.outerHTML));
     expect(image?.getAttribute("style")).toContain("scale(2)");
     fireEvent.click(getByRole("button", { name: "Reset zoom" }));
     expect(image?.getAttribute("style")).toContain("scale(1)");
