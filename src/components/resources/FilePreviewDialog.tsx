@@ -563,7 +563,7 @@ function FilePreviewDialogInner({
       }}
       className={cn("absolute inset-0 w-full h-full object-contain select-none pointer-events-none",
         !visible && "invisible", isCurrent && resetAnim && "transition-transform duration-300 ease-out")}
-      style={{ transform: isCurrent && visible ? `translate3d(${pan.x}px, ${pan.y}px, 0px) scale(${zoom})` : undefined }}
+      style={{ transform: isCurrent && visible ? `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)` : undefined }}
       draggable={false} referrerPolicy="no-referrer"
     />;
   };
