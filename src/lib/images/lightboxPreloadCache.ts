@@ -36,7 +36,11 @@ export function preloadImage(url: string, priority: FetchPriority = "auto"): HTM
   } catch {
     /* older browsers — ignore */
   }
+  // Warm the decoded bitmap, not only the HTTP cache. Decode failures leave the
+  // normal image load/error path intact (including cross-origin photos).
+  img.onload = () => { void img.decode?.().catch(() => {}); };
   img.src = url;
+  if (img.complete) void img.decode?.().catch(() => {});
 
   cache.set(url, img);
   if (cache.size > MAX_ENTRIES) {

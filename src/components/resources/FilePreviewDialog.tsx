@@ -6,6 +6,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TopRightActions } from "@/components/ui/top-right-actions";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
+import { uploadOptimizedFile } from "@/lib/images/uploadOptimizedFile";
+import { preloadImage } from "@/lib/images/lightboxPreloadCache";
 import { resourceImageUrl } from "@/lib/resourceImage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -58,25 +60,66 @@ function FilePreviewDialogInner({
   const hasNext = canLoop;
   const prevIndex = canLoop ? (currentIndex - 1 + total) % total : -1;
   const nextIndex = canLoop ? (currentIndex + 1) % total : -1;
-  const prevFile = hasPrev ? files[prevIndex] : null;
-  const nextFile = hasNext ? files[nextIndex] : null;
 
-  const goPrev = () => { if (hasPrev) onNavigate(files[prevIndex]); };
-  const goNext = () => { if (hasNext) onNavigate(files[nextIndex]); };
-
-  // Phone-gallery style swipe: track drag, follow finger, snap with animation
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const dragStart = useRef<{ x: number; y: number; width: number; locked: boolean | null } | null>(null);
-  const mouseListeners = useRef<{ move: (event: MouseEvent) => void; up: (event: MouseEvent) => void } | null>(null);
-  const [dragX, setDragX] = useState(0);
-  const [animating, setAnimating] = useState(false);
+  const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const settledIndex = useRef(currentIndex);
+  const navigateRef = useRef(onNavigate);
+  navigateRef.current = onNavigate;
+  const goTo = (target: number) => {
+    if (!scroller?.clientWidth || !files[target]) return;
+    commitZoom(1);
+    scroller.scrollTo({ left: target * scroller.clientWidth,
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  };
+  const goPrev = () => { if (hasPrev) goTo(prevIndex); };
+  const goNext = () => { if (hasNext) goTo(nextIndex); };
+
+  useLayoutEffect(() => {
+    settledIndex.current = currentIndex;
+    if (!scroller?.clientWidth) return;
+    if (Math.round(scroller.scrollLeft / scroller.clientWidth) !== currentIndex) {
+      scroller.scrollTo({ left: currentIndex * scroller.clientWidth, behavior: "auto" });
+    }
+  }, [scroller, currentIndex]);
+
+  useEffect(() => {
+    if (!open || !scroller) return;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const sync = () => {
+      if (timer) clearTimeout(timer);
+      if (!scroller.clientWidth) return;
+      const next = Math.max(0, Math.min(files.length - 1,
+        Math.round(scroller.scrollLeft / scroller.clientWidth)));
+      if (next === settledIndex.current || !files[next]) return;
+      settledIndex.current = next;
+      navigateRef.current(files[next]);
+    };
+    const onScroll = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(sync, 120);
+    };
+    scroller.addEventListener("scroll", onScroll, { passive: true });
+    scroller.addEventListener("scrollend", sync);
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => {
+      if (timer) clearTimeout(timer);
+      scroller.scrollTo({ left: settledIndex.current * scroller.clientWidth, behavior: "auto" });
+    });
+    observer?.observe(scroller);
+    return () => {
+      if (timer) clearTimeout(timer);
+      observer?.disconnect();
+      scroller.removeEventListener("scroll", onScroll);
+      scroller.removeEventListener("scrollend", sync);
+    };
+  }, [open, scroller, files]);
+
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const panRef = useRef({ x: 0, y: 0 });
   const panStartRef = useRef<{ x: number; y: number; panX: number; panY: number; active: boolean } | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const zoomRef = useRef(1);
-  const animatingRef = useRef(false);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const tapStartRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const touchHandledEvents = useRef<WeakSet<Event>>(new WeakSet());
@@ -89,8 +132,6 @@ function FilePreviewDialogInner({
     startPanX: 0,
     startPanY: 0,
   });
-  const SWIPE_RATIO = 0.2; // 20% of width triggers navigation
-  const SWIPE_VELOCITY_PX = 60;
   const DOUBLE_TAP_MS = 320;
   const TAP_MOVE_TOLERANCE = 24;
 
@@ -147,34 +188,12 @@ function FilePreviewDialogInner({
     });
   }, [clampPan]);
 
-  const removeMouseListeners = useCallback(() => {
-    if (!mouseListeners.current) return;
-    window.removeEventListener("mousemove", mouseListeners.current.move);
-    window.removeEventListener("mouseup", mouseListeners.current.up);
-    mouseListeners.current = null;
-  }, []);
-
-  useEffect(() => removeMouseListeners, [removeMouseListeners]);
-
-  useLayoutEffect(() => {
-    zoomRef.current = zoom;
-  }, [zoom]);
-
-  useLayoutEffect(() => {
-    animatingRef.current = animating;
-  }, [animating]);
-
-  // Reset drag/pan whenever the active file changes
+  useLayoutEffect(() => { zoomRef.current = zoom; }, [zoom]);
   useEffect(() => {
-    setDragX(0);
-    setAnimating(false);
-    animatingRef.current = false;
-    dragStart.current = null;
     panStartRef.current = null;
     panRef.current = { x: 0, y: 0 };
     setPan({ x: 0, y: 0 });
-    removeMouseListeners();
-  }, [file.id, removeMouseListeners]);
+  }, [file.id]);
 
   const beginPan = (x: number, y: number) => {
     panStartRef.current = {
@@ -209,71 +228,7 @@ function FilePreviewDialogInner({
   const isInteractiveTarget = (target: EventTarget | null) =>
     target instanceof HTMLElement && Boolean(target.closest("button, a, [role='button']"));
 
-  const beginSwipe = (x: number, y: number) => {
-    // Cancel any in-flight animation so a new swipe can start immediately
-    if (animatingRef.current) {
-      setAnimating(false);
-      animatingRef.current = false;
-      setDragX(0);
-    }
-    const width = trackRef.current?.clientWidth ?? window.innerWidth;
-    dragStart.current = { x, y, width, locked: null };
-  };
-
-  const updateSwipe = (x: number, y: number) => {
-    if (!dragStart.current) return false;
-    const dx = x - dragStart.current.x;
-    const dy = y - dragStart.current.y;
-    // Lock axis after small movement so vertical scroll still works
-    if (dragStart.current.locked === null) {
-      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return false;
-      const horizontal = Math.abs(dx) > Math.abs(dy) * 1.1;
-      dragStart.current.locked = horizontal;
-    }
-    if (!dragStart.current.locked) return false;
-    let next = dx;
-    // Add rubber-band resistance at the ends
-    if ((dx > 0 && !hasPrev) || (dx < 0 && !hasNext)) {
-      next = dx * 0.25;
-    }
-    setDragX(next);
-    return true;
-  };
-
-  const finishSwipe = (dx: number, width: number) => {
-    const threshold = width * SWIPE_RATIO;
-    const goingNext = dx < 0 && hasNext && (Math.abs(dx) > threshold || dx < -SWIPE_VELOCITY_PX * 2);
-    const goingPrev = dx > 0 && hasPrev && (Math.abs(dx) > threshold || dx > SWIPE_VELOCITY_PX * 2);
-    setAnimating(true);
-    if (goingNext) {
-      setDragX(-width);
-      window.setTimeout(() => { goNext(); setAnimating(false); }, 220);
-    } else if (goingPrev) {
-      setDragX(width);
-      window.setTimeout(() => { goPrev(); setAnimating(false); }, 220);
-    } else {
-      setDragX(0);
-      window.setTimeout(() => setAnimating(false), 220);
-    }
-  };
-
-  const endSwipe = (x: number) => {
-    if (!dragStart.current) return;
-    const dx = x - dragStart.current.x;
-    const width = dragStart.current.width;
-    const locked = dragStart.current.locked;
-    dragStart.current = null;
-    if (locked) finishSwipe(dx, width);
-    else setDragX(0);
-  };
-
-  const cancelSwipe = () => {
-    removeMouseListeners();
-    dragStart.current = null;
-    setAnimating(true);
-    setDragX(0);
-    window.setTimeout(() => setAnimating(false), 220);
-  };
+  const cancelPan = () => { panStartRef.current = null; pinchRef.current.active = false; };
 
   const [resetAnim, setResetAnim] = useState(false);
   const resetTimerRef = useRef<number | null>(null);
@@ -311,8 +266,6 @@ function FilePreviewDialogInner({
       Math.hypot(current.x - previous.x, current.y - previous.y) <= TAP_MOVE_TOLERANCE * 1.5
     ) {
       lastTapRef.current = null;
-      dragStart.current = null;
-      setDragX(0);
       resetZoomToActualSize();
     } else {
       lastTapRef.current = current;
@@ -331,7 +284,6 @@ function FilePreviewDialogInner({
       pinchRef.current.startMidY = midY;
       pinchRef.current.startPanX = panRef.current.x;
       pinchRef.current.startPanY = panRef.current.y;
-      dragStart.current = null;
       panStartRef.current = null;
       tapStartRef.current = null;
       return true;
@@ -343,7 +295,6 @@ function FilePreviewDialogInner({
       // Single-pointer panning is handled uniformly via Pointer Events
       return false;
     }
-    beginSwipe(t.clientX, t.clientY);
     return false;
   };
 
@@ -381,7 +332,7 @@ function FilePreviewDialogInner({
     if (panStartRef.current) {
       return updatePan(t.clientX, t.clientY);
     }
-    return updateSwipe(t.clientX, t.clientY);
+    return false;
   };
 
   const handleTouchEndCore = (touches: TouchList | React.TouchList, changedTouches: TouchList | React.TouchList) => {
@@ -391,10 +342,8 @@ function FilePreviewDialogInner({
     }
     const t = changedTouches[0];
     if (!t) return;
-    const wasSwipe = dragStart.current?.locked === true;
     const wasPan = endPan();
-    endSwipe(t.clientX);
-    if (!wasSwipe && !wasPan) maybeHandleDoubleTap(t);
+    if (!wasPan) maybeHandleDoubleTap(t);
   };
 
   // Unified single-pointer handling (mouse, pen, touch) — used for panning
@@ -409,9 +358,6 @@ function FilePreviewDialogInner({
     if (zoomed) {
       beginPan(e.clientX, e.clientY);
       try { (e.currentTarget as Element).setPointerCapture(e.pointerId); } catch { /* noop */ }
-    } else if (e.pointerType !== "touch") {
-      // Touch swipe is still driven by the touch handler so it can axis-lock vs page scroll.
-      beginSwipe(e.clientX, e.clientY);
     } else {
       return;
     }
@@ -422,8 +368,6 @@ function FilePreviewDialogInner({
       if (pinchRef.current.active) return;
       if (panStartRef.current) {
         if (updatePan(event.clientX, event.clientY)) event.preventDefault();
-      } else if (updateSwipe(event.clientX, event.clientY)) {
-        event.preventDefault();
       }
     };
     const cleanup = () => {
@@ -436,13 +380,12 @@ function FilePreviewDialogInner({
       if (event.pointerId !== e.pointerId) return;
       cleanup();
       endPan();
-      endSwipe(event.clientX);
     };
     const cancel = (event: PointerEvent) => {
       if (event.pointerId !== e.pointerId) return;
       cleanup();
       endPan();
-      cancelSwipe();
+      cancelPan();
     };
     target.addEventListener("pointermove", move);
     target.addEventListener("pointerup", up);
@@ -480,7 +423,6 @@ function FilePreviewDialogInner({
       e.preventDefault();
       safariGesture.active = true;
       safariGesture.startZoom = zoomRef.current;
-      dragStart.current = null;
       tapStartRef.current = null;
     };
     const onGestureChange = (e: Event) => {
@@ -496,7 +438,7 @@ function FilePreviewDialogInner({
     el.addEventListener("touchstart", onStart, { passive: false });
     el.addEventListener("touchmove", onMove, { passive: false });
     el.addEventListener("touchend", onEnd, { passive: true });
-    el.addEventListener("touchcancel", cancelSwipe, { passive: true });
+    el.addEventListener("touchcancel", cancelPan, { passive: true });
     el.addEventListener("wheel", onWheel, { passive: false });
     el.addEventListener("dblclick", onDblClick);
     el.addEventListener("gesturestart", onGestureStart, { passive: false } as AddEventListenerOptions);
@@ -567,16 +509,11 @@ function FilePreviewDialogInner({
       if (!picked) return;
       setImageBusy(true);
       try {
-        const ext = picked.name.split(".").pop() || "jpg";
-        const path = `files/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error } = await supabase.storage.from("resources").upload(path, picked, {
-          upsert: true,
-          contentType: picked.type || undefined,
+        const { publicUrl } = await uploadOptimizedFile(picked, {
+          bucket: "resources", folder: "files", kind: "product",
         });
-        if (error) throw error;
-        const { data: pub } = supabase.storage.from("resources").getPublicUrl(path);
         setImageBusy(false);
-        await setImage(fileId, pub.publicUrl, slotIndex);
+        await setImage(fileId, publicUrl, slotIndex);
       } catch (e) {
         setImageBusy(false);
         toast.error(e instanceof Error ? e.message : "Upload failed");
@@ -597,45 +534,40 @@ function FilePreviewDialogInner({
   const hasSecondPhoto = !!imageFor(file, 1);
   const showSlotSwitch = hasSecondPhoto || isResourceSuperAdmin;
 
-  const renderImage = (f: FileResource | null, isCurrent = false) => {
+  // Decode the same bounded preview URLs used by the tiles, never the raw files.
+  useEffect(() => {
+    if (!open) return;
+    files.forEach((entry) => {
+      for (const photoSlot of [0, 1]) {
+        const src = imageFor(entry, photoSlot);
+        if (src) preloadImage(resourceImageUrl(src), entry.id === file.id && photoSlot === slot ? "high" : "low");
+      }
+    });
+    // Overrides change only after an explicit admin photo update.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, files, file.id, slot, imageOverrides]);
 
-    if (!f) return <div className="w-full h-full" />;
-    const src = isCurrent ? currentSrc : imageFor(f);
-    if (src) {
-      const scale = isCurrent ? zoom : 1;
-      const tx = isCurrent ? pan.x : 0;
-      const ty = isCurrent ? pan.y : 0;
-      const isPanning = isCurrent && (panStartRef.current?.active || pinchRef.current.active);
-      return (
-        <img
-          ref={isCurrent ? imgRef : undefined}
-          src={resourceImageUrl(src)}
-          alt={f.file_name}
-          onLoad={(e) => {
-            if (!isCurrent) return;
-            const el = e.currentTarget;
-            if (el.naturalWidth && el.naturalHeight) setAspect(el.naturalWidth / el.naturalHeight);
-          }}
-          className={cn(
-            "w-full h-full object-contain select-none pointer-events-none",
-            fullScreen ? "max-h-[100dvh]" : "max-h-[55vh]",
-            isCurrent && resetAnim
-              ? "transition-transform duration-300 ease-out"
-              : isPanning ? "" : "transition-transform duration-200"
-          )}
-          style={{ transform: `translate3d(${tx}px, ${ty}px, 0) scale(${scale})`, transformOrigin: "center center" }}
-          draggable={false}
-          referrerPolicy="no-referrer"
-        />
-      );
-    }
-    return (
-      <div className="flex items-center justify-center h-48 w-full text-muted-foreground/20">
-        <Download className="h-16 w-16" />
-      </div>
-    );
+  const renderImage = (f: FileResource, photoSlot: number, isCurrent: boolean) => {
+    const src = imageFor(f, photoSlot);
+    if (!src) return null;
+    const visible = photoSlot === (isCurrent ? slot : 0);
+    return <img
+      key={`${f.id}:${photoSlot}:${src}`}
+      ref={isCurrent && visible ? imgRef : undefined}
+      src={resourceImageUrl(src)} alt={f.file_name}
+      loading="eager" decoding="async"
+      {...{ fetchpriority: isCurrent && visible ? "high" : "low" }}
+      onLoad={(e) => {
+        if (isCurrent && visible && e.currentTarget.naturalHeight) {
+          setAspect(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight);
+        }
+      }}
+      className={cn("absolute inset-0 w-full h-full object-contain select-none pointer-events-none",
+        !visible && "invisible", isCurrent && resetAnim && "transition-transform duration-300 ease-out")}
+      style={{ transform: isCurrent && visible ? `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})` : undefined }}
+      draggable={false} referrerPolicy="no-referrer"
+    />;
   };
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -649,42 +581,27 @@ function FilePreviewDialogInner({
           ref={trackRef}
           className={cn(
             "relative bg-black/95 overflow-hidden",
-            fullScreen ? "h-[100dvh]" : "min-h-[40vh] max-h-[55vh]",
+            fullScreen ? "h-[100dvh]" : "h-[55vh]",
             "cursor-grab active:cursor-grabbing",
-            !isZoomed ? "touch-pan-y" : "touch-none"
+            !isZoomed ? "touch-pan-x" : "touch-none"
           )}
           onPointerDown={onPointerDown}
           onTouchStart={onReactTouchStart}
           onTouchMove={onReactTouchMove}
           onTouchEnd={onReactTouchEnd}
-          style={{ touchAction: isZoomed ? "none" : "pan-y" }}
+          style={{ touchAction: isZoomed ? "none" : "pan-x pan-y" }}
         >
-          {/* Sliding track: [prev][current][next] */}
-          <div
-            className={cn(
-              "flex h-full will-change-transform",
-              fullScreen ? "" : "min-h-[40vh] max-h-[55vh]"
-            )}
-            style={{
-              width: "300%",
-              transform: `translate3d(calc(-33.3333% + ${dragX}px), 0, 0)`,
-              transition: animating ? "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)" : "none",
-            }}
-          >
-            <div className="w-1/3 flex items-center justify-center shrink-0">
-              {renderImage(prevFile)}
-            </div>
-            <div className="w-1/3 flex items-center justify-center shrink-0">
-              {renderImage(file, true)}
-            </div>
-            <div className="w-1/3 flex items-center justify-center shrink-0">
-              {renderImage(nextFile)}
-            </div>
+          <div ref={setScroller} data-resource-gallery-scroller
+            className="flex h-full w-full snap-x snap-mandatory overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            style={{ overflowX: isZoomed ? "hidden" : "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch" }}>
+            {(files.length ? files : [file]).map((entry) => (
+              <div key={entry.id} className="relative h-full w-full shrink-0 snap-center snap-always overflow-hidden">
+                {renderImage(entry, 0, entry.id === file.id)}
+                {renderImage(entry, 1, entry.id === file.id)}
+                {!imageFor(entry) && <div className="flex h-full items-center justify-center text-muted-foreground"><ImageOff className="h-12 w-12" /></div>}
+              </div>
+            ))}
           </div>
-
-
-
-
 
           {/* Nav arrows */}
           {hasPrev && (
@@ -693,6 +610,7 @@ function FilePreviewDialogInner({
               variant="ghost"
               className="absolute left-2 top-1/2 -translate-y-1/2 h-10 w-10 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
               onClick={goPrev}
+              aria-label="Previous image"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -703,6 +621,7 @@ function FilePreviewDialogInner({
               variant="ghost"
               className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 bg-black/40 hover:bg-black/60 text-white rounded-full backdrop-blur-md border border-white/10"
               onClick={goNext}
+              aria-label="Next image"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -731,6 +650,9 @@ function FilePreviewDialogInner({
             {fullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             {fullScreen ? "Exit" : "Full Screen"}
           </Button>
+
+          <Button variant="ghost" size="icon" onClick={() => commitZoom(1)} aria-label="Reset zoom"
+            className="absolute top-3 left-36 h-11 w-11 rounded-full bg-background/80 text-foreground">1:1</Button>
 
           {/* Exit button in full screen (top-right) */}
           {fullScreen && (
