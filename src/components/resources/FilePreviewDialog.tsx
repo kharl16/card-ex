@@ -273,6 +273,7 @@ function FilePreviewDialogInner({
   }, [resetZoomToActualSize]);
 
   const handleTouchStartCore = (touches: TouchList | React.TouchList, target: EventTarget | null) => {
+    console.log("start", touches.length, isInteractiveTarget(target));
     if (isInteractiveTarget(target) || touches.length === 0) return false;
     if (touches.length === 2) {
       const midX = (touches[0].clientX + touches[1].clientX) / 2;
@@ -299,6 +300,7 @@ function FilePreviewDialogInner({
   };
 
   const handleTouchMoveCore = (touches: TouchList | React.TouchList) => {
+    console.log("move", touches.length, pinchRef.current.active, pinchRef.current.startDist);
     if (pinchRef.current.active && touches.length === 2) {
       const ratio = distanceBetweenTouches(touches) / (pinchRef.current.startDist || 1);
       const nextZoom = clampZoom(pinchRef.current.startZoom * ratio);
