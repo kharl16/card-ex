@@ -70,12 +70,12 @@ describe("Resources native photo gallery", () => {
     expect(container.querySelector('img[src="https://example.com/alternate.jpg"]')).toBe(alternate);
     expect(alternate).not.toHaveClass("invisible");
   });
-  it("still supports pinch zoom and the 1:1 reset", () => {
+  it("still supports pinch zoom and the 1:1 reset", async () => {
     const { container, getByRole } = render(dialog(0));
     const surface = container.querySelector('.touch-pan-x');
     if (!surface) throw new Error("Missing zoom surface");
     fireEvent.touchStart(surface, { touches: [{ clientX: 200, clientY: 100 }, { clientX: 260, clientY: 100 }] });
-    act(() => { fireEvent.touchMove(surface, { touches: [{ clientX: 170, clientY: 100 }, { clientX: 290, clientY: 100 }] }); });
+    await act(async () => { fireEvent.touchMove(surface, { touches: [{ clientX: 170, clientY: 100 }, { clientX: 290, clientY: 100 }] }); });
     const image = container.querySelector('img[alt="Photo 0"]');
     expect(image?.getAttribute("style")).toContain("scale(2)");
     fireEvent.click(getByRole("button", { name: "Reset zoom" }));
