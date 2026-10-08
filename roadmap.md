@@ -13,5 +13,5 @@
 - [x] Make carousel swipes settle smoothly instead of jumping directly to the next photo.
 - [x] Remove release-velocity spikes and overlapping navigation from carousel swipe transitions.
 - [x] Eliminate empty photo pages during consecutive native gallery swipes and verify persistent photo rendering.
-- [ ] Optimize gallery delivery and decoded photo warming without replacing originals.
-- [ ] Apply persistent native scroll-snap paging to Resources file and folder previews; verify navigation, zoom, and resizing.
+- [x] Optimize gallery delivery and decoded photo warming without replacing originals.
+- [x] Apply persistent native scroll-snap paging to Resources file and folder previews; verify navigation, zoom, and resizing.

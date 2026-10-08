@@ -76,7 +76,6 @@ describe("Resources native photo gallery", () => {
     if (!surface) throw new Error("Missing zoom surface");
     fireEvent.touchStart(surface, { touches: [{ clientX: 200, clientY: 100 }, { clientX: 260, clientY: 100 }] });
     await act(async () => { fireEvent.touchMove(surface, { touches: [{ clientX: 170, clientY: 100 }, { clientX: 290, clientY: 100 }] }); });
-    const image = container.querySelector('img[alt="Photo 0"]');
     expect(surface).toHaveClass("touch-none");
     fireEvent.click(getByRole("button", { name: "Reset zoom" }));
     expect(surface).toHaveClass("touch-pan-x");
