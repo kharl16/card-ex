@@ -62,7 +62,7 @@ export function cdnImage(
   if (opts.height) params.set("height", String(Math.round(opts.height)));
   if (opts.quality) params.set("quality", String(opts.quality));
   if (opts.resize) params.set("resize", opts.resize);
-  params.set("format", opts.format ?? "origin");
+  if (opts.format) params.set("format", opts.format);
 
   const query = params.toString();
   return query ? `${baseUrl}?${query}` : baseUrl;

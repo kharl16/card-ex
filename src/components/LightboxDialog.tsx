@@ -7,7 +7,7 @@ import { CloseButton3D } from "@/components/ui/close-button-3d";
 import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
 import type { LightboxImage } from "@/hooks/useLightbox";
-import { getOriginalUrl } from "@/lib/images";
+import { getRenderUrl } from "@/lib/images";
 import { preloadImage } from "@/lib/images/lightboxPreloadCache";
 
 export interface LightboxDialogProps {
@@ -60,11 +60,12 @@ function LightboxSlide({
   return (
     <div className="w-full h-full flex items-center justify-center pointer-events-none">
       <img
-        src={getOriginalUrl(image.url)}
+        src={getRenderUrl(image.url, "product")}
         alt={image.alt ?? ""}
         draggable={false}
         loading="eager"
         decoding="async"
+        {...{ fetchpriority: isActive ? "high" : "low" }}
         onLoad={(e) => {
           const el = e.currentTarget;
           if (el.naturalWidth && el.naturalHeight) {
@@ -121,12 +122,12 @@ export default function LightboxDialog({
   // Preload current + ±2 neighbors through the module-level LRU cache
   useEffect(() => {
     if (!open) return;
-    if (currentImage?.url) preloadImage(getOriginalUrl(currentImage.url), "high");
+    if (currentImage?.url) preloadImage(getRenderUrl(currentImage.url, "product"), "high");
     if (!images || images.length < 2) return;
     for (const offset of [1, -1, 2, -2]) {
       const target = images[((index + offset) % images.length + images.length) % images.length];
       if (target?.url) {
-        preloadImage(getOriginalUrl(target.url), Math.abs(offset) === 1 ? "low" : "auto");
+        preloadImage(getRenderUrl(target.url, "product"), Math.abs(offset) === 1 ? "low" : "auto");
       }
     }
   }, [open, images, index, currentImage?.url]);
