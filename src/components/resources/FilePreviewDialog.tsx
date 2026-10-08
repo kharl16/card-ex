@@ -475,7 +475,7 @@ function FilePreviewDialogInner({
   };
 
   // Reset zoom whenever the previewed file changes
-  useEffect(() => { commitZoom(1); }, [file.id, commitZoom]);
+  useEffect(() => { console.log("reset effect"); commitZoom(1); }, [file.id, commitZoom]);
 
   // Always start on the main photo when switching packages
   useEffect(() => { setSlot(0); }, [file.id]);
@@ -523,6 +523,7 @@ function FilePreviewDialogInner({
     input.click();
   };
 
+  console.log("zoom render", zoom);
   const isZoomed = zoom > 1.01;
 
   const imageFor = (f: FileResource, slotIndex = 0) => {
