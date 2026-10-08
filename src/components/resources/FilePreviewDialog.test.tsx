@@ -22,7 +22,7 @@ function track(container: HTMLElement) {
   const el = container.querySelector<HTMLDivElement>("[data-resource-gallery-scroller]");
   if (!el) throw new Error("Missing native gallery");
   Object.defineProperty(el, "clientWidth", { configurable: true, value: 600 });
-  el.scrollTo = vi.fn(({ left }: ScrollToOptions) => { el.scrollLeft = left ?? 0; });
+  el.scrollTo = vi.fn((options?: ScrollToOptions | number, y?: number) => { el.scrollLeft = typeof options === "number" ? options : options?.left ?? 0; });
   return el;
 }
 describe("Resources native photo gallery", () => {
@@ -66,7 +66,7 @@ describe("Resources native photo gallery", () => {
     const { container, getByRole } = render(dialog(0));
     const alternate = container.querySelector('img[src="https://example.com/alternate.jpg"]');
     expect(alternate).toHaveClass("invisible");
-    fireEvent.click(getByRole("button", { name: "2", exact: true }));
+    fireEvent.click(getByRole("button", { name: /^2$/ }));
     expect(container.querySelector('img[src="https://example.com/alternate.jpg"]')).toBe(alternate);
     expect(alternate).not.toHaveClass("invisible");
   });
@@ -75,6 +75,7 @@ describe("Resources native photo gallery", () => {
     const surface = container.querySelector('.touch-pan-x');
     if (!surface) throw new Error("Missing zoom surface");
     fireEvent.touchStart(surface, { touches: [{ clientX: 200, clientY: 100 }, { clientX: 260, clientY: 100 }] });
+    console.log("surface", surface.outerHTML.slice(0,300));
     fireEvent.touchMove(surface, { touches: [{ clientX: 170, clientY: 100 }, { clientX: 290, clientY: 100 }] });
     const image = container.querySelector('img[alt="Photo 0"]');
     expect(image?.getAttribute("style")).toContain("scale(2)");
