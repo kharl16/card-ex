@@ -1,7 +1,7 @@
 {
   "name": "Card-Ex by Tagex.app",
   "short_name": "Card-Ex",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#010309",
   "theme_color": "#010309",
