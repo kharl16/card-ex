@@ -68,6 +68,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [searchParams] = useSearchParams();
+  useEffect(() => {
+    setHomeScreenIdentity("Card-Ex Dashboard", "Card-Ex", "/dashboard");
+  }, []);
   const viewAsUserId = isAdmin ? searchParams.get("viewAs") : null;
 
   const [cards, setCards] = useState<CardData[]>([]);
