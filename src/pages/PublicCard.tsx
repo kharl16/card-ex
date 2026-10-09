@@ -14,6 +14,7 @@ import FloatingTagexButton from "@/components/FloatingTagexButton";
 import AIChatWidget from "@/components/ai/AIChatWidget";
 import AppointmentBookingDialog from "@/components/appointments/AppointmentBookingDialog";
 import { Link } from "react-router-dom";
+import { setHomeScreenIdentity } from "@/lib/homeScreenIdentity";
 
 type CardData = Tables<"cards">;
 
@@ -49,6 +50,12 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   // Get the effective theme (with A/B variant support)
   const rawTheme = (card?.theme ?? null) as unknown as CardTheme | null;
   const theme = getActiveTheme(rawTheme);
+
+  // Installed home-screen icon opens this exact card
+  useEffect(() => {
+    if (!card?.full_name) return;
+    setHomeScreenIdentity(card.full_name, card.full_name.slice(0, 24), window.location.pathname);
+  }, [card?.full_name]);
 
   // Apply custom theme colors to document
   useEffect(() => {

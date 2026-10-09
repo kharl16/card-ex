@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { setHomeScreenIdentity } from "@/lib/homeScreenIdentity";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -67,6 +68,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
   const [searchParams] = useSearchParams();
+  useEffect(() => {
+    setHomeScreenIdentity("Card-Ex Dashboard", "Card-Ex", "/dashboard");
+  }, []);
   const viewAsUserId = isAdmin ? searchParams.get("viewAs") : null;
 
   const [cards, setCards] = useState<CardData[]>([]);
