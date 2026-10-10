@@ -7,6 +7,7 @@ import { Copy, Share2, Gift, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 import QRCodeDisplay, { type QRDisplaySettings } from "@/components/qr/QRCodeDisplay";
 import { supabase } from "@/integrations/supabase/client";
+import AddToHomeScreenButton from "@/components/AddToHomeScreenButton";
 
 interface CardShareDialogProps {
   open: boolean;
@@ -275,6 +276,7 @@ export default function CardShareDialog({
 
         {/* Scrollable content for individual links */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          <AddToHomeScreenButton />
           {/* Primary URL */}
           <div className="space-y-2">
             <Label className="flex items-center gap-1.5">
