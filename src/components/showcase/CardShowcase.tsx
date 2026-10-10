@@ -45,7 +45,7 @@ export default function CardShowcase({
 
   if (mode === "immersive") {
     return (
-      <div className="my-2 overflow-hidden rounded-3xl">
+      <div className="mx-1 mb-8 mt-2 rounded-3xl">
         <ImmersiveShowcase
           categories={categories}
           settings={settings}
