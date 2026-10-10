@@ -299,7 +299,7 @@ export default function ImmersiveShowcase({
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-3xl border border-primary/30 bg-card/60 shadow-[0_0_40px_-8px_hsl(var(--primary)/0.35),inset_0_1px_0_hsl(var(--primary)/0.15)] backdrop-blur-xl"
+      className="relative w-full overflow-hidden rounded-3xl border-[1.5px] border-primary/70 bg-card/60 shadow-[0_20px_45px_-10px_hsl(var(--primary)/0.45),0_0_25px_-4px_hsl(var(--primary)/0.3),inset_0_1px_1px_hsl(var(--primary)/0.45)] backdrop-blur-xl"
       style={{
         background: [
           // Gold spotlight behind the media rows
@@ -333,6 +333,16 @@ export default function ImmersiveShowcase({
         style={{
           background:
             "linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.7) 50%, transparent 100%)",
+        }}
+      />
+      {/* Gold baseline accent — signals the card continues below */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[2px] animate-gold-pulse"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.9) 30%, hsl(var(--primary)) 50%, hsl(var(--primary) / 0.9) 70%, transparent 100%)",
+          boxShadow: "0 0 12px hsl(var(--primary) / 0.6)",
         }}
       />
       <div className="relative z-10 pb-3 pt-2">
