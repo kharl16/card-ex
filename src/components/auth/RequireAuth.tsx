@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
-import RequireTrustedDevice from "./RequireTrustedDevice";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
@@ -169,5 +168,6 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
     );
   }
 
-  return <RequireTrustedDevice>{children}</RequireTrustedDevice>;
+  // Device-approval email codes removed: users verify email once at signup; Google OAuth is trusted.
+  return <>{children}</>;
 }
