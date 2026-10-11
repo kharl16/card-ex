@@ -18,4 +18,4 @@
 - [x] Soften the Actual Card carousel border and downward glow.
 - [x] Refine the seamless luxury home-screen icon and verify exports.
 - [x] Add dashboard Install Card-Ex control and verify installation behavior.
-- [ ] Publish the updated app.
+- [x] Request publication of the updated app.
