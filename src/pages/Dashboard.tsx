@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { setHomeScreenIdentity } from "@/lib/homeScreenIdentity";
+import AddToHomeScreenButton from "@/components/AddToHomeScreenButton";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -474,6 +475,9 @@ export default function Dashboard() {
         {/* Welcome + Quote */}
         <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
+          <div className="w-full sm:max-w-xs">
+            <AddToHomeScreenButton label="Install Card-Ex" variant="outline" />
+          </div>
           <MotivationalQuote />
           <TodaySummary cards={cards} />
           <DashboardQuadrantTiles />

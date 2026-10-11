@@ -4,11 +4,15 @@ import { Smartphone, Share, PlusSquare, MoreVertical } from "lucide-react";
 import { toast } from "sonner";
 
 // Captured globally so the prompt is not lost before the dialog mounts.
-let deferredPrompt: any = null;
+interface InstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+let deferredPrompt: InstallPromptEvent | null = null;
 if (typeof window !== "undefined") {
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
-    deferredPrompt = e;
+    deferredPrompt = e as InstallPromptEvent;
   });
 }
 
@@ -21,7 +25,10 @@ const isStandalone = () =>
   typeof window !== "undefined" &&
   (window.matchMedia?.("(display-mode: standalone)").matches || (navigator as any).standalone === true);
 
-export default function AddToHomeScreenButton() {
+export default function AddToHomeScreenButton({
+  label = "Add Card to Home Screen",
+  variant = "default",
+}: { label?: string; variant?: "default" | "outline" }) {
   const [steps, setSteps] = useState<null | "ios" | "android">(null);
   const [installed, setInstalled] = useState(false);
 
@@ -37,12 +44,14 @@ export default function AddToHomeScreenButton() {
   const handleClick = async () => {
     if (deferredPrompt) {
       try {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        const prompt = deferredPrompt;
         deferredPrompt = null;
-        if (outcome === "accepted") toast.success("Card added to your home screen");
+        await prompt.prompt();
+        const { outcome } = await prompt.userChoice;
+        if (outcome === "accepted") toast.success("Added to your home screen");
         return;
       } catch {
+        deferredPrompt = null;
         /* fall through to manual steps */
       }
     }
@@ -51,9 +60,9 @@ export default function AddToHomeScreenButton() {
 
   return (
     <div className="space-y-2">
-      <Button onClick={handleClick} className="w-full h-12 gap-2 font-semibold">
+      <Button variant={variant} onClick={handleClick} className="w-full h-12 gap-2 font-semibold">
         <Smartphone className="h-5 w-5" />
-        Add Card to Home Screen
+        {label}
       </Button>
       {steps === "ios" && (
         <ol className="rounded-lg border border-border/60 bg-card p-3 text-sm space-y-2">
@@ -63,7 +72,7 @@ export default function AddToHomeScreenButton() {
           <li className="flex items-center gap-2">
             2. Choose <PlusSquare className="h-4 w-4 text-primary" /> <b>Add to Home Screen</b>
           </li>
-          <li>3. Tap <b>Add</b> — the card opens like an app</li>
+          <li>3. Tap <b>Add</b></li>
         </ol>
       )}
       {steps === "android" && (
@@ -72,7 +81,7 @@ export default function AddToHomeScreenButton() {
             1. Tap <MoreVertical className="h-4 w-4 text-primary" /> <b>menu</b> in your browser
           </li>
           <li>2. Choose <b>Add to Home screen</b> or <b>Install app</b></li>
-          <li>3. Tap <b>Add</b> — the card opens like an app</li>
+          <li>3. Tap <b>Add</b></li>
         </ol>
       )}
     </div>

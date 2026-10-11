@@ -7,3 +7,4 @@
 - Keep public-card floating controls bounded to the centered card on wide screens; let Share use the photo viewer bounds while it is open so dragging stays useful in Full Screen.
 - Deliver gallery photos through the existing bounded image presets and warm decoded previews; retain originals for downloads so swiping does not fetch full-resolution raw uploads.
 - Optimize Resources preview photo replacements through the shared content-hashed uploader so new photos are compressed and immutable-cacheable.
+- Share the manifest-only home-screen installation control between dashboard and card sharing; never add offline caching for installation alone.
