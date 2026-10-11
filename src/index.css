@@ -61,6 +61,8 @@ All colors MUST be HSL.
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
     --shadow-gold: 0 4px 20px 0 hsl(45 72% 53% / 0.2);
     --shadow-luxury: 0 20px 60px -10px rgb(0 0 0 / 0.7), 0 0 40px -15px hsl(45 72% 53% / 0.15);
+    --showcase-boundary-shadow: 0 12px 26px -14px hsl(var(--primary) / 0.2), inset 0 1px 1px hsl(var(--primary) / 0.18);
+    --showcase-baseline: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.45), transparent);
 
     /* Glass effect – high-contrast frosted luxury */
     --glass-bg: linear-gradient(
@@ -100,6 +102,12 @@ All colors MUST be HSL.
 }
 
 @layer utilities {
+  .showcase-boundary {
+    box-shadow: var(--showcase-boundary-shadow);
+  }
+  .showcase-baseline {
+    background: var(--showcase-baseline);
+  }
   .text-balance {
     text-wrap: balance;
   }
