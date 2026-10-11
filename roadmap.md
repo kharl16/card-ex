@@ -15,7 +15,7 @@
 - [x] Eliminate empty photo pages during consecutive native gallery swipes and verify persistent photo rendering.
 - [x] Optimize gallery delivery and decoded photo warming without replacing originals.
 - [x] Apply persistent native scroll-snap paging to Resources file and folder previews; verify navigation, zoom, and resizing.
-- [ ] Soften the Actual Card carousel border and downward glow.
-- [ ] Refine the seamless luxury home-screen icon and verify exports.
-- [ ] Add dashboard Install Card-Ex control and verify installation behavior.
+- [x] Soften the Actual Card carousel border and downward glow.
+- [x] Refine the seamless luxury home-screen icon and verify exports.
+- [x] Add dashboard Install Card-Ex control and verify installation behavior.
 - [ ] Publish the updated app.
