@@ -6,7 +6,6 @@ afterEach(() => {
   cleanup();
   // A fresh install-availability signal clears session detection between tests.
   const event = new Event("beforeinstallprompt", { cancelable: true });
-  Object.assign(event, { prompt: vi.fn().mockResolvedValue(undefined), userChoice: Promise.resolve({ outcome: "dismissed" }) });
   window.dispatchEvent(event);
   vi.restoreAllMocks();
 });
