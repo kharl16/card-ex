@@ -54,7 +54,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   // Installed home-screen icon opens this exact card
   useEffect(() => {
     if (!card?.full_name) return;
-    setHomeScreenIdentity(card.full_name, card.full_name.slice(0, 24), window.location.pathname);
+    setHomeScreenIdentity("Card-Ex by Tagex.app", "Card-Ex", window.location.pathname);
   }, [card?.full_name]);
 
   // Apply custom theme colors to document
