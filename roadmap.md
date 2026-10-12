@@ -19,5 +19,5 @@
 - [x] Refine the seamless luxury home-screen icon and verify exports.
 - [x] Add dashboard Install Card-Ex control and verify installation behavior.
 - [x] Request publication of the updated app.
-- [ ] Move card installation from Share to a visible floating main-card action.
-- [ ] Verify installation-aware visibility and explain browser uninstall-detection limits.
+- [x] Move card installation from Share to a visible floating main-card action.
+- [x] Verify installation-aware visibility and explain browser uninstall-detection limits.
