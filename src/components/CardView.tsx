@@ -4,6 +4,7 @@ import { QuoteBackdrop } from "@/components/dashboard/QuoteBackdrop";
 import tileBio from "@/assets/tiles/tile-bio.jpg";
 import CardDailyQuote from "@/components/CardDailyQuote";
 import DraggableShareFab from "@/components/DraggableShareFab";
+import AddToHomeScreenButton from "@/components/AddToHomeScreenButton";
 import {
   Mail,
   Phone,
@@ -818,7 +819,10 @@ export default function CardView({
       )}
 
       {isInteractive && publicCardUrl && !shareDialogOpen && (
-        <DraggableShareFab onClick={() => setShareDialogOpen(true)} />
+        <>
+          <AddToHomeScreenButton label="Install Card-Ex" floating />
+          <DraggableShareFab onClick={() => setShareDialogOpen(true)} />
+        </>
       )}
 
       {isInteractive && publicCardUrl && (
