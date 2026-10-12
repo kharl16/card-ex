@@ -10,10 +10,16 @@ interface InstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 let deferredPrompt: InstallPromptEvent | null = null;
+let installedInSession = false;
 if (typeof window !== "undefined") {
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e as InstallPromptEvent;
+    installedInSession = false;
+  });
+  window.addEventListener("appinstalled", () => {
+    installedInSession = true;
+    deferredPrompt = null;
   });
 }
 
@@ -36,7 +42,6 @@ export default function AddToHomeScreenButton({
 
   useEffect(() => {
     let active = true;
-    let installedThisSession = false;
     let checkVersion = 0;
     const displayMode = window.matchMedia("(display-mode: standalone)");
     const checkInstallation = async () => {
@@ -49,27 +54,29 @@ export default function AddToHomeScreenButton({
       const nav = navigator as Navigator & {
         getInstalledRelatedApps?: () => Promise<Array<{ platform: string; id?: string; url?: string }>>;
       };
-      let detected = installedThisSession;
+      let detected = installedInSession;
       if (nav.getInstalledRelatedApps) {
         try {
           const apps = await nav.getInstalledRelatedApps();
           const currentId = new URL(window.location.pathname, window.location.origin).href;
-          detected = apps.some((app) => app.platform === "webapp" &&
-            (app.id === currentId || app.id === window.location.pathname));
+          if (apps.length > 0) {
+            detected = apps.some((app) => app.platform === "webapp" &&
+              (app.id === currentId || app.id === window.location.pathname));
+          }
         } catch { /* Keep the current session signal if the browser refuses detection. */ }
       }
       if (active && version === checkVersion) setInstalled(detected);
     };
     const onInstalled = () => {
       ++checkVersion;
-      installedThisSession = true;
+      installedInSession = true;
       deferredPrompt = null;
       setInstalled(true);
       setSteps(null);
     };
     const onInstallAvailable = () => {
       ++checkVersion;
-      installedThisSession = false;
+      installedInSession = false;
       setInstalled(isStandalone());
     };
     const onVisibility = () => { if (document.visibilityState === "visible") void checkInstallation(); };
