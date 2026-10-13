@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
+import { useRef, useState, useEffect, useCallback, useLayoutEffect, useMemo } from "react";
 import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2, Maximize2, Minimize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
