@@ -32,7 +32,7 @@ export function FilePreviewDialog(props: FilePreviewDialogProps) {
 
 function FilePreviewDialogInner({
   file,
-  files,
+  files: rawFiles,
   open,
   onOpenChange,
   isFavorite,
@@ -53,6 +53,11 @@ function FilePreviewDialogInner({
 
 
 
+  // Keep the open file in the strip even if it leaves the list (e.g. unfavorited).
+  const files = useMemo(
+    () => (rawFiles.some((f) => f.id === file.id) ? rawFiles : [...rawFiles, file]),
+    [rawFiles, file],
+  );
   const currentIndex = files.findIndex((f) => f.id === file.id);
   const total = files.length;
   const canLoop = total > 1;
