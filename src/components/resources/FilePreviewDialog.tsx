@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, useLayoutEffect } from "react";
+import { useRef, useState, useEffect, useCallback, useLayoutEffect, useMemo } from "react";
 import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2, Maximize2, Minimize2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,7 @@ export function FilePreviewDialog(props: FilePreviewDialogProps) {
 
 function FilePreviewDialogInner({
   file,
-  files,
+  files: rawFiles,
   open,
   onOpenChange,
   isFavorite,
@@ -53,6 +53,11 @@ function FilePreviewDialogInner({
 
 
 
+  // Keep the open file in the strip even if it leaves the list (e.g. unfavorited).
+  const files = useMemo(
+    () => (rawFiles.some((f) => f.id === file.id) ? rawFiles : [...rawFiles, file]),
+    [rawFiles, file],
+  );
   const currentIndex = files.findIndex((f) => f.id === file.id);
   const total = files.length;
   const canLoop = total > 1;

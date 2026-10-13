@@ -220,7 +220,7 @@ function ResourcesHubContent() {
                 <ImmersiveShelf id="resources-results-ways" icon={BookOpen} title="13 Ways" count={filteredWays.length}>
                   <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                     {filteredWays.map((way) => (
-                      <Link key={way.id} to="/resources/ways" className="group block h-full">
+                      <Link key={way.id} to="/resources/13-ways" className="group block h-full">
                         <div className="relative h-full overflow-hidden rounded-lg border border-primary/20 bg-background/80 p-5 shadow-[0_18px_40px_-24px_hsl(var(--primary)/0.5)] backdrop-blur-md transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-primary/50">
                           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
                           <div className="pointer-events-none absolute inset-0 opacity-40 [background:repeating-linear-gradient(90deg,hsl(var(--foreground)/0.03)_0px,hsl(var(--foreground)/0.03)_1px,transparent_1px,transparent_18px)]" />
@@ -325,12 +325,12 @@ function ResourcesHubContent() {
               icon={BookOpen}
               title="13 Ways"
               subtitle="Wisdom and best practices"
-              viewAllHref="/resources/ways"
+              viewAllHref="/resources/13-ways"
               count={filteredWays.length}
             >
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {filteredWays.slice(0, 3).map((way, i) => (
-                  <Link key={way.id} to="/resources/ways" className="group block h-full">
+                  <Link key={way.id} to="/resources/13-ways" className="group block h-full">
                     <div className="relative h-full overflow-hidden rounded-2xl border border-primary/20 bg-background/80 p-5 shadow-[0_18px_40px_-24px_hsl(var(--primary)/0.5)] backdrop-blur-md transition-all duration-300 group-hover:-translate-y-0.5 group-hover:border-primary/50">
                       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent" />
                       <div className="pointer-events-none absolute inset-0 opacity-40 [background:repeating-linear-gradient(90deg,hsl(var(--foreground)/0.03)_0px,hsl(var(--foreground)/0.03)_1px,transparent_1px,transparent_18px)]" />
