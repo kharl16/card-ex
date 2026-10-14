@@ -70,17 +70,35 @@ export default function AddToHomeScreenButton({
       }
       if (active && version === checkVersion) setInstalled(detected);
     };
+    const finish = () => {
+      if (!active) return;
+      setPhase("done");
+      if (doneTimer.current) clearTimeout(doneTimer.current);
+      doneTimer.current = setTimeout(() => setInstalled(true), 2500);
+    };
+    // Chrome fires appinstalled before Android finishes placing the icon; keep progress until confirmed.
+    const waitForIcon = async () => {
+      const nav = navigator as Navigator & { getInstalledRelatedApps?: () => Promise<unknown[]> };
+      const started = Date.now();
+      const minMs = 20000, maxMs = 90000;
+      while (active && Date.now() - started < maxMs) {
+        await new Promise((r) => setTimeout(r, 2000));
+        if (Date.now() - started < minMs) continue;
+        try {
+          if (nav.getInstalledRelatedApps && (await nav.getInstalledRelatedApps()).length > 0) break;
+        } catch { /* keep waiting */ }
+      }
+      finish();
+    };
     const onInstalled = () => {
       ++checkVersion;
       installedInSession = true;
       deferredPrompt = null;
       setSteps(null);
-      // Let the user see the success state before the control disappears.
       setPhase((current) => {
         if (current === "installing") {
-          if (doneTimer.current) clearTimeout(doneTimer.current);
-          doneTimer.current = setTimeout(() => setInstalled(true), 1800);
-          return "done";
+          void waitForIcon();
+          return "installing";
         }
         setInstalled(true);
         return current;
