@@ -31,7 +31,7 @@ const isStandalone = () =>
   typeof window !== "undefined" &&
   (window.matchMedia?.("(display-mode: standalone)").matches || (navigator as any).standalone === true);
 
-type InstallPhase = "idle" | "installing" | "done";
+type InstallPhase = "idle" | "installing" | "pending" | "done";
 
 export default function AddToHomeScreenButton({
   label = "Add Card to Home Screen",
@@ -76,19 +76,18 @@ export default function AddToHomeScreenButton({
       if (doneTimer.current) clearTimeout(doneTimer.current);
       doneTimer.current = setTimeout(() => setInstalled(true), 2500);
     };
-    // Chrome fires appinstalled before Android finishes placing the icon; keep progress until confirmed.
+    // Browsers cannot see launcher icons. Only getInstalledRelatedApps (Chromium) can confirm; otherwise show an honest pending state.
     const waitForIcon = async () => {
       const nav = navigator as Navigator & { getInstalledRelatedApps?: () => Promise<unknown[]> };
       const started = Date.now();
-      const minMs = 20000, maxMs = 90000;
+      const maxMs = 90000;
       while (active && Date.now() - started < maxMs) {
         await new Promise((r) => setTimeout(r, 2000));
-        if (Date.now() - started < minMs) continue;
         try {
-          if (nav.getInstalledRelatedApps && (await nav.getInstalledRelatedApps()).length > 0) break;
+          if (nav.getInstalledRelatedApps && (await nav.getInstalledRelatedApps()).length > 0) return finish();
         } catch { /* keep waiting */ }
       }
-      finish();
+      if (active) setPhase("pending");
     };
     const onInstalled = () => {
       ++checkVersion;
