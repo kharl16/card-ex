@@ -31,7 +31,7 @@ const isStandalone = () =>
   typeof window !== "undefined" &&
   (window.matchMedia?.("(display-mode: standalone)").matches || (navigator as any).standalone === true);
 
-type InstallPhase = "idle" | "installing" | "done";
+type InstallPhase = "idle" | "installing" | "pending" | "done";
 
 export default function AddToHomeScreenButton({
   label = "Add Card to Home Screen",
@@ -76,19 +76,18 @@ export default function AddToHomeScreenButton({
       if (doneTimer.current) clearTimeout(doneTimer.current);
       doneTimer.current = setTimeout(() => setInstalled(true), 2500);
     };
-    // Chrome fires appinstalled before Android finishes placing the icon; keep progress until confirmed.
+    // Browsers cannot see launcher icons. Only getInstalledRelatedApps (Chromium) can confirm; otherwise show an honest pending state.
     const waitForIcon = async () => {
       const nav = navigator as Navigator & { getInstalledRelatedApps?: () => Promise<unknown[]> };
       const started = Date.now();
-      const minMs = 20000, maxMs = 90000;
+      const maxMs = 90000;
       while (active && Date.now() - started < maxMs) {
         await new Promise((r) => setTimeout(r, 2000));
-        if (Date.now() - started < minMs) continue;
         try {
-          if (nav.getInstalledRelatedApps && (await nav.getInstalledRelatedApps()).length > 0) break;
+          if (nav.getInstalledRelatedApps && (await nav.getInstalledRelatedApps()).length > 0) return finish();
         } catch { /* keep waiting */ }
       }
-      finish();
+      if (active) setPhase("pending");
     };
     const onInstalled = () => {
       ++checkVersion;
@@ -168,29 +167,37 @@ export default function AddToHomeScreenButton({
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Check className="h-5 w-5" />
           </span>
+        ) : phase === "pending" ? (
+          <Smartphone className="h-8 w-8 shrink-0 text-primary" />
         ) : (
           <Loader2 className="h-8 w-8 shrink-0 animate-spin text-primary" />
         )}
         <div className="min-w-0">
           <p className="text-sm font-bold text-foreground">
-            {phase === "done" ? "Installed successfully!" : "Installing Card-Ex…"}
+            {phase === "done" ? "Installed on this phone" : phase === "pending" ? "Almost there" : "Installing Card-Ex…"}
           </p>
           <p className="text-xs text-muted-foreground">
             {phase === "done"
-              ? "Find the gold icon on your home screen."
-              : "Preparing the app for your home screen. This may take a moment."}
+              ? "Your phone confirmed Card-Ex is installed."
+              : phase === "pending"
+                ? "Your phone accepted the install but hasn't confirmed it yet. Check your apps for the gold Card-Ex icon."
+                : "Your phone is adding Card-Ex. This can take a minute or two."}
           </p>
         </div>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary/15">
-        <div
-          className={
-            phase === "done"
-              ? "h-full w-full rounded-full bg-primary transition-[width] duration-500"
-              : "h-full w-1/3 animate-[install-slide_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40"
-          }
-        />
-      </div>
+      {phase === "pending" ? (
+        <Button variant="outline" className="h-11 w-full" onClick={() => setInstalled(true)}>Dismiss</Button>
+      ) : (
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary/15">
+          <div
+            className={
+              phase === "done"
+                ? "h-full w-full rounded-full bg-primary transition-[width] duration-500"
+                : "h-full w-1/3 animate-[install-slide_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40"
+            }
+          />
+        </div>
+      )}
       <style>{`@keyframes install-slide{0%{margin-left:-33%}100%{margin-left:100%}}`}</style>
     </div>
   );
