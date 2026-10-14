@@ -167,29 +167,37 @@ export default function AddToHomeScreenButton({
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Check className="h-5 w-5" />
           </span>
+        ) : phase === "pending" ? (
+          <Smartphone className="h-8 w-8 shrink-0 text-primary" />
         ) : (
           <Loader2 className="h-8 w-8 shrink-0 animate-spin text-primary" />
         )}
         <div className="min-w-0">
           <p className="text-sm font-bold text-foreground">
-            {phase === "done" ? "Installed successfully!" : "Installing Card-Ex…"}
+            {phase === "done" ? "Installed on this phone" : phase === "pending" ? "Almost there" : "Installing Card-Ex…"}
           </p>
           <p className="text-xs text-muted-foreground">
             {phase === "done"
-              ? "Find the gold icon on your home screen."
-              : "Preparing the app for your home screen. This may take a moment."}
+              ? "Your phone confirmed Card-Ex is installed."
+              : phase === "pending"
+                ? "Your phone accepted the install but hasn't confirmed it yet. Check your apps for the gold Card-Ex icon."
+                : "Your phone is adding Card-Ex. This can take a minute or two."}
           </p>
         </div>
       </div>
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary/15">
-        <div
-          className={
-            phase === "done"
-              ? "h-full w-full rounded-full bg-primary transition-[width] duration-500"
-              : "h-full w-1/3 animate-[install-slide_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40"
-          }
-        />
-      </div>
+      {phase === "pending" ? (
+        <Button variant="outline" className="h-11 w-full" onClick={() => setInstalled(true)}>Dismiss</Button>
+      ) : (
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary/15">
+          <div
+            className={
+              phase === "done"
+                ? "h-full w-full rounded-full bg-primary transition-[width] duration-500"
+                : "h-full w-1/3 animate-[install-slide_1.4s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40"
+            }
+          />
+        </div>
+      )}
       <style>{`@keyframes install-slide{0%{margin-left:-33%}100%{margin-left:100%}}`}</style>
     </div>
   );
