@@ -62,17 +62,21 @@
 
   <body>
     <style>
-      #cx-splash{position:fixed;inset:0;z-index:2147483647;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:radial-gradient(circle at 50% 45%,#141108 0%,#010309 60%);transition:opacity .6s ease}
+      /* Matches Android's native launch screen (solid #010309, emblem dead-center, no motion) so the hand-off is seamless. */
+      #cx-splash{position:fixed;inset:0;z-index:2147483647;background:#010309;transition:opacity .6s ease}
       #cx-splash.cx-hide{opacity:0;pointer-events:none}
-      #cx-splash img{width:132px;height:132px;border-radius:30px;filter:drop-shadow(0 0 28px rgba(212,175,55,.25));animation:cxIn .9s ease both}
-      #cx-splash .cx-t{font-family:'Playfair Display',Georgia,serif;font-size:22px;letter-spacing:.14em;background:linear-gradient(90deg,#b8892b,#f7e7a1,#c9a14a);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center;padding:0 24px;animation:cxIn 1s .25s ease both}
-      #cx-splash .cx-b{font-family:Montserrat,sans-serif;font-size:12px;letter-spacing:.45em;color:#c9a14a;opacity:.8;animation:cxIn 1s .5s ease both}
-      @keyframes cxIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+      #cx-splash img{position:absolute;left:50%;top:50%;width:128px;height:128px;transform:translate(-50%,-50%)}
+      #cx-splash .cx-cap{position:absolute;left:0;right:0;top:calc(50% + 92px);display:flex;flex-direction:column;align-items:center;gap:14px}
+      #cx-splash .cx-t{font-family:'Playfair Display',Georgia,serif;font-size:22px;letter-spacing:.14em;background:linear-gradient(90deg,#b8892b,#f7e7a1,#c9a14a);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center;padding:0 24px;animation:cxIn .9s .15s ease both}
+      #cx-splash .cx-b{font-family:Montserrat,sans-serif;font-size:12px;letter-spacing:.45em;color:#c9a14a;opacity:.8;animation:cxIn .9s .4s ease both}
+      @keyframes cxIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
     </style>
     <div id="cx-splash" aria-hidden="true">
       <img src="/icon-512.png" alt="" />
-      <div class="cx-t">Elevating Your Presence</div>
-      <div class="cx-b">— CARD-EX —</div>
+      <div class="cx-cap">
+        <div class="cx-t">Elevating Your Presence</div>
+        <div class="cx-b">— CARD-EX —</div>
+      </div>
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
