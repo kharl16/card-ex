@@ -18,6 +18,6 @@ if (splash) {
   const wait = Math.max(0, 1400 - performance.now());
   window.setTimeout(() => {
     splash.classList.add("cx-hide");
-    window.setTimeout(() => splash.remove(), 1900);
+    window.setTimeout(() => splash.remove(), 1000);
   }, wait);
 }
