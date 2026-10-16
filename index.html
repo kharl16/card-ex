@@ -64,11 +64,11 @@
     <style>
       /* Matches Android's native launch screen (solid #010309, emblem dead-center, no motion) so the hand-off is seamless. */
       #cx-splash{position:fixed;inset:0;z-index:2147483647;background:#010309;transition:opacity .6s ease}
-      #cx-splash.cx-hide{opacity:0;pointer-events:none}
+      #cx-splash.cx-hide{opacity:0;pointer-events:none;transition:opacity .7s ease .25s}
       #cx-splash img{position:absolute;left:50%;top:50%;width:128px;height:128px;transform:translate(-50%,-50%)}
       #cx-splash .cx-cap{position:absolute;left:0;right:0;top:calc(50% + 92px);display:flex;flex-direction:column;align-items:center;gap:14px}
-      #cx-splash .cx-t{font-family:'Playfair Display',Georgia,serif;font-size:22px;line-height:28px;letter-spacing:.14em;background:linear-gradient(90deg,#d1a03f,#fff3bd,#e0bb63);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center;padding:0 24px;animation:cxIn 1.15s cubic-bezier(.33,.02,.2,1) .05s both}
-      #cx-splash .cx-b{font-family:Montserrat,sans-serif;font-weight:600;font-size:12px;line-height:16px;letter-spacing:.45em;color:#e6c876;animation:cxInSoft 1.05s cubic-bezier(.33,.02,.2,1) .3s both}
+      #cx-splash .cx-t{font-family:'Playfair Display',Georgia,serif;font-size:22px;line-height:28px;letter-spacing:.14em;background:linear-gradient(90deg,#d1a03f,#fff3bd,#e0bb63);-webkit-background-clip:text;background-clip:text;color:transparent;text-align:center;padding:0 24px;animation:cxIn .7s cubic-bezier(.33,.02,.2,1) both}
+      #cx-splash .cx-b{font-family:Montserrat,sans-serif;font-weight:600;font-size:12px;line-height:16px;letter-spacing:.45em;color:#e6c876;animation:cxInSoft .7s cubic-bezier(.33,.02,.2,1) .1s both}
       @keyframes cxIn{from{opacity:0}to{opacity:1}}
       @keyframes cxInSoft{from{opacity:0}to{opacity:1}}
       @media (prefers-reduced-motion: reduce){#cx-splash .cx-t,#cx-splash .cx-b{animation:none;transform:none}}
@@ -80,7 +80,6 @@
         <div class="cx-b">— CARD-EX —</div>
       </div>
     </div>
-    <script>requestAnimationFrame(function(){window.__cxSplashPainted=performance.now();});</script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
