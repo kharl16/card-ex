@@ -390,7 +390,7 @@ export default function ImmersiveShowcase({
 
         <div
           ref={sectionsRef}
-          className="mx-1 max-h-[68svh] min-h-80 overflow-y-auto overscroll-contain border-y border-border/50 pr-1 [scrollbar-gutter:stable] sm:mx-2 md:max-h-[72vh]"
+          className="mx-1 max-h-[26rem] overflow-y-auto overscroll-contain border-y border-border/50 pr-1 [scrollbar-gutter:stable] sm:mx-2 sm:max-h-[30rem] md:max-h-[35rem]"
           aria-label="Scrollable showcase sections"
           tabIndex={0}
         >
