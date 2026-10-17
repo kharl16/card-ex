@@ -148,7 +148,7 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
           style={{ transform: `translateX(-${slide * 100}%)` }}
         >
           {/* Slide 1 — Daily quote */}
-          <div className="relative w-full shrink-0 overflow-hidden px-4 pb-6 pt-3">
+          <div className="relative w-full shrink-0 overflow-hidden px-4 pb-8 pt-3">
             <QuoteBackdrop src={quoteBg} objectPosition="right" />
             <div className="relative z-10 flex items-start gap-2.5 pl-2">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accent }} />
@@ -174,7 +174,7 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
           </div>
 
           {/* Slide 2 — Bible verse for business */}
-          <div className="relative w-full shrink-0 overflow-hidden px-4 pb-6 pt-3">
+          <div className="relative w-full shrink-0 overflow-hidden px-4 pb-8 pt-3">
             <QuoteBackdrop src={scriptureBg} />
             <div className="relative z-10 flex items-start gap-2.5 pl-2">
               <BookOpen className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accent }} />
