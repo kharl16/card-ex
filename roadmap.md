@@ -23,3 +23,4 @@
 - [x] Verify installation-aware visibility and explain browser uninstall-detection limits.
 - [x] Make the welcome-screen gold caption fade in gently without extending the hold time.
 - [x] Flatten the home-screen emblem background to exact app black so no square edge shows on launch.
+- [ ] Keep carousel height consistent across sections and search, with room for Packages photos; verify on desktop and phone.
