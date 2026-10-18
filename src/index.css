@@ -398,3 +398,19 @@ All colors MUST be HSL.
 }
 
 
+
+/* Pulsating gold lining shared by every card box (Bio, contact, carousels, quote, showcase) */
+@property --glass-border {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: hsl(45 60% 68% / 0.3);
+}
+@keyframes gold-lining-pulse {
+  0%, 100% { --glass-border: hsl(45 60% 68% / 0.25); }
+  50% { --glass-border: hsl(45 75% 62% / 0.75); }
+}
+:root { animation: gold-lining-pulse 3s ease-in-out infinite; }
+.gold-pulse-lining { border-color: var(--glass-border) !important; }
+@media (prefers-reduced-motion: reduce) {
+  :root { animation: none; }
+}
