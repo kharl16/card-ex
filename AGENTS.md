@@ -9,3 +9,4 @@
 - Optimize Resources preview photo replacements through the shared content-hashed uploader so new photos are compressed and immutable-cacheable.
 - Share the manifest-only installation control between dashboard and the floating Actual Card action, outside Share; never add offline caching for installation alone. Use current browser installation signals instead of a permanent storage flag so uninstall cannot strand the action hidden.
 - Keep the Immersive showcase scroller at a fixed responsive height rather than a content-dependent maximum, so category navigation and search cannot shift the card content below it.
+- Keep the showcase scroll cue painted inside the carousel's existing bottom gap, with a strip height cancelled by an equal negative margin, so it can never add to the fixed carousel height.
