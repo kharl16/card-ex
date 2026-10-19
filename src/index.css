@@ -140,13 +140,17 @@ All colors MUST be HSL.
     }
   }
 
-  /* Glass shimmer border overlay */
-  .glass-shimmer {
+  /* Glass shimmer border overlay — the Bio box's sweeping gold light.
+     .gold-pulse-lining shares the exact same sweep and 6s timing so every
+     card box's light travels in sync, replacing the old border pulse. */
+  .glass-shimmer,
+  .gold-pulse-lining {
     position: relative;
     overflow: hidden;
   }
 
-  .glass-shimmer::after {
+  .glass-shimmer::after,
+  .gold-pulse-lining::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -399,18 +403,14 @@ All colors MUST be HSL.
 
 
 
-/* Pulsating gold lining shared by every card box (Bio, contact, carousels, quote, showcase) */
-@property --glass-border {
-  syntax: '<color>';
-  inherits: true;
-  initial-value: hsl(45 60% 68% / 0.3);
-}
-@keyframes gold-lining-pulse {
-  0%, 100% { --glass-border: hsl(45 60% 68% / 0.25); }
-  50% { --glass-border: hsl(45 75% 62% / 0.75); }
-}
-:root { animation: gold-lining-pulse 3s ease-in-out infinite; }
-.gold-pulse-lining { border-color: var(--glass-border) !important; }
+/* Sweeping gold light shared by every card box (Bio, contact, carousels, quote,
+   showcase). .gold-pulse-lining reuses the Bio box's glass-shimmer border sweep
+   (defined in the utilities layer above) — a subtle 1px light travelling along
+   the border on one shared 6s timing — instead of a brightening-and-fading
+   pulse. Borders stay thin: --glass-border remains the static hairline gold. */
 @media (prefers-reduced-motion: reduce) {
-  :root { animation: none; }
+  .glass-shimmer::after,
+  .gold-pulse-lining::after {
+    animation: none !important;
+  }
 }

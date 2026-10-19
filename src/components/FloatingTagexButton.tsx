@@ -97,7 +97,13 @@ export default function FloatingTagexButton({
   const measureSize = useCallback(() => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      setSize({ width: rect.width, height: rect.height });
+      // Keep the previous object identity when nothing changed, so the
+      // hydration effect below cannot re-trigger itself in a render loop.
+      setSize((prev) =>
+        Math.abs(prev.width - rect.width) < 0.5 && Math.abs(prev.height - rect.height) < 0.5
+          ? prev
+          : { width: rect.width, height: rect.height }
+      );
       return { width: rect.width, height: rect.height };
     }
     return size;
