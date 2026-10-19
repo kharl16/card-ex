@@ -40,8 +40,8 @@ describe("Facebook carousel videos", () => {
   });
 
   it("keeps YouTube and Google Drive support", () => {
-    expect(parseVideoUrl("https://youtu.be/dQw4w9WgXc")?.source).toBe("youtube");
-    expect(getEmbedUrl("https://youtu.be/dQw4w9WgXc")).toContain("youtube.com/embed/dQw4w9WgXc");
+    expect(parseVideoUrl("https://youtu.be/dQw4w9WgXcQ")?.source).toBe("youtube");
+    expect(getEmbedUrl("https://youtu.be/dQw4w9WgXcQ")).toContain("youtube.com/embed/dQw4w9WgXcQ");
     const drive = "https://drive.google.com/file/d/sample_video_id/view";
     expect(parseVideoUrl(drive)?.source).toBe("gdrive");
     expect(getEmbedUrl(drive)).toBe("https://drive.google.com/file/d/sample_video_id/preview");
