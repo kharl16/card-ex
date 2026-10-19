@@ -25,3 +25,4 @@
 - [x] Flatten the home-screen emblem background to exact app black so no square edge shows on launch.
 - [x] Keep carousel height consistent across sections, with room for Packages photos; verified on desktop and phone.
 - [x] Add a subtle scroll cue below the carousel without changing its height; verified on desktop and phone.
+- [ ] Ensure Facebook videos are accepted and playable alongside YouTube and Google Drive in the Video carousel.
