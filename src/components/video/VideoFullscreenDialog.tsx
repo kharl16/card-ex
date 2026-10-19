@@ -1,9 +1,9 @@
 import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Share2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Download, Share2, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
 import { CloseButton3D } from "@/components/ui/close-button-3d";
-import { getEmbedUrl, getShareUrl, getDownloadUrl } from "@/lib/videoUtils";
+import { getEmbedUrl, getShareUrl, getDownloadUrl, isFacebookVideoUrl } from "@/lib/videoUtils";
 import type { VideoItem } from "@/lib/videoUtils";
 import { toast } from "sonner";
 
@@ -70,6 +70,16 @@ export default function VideoFullscreenDialog({
 
           {/* Controls */}
           <div className="absolute top-4 left-4 z-20 flex gap-2">
+            {isFacebookVideoUrl(video.url) && (
+              <Button
+                variant="outline"
+                onClick={() => window.open(shareLink, "_blank", "noopener,noreferrer")}
+                className="min-h-11 gap-2 bg-background/80 text-foreground"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Open Facebook
+              </Button>
+            )}
             {downloadLink && (
               <Button
                 variant="ghost"

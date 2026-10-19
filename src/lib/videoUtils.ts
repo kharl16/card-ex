@@ -44,15 +44,24 @@ export function extractGDriveId(url: string): string | null {
 
 /** Detect whether a URL looks like a Facebook video / reel / watch / fb.watch link */
 export function isFacebookVideoUrl(url: string): boolean {
-  const patterns = [
-    /facebook\.com\/.+\/videos\/\d+/i,
-    /facebook\.com\/watch\/?\?v=\d+/i,
-    /facebook\.com\/reel\/\d+/i,
-    /facebook\.com\/share\/v\/[A-Za-z0-9_-]+/i,
-    /facebook\.com\/video\.php\?v=\d+/i,
-    /fb\.watch\/[A-Za-z0-9_-]+/i,
-  ];
-  return patterns.some((p) => p.test(url));
+  try {
+    const parsed = new URL(url.trim());
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return false;
+    const host = parsed.hostname.toLowerCase();
+    if (host === "fb.watch" || host === "www.fb.watch") {
+      return /^\/[A-Za-z0-9_-]+\/?$/.test(parsed.pathname);
+    }
+    if (host !== "facebook.com" && !host.endsWith(".facebook.com")) return false;
+    const path = parsed.pathname;
+    if (/^\/(?:watch\/?|video\.php)$/.test(path)) {
+      return /^\d+$/.test(parsed.searchParams.get("v") ?? "");
+    }
+    return /\/videos\/(?:[^/]+\/)?\d+\/?$/.test(path)
+      || /^\/reels?\/\d+\/?$/.test(path)
+      || /^\/share\/(?:v|r)\/[A-Za-z0-9_-]+\/?$/.test(path);
+  } catch {
+    return false;
+  }
 }
 
 /** Detect the video source from a URL */
@@ -84,8 +93,13 @@ export function getEmbedUrl(url: string, autoplay = false): string | null {
   }
 
   if (isFacebookVideoUrl(url)) {
+    const facebookUrl = new URL(url.trim());
+    if (facebookUrl.hostname.endsWith("facebook.com")) {
+      facebookUrl.hostname = "www.facebook.com";
+      facebookUrl.protocol = "https:";
+    }
     const params = new URLSearchParams({
-      href: url,
+      href: facebookUrl.toString(),
       show_text: "false",
       width: "560",
       t: "0",
