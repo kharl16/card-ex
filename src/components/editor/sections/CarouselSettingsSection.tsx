@@ -1216,7 +1216,7 @@ function VideoUrlManager({
           >
             <div className="flex-shrink-0">
               <Badge variant="outline" className="text-[10px]">
-                {video.source === "youtube" ? "YT" : "GD"}
+                {detectVideoSource(video.url) === "facebook" ? "FB" : video.source === "youtube" ? "YT" : "GD"}
               </Badge>
             </div>
             <div className="flex-1 min-w-0 space-y-1">
