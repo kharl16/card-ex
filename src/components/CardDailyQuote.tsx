@@ -172,7 +172,7 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
           {/* Slide 2 — Bible verse for business */}
           <div className="relative w-full shrink-0 overflow-hidden px-3 pb-8 pt-3 sm:px-5 sm:pt-4">
             <QuoteBackdrop src={scriptureBg} />
-            <div className="relative z-10 flex items-start gap-2.5 pl-2">
+            <div className="relative z-10 flex items-start gap-2.5">
               <BookOpen className="mt-0.5 h-4 w-4 shrink-0" style={{ color: accent }} />
               <div className="min-w-0 flex-1">
                 {wisdom?.title && (
