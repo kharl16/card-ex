@@ -299,7 +299,7 @@ export default function ImmersiveShowcase({
 
   return (
     <div
-      className="showcase-boundary gold-pulse-lining relative w-full overflow-hidden rounded-3xl border border-primary/40 bg-card/60 backdrop-blur-xl"
+      className="showcase-boundary gold-pulse-lining relative w-full overflow-hidden rounded-2xl border border-primary/40 bg-card/60 backdrop-blur-xl"
       style={{
         background: [
           // Gold spotlight behind the media rows

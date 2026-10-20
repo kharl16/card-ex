@@ -335,7 +335,7 @@ export default function CarouselSectionRenderer({
       <div className="relative w-full">
         <div
           className={cn(
-            "relative w-full rounded-xl overflow-hidden",
+            "relative w-full rounded-2xl overflow-hidden",
             carouselKey === "testimonies"
               ? "py-8 sm:py-10"
               : "pt-16 pb-8 sm:pt-20 sm:pb-10",
