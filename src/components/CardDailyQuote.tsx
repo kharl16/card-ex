@@ -131,7 +131,7 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
   const accent = accentColor || "hsl(var(--primary))";
 
   return (
-    <div className="px-6 pt-3 pb-1">
+    <div className="px-6 pt-3 pb-3">
       <div
         className="relative overflow-hidden rounded-2xl gold-pulse-lining border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"
         onTouchStart={onTouchStart}

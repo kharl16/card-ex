@@ -251,7 +251,7 @@ export default function CardView({
   bottomAction,
   bioBannerGapMobile = "gap-3",
   bioBannerGapDesktop = "sm:gap-3",
-  bioBannerSectionPadding = "px-6 pb-5",
+  bioBannerSectionPadding = "px-6 pb-3",
 }: CardViewProps) {
   // Global product photos shared across all cards (with this card's hide overrides applied)
   const { visibleGlobals } = useGlobalProductImages(card?.id);
@@ -485,7 +485,7 @@ export default function CardView({
         {card?.id && (card as any).show_referral_earnings && <ReferralEarningsBadge cardId={card.id} variant="card" />}
 
         {/* Showcase — Company Brochure, Videos, Products, Packages, Testimonies */}
-        <div className="mt-2">
+        <div>
           <CardShowcase
             card={card}
             globals={{
