@@ -150,7 +150,7 @@ export default function VideoSectionRenderer({
       <div className="relative w-full">
         <div
           className={cn(
-            "relative w-full py-3 rounded-2xl overflow-hidden",
+            "relative w-full py-3 sm:py-4 rounded-2xl overflow-hidden",
             background?.glassShimmer !== false && "glass-shimmer",
             hasBackground && "shadow-inner"
           )}
