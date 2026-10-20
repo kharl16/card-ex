@@ -134,8 +134,6 @@ export function MotivationalQuote() {
       onTouchEnd={onTouchEnd}
       aria-roledescription="carousel"
     >
-      {/* Gold accent line */}
-      <div className="absolute left-0 top-0 z-10 h-full w-1 bg-gradient-to-b from-primary via-primary/60 to-primary" />
 
       <div
         className="flex transition-transform duration-300 ease-out"

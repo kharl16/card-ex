@@ -138,10 +138,6 @@ export default function CardDailyQuote({ accentColor }: CardDailyQuoteProps) {
         onTouchEnd={onTouchEnd}
         aria-roledescription="carousel"
       >
-        <div
-          className="absolute left-0 top-0 z-10 h-full w-1 bg-gradient-to-b from-primary via-primary/60 to-primary"
-          style={{ opacity: 0.9 }}
-        />
 
         <div
           className="flex transition-transform duration-300 ease-out"
