@@ -129,7 +129,7 @@ export function MotivationalQuote() {
 
   return (
     <div
-      className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"
+      className="relative overflow-hidden rounded-2xl gold-pulse-lining border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       aria-roledescription="carousel"
