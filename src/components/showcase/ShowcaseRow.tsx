@@ -314,7 +314,7 @@ export default function ShowcaseRow({
           <button
             type="button"
             onClick={onViewAll}
-            className="rounded-full px-2 py-1 text-xs font-medium text-primary transition-colors hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex h-9 min-w-[7rem] items-center justify-center rounded-full border border-primary/40 bg-primary/10 px-4 text-[11px] font-semibold uppercase tracking-widest text-primary transition-colors hover:bg-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             View All
           </button>
