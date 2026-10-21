@@ -129,7 +129,7 @@ export function MotivationalQuote() {
 
   return (
     <div
-      className="relative overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"
+      className="relative overflow-hidden rounded-2xl gold-pulse-lining border border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       aria-roledescription="carousel"
@@ -140,7 +140,7 @@ export function MotivationalQuote() {
         style={{ transform: `translateX(-${slide * 100}%)` }}
       >
         {/* Slide 1 — Daily quote */}
-        <div className="relative w-full shrink-0 overflow-hidden px-5 py-4">
+        <div className="relative w-full shrink-0 overflow-hidden px-5 pb-8 pt-4">
           <QuoteBackdrop src={quoteBg} objectPosition="right" />
           <div className="relative z-10 flex items-start gap-3">
             <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -178,7 +178,7 @@ export function MotivationalQuote() {
         </div>
 
         {/* Slide 2 — 365-Day Bible Entrepreneur Wisdom */}
-        <div className="relative w-full shrink-0 overflow-hidden px-5 py-4">
+        <div className="relative w-full shrink-0 overflow-hidden px-5 pb-8 pt-4">
           <QuoteBackdrop src={scriptureBg} />
           <div className="relative z-10 flex items-start gap-3">
             <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -228,8 +228,8 @@ export function MotivationalQuote() {
 
       </div>
 
-      {/* Dots */}
-      <div className="flex items-center justify-center gap-2 pb-2">
+      {/* Dots — overlaid on the card bottom so no extra row of height is added */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-1.5 z-20 flex items-center justify-center gap-2">
         {["Daily quote", "Bible verse for business"].map((label, i) => (
           <button
             key={label}
@@ -237,9 +237,16 @@ export function MotivationalQuote() {
             onClick={() => setSlide(i)}
             aria-label={label}
             aria-current={slide === i}
-            className={`h-2.5 w-2.5 rounded-full transition-colors ${
-              slide === i ? "bg-primary" : "bg-primary/25 hover:bg-primary/50"
-            }`}
+            className="pointer-events-auto h-2.5 w-2.5 rounded-full border border-primary/40 transition-all duration-300"
+            style={{
+              background: "hsl(var(--primary))",
+              opacity: slide === i ? 1 : 0.35,
+              boxShadow:
+                slide === i
+                  ? "0 0 8px 1px hsl(var(--primary) / 0.55), 0 0 2px hsl(var(--primary) / 0.9)"
+                  : "none",
+              transform: slide === i ? "scale(1.15)" : "scale(1)",
+            }}
           />
         ))}
       </div>
