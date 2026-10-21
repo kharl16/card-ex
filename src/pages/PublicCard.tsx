@@ -367,7 +367,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       {/* Floating Save Contact FAB – outside transformed container */}
       <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none">
         <div
-          className="mx-auto max-w-2xl px-5 pb-5 pt-3 pointer-events-auto"
+          className="mx-auto max-w-2xl px-6 pb-5 pt-3 pointer-events-auto"
           style={{ background: `linear-gradient(to top, ${theme?.background || "hsl(var(--background))"} 70%, transparent)` }}
         >
           <Button
