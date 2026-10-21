@@ -439,7 +439,7 @@ export default function CardView({
                           <button
                             type="button"
                             onClick={() => setBioExpanded((v) => !v)}
-                            className="mt-2 inline-flex h-9 min-w-[7rem] items-center justify-center rounded-full border border-primary/40 bg-primary/10 px-4 text-[11px] font-semibold uppercase tracking-widest transition-colors hover:bg-primary/20"
+                            className="mt-2 inline-flex h-9 min-w-[9rem] items-center justify-center rounded-full border border-primary/40 bg-primary/10 px-4 text-[11px] font-semibold uppercase tracking-widest transition-colors hover:bg-primary/20"
                             style={{ color: basePrimary }}
                           >
                             {bioExpanded ? "Show less" : "Read full bio"}
@@ -459,7 +459,7 @@ export default function CardView({
                           <button
                             type="button"
                             onClick={() => setBioExpanded((v) => !v)}
-                            className="mt-2 inline-flex h-9 min-w-[7rem] items-center justify-center rounded-full border border-primary/40 bg-primary/10 px-4 text-[11px] font-semibold uppercase tracking-widest transition-colors hover:bg-primary/20"
+                            className="mt-2 inline-flex h-9 min-w-[9rem] items-center justify-center rounded-full border border-primary/40 bg-primary/10 px-4 text-[11px] font-semibold uppercase tracking-widest transition-colors hover:bg-primary/20"
                             style={{ color: basePrimary }}
                           >
                             {bioExpanded ? "Show less" : "Read full bio"}
