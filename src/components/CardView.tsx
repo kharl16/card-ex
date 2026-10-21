@@ -803,7 +803,7 @@ export default function CardView({
 
       {/* Save Contact Button – visible only in editor preview */}
       {!isInteractive && (
-        <div className="px-5 pb-5 pt-1">
+        <div className="px-6 pb-5 pt-1">
           <button
             className="w-full h-12 text-white text-base font-semibold rounded-2xl relative overflow-hidden glass-shimmer"
             style={{
@@ -848,7 +848,7 @@ export default function CardView({
       )}
 
       {bottomAction && (
-        <div className={isInteractive ? "px-5 pb-5 pt-1" : "px-5 pb-5 pt-0"}>
+        <div className={isInteractive ? "px-6 pb-5 pt-1" : "px-6 pb-5 pt-0"}>
           {bottomAction}
         </div>
       )}
