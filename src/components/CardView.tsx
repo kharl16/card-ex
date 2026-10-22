@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import tileContactPhone from "@/assets/tiles/tile-contact-phone.jpg";
+import tileContactEmail from "@/assets/tiles/tile-contact-email.jpg";
+import tileContactUrl from "@/assets/tiles/tile-contact-url.jpg";
+import tileContactLocation from "@/assets/tiles/tile-contact-location.jpg";
 import CardShareDialog from "@/components/CardShareDialog";
 import { QuoteBackdrop } from "@/components/dashboard/QuoteBackdrop";
 import tileBio from "@/assets/tiles/tile-bio.jpg";
@@ -753,6 +757,7 @@ export default function CardView({
                           label={item.label}
                           sublabel={item.sublabel}
                           colorClass={item.colorClass}
+                          kind={item.kind}
                           onClick={handleClick}
                           isInteractive={isInteractive}
                         />
@@ -861,13 +866,32 @@ interface ContactTileProps {
   label: string;
   sublabel: string;
   colorClass: string;
+  kind?: string;
   onClick?: () => void;
   isInteractive?: boolean;
 }
 
-function ContactTile({ icon, label, sublabel, colorClass, onClick, isInteractive }: ContactTileProps) {
+// Same kind => same backdrop, so e.g. two phone numbers always match.
+const CONTACT_TILE_BACKDROPS: Record<string, string> = {
+  phone: tileContactPhone,
+  email: tileContactEmail,
+  url: tileContactUrl,
+  custom: tileContactLocation,
+};
+
+function ContactTile({ icon, label, sublabel, colorClass, kind, onClick, isInteractive }: ContactTileProps) {
+  const backdrop = kind ? CONTACT_TILE_BACKDROPS[kind] : undefined;
   const content = (
-    <div className="flex flex-col items-center gap-2 py-3 px-2">
+    <>
+    {backdrop && (
+      <>
+        <img src={backdrop} alt="" aria-hidden="true" loading="lazy" width={992} height={672}
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0"
+          style={{ background: "linear-gradient(180deg, hsl(var(--background) / 0.55), hsl(var(--background) / 0.75))" }} />
+      </>
+    )}
+    <div className="relative z-10 flex flex-col items-center gap-2 py-3 px-2">
       <div
         className={`flex h-10 w-10 items-center justify-center rounded-full ${colorClass} group-hover:scale-110 transition-all duration-300 shadow-md`}
       >
@@ -880,9 +904,10 @@ function ContactTile({ icon, label, sublabel, colorClass, onClick, isInteractive
         </p>
       </div>
     </div>
+    </>
   );
 
-  const wrapperClasses = "group w-full rounded-2xl transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] cursor-pointer glass-shimmer";
+  const wrapperClasses = "group relative overflow-hidden w-full rounded-2xl transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] cursor-pointer glass-shimmer";
   const wrapperStyle: React.CSSProperties = {
     background: "var(--glass-bg)",
     backdropFilter: "blur(var(--glass-blur))",
