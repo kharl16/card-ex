@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CheckCircle2, XCircle, RefreshCw, Copy, KeyRound, AlertTriangle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { getAppUrl, getAuthCallbackUrl } from "@/lib/authUrl";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -23,14 +23,16 @@ function copy(value: string, label: string) {
     .catch(() => toast.error("Copy failed — select and copy manually"));
 }
 
-export function OAuthProviderStatus({ isAdmin }: { isAdmin: boolean }) {
+export function OAuthProviderStatus() {
+  const { isPermanentSuperAdmin, isSuperAdmin, loading } = useAuth();
+  if (loading || !isPermanentSuperAdmin || !isSuperAdmin) return null;
+  return <OwnerOAuthProviderStatus />;
+}
+
+function OwnerOAuthProviderStatus() {
   const [data, setData] = useState<SettingsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-
-  if (!isAdmin) {
-    return null;
-  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -53,14 +55,12 @@ export function OAuthProviderStatus({ isAdmin }: { isAdmin: boolean }) {
   }, [load]);
 
   const external = data?.external ?? {};
-  const callbackUrl = getAuthCallbackUrl();
+  // Setup instructions always describe production, even when viewed in preview.
+  // Actual login redirects retain their environment-aware behavior in authUrl.
+  const appUrl = "https://tagex.app";
+  const callbackUrl = `${appUrl}/auth/callback`;
   const supabaseCallback = `${SUPABASE_URL}/auth/v1/callback`;
-  const appUrl = getAppUrl();
-  const originMatchesApp = typeof window !== "undefined" && window.location.origin === appUrl;
-
-  const googleCloudOrigins = [appUrl, appUrl.replace("https://", "https://www.")].filter(
-    (v, i, a) => a.indexOf(v) === i
-  );
+  const googleCloudOrigins = [appUrl, "https://www.tagex.app"];
 
   return (
     <section className="rounded-2xl border border-border/40 bg-card/40 p-4 backdrop-blur-xl">
@@ -140,13 +140,6 @@ export function OAuthProviderStatus({ isAdmin }: { isAdmin: boolean }) {
           </div>
         ))}
 
-        {!originMatchesApp && (
-          <p className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            You are on {typeof window !== "undefined" ? window.location.origin : ""}, but OAuth redirects to{" "}
-            {appUrl}. Add both origins to the Supabase redirect allow-list to test from here.
-          </p>
-        )}
       </div>
 
       {external.google && (

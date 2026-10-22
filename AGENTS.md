@@ -11,3 +11,4 @@
 - Keep the Immersive showcase scroller at a fixed responsive height rather than a content-dependent maximum, so category navigation and search cannot shift the card content below it.
 - Keep the showcase scroll cue painted inside the carousel's existing bottom gap, with a strip height cancelled by an equal negative margin, so it can never add to the fixed carousel height.
 - Resolve video providers and embeds through the shared videoUtils module, so editor acceptance and all card playback views use the same URL rules.
+- Gate the OAuth setup panel inside its own wrapper using the authenticated owner's identity and resolved super-admin role; show production setup values independently of environment-aware login redirects, so every device displays the same guidance without changing sign-in behavior.
