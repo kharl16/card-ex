@@ -886,7 +886,7 @@ function ContactTile({ icon, label, sublabel, colorClass, kind, onClick, isInter
     {backdrop && (
       <>
         <img src={backdrop} alt="" aria-hidden="true" loading="lazy" width={992} height={672}
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover" style={{ filter: "brightness(1.7) contrast(1.18) saturate(1.35)" }} />
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover" style={{ filter: "brightness(1.12) contrast(1.06) saturate(1.18)" }} />
         <div aria-hidden="true" className="pointer-events-none absolute inset-0"
           style={{ background: "radial-gradient(62% 58% at 50% 60%, hsl(var(--background) / 0.6), transparent 72%), linear-gradient(180deg, hsl(var(--background) / 0.38), hsl(var(--background) / 0.58))" }} />
       </>
