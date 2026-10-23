@@ -80,7 +80,7 @@ export default function Auth() {
       storeAuthNext();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: getAuthCallbackUrl() },
+        options: { redirectTo: getAuthCallbackUrl(), queryParams: { prompt: "select_account" } },
       });
       if (error) throw error;
     } catch (error: any) {
