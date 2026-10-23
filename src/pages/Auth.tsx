@@ -10,6 +10,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
 import { TurnstileWidget, turnstileEnabled, readTurnstileToken, resetTurnstile } from "@/components/auth/TurnstileWidget";
 import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
+import { GOOGLE_PREVIEW_GUIDANCE, googleReturnPath, openGooglePreview } from "@/lib/googlePreview";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { getAppUrl, getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
@@ -21,11 +22,8 @@ export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   // Return the visitor to the page that sent them here (must stay in-app).
-  const rawRedirect = searchParams.get("redirect");
-  const redirectTo =
-    rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
-      ? rawRedirect
-      : "/dashboard";
+  const [redirectTo] = useState(() => googleReturnPath(searchParams));
+  const [googleGuidance, setGoogleGuidance] = useState("");
   const initialMode = ((): Mode => {
     const m = searchParams.get("mode");
     return m === "forgot" || m === "signin" || m === "signup" ? m : "choose";
@@ -77,7 +75,13 @@ export default function Auth() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      storeAuthNext();
+      const preview = openGooglePreview(redirectTo);
+      if (preview !== "standalone") {
+        setGoogleGuidance(`${preview === "blocked" ? "Your browser blocked the new tab. " : "Card-Ex opened in a separate tab. "}${GOOGLE_PREVIEW_GUIDANCE}`);
+        setLoading(false);
+        return;
+      }
+      storeAuthNext(redirectTo);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: getAuthCallbackUrl(), queryParams: { prompt: "select_account" } },
@@ -179,7 +183,10 @@ export default function Auth() {
           <CardTitle className="text-2xl font-bold">{title}</CardTitle>
           <CardDescription>{description}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-5">{children}</CardContent>
+        <CardContent className="space-y-5">
+          {googleGuidance && <p role="status" className="text-sm text-muted-foreground">{googleGuidance}</p>}
+          {children}
+        </CardContent>
       </Card>
     </div>
   );

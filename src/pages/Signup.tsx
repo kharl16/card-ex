@@ -10,6 +10,7 @@ import { Gift } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
 import { TurnstileWidget, turnstileEnabled, readTurnstileToken, resetTurnstile } from "@/components/auth/TurnstileWidget";
 import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
+import { GOOGLE_PREVIEW_GUIDANCE, googleReturnPath, openGooglePreview } from "@/lib/googlePreview";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { storeReferralCode, getStoredReferralCode } from "@/hooks/useReferral";
@@ -21,6 +22,8 @@ export default function Signup() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [redirectTo] = useState(() => googleReturnPath(searchParams));
+  const [googleGuidance, setGoogleGuidance] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -46,17 +49,17 @@ export default function Signup() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/dashboard", { replace: true });
+        navigate(redirectTo, { replace: true });
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/dashboard", { replace: true });
+        navigate(redirectTo, { replace: true });
       }
     });
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, redirectTo]);
 
   const getErrorMessage = (error: any): string => {
     const message = error?.message?.toLowerCase() || "";
@@ -137,8 +140,14 @@ export default function Signup() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      const preview = openGooglePreview(redirectTo);
+      if (preview !== "standalone") {
+        setGoogleGuidance(`${preview === "blocked" ? "Your browser blocked the new tab. " : "Card-Ex opened in a separate tab. "}${GOOGLE_PREVIEW_GUIDANCE}`);
+        setLoading(false);
+        return;
+      }
       // Store intended destination before OAuth redirect
-      storeAuthNext();
+      storeAuthNext(redirectTo);
       
       const redirectUrl = getAuthCallbackUrl();
       if (import.meta.env.DEV) {
@@ -177,6 +186,7 @@ export default function Signup() {
           <CardDescription>Start your digital business card journey</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {googleGuidance && <p role="status" className="text-sm text-muted-foreground">{googleGuidance}</p>}
           {referralCode && (
             <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm">
               <Gift className="h-5 w-5 text-primary" />
