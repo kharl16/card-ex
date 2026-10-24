@@ -10,7 +10,8 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
 import { TurnstileWidget, turnstileEnabled, readTurnstileToken, resetTurnstile } from "@/components/auth/TurnstileWidget";
 import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
-import { GOOGLE_PREVIEW_GUIDANCE, googleReturnPath, openGooglePreview } from "@/lib/googlePreview";
+import { GOOGLE_BLOCKED_GUIDANCE, GOOGLE_PREVIEW_GUIDANCE, googlePreviewUrl, googleReturnPath, openGooglePreview } from "@/lib/googlePreview";
+import { GooglePreviewGuidance } from "@/components/auth/GooglePreviewGuidance";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
 import { getAppUrl, getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
@@ -24,6 +25,7 @@ export default function Auth() {
   // Return the visitor to the page that sent them here (must stay in-app).
   const [redirectTo] = useState(() => googleReturnPath(searchParams));
   const [googleGuidance, setGoogleGuidance] = useState("");
+  const [googleFallbackUrl, setGoogleFallbackUrl] = useState<string>();
   const initialMode = ((): Mode => {
     const m = searchParams.get("mode");
     return m === "forgot" || m === "signin" || m === "signup" ? m : "choose";
@@ -77,7 +79,8 @@ export default function Auth() {
     try {
       const preview = openGooglePreview(redirectTo);
       if (preview !== "standalone") {
-        setGoogleGuidance(`${preview === "blocked" ? "Your browser blocked the new tab. " : "Card-Ex opened in a separate tab. "}${GOOGLE_PREVIEW_GUIDANCE}`);
+        setGoogleGuidance(preview === "blocked" ? GOOGLE_BLOCKED_GUIDANCE : `Card-Ex opened in a separate tab. ${GOOGLE_PREVIEW_GUIDANCE}`);
+        setGoogleFallbackUrl(preview === "blocked" ? googlePreviewUrl(redirectTo) : undefined);
         setLoading(false);
         return;
       }
@@ -184,7 +187,7 @@ export default function Auth() {
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          {googleGuidance && <p role="status" className="text-sm text-muted-foreground">{googleGuidance}</p>}
+          <GooglePreviewGuidance message={googleGuidance} fallbackUrl={googleFallbackUrl} />
           {children}
         </CardContent>
       </Card>
