@@ -1,8 +1,32 @@
 import { safeRedirectPath } from "./authUrl";
 
-export const GOOGLE_PREVIEW_GUIDANCE = "In the new tab, click Continue with Google. If no tab opens or Google still shows 403, use Lovable’s Open preview in new tab control, then try again. You’ll return to Tools Vault after signing in.";
+/** Embedded-preview help: what the visitor has to do next, one step at a time. */
+export type GoogleGuidance = { heading: string; steps: string[] };
 
-export const GOOGLE_BLOCKED_GUIDANCE = "Your browser blocked the sign-in tab. Tap Open sign-in tab below, then click Continue with Google there. If it still won’t open, allow pop-ups for this site or use Lovable’s Open preview in new tab control. You’ll return to Tools Vault after signing in.";
+/**
+ * Shown once the standalone tab is open. Google refuses to load inside the preview
+ * frame, so the visitor has to start OAuth again there — step 2 is that action and
+ * the guidance panel keeps it emphasised.
+ */
+export const GOOGLE_PREVIEW_GUIDANCE: GoogleGuidance = {
+  heading: "Now finish signing in in the new tab",
+  steps: [
+    "Card-Ex opened in its own tab. Google can’t sign you in inside this preview.",
+    "Click Continue with Google again in that new tab.",
+    "Choose your account there — you’ll return to Tools Vault signed in.",
+    "No tab, or Google shows 403? Use Lovable’s Open preview in new tab control, then try again.",
+  ],
+};
+
+/** Shown when the browser blocked the tab; the direct link below opens the same page. */
+export const GOOGLE_BLOCKED_GUIDANCE: GoogleGuidance = {
+  heading: "Your browser blocked the sign-in tab",
+  steps: [
+    "Tap Open sign-in tab below to open Card-Ex on its own.",
+    "Then click Continue with Google in that tab.",
+    "Still nothing? Allow pop-ups for this site, or use Lovable’s Open preview in new tab control.",
+  ],
+};
 
 export function googleReturnPath(params: URLSearchParams): string {
   return safeRedirectPath(params.get("redirect") || sessionStorage.getItem("auth_next"));

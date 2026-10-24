@@ -10,7 +10,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
 import { TurnstileWidget, turnstileEnabled, readTurnstileToken, resetTurnstile } from "@/components/auth/TurnstileWidget";
 import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
-import { GOOGLE_BLOCKED_GUIDANCE, GOOGLE_PREVIEW_GUIDANCE, googlePreviewUrl, googleReturnPath, openGooglePreview } from "@/lib/googlePreview";
+import { GOOGLE_BLOCKED_GUIDANCE, GOOGLE_PREVIEW_GUIDANCE, googlePreviewUrl, googleReturnPath, openGooglePreview, type GoogleGuidance } from "@/lib/googlePreview";
 import { GooglePreviewGuidance } from "@/components/auth/GooglePreviewGuidance";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -24,7 +24,7 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   // Return the visitor to the page that sent them here (must stay in-app).
   const [redirectTo] = useState(() => googleReturnPath(searchParams));
-  const [googleGuidance, setGoogleGuidance] = useState("");
+  const [googleGuidance, setGoogleGuidance] = useState<GoogleGuidance | null>(null);
   const [googleFallbackUrl, setGoogleFallbackUrl] = useState<string>();
   const initialMode = ((): Mode => {
     const m = searchParams.get("mode");
@@ -79,7 +79,7 @@ export default function Auth() {
     try {
       const preview = openGooglePreview(redirectTo);
       if (preview !== "standalone") {
-        setGoogleGuidance(preview === "blocked" ? GOOGLE_BLOCKED_GUIDANCE : `Card-Ex opened in a separate tab. ${GOOGLE_PREVIEW_GUIDANCE}`);
+        setGoogleGuidance(preview === "blocked" ? GOOGLE_BLOCKED_GUIDANCE : GOOGLE_PREVIEW_GUIDANCE);
         setGoogleFallbackUrl(preview === "blocked" ? googlePreviewUrl(redirectTo) : undefined);
         setLoading(false);
         return;
@@ -187,7 +187,7 @@ export default function Auth() {
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
-          <GooglePreviewGuidance message={googleGuidance} fallbackUrl={googleFallbackUrl} />
+          <GooglePreviewGuidance guidance={googleGuidance} fallbackUrl={googleFallbackUrl} />
           {children}
         </CardContent>
       </Card>

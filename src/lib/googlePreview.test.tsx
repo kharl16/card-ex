@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { GooglePreviewGuidance } from "@/components/auth/GooglePreviewGuidance";
 import { googleReturnPath, openGooglePreview } from "./googlePreview";
 
-afterEach(() => { vi.unstubAllGlobals(); sessionStorage.clear(); });
+afterEach(() => { vi.unstubAllGlobals(); cleanup(); sessionStorage.clear(); });
 
 describe("embedded Google sign-in", () => {
   it("preserves the Tools Vault destination across the new tab", () => {
@@ -40,6 +42,7 @@ describe("embedded Google sign-in", () => {
     expect(open).not.toHaveBeenCalled();
   });
 });
+
 describe("blocked-tab recovery", () => {
   it("builds a direct fallback link that keeps the Tools Vault return", async () => {
     const { googlePreviewUrl, GOOGLE_BLOCKED_GUIDANCE } = await import("./googlePreview");
@@ -47,6 +50,46 @@ describe("blocked-tab recovery", () => {
     const url = new URL(googlePreviewUrl("/tools"));
     expect(url.searchParams.get("redirect")).toBe("/tools");
     expect(url.hash).toBe("");
-    expect(GOOGLE_BLOCKED_GUIDANCE).not.toContain("In the new tab");
+    expect(GOOGLE_BLOCKED_GUIDANCE.steps.join(" ")).not.toContain("In the new tab");
+  });
+});
+
+describe("embedded guidance copy", () => {
+  it("says the visitor must click Continue with Google again in the new tab", async () => {
+    const { GOOGLE_PREVIEW_GUIDANCE } = await import("./googlePreview");
+    expect(GOOGLE_PREVIEW_GUIDANCE.heading).toMatch(/new tab/i);
+    expect(GOOGLE_PREVIEW_GUIDANCE.steps[1]).toMatch(/click Continue with Google again/i);
+    expect(GOOGLE_PREVIEW_GUIDANCE.steps[1]).toMatch(/new tab/i);
+  });
+
+  it("still points the blocked-tab visitor at Continue with Google in the opened tab", async () => {
+    const { GOOGLE_BLOCKED_GUIDANCE } = await import("./googlePreview");
+    const copy = GOOGLE_BLOCKED_GUIDANCE.steps.join(" ");
+    expect(copy).toMatch(/Open sign-in tab/i);
+    expect(copy).toMatch(/click Continue with Google/i);
+  });
+});
+
+describe("guidance panel", () => {
+  it("numbers the steps and emphasises the click-again instruction", async () => {
+    const { GOOGLE_PREVIEW_GUIDANCE } = await import("./googlePreview");
+    render(<GooglePreviewGuidance guidance={GOOGLE_PREVIEW_GUIDANCE} />);
+    const items = screen.getAllByRole("listitem");
+    expect(items).toHaveLength(GOOGLE_PREVIEW_GUIDANCE.steps.length);
+    expect(items[1].textContent).toContain(GOOGLE_PREVIEW_GUIDANCE.steps[1]);
+    expect(screen.queryByRole("link", { name: /Open sign-in tab/i })).toBeNull();
+  });
+
+  it("shows the direct fallback link only when the tab was blocked", async () => {
+    const { GOOGLE_BLOCKED_GUIDANCE } = await import("./googlePreview");
+    render(<GooglePreviewGuidance guidance={GOOGLE_BLOCKED_GUIDANCE} fallbackUrl="https://id-preview--example.lovable.app/auth?redirect=%2Ftools" />);
+    const link = screen.getByRole("link", { name: /Open sign-in tab/i });
+    expect(link).toHaveAttribute("href", "https://id-preview--example.lovable.app/auth?redirect=%2Ftools");
+    expect(link).toHaveAttribute("target", "_blank");
+  });
+
+  it("renders nothing while the visitor is signing in on the live site", async () => {
+    const { container } = render(<GooglePreviewGuidance guidance={null} />);
+    expect(container).toBeEmptyDOMElement();
   });
 });
