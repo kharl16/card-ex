@@ -10,7 +10,7 @@ import { Gift } from "lucide-react";
 import { GoogleIcon } from "@/components/auth/GoogleIcon";
 import { TurnstileWidget, turnstileEnabled, readTurnstileToken, resetTurnstile } from "@/components/auth/TurnstileWidget";
 import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
-import { GOOGLE_BLOCKED_GUIDANCE, GOOGLE_PREVIEW_GUIDANCE, googlePreviewUrl, googleReturnPath, openGooglePreview } from "@/lib/googlePreview";
+import { GOOGLE_BLOCKED_GUIDANCE, GOOGLE_PREVIEW_GUIDANCE, googlePreviewUrl, googleReturnPath, openGooglePreview, type GoogleGuidance } from "@/lib/googlePreview";
 import { GooglePreviewGuidance } from "@/components/auth/GooglePreviewGuidance";
 
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -24,7 +24,7 @@ export default function Signup() {
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [redirectTo] = useState(() => googleReturnPath(searchParams));
-  const [googleGuidance, setGoogleGuidance] = useState("");
+  const [googleGuidance, setGoogleGuidance] = useState<GoogleGuidance | null>(null);
   const [googleFallbackUrl, setGoogleFallbackUrl] = useState<string>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -144,7 +144,7 @@ export default function Signup() {
     try {
       const preview = openGooglePreview(redirectTo);
       if (preview !== "standalone") {
-        setGoogleGuidance(preview === "blocked" ? GOOGLE_BLOCKED_GUIDANCE : `Card-Ex opened in a separate tab. ${GOOGLE_PREVIEW_GUIDANCE}`);
+        setGoogleGuidance(preview === "blocked" ? GOOGLE_BLOCKED_GUIDANCE : GOOGLE_PREVIEW_GUIDANCE);
         setGoogleFallbackUrl(preview === "blocked" ? googlePreviewUrl(redirectTo) : undefined);
         setLoading(false);
         return;
@@ -189,7 +189,7 @@ export default function Signup() {
           <CardDescription>Start your digital business card journey</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <GooglePreviewGuidance message={googleGuidance} fallbackUrl={googleFallbackUrl} />
+          <GooglePreviewGuidance guidance={googleGuidance} fallbackUrl={googleFallbackUrl} />
           {referralCode && (
             <div className="flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-3 text-sm">
               <Gift className="h-5 w-5 text-primary" />
