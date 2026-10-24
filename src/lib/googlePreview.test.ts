@@ -40,3 +40,13 @@ describe("embedded Google sign-in", () => {
     expect(open).not.toHaveBeenCalled();
   });
 });
+describe("blocked-tab recovery", () => {
+  it("builds a direct fallback link that keeps the Tools Vault return", async () => {
+    const { googlePreviewUrl, GOOGLE_BLOCKED_GUIDANCE } = await import("./googlePreview");
+    vi.stubGlobal("window", { location: { href: "https://id-preview--example.lovable.app/auth?mode=signin#x" } });
+    const url = new URL(googlePreviewUrl("/tools"));
+    expect(url.searchParams.get("redirect")).toBe("/tools");
+    expect(url.hash).toBe("");
+    expect(GOOGLE_BLOCKED_GUIDANCE).not.toContain("In the new tab");
+  });
+});
