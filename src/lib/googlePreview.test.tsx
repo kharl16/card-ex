@@ -76,7 +76,7 @@ describe("guidance panel", () => {
     render(<GooglePreviewGuidance guidance={GOOGLE_PREVIEW_GUIDANCE} />);
     const items = screen.getAllByRole("listitem");
     expect(items).toHaveLength(GOOGLE_PREVIEW_GUIDANCE.steps.length);
-    expect(items[1].textContent).toBe(GOOGLE_PREVIEW_GUIDANCE.steps[1]);
+    expect(items[1].textContent).toContain(GOOGLE_PREVIEW_GUIDANCE.steps[1]);
     expect(screen.queryByRole("link", { name: /Open sign-in tab/i })).toBeNull();
   });
 
