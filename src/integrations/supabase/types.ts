@@ -899,6 +899,7 @@ export type Database = {
       }
       card_templates: {
         Row: {
+          category: string | null
           created_at: string
           description: string | null
           id: string
@@ -911,6 +912,7 @@ export type Database = {
           visibility: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -923,6 +925,7 @@ export type Database = {
           visibility?: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string

@@ -20,6 +20,7 @@ import { EditTemplateDialog } from "./EditTemplateDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { CardProductImage } from "@/lib/theme";
+import { TEMPLATE_INDUSTRIES, industryLabel, filterByIndustry } from "@/lib/templateIndustries";
 
 // Helper to get image count from template layout_data
 const getTemplateImageCount = (template: CardTemplate): number => {
@@ -52,6 +53,7 @@ export function TemplateGallery({
   const [deletingTemplate, setDeletingTemplate] = useState<CardTemplate | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [cloningId, setCloningId] = useState<string | null>(null);
+  const [industry, setIndustry] = useState<string>("all");
 
   const canEditTemplate = (template: CardTemplate) =>
     isAdmin || template.owner_id === user?.id;
@@ -237,8 +239,26 @@ export function TemplateGallery({
             <Palette className="h-5 w-5 text-primary" />
             Card-Ex Templates
           </h3>
+          <p className="mb-2 text-sm text-muted-foreground">Pick your line of work:</p>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {[{ key: "all", label: "All" }, ...TEMPLATE_INDUSTRIES.filter((i) => templates.some((t) => t.category === i.key))].map((i) => (
+              <button
+                key={i.key}
+                type="button"
+                onClick={() => setIndustry(i.key)}
+                className={cn(
+                  "min-h-[44px] rounded-full border px-4 text-sm font-medium transition-colors",
+                  industry === i.key
+                    ? "border-primary bg-primary/20 text-primary"
+                    : "border-primary/30 bg-primary/5 text-foreground hover:bg-primary/10"
+                )}
+              >
+                {i.label}
+              </button>
+            ))}
+          </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {templates.map((template) => (
+            {filterByIndustry(templates, industry).map((template) => (
               <Card
                 key={template.id}
                 className={cn(
@@ -263,6 +283,9 @@ export function TemplateGallery({
                     <div className="flex-1 min-w-0">
                       <CardTitle className="text-lg break-words">{template.name}</CardTitle>
                       <div className="mt-1 flex items-center gap-2 flex-wrap">
+                        {industryLabel(template.category) && (
+                          <Badge variant="secondary" className="text-xs">{industryLabel(template.category)}</Badge>
+                        )}
                         {template.visibility && visibilityConfig[template.visibility as TemplateVisibility] && (
                           <Badge variant={visibilityConfig[template.visibility as TemplateVisibility].variant} className="text-xs flex items-center gap-1">
                             {visibilityConfig[template.visibility as TemplateVisibility].icon}
