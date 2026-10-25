@@ -20,6 +20,7 @@ export interface CardTemplate {
   layout_data: CardSnapshot;
   is_global: boolean;
   visibility: TemplateVisibility;
+  category?: string | null;
   created_at: string;
   updated_at: string;
 }
