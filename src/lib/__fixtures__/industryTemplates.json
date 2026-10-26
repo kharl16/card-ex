@@ -1,0 +1,1927 @@
+[
+  {
+    "name": "Car Sales Template",
+    "category": "automotive",
+    "layout_data": {
+      "bio": "Helping families and business owners drive home the right vehicle with the best financing terms. Book a test drive today.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#3B82F6",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Car Sales Consultant",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "Request Financing Quote",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#3B82F6"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Monthly Promos",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Schedule Test Drive",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#3B82F6"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Featured Vehicles",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Me",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#3B82F6"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Happy Owners",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Real Estate Template",
+    "category": "real_estate",
+    "layout_data": {
+      "bio": "Helping families and investors secure prime residential and commercial properties. Let's find your next home.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#10B981",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Licensed Real Estate Agent",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "Ask Payment Terms",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#10B981"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Pre-Selling Projects",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Book Property Viewing",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#10B981"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Active Listings",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Me",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#10B981"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Closed Deals",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Medical Doctor Template",
+    "category": "medical",
+    "layout_data": {
+      "bio": "Compassionate, evidence-based care for you and your family. View my clinic schedule and book a consultation.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#E5E7EB",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Physician / Specialist",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "View Clinic Hours",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#E5E7EB"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Clinic Schedule",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Book Consultation",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#E5E7EB"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Specialties",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Clinic",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#E5E7EB"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Patient Stories",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Dentist Template",
+    "category": "dental",
+    "layout_data": {
+      "bio": "Healthy, confident smiles through gentle and modern dental care. Book your cleaning or treatment today.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#67E8F9",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Dentist / Orthodontist",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "Ask for Price List",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#67E8F9"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Smile Packages",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Book Dental Appointment",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#67E8F9"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Popular Treatments",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Clinic",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#67E8F9"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Before & After",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Pet Care Template",
+    "category": "pet_care",
+    "layout_data": {
+      "bio": "Loving care for your furry family members: grooming, check-ups, and vaccinations.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#F59E0B",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Veterinarian / Pet Groomer",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "View Service Menu",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#F59E0B"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Care Packages",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Book Grooming / Vet Visit",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#F59E0B"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Our Services",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Me",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#F59E0B"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Happy Pets",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Financial Advisor Template",
+    "category": "finance",
+    "layout_data": {
+      "bio": "Protect what matters and grow your wealth. Get a free financial health review and a plan built for your goals.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#22C55E",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Financial Advisor / Insurance",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "Request a Quote",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#22C55E"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Protection Packages",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Get Free Financial Review",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#22C55E"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Investment Plans",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Me",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#22C55E"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Client Stories",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Fitness Coach Template",
+    "category": "fitness",
+    "layout_data": {
+      "bio": "Stronger, healthier, and more confident with a program designed around you. Claim your free trial session.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#EF4444",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Personal Trainer / Fitness Coach",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "Start Coaching",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#EF4444"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Coaching Packages",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Claim Free Trial",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#EF4444"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Programs",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Me",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#EF4444"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Transformations",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Beauty Specialist Template",
+    "category": "beauty",
+    "layout_data": {
+      "bio": "Hair, nails, and skin services that make you look and feel your best. Reserve your appointment today.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#EC4899",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Beauty Specialist / Salon",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "View Service Menu",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#EC4899"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Treatment Packages",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Reserve Appointment",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#EC4899"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Services",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Me",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#EC4899"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Client Looks",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Legal Counsel Template",
+    "category": "legal",
+    "layout_data": {
+      "bio": "Clear, confidential legal guidance for individuals and businesses. Schedule a consultation.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#A78BFA",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Lawyer / Notary Public",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "Ask About Fees",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#A78BFA"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Service Packages",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Schedule Legal Consultation",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#A78BFA"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Practice Areas",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Office",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#A78BFA"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Client Feedback",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Events & Photography Template",
+    "category": "events",
+    "layout_data": {
+      "bio": "Capturing and creating unforgettable moments: weddings, birthdays, and corporate events.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#F472B6",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Events Coordinator / Photographer",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "Get Event Package",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#F472B6"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Event Packages",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Check Date Availability",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#F472B6"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Portfolio",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Me",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#F472B6"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Client Reviews",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  },
+  {
+    "name": "Business Coach Template",
+    "category": "consulting",
+    "layout_data": {
+      "bio": "Helping entrepreneurs grow with clear strategy, systems, and accountability. Book a 15-minute discovery call.",
+      "email": null,
+      "phone": null,
+      "theme": {
+        "font": "Montserrat",
+        "mode": "dark",
+        "name": "Black&Gold",
+        "text": "#F8F8F8",
+        "accent": "#D4AF37",
+        "primary": "#D4AF37",
+        "baseMode": "dark",
+        "background": "#0B0B0C",
+        "buttonColor": "#D4AF37",
+        "backgroundType": "solid"
+      },
+      "title": "Consultant / Business Coach",
+      "prefix": null,
+      "suffix": null,
+      "company": null,
+      "website": null,
+      "location": null,
+      "logo_url": null,
+      "cover_url": null,
+      "full_name": null,
+      "last_name": null,
+      "avatar_url": null,
+      "card_links": [],
+      "first_name": null,
+      "middle_name": null,
+      "video_items": [],
+      "social_links": [],
+      "package_images": [],
+      "product_images": [],
+      "source_card_id": null,
+      "brochure_images": [],
+      "image_carousels": null,
+      "carousel_enabled": true,
+      "show_daily_quote": true,
+      "testimony_images": [],
+      "carousel_settings": {
+        "packages": {
+          "cta": {
+            "label": "View Programs",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#D4AF37"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Coaching Programs",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "products": {
+          "cta": {
+            "label": "Book Discovery Call",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#D4AF37"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": true,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Case Studies",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        },
+        "testimonies": {
+          "cta": {
+            "label": "Message Me",
+            "style": {
+              "glow": true,
+              "size": "sm",
+              "shape": "pill",
+              "width": "fit",
+              "variant": "outline",
+              "glowColorMode": "custom",
+              "glowIntensity": 70,
+              "glowCustomColor": "#D4AF37"
+            },
+            "action": "contact",
+            "target": "_self",
+            "enabled": false,
+            "placement": "below",
+            "contact_method": "messenger"
+          },
+          "title": "Client Wins",
+          "images": [],
+          "settings": {
+            "enabled": true,
+            "imageGap": 4,
+            "direction": "ltr",
+            "imageSize": "sm",
+            "maxImages": 50,
+            "autoPlayMs": 4000
+          },
+          "background": {
+            "type": "gradient",
+            "enabled": true,
+            "gradient": {
+              "to": "#1a1405",
+              "from": "#050509",
+              "direction": "to-r"
+            },
+            "borderColor": "#D4AF37",
+            "borderWidth": 1,
+            "innerPadding": 4
+          }
+        }
+      },
+      "showcase_display_mode": "immersive",
+      "show_referral_earnings": false
+    }
+  }
+]
