@@ -67,7 +67,7 @@ export default function RequireVaultAccess({ children }: { children: React.React
     );
   }
 
-  if (!session) {
+  if (!session || session.user.is_anonymous) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
         <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">

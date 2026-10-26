@@ -5,12 +5,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, paymongo-signature",
 };
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const PAYMONGO_WEBHOOK_SECRET = Deno.env.get("PAYMONGO_WEBHOOK_SECRET");
 
 async function verifySignature(payload: string, signatureHeader: string | null): Promise<boolean> {
-  if (!PAYMONGO_WEBHOOK_SECRET) return true; // Skip if not configured (dev)
+  if (!PAYMONGO_WEBHOOK_SECRET) return false;
   if (!signatureHeader) return false;
 
   // PayMongo signature format: t=<timestamp>,te=<test_sig>,li=<live_sig>
