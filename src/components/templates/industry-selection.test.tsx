@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, act } from "@testing-library/react";
 import templates from "@/lib/__fixtures__/industryTemplates.json";
 import { TEMPLATE_INDUSTRIES } from "@/lib/templateIndustries";
 import { TemplateSelectionModal } from "./TemplateSelectionModal";
@@ -22,7 +22,7 @@ describe("industry selection in onboarding and existing cards", () => {
     it(`${industry.key}: the onboarding picker selects the correct design`, () => {
       const select = vi.fn();
       render(<TemplateSelectionModal open onOpenChange={() => {}} onSelectTemplate={select} onBuildFromScratch={() => {}} />);
-      fireEvent.click(screen.getByRole("button", { name: industry.label, exact: true }));
+      fireEvent.click(screen.getByRole("button", { name: industry.label }));
       const template = templates.find(t => t.category === industry.key);
       if (!template) throw new Error("Missing industry fixture");
       fireEvent.click(screen.getByText(template.name, { exact: true }));
@@ -31,12 +31,12 @@ describe("industry selection in onboarding and existing cards", () => {
     it(`${industry.key}: confirmation applies only design fields to the existing card`, async () => {
       const applied = vi.fn();
       render(<ChangeTemplateDialog card={{ id: "existing", full_name: "Ana Santos", email: "ana@example.test" } as Tables<"cards">} open onOpenChange={() => {}} onApplied={applied} />);
-      fireEvent.click(screen.getByRole("button", { name: industry.label, exact: true }));
+      fireEvent.click(screen.getByRole("button", { name: industry.label }));
       const template = templates.find(t => t.category === industry.key);
       if (!template) throw new Error("Missing industry fixture");
       fireEvent.click(screen.getByText(template.name, { exact: true }));
-      fireEvent.click(screen.getByRole("button", { name: "Apply Template", exact: true }));
-      await vi.waitFor(() => expect(applied).toHaveBeenCalledOnce());
+      await act(async () => { fireEvent.click(screen.getByRole("button", { name: "Apply Template" })); });
+      expect(applied).toHaveBeenCalledOnce();
       expect(updates.at(-1)).not.toHaveProperty("email");
       expect(updates.at(-1)).not.toHaveProperty("full_name");
       expect(updates.at(-1)).toMatchObject({ showcase_display_mode: "immersive", carousel_settings: template.layout_data.carousel_settings });
