@@ -27,3 +27,5 @@
 - [x] Add a subtle scroll cue below the carousel without changing its height; verified on desktop and phone.
 - [x] Support Facebook video formats alongside YouTube and Google Drive; 17 tests pass and viewer verified. Real Facebook playback and signed-in saving remain unverified without a public video/session.
 - [x] Make the embedded-preview sign-in guidance state that Continue with Google must be clicked again in the standalone tab; keep live-site OAuth unchanged.
+- [ ] Investigate and harden current security warnings without changing public cards or member Tools Vault access.
+- [ ] Test all 11 industry templates in onboarding and existing-card switching; preserve personal details and apply showcase settings.
