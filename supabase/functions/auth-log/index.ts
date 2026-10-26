@@ -1,4 +1,4 @@
-import { corsHeaders, json, serviceClient, userIdFromAuthHeader } from "../_shared/adminAuth.ts";
+import { corsHeaders, json, serviceClient } from "../_shared/adminAuth.ts";
 
 function parseUserAgent(ua: string) {
   const browser =
@@ -27,18 +27,17 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return json({ error: "Unauthorized" }, 401);
+    if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
 
     const admin = serviceClient();
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
-    const { data: userData } = await admin.auth.getUser(token);
-    const userId = userData?.user?.id ?? userIdFromAuthHeader(authHeader);
-    if (!userId) return json({ error: "Unauthorized" }, 401);
+    const { data: userData, error: userError } = await admin.auth.getUser(token);
+    const userId = userData?.user?.id;
+    if (userError || !userId || userData.user?.is_anonymous) return json({ error: "Unauthorized" }, 401);
 
     const body = await req.json().catch(() => ({}));
     const event = body?.event === "signup" ? "signup" : "login";
-    const provider =
-      typeof body?.provider === "string" && body.provider.length < 40 ? body.provider : "email";
+    const provider = userData.user?.app_metadata?.provider === "google" ? "google" : "email";
 
     const ua = req.headers.get("user-agent") ?? "";
     const { browser, os } = parseUserAgent(ua);
@@ -66,7 +65,7 @@ Deno.serve(async (req) => {
     if (event === "signup") patch.signup_method = provider;
     if (provider === "google") {
       patch.signup_method = patch.signup_method ?? "google";
-      patch.email_verified = true;
+      patch.email_verified = !!authUser?.email_confirmed_at;
       const meta = (authUser?.user_metadata ?? {}) as Record<string, string>;
       if (meta.avatar_url) patch.avatar_url = meta.avatar_url;
       if (meta.full_name || meta.name) patch.full_name = meta.full_name ?? meta.name;

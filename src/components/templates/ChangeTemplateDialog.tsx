@@ -22,6 +22,7 @@ import { Palette, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { buildTemplateDesignUpdate } from "@/lib/templateApplication";
 
 interface ChangeTemplateDialogProps {
   card: Tables<"cards">;
@@ -56,21 +57,10 @@ export function ChangeTemplateDialog({
       // Update only design + carousel content fields.
       const { error } = await supabase
         .from("cards")
-        .update({
-          theme: snapshot.theme as any,
-          cover_url: snapshot.cover_url ?? null,
-          logo_url: snapshot.logo_url ?? null,
-          carousel_enabled: snapshot.carousel_enabled ?? true,
-          carousel_settings: (snapshot.carousel_settings || {}) as any,
-          product_images: (snapshot.product_images || []) as any,
-          package_images: (snapshot.package_images || []) as any,
-          testimony_images: (snapshot.testimony_images || []) as any,
-          video_items: (snapshot.video_items || []) as any,
-          image_carousels: (snapshot.image_carousels || null) as any,
-          show_daily_quote: snapshot.show_daily_quote ?? false,
-          show_referral_earnings: snapshot.show_referral_earnings ?? false,
-        })
-        .eq("id", card.id);
+        .update(buildTemplateDesignUpdate(snapshot))
+        .eq("id", card.id)
+        .select("id")
+        .single();
 
       if (error) throw error;
 

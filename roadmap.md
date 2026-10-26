@@ -27,3 +27,6 @@
 - [x] Add a subtle scroll cue below the carousel without changing its height; verified on desktop and phone.
 - [x] Support Facebook video formats alongside YouTube and Google Drive; 17 tests pass and viewer verified. Real Facebook playback and signed-in saving remain unverified without a public video/session.
 - [x] Make the embedded-preview sign-in guidance state that Continue with Google must be clicked again in the standalone tab; keep live-site OAuth unchanged.
+- [x] Harden guest access, appointment writes, billing/referral authority, verified admin identities and webhook authentication; public card and signed-out Vault verified. Existing advisory warnings remain for separate review.
+- [x] Test all 11 industry selectors, onboarding data and existing-card template confirmation; 48 tests verify personal details and showcase settings.
+- [ ] Verify authenticated onboarding, existing-card persistence and registered-member/admin Vault access end-to-end; blocked by unavailable authenticated session for external Supabase.

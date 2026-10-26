@@ -242,9 +242,11 @@ export function TemplateGallery({
           <p className="mb-2 text-sm text-muted-foreground">Pick your line of work:</p>
           <div className="mb-4 flex flex-wrap gap-2">
             {[{ key: "all", label: "All" }, ...TEMPLATE_INDUSTRIES.filter((i) => templates.some((t) => t.category === i.key))].map((i) => (
-              <button
+              <Button
                 key={i.key}
                 type="button"
+                variant="outline"
+                aria-pressed={industry === i.key}
                 onClick={() => setIndustry(i.key)}
                 className={cn(
                   "min-h-[44px] rounded-full border px-4 text-sm font-medium transition-colors",
@@ -254,7 +256,7 @@ export function TemplateGallery({
                 )}
               >
                 {i.label}
-              </button>
+              </Button>
             ))}
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
