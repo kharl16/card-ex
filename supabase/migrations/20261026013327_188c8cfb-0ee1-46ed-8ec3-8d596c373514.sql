@@ -1,0 +1,1 @@
+ALTER FUNCTION public.qualify_pending_referrals() SECURITY INVOKER;
