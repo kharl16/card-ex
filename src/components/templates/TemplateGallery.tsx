@@ -269,15 +269,19 @@ export function TemplateGallery({
                 )}
                 onClick={() => handleSelect(template)}
               >
+                {template.thumbnail_url && (
+                  <img
+                    src={template.thumbnail_url}
+                    alt={`${industryLabel(template.category) || template.name} cover`}
+                    loading="lazy"
+                    width={1536}
+                    height={1024}
+                    className="aspect-[3/2] w-full rounded-t-lg object-cover"
+                  />
+                )}
                 <CardHeader className="pb-3">
                   <div className="flex items-start gap-3">
-                    {template.thumbnail_url ? (
-                      <img
-                        src={template.thumbnail_url}
-                        alt={template.name}
-                        className="h-12 w-12 shrink-0 rounded-lg object-cover"
-                      />
-                    ) : (
+                    {!template.thumbnail_url && (
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/30 to-primary/10">
                         <Palette className="h-6 w-6 text-primary" />
                       </div>
