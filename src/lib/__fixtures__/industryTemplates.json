@@ -11,10 +11,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#3B82F6",
+        "accent": "#80B7D4",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#101B24",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -25,7 +25,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/32dfdf9b-9f50-46cc-a1b7-dd5db2d8be0d/template-automotive.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -172,7 +172,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/32dfdf9b-9f50-46cc-a1b7-dd5db2d8be0d/template-automotive.webp"
   },
   {
     "name": "Real Estate Template",
@@ -186,10 +187,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#10B981",
+        "accent": "#84C3A4",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#10221C",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -200,7 +201,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/9c06b90f-5384-4a86-b69e-c176b77fb725/template-real_estate.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -347,7 +348,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/9c06b90f-5384-4a86-b69e-c176b77fb725/template-real_estate.webp"
   },
   {
     "name": "Medical Doctor Template",
@@ -361,10 +363,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#E5E7EB",
+        "accent": "#9DCCCC",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#14282A",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -375,7 +377,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/1faacf5b-9133-4205-8d57-ae0b13e1413a/template-medical.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -522,7 +524,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/1faacf5b-9133-4205-8d57-ae0b13e1413a/template-medical.webp"
   },
   {
     "name": "Dentist Template",
@@ -536,10 +539,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#67E8F9",
+        "accent": "#A9DBDE",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#152A30",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -550,7 +553,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/1a1e89a7-2f8f-47e9-a856-827fad2db568/template-dental.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -697,7 +700,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/1a1e89a7-2f8f-47e9-a856-827fad2db568/template-dental.webp"
   },
   {
     "name": "Pet Care Template",
@@ -711,10 +715,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#F59E0B",
+        "accent": "#BAD099",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#202A1E",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -725,7 +729,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/69abb688-747e-4b09-b669-6dcda3511e13/template-pet_care.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -872,7 +876,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/69abb688-747e-4b09-b669-6dcda3511e13/template-pet_care.webp"
   },
   {
     "name": "Financial Advisor Template",
@@ -886,10 +891,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#22C55E",
+        "accent": "#80B8A0",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#10251F",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -900,7 +905,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/d509d2fc-a9f8-4a72-bcc5-7723bef8a15c/template-finance.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -1047,7 +1052,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/d509d2fc-a9f8-4a72-bcc5-7723bef8a15c/template-finance.webp"
   },
   {
     "name": "Fitness Coach Template",
@@ -1061,10 +1067,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#EF4444",
+        "accent": "#D69B9F",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#291A1F",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -1075,7 +1081,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/e057f84f-f1c0-4c4b-b010-5f186fb0c40d/template-fitness.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -1222,7 +1228,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/e057f84f-f1c0-4c4b-b010-5f186fb0c40d/template-fitness.webp"
   },
   {
     "name": "Beauty Specialist Template",
@@ -1236,10 +1243,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#EC4899",
+        "accent": "#E2B4C4",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#2D2027",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -1250,7 +1257,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/602b2482-a40b-4ac9-b96c-e64e65b6c8cd/template-beauty.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -1397,7 +1404,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/602b2482-a40b-4ac9-b96c-e64e65b6c8cd/template-beauty.webp"
   },
   {
     "name": "Legal Counsel Template",
@@ -1411,10 +1419,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#A78BFA",
+        "accent": "#B5BDC8",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#1F2328",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -1425,7 +1433,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/251f4024-4e3f-490a-b02e-74c44c084439/template-legal.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -1572,7 +1580,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/251f4024-4e3f-490a-b02e-74c44c084439/template-legal.webp"
   },
   {
     "name": "Events & Photography Template",
@@ -1586,10 +1595,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#F472B6",
+        "accent": "#C8B2D9",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#282033",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -1600,7 +1609,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/dab75aaa-6644-407a-b5f0-6c1d5d6e0bfc/template-events.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -1747,7 +1756,8 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/dab75aaa-6644-407a-b5f0-6c1d5d6e0bfc/template-events.webp"
   },
   {
     "name": "Business Coach Template",
@@ -1761,10 +1771,10 @@
         "mode": "dark",
         "name": "Black&Gold",
         "text": "#F8F8F8",
-        "accent": "#D4AF37",
+        "accent": "#BCC799",
         "primary": "#D4AF37",
         "baseMode": "dark",
-        "background": "#0B0B0C",
+        "background": "#24291F",
         "buttonColor": "#D4AF37",
         "backgroundType": "solid"
       },
@@ -1775,7 +1785,7 @@
       "website": null,
       "location": null,
       "logo_url": null,
-      "cover_url": null,
+      "cover_url": "https://card-ex.lovable.app/__l5e/assets-v1/4fedfb9c-9636-4bf1-a49e-62618051e6f4/template-consulting.webp",
       "full_name": null,
       "last_name": null,
       "avatar_url": null,
@@ -1922,6 +1932,7 @@
       },
       "showcase_display_mode": "immersive",
       "show_referral_earnings": false
-    }
+    },
+    "thumbnail_url": "https://card-ex.lovable.app/__l5e/assets-v1/4fedfb9c-9636-4bf1-a49e-62618051e6f4/template-consulting.webp"
   }
 ]
