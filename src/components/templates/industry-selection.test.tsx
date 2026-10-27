@@ -26,7 +26,7 @@ describe("industry selection in onboarding and existing cards", () => {
       const template = templates.find(t => t.category === industry.key);
       if (!template) throw new Error("Missing industry fixture");
       fireEvent.click(screen.getByText(template.name, { exact: true }));
-      expect(select).toHaveBeenCalledWith(expect.objectContaining({ category: industry.key }));
+      expect(select).toHaveBeenCalledWith(expect.objectContaining({ category: industry.key, layout_data: expect.objectContaining({ cover_url: template.layout_data.cover_url, theme: template.layout_data.theme }) }));
     });
     it(`${industry.key}: confirmation applies only design fields to the existing card`, async () => {
       const applied = vi.fn();
@@ -39,7 +39,7 @@ describe("industry selection in onboarding and existing cards", () => {
       expect(applied).toHaveBeenCalledOnce();
       expect(updates.at(-1)).not.toHaveProperty("email");
       expect(updates.at(-1)).not.toHaveProperty("full_name");
-      expect(updates.at(-1)).toMatchObject({ showcase_display_mode: "immersive", carousel_settings: template.layout_data.carousel_settings });
+      expect(updates.at(-1)).toMatchObject({ showcase_display_mode: "immersive", carousel_settings: template.layout_data.carousel_settings, cover_url: template.layout_data.cover_url, theme: template.layout_data.theme });
     });
   }
 });
