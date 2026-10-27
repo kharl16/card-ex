@@ -48,6 +48,8 @@ describe("all 11 industry template paths", () => {
       });
       const card = inserts.at(-1);
       expect(card).toMatchObject({ first_name: "Ana", last_name: "Santos", full_name: "Ana Santos", phone: "09170000000", email: "ana@example.test", is_published: false });
+      expect(card?.cover_url).toBe(template.layout_data.cover_url);
+      expect(card?.theme).toEqual(template.layout_data.theme);
       const settings = mergeCarouselSettings(card?.carousel_settings as CardSnapshot["carousel_settings"]);
       expect(settings.products.title).toBe(template.layout_data.carousel_settings.products.title);
       expect(settings.products.cta.label).toBe(template.layout_data.carousel_settings.products.cta.label);
@@ -57,6 +59,8 @@ describe("all 11 industry template paths", () => {
       const snapshot = template.layout_data as unknown as CardSnapshot;
       const patch = buildTemplateDesignUpdate(snapshot);
       const next = { ...identity, ...patch };
+      expect(patch.cover_url).toBe(template.layout_data.cover_url);
+      expect(patch.theme).toEqual(template.layout_data.theme);
       for (const key of Object.keys(identity)) expect(next[key as keyof typeof next]).toEqual(identity[key as keyof typeof identity]);
       expect(patch.showcase_display_mode).toBe("immersive");
       expect(patch.brochure_images).toEqual([]);
@@ -69,6 +73,15 @@ describe("all 11 industry template paths", () => {
       expect(buildCardInsertFromSnapshot(snapshot, "owner", "new").showcase_display_mode).toBe("immersive");
     });
   }
+  it("each industry has its own hosted cover and coordinated background", () => {
+    expect(new Set(templates.map(t => t.layout_data.cover_url)).size).toBe(11);
+    expect(new Set(templates.map(t => t.layout_data.theme.background)).size).toBe(11);
+    for (const template of templates) {
+      expect(template.layout_data.cover_url).toMatch(new RegExp(`/template-${template.category}\\.webp$`));
+      expect(template.thumbnail_url).toBe(template.layout_data.cover_url);
+      expect(template.layout_data.theme.background).not.toBe("#0B0B0C");
+    }
+  });
   it("applies classic mode and brochure photos when present", () => {
     const snapshot = { ...templates[0].layout_data, showcase_display_mode: "carousel", brochure_images: [{ url: "/brochure.jpg" }] } as unknown as CardSnapshot;
     expect(buildTemplateDesignUpdate(snapshot)).toMatchObject({ showcase_display_mode: "carousel", brochure_images: [{ url: "/brochure.jpg" }] });
