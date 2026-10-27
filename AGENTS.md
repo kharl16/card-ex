@@ -14,5 +14,6 @@
 - Gate the OAuth setup panel inside its own wrapper using the authenticated owner's identity and resolved super-admin role; show production setup values independently of environment-aware login redirects, so every device displays the same guidance without changing sign-in behavior.
 - Embedded Google sign-in opens the same-origin standalone auth page with a sanitized return destination; start OAuth only there to preserve callback storage, and retain guidance for sandbox-inherited tabs and popup blockers.
 - Apply existing-card templates through a design-field allowlist, including brochure photos and showcase mode; never copy identity, contacts, ownership, payment or referral fields.
+- Store industry cover URLs and coordinated theme values in each global template snapshot; update only seeded templates, never existing cards, so users opt into design changes by selecting a template.
 - Verify edge-function callers with Supabase before elevated operations; never fall back to decoded, unverified JWT claims.
 - Protect card/profile authority fields with invoker validation triggers and exclude guest sessions through restrictive RLS; retain member editing and intentionally public cards.
