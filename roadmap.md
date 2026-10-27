@@ -30,4 +30,4 @@
 - [x] Harden guest access, appointment writes, billing/referral authority, verified admin identities and webhook authentication; public card and signed-out Vault verified. Existing advisory warnings remain for separate review.
 - [x] Test all 11 industry selectors, onboarding data and existing-card template confirmation; 48 tests verify personal details and showcase settings.
 - [ ] Verify authenticated onboarding, existing-card persistence and registered-member/admin Vault access end-to-end; blocked by unavailable authenticated session for external Supabase.
-- [ ] Add clean photographic covers and coordinated dark backgrounds to all 11 industry templates; verify selection and preservation of existing personal details.
+- [x] Add clean photographic covers and coordinated dark backgrounds to all 11 industry templates; 49 tests pass and all hosted covers render in CardView. Existing cards untouched; authenticated saving remains blocked by the session limitation above.
