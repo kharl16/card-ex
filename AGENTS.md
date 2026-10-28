@@ -17,3 +17,4 @@
 - Store industry cover URLs and coordinated theme values in each global template snapshot; update only seeded templates, never existing cards, so users opt into design changes by selecting a template.
 - Verify edge-function callers with Supabase before elevated operations; never fall back to decoded, unverified JWT claims.
 - Protect card/profile authority fields with invoker validation triggers and exclude guest sessions through restrictive RLS; retain member editing and intentionally public cards.
+- Serve member presentations as PDFs from a private bucket via short-lived signed URLs, rendered one page at a time with streamed range loading, so large decks open quickly and only paid members can read them.
