@@ -17,6 +17,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import Dashboard from "./pages/Dashboard";
 import CardEditor from "./pages/CardEditor";
 import DashboardActivity from "./pages/DashboardActivity";
+import DashboardPresentations from "./pages/DashboardPresentations";
 import DashboardProfile from "./pages/DashboardProfile";
 import DashboardSettings from "./pages/DashboardSettings";
 import Workspace from "./pages/Workspace";
@@ -114,6 +115,16 @@ const AnimatedRoutes = () => {
                 <RequireOnboarding>
                   <Dashboard />
                 </RequireOnboarding>
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/dashboard/presentations"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <DashboardPresentations />
               </RequireAuth>
             </PageTransition>
           }
