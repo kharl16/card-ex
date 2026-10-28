@@ -1992,6 +1992,42 @@ export type Database = {
           },
         ]
       }
+      member_presentations: {
+        Row: {
+          created_at: string
+          description: string | null
+          file_path: string
+          file_size: number | null
+          id: string
+          is_active: boolean
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          file_path: string
+          file_size?: number | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          is_active?: boolean
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       memberships: {
         Row: {
           created_at: string | null
@@ -3862,6 +3898,7 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: boolean
       }
+      is_paid_member: { Args: { _user_id: string }; Returns: boolean }
       is_permanent_super_admin: { Args: { _user_id: string }; Returns: boolean }
       is_resource_admin: { Args: { p_user_id: string }; Returns: boolean }
       is_resource_super_admin: { Args: { p_user_id: string }; Returns: boolean }
