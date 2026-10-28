@@ -56,6 +56,7 @@ import { ReferralsFeed } from "@/components/dashboard/ReferralsFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
 import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
+import { Presentation as PresentationIcon } from "lucide-react";
 import { DashboardQuadrantTiles } from "@/components/dashboard/DashboardQuadrantTiles";
 import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
 import { GlobalSearch } from "@/components/dashboard/GlobalSearch";
@@ -479,6 +480,17 @@ export default function Dashboard() {
             <AddToHomeScreenButton label="Install Card-Ex" variant="outline" />
           </div>
           <MotivationalQuote />
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard/presentations")}
+            className="flex min-h-[64px] w-full items-center gap-4 rounded-2xl border border-primary/30 bg-card p-4 text-left transition-colors hover:bg-primary/10"
+          >
+            <PresentationIcon className="h-8 w-8 shrink-0 text-primary" />
+            <span className="flex-1">
+              <span className="block text-lg font-semibold text-foreground">Presentations</span>
+              <span className="block text-sm text-muted-foreground">View slides right here, one at a time</span>
+            </span>
+          </button>
           <TodaySummary cards={cards} />
           <DashboardQuadrantTiles />
         </div>
