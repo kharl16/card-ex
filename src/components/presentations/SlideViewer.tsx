@@ -153,7 +153,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
     }, 220);
   };
 
-  const pill = "absolute top-1/2 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/50 bg-background/60 text-primary shadow-lg backdrop-blur-md transition hover:bg-background/80 disabled:opacity-0";
+  const pill = "absolute top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-primary/50 bg-background/50 text-primary shadow-lg backdrop-blur-md transition hover:bg-background/80 disabled:opacity-0 sm:h-14 sm:w-14";
 
   return (
     <div
@@ -189,11 +189,11 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
         />
         {isFull && !loading && !error && (
           <>
-            <button aria-label="Previous slide" onClick={() => go(-1)} disabled={page <= 1} className={pill + " left-3 sm:left-6"}>
-              <ChevronLeft className="h-8 w-8" />
+            <button aria-label="Previous slide" onClick={() => go(-1)} disabled={page <= 1} className={pill + " left-1 sm:left-6"}>
+              <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8" />
             </button>
-            <button aria-label="Next slide" onClick={() => go(1)} disabled={page >= total} className={pill + " right-3 sm:right-6"}>
-              <ChevronRight className="h-8 w-8" />
+            <button aria-label="Next slide" onClick={() => go(1)} disabled={page >= total} className={pill + " right-1 sm:right-6"}>
+              <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8" />
             </button>
           </>
         )}
@@ -204,12 +204,12 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
           <button
             aria-label="Close full screen"
             onClick={toggleFull}
-            className="absolute right-4 top-4 z-20 flex h-12 items-center gap-2 rounded-full border border-primary/50 bg-background/70 px-4 text-base font-semibold text-primary backdrop-blur-md"
+            className="absolute right-2 top-2 z-20 flex h-10 items-center gap-1 rounded-full border border-primary/50 bg-background/60 px-3 text-sm font-semibold text-primary backdrop-blur-md sm:right-4 sm:top-4 sm:h-12 sm:gap-2 sm:px-4 sm:text-base"
           >
-            <X className="h-6 w-6" /> Close
+            <X className="h-5 w-5 sm:h-6 sm:w-6" /> Close
           </button>
           {!loading && !error && (
-            <p className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2 rounded-full border border-primary/40 bg-background/70 px-5 py-2 text-lg font-semibold text-foreground backdrop-blur-md" aria-live="polite">
+            <p className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-primary/40 bg-background/60 px-3 py-1 text-base font-semibold text-foreground backdrop-blur-md sm:bottom-5 sm:px-5 sm:py-2 sm:text-lg" aria-live="polite">
               Slide {page} of {total}
             </p>
           )}
