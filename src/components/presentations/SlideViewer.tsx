@@ -22,10 +22,18 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
   const [error, setError] = useState<string | null>(null);
   const [isFull, setIsFull] = useState(false);
   const [width, setWidth] = useState(0);
+  // Viewport height is tracked separately so rotation re-scales the slide.
+  const [vh, setVh] = useState(() => window.innerHeight);
   const [drag, setDrag] = useState(0);
   const [anim, setAnim] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
+
+  useEffect(() => {
+    const onResize = () => setVh(window.innerHeight);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
