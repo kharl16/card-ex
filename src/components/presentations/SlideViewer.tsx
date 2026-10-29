@@ -209,7 +209,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
             <X className="h-5 w-5 sm:h-6 sm:w-6" /> Close
           </button>
           {!loading && !error && (
-            <p className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-primary/40 bg-background/60 px-3 py-1 text-base font-semibold text-foreground backdrop-blur-md sm:bottom-5 sm:px-5 sm:py-2 sm:text-lg" aria-live="polite">
+            <p className="absolute bottom-2 left-1/2 z-20 -translate-x-1/2 rounded-full border border-primary/25 bg-background/20 px-3 py-1 text-base font-semibold text-foreground/70 backdrop-blur-sm transition hover:bg-background/60 hover:text-foreground sm:bottom-5 sm:px-5 sm:py-2 sm:text-lg" aria-live="polite">
               Slide {page} of {total}
             </p>
           )}
