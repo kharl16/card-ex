@@ -11,7 +11,6 @@ import AuthCallback from "./pages/AuthCallback";
 import AuthConfirm from "./pages/AuthConfirm";
 import OAuthConsent from "./pages/OAuthConsent";
 import ResetPassword from "./pages/ResetPassword";
-import SlideViewerDevPage from "./dev/SlideViewerDevPage";
 import ChangePassword from "./pages/ChangePassword";
 import AdminUsers from "./pages/admin/AdminUsers";
 
