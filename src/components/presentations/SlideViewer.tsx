@@ -70,7 +70,9 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
     doc.getPage(page).then((p) => {
       if (cancelled || !canvasRef.current) return;
       const base = p.getViewport({ scale: 1 });
-      const maxH = isFull ? window.innerHeight - 140 : Infinity;
+      // Full screen floats the controls over the slide, so only a hair of margin
+      // is reserved — the slide fills the screen on phones, including landscape.
+      const maxH = isFull ? vh - 16 : Infinity;
       const scale = Math.min(width / base.width, maxH / base.height);
       const dpr = window.devicePixelRatio || 1;
       const vp = p.getViewport({ scale: scale * dpr });
@@ -86,7 +88,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
       cancelled = true;
       task?.cancel();
     };
-  }, [doc, page, width, isFull]);
+  }, [doc, page, width, isFull, vh]);
 
   const total = doc?.numPages ?? 0;
   const go = useCallback((d: number) => setPage((p) => Math.min(Math.max(1, p + d), total || 1)), [total]);
