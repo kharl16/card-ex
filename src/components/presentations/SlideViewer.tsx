@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as pdfjs from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import { ChevronLeft, ChevronRight, Maximize, Minimize, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
@@ -22,6 +22,10 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
   const [error, setError] = useState<string | null>(null);
   const [isFull, setIsFull] = useState(false);
   const [width, setWidth] = useState(0);
+  const [drag, setDrag] = useState(0);
+  const [anim, setAnim] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const startX = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,7 +62,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
     doc.getPage(page).then((p) => {
       if (cancelled || !canvasRef.current) return;
       const base = p.getViewport({ scale: 1 });
-      const maxH = isFull ? window.innerHeight - 120 : Infinity;
+      const maxH = isFull ? window.innerHeight - 140 : Infinity;
       const scale = Math.min(width / base.width, maxH / base.height);
       const dpr = window.devicePixelRatio || 1;
       const vp = p.getViewport({ scale: scale * dpr });
@@ -83,8 +87,9 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight") go(1);
       if (e.key === "ArrowLeft") go(-1);
+      if (e.key === "Escape") setIsFull(false);
     };
-    const onFs = () => setIsFull(!!document.fullscreenElement);
+    const onFs = () => { if (!document.fullscreenElement) setIsFull(false); };
     window.addEventListener("keydown", onKey);
     document.addEventListener("fullscreenchange", onFs);
     return () => {
@@ -94,14 +99,71 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
   }, [go]);
 
   const toggleFull = () => {
-    const host = wrapRef.current?.parentElement;
-    if (!document.fullscreenElement) host?.requestFullscreen?.().catch(() => undefined);
-    else document.exitFullscreen();
+    if (!isFull) {
+      setIsFull(true);
+      rootRef.current?.requestFullscreen?.().catch(() => undefined);
+    } else {
+      setIsFull(false);
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => undefined);
+    }
   };
 
+  useEffect(() => {
+    if (!isFull) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [isFull]);
+
+  // Swipe: slide follows the finger, then glides to the next/previous slide.
+  const onDown = (e: React.PointerEvent) => {
+    if (!isFull || !total) return;
+    startX.current = e.clientX;
+    setAnim(false);
+  };
+  const onMove = (e: React.PointerEvent) => {
+    if (startX.current === null) return;
+    let dx = e.clientX - startX.current;
+    if ((dx > 0 && page <= 1) || (dx < 0 && page >= total)) dx *= 0.3;
+    setDrag(dx);
+  };
+  const onUp = () => {
+    if (startX.current === null) return;
+    startX.current = null;
+    const w = width || window.innerWidth;
+    const dir = drag < -60 && page < total ? 1 : drag > 60 && page > 1 ? -1 : 0;
+    setAnim(true);
+    if (!dir) { setDrag(0); return; }
+    setDrag(-dir * w);
+    window.setTimeout(() => {
+      setAnim(false);
+      go(dir);
+      setDrag(dir * w * 0.25);
+      requestAnimationFrame(() => requestAnimationFrame(() => { setAnim(true); setDrag(0); }));
+    }, 220);
+  };
+
+  const pill = "absolute top-1/2 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-primary/50 bg-background/60 text-primary shadow-lg backdrop-blur-md transition hover:bg-background/80 disabled:opacity-0";
+
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-primary/30 bg-card p-4 data-[full=true]:justify-center" data-full={isFull}>
-      <div ref={wrapRef} className="relative flex min-h-[40vh] w-full items-center justify-center overflow-hidden rounded-xl bg-background">
+    <div
+      ref={rootRef}
+      data-full={isFull}
+      className={isFull
+        ? "fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background"
+        : "flex flex-col gap-4 rounded-2xl border border-primary/30 bg-card p-4"}
+    >
+      <div
+        ref={wrapRef}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+        onPointerLeave={onUp}
+        className={isFull
+          ? "relative flex h-full w-full touch-pan-y select-none items-center justify-center overflow-hidden"
+          : "relative flex min-h-[40vh] w-full items-center justify-center overflow-hidden rounded-xl bg-background"}
+      >
         {loading && (
           <div className="flex flex-col items-center gap-3 p-10 text-lg text-muted-foreground">
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -109,10 +171,42 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
           </div>
         )}
         {error && <p className="p-10 text-center text-lg text-destructive">{error}</p>}
-        <canvas ref={canvasRef} aria-label={`${title}, slide ${page} of ${total}`} className={loading || error ? "hidden" : "block"} />
+        <canvas
+          ref={canvasRef}
+          aria-label={`${title}, slide ${page} of ${total}`}
+          style={{ transform: `translateX(${drag}px)`, transition: anim ? "transform 220ms ease-out" : "none" }}
+          className={(loading || error ? "hidden" : "block") + (isFull ? " rounded-lg shadow-2xl" : "")}
+        />
+        {isFull && !loading && !error && (
+          <>
+            <button aria-label="Previous slide" onClick={() => go(-1)} disabled={page <= 1} className={pill + " left-3 sm:left-6"}>
+              <ChevronLeft className="h-8 w-8" />
+            </button>
+            <button aria-label="Next slide" onClick={() => go(1)} disabled={page >= total} className={pill + " right-3 sm:right-6"}>
+              <ChevronRight className="h-8 w-8" />
+            </button>
+          </>
+        )}
       </div>
 
-      {!loading && !error && (
+      {isFull && (
+        <>
+          <button
+            aria-label="Close full screen"
+            onClick={toggleFull}
+            className="absolute right-4 top-4 z-20 flex h-12 items-center gap-2 rounded-full border border-primary/50 bg-background/70 px-4 text-base font-semibold text-primary backdrop-blur-md"
+          >
+            <X className="h-6 w-6" /> Close
+          </button>
+          {!loading && !error && (
+            <p className="absolute bottom-5 left-1/2 z-20 -translate-x-1/2 rounded-full border border-primary/40 bg-background/70 px-5 py-2 text-lg font-semibold text-foreground backdrop-blur-md" aria-live="polite">
+              Slide {page} of {total}
+            </p>
+          )}
+        </>
+      )}
+
+      {!isFull && !loading && !error && (
         <>
           <p className="text-center text-xl font-semibold text-foreground" aria-live="polite">
             Slide {page} of {total}
@@ -126,8 +220,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
             </Button>
           </div>
           <Button onClick={toggleFull} variant="ghost" className="h-12 gap-2 text-base">
-            {isFull ? <Minimize className="h-5 w-5" /> : <Maximize className="h-5 w-5" />}
-            {isFull ? "Exit Full Screen" : "Full Screen"}
+            <Maximize className="h-5 w-5" /> Full Screen
           </Button>
         </>
       )}
