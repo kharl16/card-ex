@@ -28,6 +28,18 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
   const [anim, setAnim] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
+  // Full-screen counter fades after a few seconds; any tap or slide change brings it back.
+  const [counterOn, setCounterOn] = useState(true);
+  const counterTimer = useRef<number>();
+  const showCounter = useCallback(() => {
+    setCounterOn(true);
+    window.clearTimeout(counterTimer.current);
+    counterTimer.current = window.setTimeout(() => setCounterOn(false), 3000);
+  }, []);
+  useEffect(() => {
+    if (isFull) showCounter();
+    return () => window.clearTimeout(counterTimer.current);
+  }, [isFull, page, showCounter]);
 
   useEffect(() => {
     const onResize = () => setVh(window.innerHeight);
@@ -158,6 +170,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
   return (
     <div
       ref={rootRef}
+      onPointerDownCapture={isFull ? showCounter : undefined}
       data-full={isFull}
       className={isFull
         ? "fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background"
@@ -209,7 +222,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
             <X className="h-5 w-5 sm:h-6 sm:w-6" /> Close
           </button>
           {!loading && !error && (
-            <p className="absolute bottom-1.5 left-1.5 z-20 rounded-full border border-primary/25 bg-background/20 px-2.5 py-0.5 text-[13px] font-semibold leading-5 text-foreground/75 backdrop-blur-sm transition hover:bg-background/60 hover:text-foreground sm:bottom-4 sm:left-4 sm:px-3 sm:py-1 sm:text-sm" aria-live="polite">
+            <p className={"pointer-events-none absolute bottom-1.5 left-1.5 z-20 rounded-full border border-primary/25 bg-background/20 px-2.5 py-0.5 text-[13px] font-semibold leading-5 text-foreground/75 backdrop-blur-sm transition-opacity duration-500 sm:bottom-4 sm:left-4 sm:px-3 sm:py-1 sm:text-sm " + (counterOn ? "opacity-100" : "opacity-0")} aria-live="polite">
               Slide {page} of {total}
             </p>
           )}
