@@ -13,20 +13,12 @@ const read = (p: string) => readFileSync(resolve(process.cwd(), p), "utf8");
 describe("Resources label sync", () => {
   const surfaces: Array<{ file: string; mustContain: RegExp }> = [
     {
-      file: "src/components/dashboard/MobileBottomNav.tsx",
-      mustContain: /label:\s*"Resources",\s*path:\s*"\/resources"/,
-    },
-    {
-      file: "src/components/dashboard/DashboardDock.tsx",
-      mustContain: /label:\s*"Resources",\s*path:\s*"\/resources"/,
-    },
-    {
       file: "src/components/dashboard/DashboardQuickLinks.tsx",
       mustContain: /label:\s*"Resources",\s*path:\s*"\/resources"/,
     },
     {
-      file: "src/components/dashboard/DashboardOrb.tsx",
-      mustContain: /label:\s*"Resources",\s*path:\s*"\/resources"/,
+      file: "src/components/dashboard/DashboardQuadrantTiles.tsx",
+      mustContain: /id:\s*"resources",\s*label:\s*"Resources",\s*\n\s*icon:.*\n\s*path:\s*"\/resources"/,
     },
     {
       file: "src/hooks/useToolsOrb.ts",

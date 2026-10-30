@@ -28,11 +28,16 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
   const [anim, setAnim] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const startX = useRef<number | null>(null);
-  // Full-screen counter fades after a few seconds; any tap or slide change brings it back.
+  // Full-screen counter fades after a few seconds on touch devices only;
+  // mouse-driven screens (laptops) keep the controls visible at all times.
   const [counterOn, setCounterOn] = useState(true);
   const counterTimer = useRef<number>();
+  const isTouch = useRef(
+    typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches
+  );
   const showCounter = useCallback(() => {
     setCounterOn(true);
+    if (!isTouch.current) return;
     window.clearTimeout(counterTimer.current);
     counterTimer.current = window.setTimeout(() => setCounterOn(false), 3000);
   }, []);
