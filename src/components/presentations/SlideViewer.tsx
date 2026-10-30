@@ -165,7 +165,9 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
     }, 220);
   };
 
-  const pill = "absolute top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-primary/50 bg-background/50 text-primary shadow-lg backdrop-blur-md transition hover:bg-background/80 disabled:opacity-0 sm:h-14 sm:w-14";
+  const pill = "absolute top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-primary/50 bg-background/50 text-primary shadow-lg backdrop-blur-md transition duration-500 hover:bg-background/80 disabled:!opacity-0 sm:h-14 sm:w-14";
+
+  const fade = counterOn ? " opacity-100" : " pointer-events-none opacity-0";
 
   return (
     <div
@@ -202,10 +204,10 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
         />
         {isFull && !loading && !error && (
           <>
-            <button aria-label="Previous slide" onClick={() => go(-1)} disabled={page <= 1} className={pill + " left-1 sm:left-6"}>
+            <button aria-label="Previous slide" onClick={() => go(-1)} disabled={page <= 1} className={pill + " left-1 sm:left-6" + fade}>
               <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8" />
             </button>
-            <button aria-label="Next slide" onClick={() => go(1)} disabled={page >= total} className={pill + " right-1 sm:right-6"}>
+            <button aria-label="Next slide" onClick={() => go(1)} disabled={page >= total} className={pill + " right-1 sm:right-6" + fade}>
               <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8" />
             </button>
           </>
