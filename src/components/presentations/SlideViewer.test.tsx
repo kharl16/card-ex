@@ -20,7 +20,6 @@ class ResizeObserverStub {
   unobserve() {}
   disconnect() {}
 }
-// @ts-expect-error polyfill for jsdom
 window.ResizeObserver = window.ResizeObserver ?? ResizeObserverStub;
 
 beforeEach(() => {
