@@ -71,7 +71,7 @@ describe("full-screen controls visibility", () => {
       vi.advanceTimersByTime(4000);
     });
     expect(counter().className).toContain("opacity-0");
-    fireEvent.pointerDown(screen.getByText("Slide 1 of 3").parentElement!.parentElement!);
+    fireEvent.pointerDown(screen.getByText("Slide 1 of 3").parentElement!);
     expect(counter().className).toContain("opacity-100");
   });
 });
