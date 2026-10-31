@@ -73,4 +73,38 @@ describe("full-screen controls visibility", () => {
     fireEvent.pointerDown(screen.getByText("Slide 1 of 3").parentElement!);
     expect(counter().className).toContain("opacity-100");
   });
+
+  it("re-shows hidden controls on a touch laptop when the mouse moves, then auto-hides again", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(coarsePointersOnly);
+    await openFullScreen();
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-0");
+    fireEvent.pointerMove(screen.getByText("Slide 1 of 3").parentElement!, { pointerType: "mouse" });
+    expect(counter().className).toContain("opacity-100");
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-0");
+  });
+
+  it("ignores compatibility mouse events fired right after a touch so auto-hide still works", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(coarsePointersOnly);
+    await openFullScreen();
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    const root = screen.getByText("Slide 1 of 3").parentElement!;
+    fireEvent.pointerMove(root, { pointerType: "touch" });
+    expect(counter().className).toContain("opacity-100");
+    await act(async () => {
+      vi.advanceTimersByTime(100);
+    });
+    fireEvent.pointerMove(root, { pointerType: "mouse" });
+    await act(async () => {
+      vi.advanceTimersByTime(3000);
+    });
+    expect(counter().className).toContain("opacity-0");
+  });
 });
