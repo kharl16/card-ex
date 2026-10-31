@@ -41,6 +41,18 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
     window.clearTimeout(counterTimer.current);
     counterTimer.current = window.setTimeout(() => setCounterOn(false), 3000);
   }, []);
+  // On touch-enabled laptops, moving the mouse re-shows the controls; browsers fire
+  // compatibility mouse events right after a touch, so those are ignored briefly.
+  const lastTouch = useRef(0);
+  const onPointerActivity = useCallback((e: React.PointerEvent) => {
+    if (e.pointerType === "touch") {
+      lastTouch.current = Date.now();
+      showCounter();
+      return;
+    }
+    if (e.type !== "pointerdown" && Date.now() - lastTouch.current < 700) return;
+    showCounter();
+  }, [showCounter]);
   useEffect(() => {
     if (isFull) showCounter();
     return () => window.clearTimeout(counterTimer.current);
@@ -177,7 +189,8 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
   return (
     <div
       ref={rootRef}
-      onPointerDownCapture={isFull ? showCounter : undefined}
+      onPointerDownCapture={isFull ? onPointerActivity : undefined}
+      onPointerMoveCapture={isFull ? onPointerActivity : undefined}
       data-full={isFull}
       className={isFull
         ? "fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background"
