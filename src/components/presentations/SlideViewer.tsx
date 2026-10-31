@@ -263,8 +263,6 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
             >
               Slide {page} of {total}
             </p>
-              Slide {page} of {total}
-            </p>
           )}
         </>
       )}
