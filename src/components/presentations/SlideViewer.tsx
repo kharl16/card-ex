@@ -35,8 +35,21 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
   const isTouch = useRef(
     typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches
   );
+  // While the mouse rests on a control, keep the controls visible; leaving resumes auto-hide.
+  const hoverRef = useRef(false);
   const showCounter = useCallback(() => {
     setCounterOn(true);
+    if (!isTouch.current || hoverRef.current) return;
+    window.clearTimeout(counterTimer.current);
+    counterTimer.current = window.setTimeout(() => setCounterOn(false), 3000);
+  }, []);
+  const onControlEnter = useCallback(() => {
+    hoverRef.current = true;
+    setCounterOn(true);
+    window.clearTimeout(counterTimer.current);
+  }, []);
+  const onControlLeave = useCallback(() => {
+    hoverRef.current = false;
     if (!isTouch.current) return;
     window.clearTimeout(counterTimer.current);
     counterTimer.current = window.setTimeout(() => setCounterOn(false), 3000);
@@ -222,10 +235,10 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
         />
         {isFull && !loading && !error && (
           <>
-            <button aria-label="Previous slide" onClick={() => go(-1)} disabled={page <= 1} className={pill + " left-1 sm:left-6" + fade}>
+            <button aria-label="Previous slide" onClick={() => go(-1)} disabled={page <= 1} onPointerEnter={onControlEnter} onPointerLeave={onControlLeave} className={pill + " left-1 sm:left-6" + fade}>
               <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8" />
             </button>
-            <button aria-label="Next slide" onClick={() => go(1)} disabled={page >= total} className={pill + " right-1 sm:right-6" + fade}>
+            <button aria-label="Next slide" onClick={() => go(1)} disabled={page >= total} onPointerEnter={onControlEnter} onPointerLeave={onControlLeave} className={pill + " right-1 sm:right-6" + fade}>
               <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8" />
             </button>
           </>
@@ -242,7 +255,12 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
             <X className="h-5 w-5 sm:h-6 sm:w-6" /> Close
           </button>
           {!loading && !error && (
-            <p className={"pointer-events-none absolute bottom-1.5 left-1.5 z-20 rounded-full border border-primary/25 bg-background/20 px-2.5 py-0.5 text-[13px] font-semibold leading-5 text-foreground/75 backdrop-blur-sm transition-opacity duration-500 sm:bottom-4 sm:left-4 sm:px-3 sm:py-1 sm:text-sm " + (counterOn ? "opacity-100" : "opacity-0")} aria-live="polite">
+            <p
+              aria-live="polite"
+              onPointerEnter={onControlEnter}
+              onPointerLeave={onControlLeave}
+              className={"absolute bottom-1.5 left-1.5 z-20 rounded-full border border-primary/25 bg-background/20 px-2.5 py-0.5 text-[13px] font-semibold leading-5 text-foreground/75 backdrop-blur-sm transition-opacity duration-500 sm:bottom-4 sm:left-4 sm:px-3 sm:py-1 sm:text-sm " + (counterOn ? "opacity-100" : "pointer-events-none opacity-0")}
+            >
               Slide {page} of {total}
             </p>
           )}
