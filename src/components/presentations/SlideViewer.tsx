@@ -238,7 +238,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
             <button aria-label="Previous slide" onClick={() => go(-1)} disabled={page <= 1} onPointerEnter={onControlEnter} onPointerLeave={onControlLeave} className={pill + " left-1 sm:left-6" + fade}>
               <ChevronLeft className="h-6 w-6 sm:h-8 sm:w-8" />
             </button>
-            <button aria-label="Next slide" onClick={() => go(1)} disabled={page >= total} onPointerEnter={onControlEnter} onPointerLeave={onControlLeave} className={pill + " right-1 sm:right-6" + fade}>
+            <button aria-label="Next slide" onClick={() => go(1)} disabled={page >= total} onPointerEnter={onControlEnter} onPointerLeave={onControlLeave} onFocus={onControlEnter} onBlur={onControlLeave} className={pill + " right-1 sm:right-6" + fade}>
               <ChevronRight className="h-6 w-6 sm:h-8 sm:w-8" />
             </button>
           </>
@@ -257,8 +257,11 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
           {!loading && !error && (
             <p
               aria-live="polite"
+              tabIndex={0}
               onPointerEnter={onControlEnter}
               onPointerLeave={onControlLeave}
+              onFocus={onControlEnter}
+              onBlur={onControlLeave}
               className={"absolute bottom-1.5 left-1.5 z-20 rounded-full border border-primary/25 bg-background/20 px-2.5 py-0.5 text-[13px] font-semibold leading-5 text-foreground/75 backdrop-blur-sm transition-opacity duration-500 sm:bottom-4 sm:left-4 sm:px-3 sm:py-1 sm:text-sm " + (counterOn ? "opacity-100" : "pointer-events-none opacity-0")}
             >
               Slide {page} of {total}

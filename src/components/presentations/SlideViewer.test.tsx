@@ -160,4 +160,44 @@ describe("full-screen controls visibility", () => {
     });
     expect(counter().className).toContain("opacity-0");
   });
+
+  it("keeps the controls visible while the Next arrow has keyboard focus, then re-hides after blur", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(coarsePointersOnly);
+    await openFullScreen();
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    const next = screen.getByRole("button", { name: "Next slide" });
+    fireEvent(next, new FocusEvent("focusin", { bubbles: true }));
+    expect(counter().className).toContain("opacity-100");
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-100");
+    fireEvent(next, new FocusEvent("focusout", { bubbles: true }));
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-0");
+  });
+
+  it("shows the hidden slide counter when it receives keyboard focus, then re-hides after blur", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(coarsePointersOnly);
+    await openFullScreen();
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    const counterEl = counter();
+    fireEvent(counterEl, new FocusEvent("focusin", { bubbles: true }));
+    expect(counter().className).toContain("opacity-100");
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-100");
+    fireEvent(counterEl, new FocusEvent("focusout", { bubbles: true }));
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-0");
+  });
 });
