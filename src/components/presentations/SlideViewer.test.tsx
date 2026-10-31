@@ -118,4 +118,46 @@ describe("full-screen controls visibility", () => {
     });
     expect(counter().className).toContain("opacity-0");
   });
+
+  it("keeps the controls visible while the mouse hovers the Next arrow, then re-hides after it leaves", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(coarsePointersOnly);
+    await openFullScreen();
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    const next = screen.getByRole("button", { name: "Next slide" });
+    fireEvent.pointerMove(next, { pointerType: "mouse" });
+    expect(counter().className).toContain("opacity-100");
+    fireEvent.pointerOver(next, { pointerType: "mouse" });
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-100");
+    fireEvent.pointerOut(next, { pointerType: "mouse" });
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-0");
+  });
+
+  it("keeps the controls visible while the mouse hovers the slide counter, then re-hides after it leaves", async () => {
+    vi.spyOn(window, "matchMedia").mockImplementation(coarsePointersOnly);
+    await openFullScreen();
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    const counterEl = counter();
+    fireEvent.pointerMove(counterEl, { pointerType: "mouse" });
+    expect(counter().className).toContain("opacity-100");
+    fireEvent.pointerOver(counterEl, { pointerType: "mouse" });
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-100");
+    fireEvent.pointerOut(counterEl, { pointerType: "mouse" });
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    expect(counter().className).toContain("opacity-0");
+  });
 });
