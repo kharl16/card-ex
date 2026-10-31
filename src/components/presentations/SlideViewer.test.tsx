@@ -33,6 +33,17 @@ afterEach(() => {
   cleanup();
 });
 
+const coarsePointersOnly = (query: string) => ({
+  matches: query === "(pointer: coarse)",
+  media: query,
+  onchange: null,
+  addListener: vi.fn(),
+  removeListener: vi.fn(),
+  addEventListener: vi.fn(),
+  removeEventListener: vi.fn(),
+  dispatchEvent: vi.fn(),
+});
+
 async function openFullScreen() {
   await act(async () => {
     render(<SlideViewer url="deck.pdf" title="Deck" />);
