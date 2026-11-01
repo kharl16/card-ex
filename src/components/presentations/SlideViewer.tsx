@@ -195,7 +195,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
     }, 220);
   };
 
-  const pill = "absolute top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-primary/50 bg-background/50 text-primary shadow-lg backdrop-blur-md transition duration-500 hover:bg-background/80 disabled:!opacity-0 sm:h-14 sm:w-14";
+  const pill = "absolute top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-primary/50 bg-background/50 text-primary shadow-lg backdrop-blur-md transition duration-500 hover:bg-background/80 disabled:!opacity-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:h-14 sm:w-14";
 
   const fade = counterOn ? " opacity-100" : " pointer-events-none opacity-0";
 
@@ -250,7 +250,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
           <button
             aria-label="Close full screen"
             onClick={toggleFull}
-            className="absolute right-2 top-2 z-20 flex h-10 items-center gap-1 rounded-full border border-primary/50 bg-background/60 px-3 text-sm font-semibold text-primary backdrop-blur-md sm:right-4 sm:top-4 sm:h-12 sm:gap-2 sm:px-4 sm:text-base"
+            className="absolute right-2 top-2 z-20 flex h-10 items-center gap-1 rounded-full border border-primary/50 bg-background/60 px-3 text-sm font-semibold text-primary backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:right-4 sm:top-4 sm:h-12 sm:gap-2 sm:px-4 sm:text-base"
           >
             <X className="h-5 w-5 sm:h-6 sm:w-6" /> Close
           </button>
@@ -262,7 +262,7 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
               onPointerLeave={onControlLeave}
               onFocus={onControlEnter}
               onBlur={onControlLeave}
-              className={"absolute bottom-1.5 left-1.5 z-20 rounded-full border border-primary/25 bg-background/20 px-2.5 py-0.5 text-[13px] font-semibold leading-5 text-foreground/75 backdrop-blur-sm transition-opacity duration-500 sm:bottom-4 sm:left-4 sm:px-3 sm:py-1 sm:text-sm " + (counterOn ? "opacity-100" : "pointer-events-none opacity-0")}
+              className={"absolute bottom-1.5 left-1.5 z-20 rounded-full border border-primary/25 bg-background/20 px-2.5 py-0.5 text-[13px] font-semibold leading-5 text-foreground/75 backdrop-blur-sm transition-opacity duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:bottom-4 sm:left-4 sm:px-3 sm:py-1 sm:text-sm " + (counterOn ? "opacity-100" : "pointer-events-none opacity-0")}
             >
               Slide {page} of {total}
             </p>
