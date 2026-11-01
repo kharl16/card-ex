@@ -438,6 +438,11 @@ All colors MUST be HSL.
     );
 }
 
+/* Sweeping gold light shared by every card box (Bio, contact, carousels, quote,
+   showcase). .gold-pulse-lining reuses the Bio box's glass-shimmer border sweep
+   (defined in the utilities layer above) — a subtle 1px light travelling along
+   the border on one shared 6s timing. Borders stay thin: --glass-border remains
+   the static hairline gold. */
 @media (prefers-reduced-motion: reduce) {
   .glass-shimmer::after,
   .gold-pulse-lining::after {
