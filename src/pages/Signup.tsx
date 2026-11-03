@@ -264,7 +264,7 @@ export default function Signup() {
           <Button
             type="button"
             variant="obsidian"
-            className="h-14 w-full gap-3 rounded-xl text-base font-semibold active:scale-[0.98] motion-reduce:active-scale-0 disabled:opacity-70 [&_svg]:size-5"
+            className="h-14 w-full gap-3 rounded-xl text-base font-semibold active:scale-[0.98] motion-reduce:active:scale-100 disabled:opacity-70 [&_svg]:size-5"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
