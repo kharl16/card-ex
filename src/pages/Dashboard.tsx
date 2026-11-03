@@ -131,8 +131,14 @@ export default function Dashboard() {
 
   const loadCards = async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    const targetId = viewAsUserId || user?.id;
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      setLoading(false);
+      await supabase.auth.signOut({ scope: "local" });
+      window.location.replace(`/auth?redirect=${encodeURIComponent("/dashboard")}`);
+      return;
+    }
+    const targetId = viewAsUserId || user.id;
     if (targetId) {
       const { data, error } = await supabase
         .from("cards")
