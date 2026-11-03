@@ -263,14 +263,15 @@ export default function Signup() {
 
           <Button
             type="button"
-            variant="outline"
-            className="w-full gap-2"
+            variant="obsidian"
+            className="h-14 w-full gap-3 rounded-xl text-base font-semibold active:scale-[0.98] motion-reduce:active:scale-100 disabled:opacity-70 [&_svg]:size-5"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >
-            <GoogleIcon className="h-4 w-4" />
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center" aria-hidden="true">
+              <GoogleIcon className="h-5 w-5" />
+            </span>
             Continue with Google
-
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
