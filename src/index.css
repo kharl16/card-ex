@@ -82,6 +82,8 @@ All colors MUST be HSL.
     --auth-glass-border: hsl(var(--gold-subtle) / 0.48);
     --auth-glass-shadow: inset 0 1px 0 hsl(var(--auth-champagne) / 0.14), inset 0 -1px 0 hsl(var(--background) / 0.8), 0 8px 24px -12px hsl(var(--gold) / 0.25);
     --auth-glass-hover-shadow: inset 0 1px 0 hsl(var(--auth-champagne) / 0.22), inset 0 -1px 0 hsl(var(--background) / 0.8), 0 8px 28px -10px hsl(var(--gold) / 0.38), 0 0 22px -4px hsl(var(--gold) / 0.26), 0 0 5px hsl(var(--gold) / 0.14);
+    --auth-silver-border-hover: hsl(210 14% 82% / 0.6);
+    --auth-silver-hover-shadow: 0 8px 28px -12px hsl(210 14% 70% / 0.18), 0 0 22px -4px hsl(210 16% 86% / 0.22), 0 0 5px hsl(210 16% 86% / 0.14);
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -423,8 +425,18 @@ All colors MUST be HSL.
   box-shadow: var(--auth-glass-hover-shadow);
 }
 
+/* Email sign-in keeps its outline look; hover adds a cool silver border and glow. */
+.auth-email-silver {
+  transition: box-shadow 250ms ease, border-color 250ms ease, transform 150ms ease;
+}
+.auth-email-silver:hover:not(:disabled) {
+  border-color: var(--auth-silver-border-hover);
+  box-shadow: var(--auth-silver-hover-shadow);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .auth-obsidian { transition: none; }
+  .auth-email-silver { transition: none; }
 }
 
 /* Sweeping gold light shared by every card box (Bio, contact, carousels, quote,
