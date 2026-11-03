@@ -362,7 +362,7 @@ export default function Auth() {
       <Button
         type="button"
         variant="outline"
-        className="h-14 w-full gap-3 rounded-xl text-base font-medium"
+        className="auth-email-silver h-14 w-full gap-3 rounded-xl text-base font-medium"
         onClick={() => setMode("signin")}
         disabled={loading}
       >
