@@ -3,6 +3,21 @@ import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import App from "./App.tsx";
 import "./index.css";
+import { supabase } from "@/integrations/supabase/client";
+
+// Clear a stored sign-in whose server session no longer exists ("Session not found"),
+// so pages stop loading as a ghost user and the person can sign in again.
+supabase.auth.getSession().then(async ({ data }) => {
+  if (!data.session) return;
+  const { error } = await supabase.auth.getUser();
+  if (error && (error.status === 403 || error.status === 401 || /session/i.test(error.message))) {
+    await supabase.auth.signOut({ scope: "local" });
+    const path = window.location.pathname;
+    if (path.startsWith("/dashboard") || path.startsWith("/workspace")) {
+      window.location.replace(`/auth?redirect=${encodeURIComponent(path)}`);
+    }
+  }
+});
 
 createRoot(document.getElementById("root")!).render(
   <HelmetProvider>
