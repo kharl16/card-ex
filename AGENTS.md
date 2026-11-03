@@ -1,5 +1,7 @@
 # Project architecture
 
+- Style the auth Google CTA through the shared obsidian Button variant and global semantic tokens, reusing the glass border sweep so sign-in styling remains themeable without altering OAuth behavior.
+
 - Keep Resources Hub search results inside the existing Pavilion, grouped by resource type and sourced from the same access-scoped resource hook, so search respects the current user's visible content.
 - Page both the Actual Card and Resources file/folder lightboxes with native CSS scroll-snap (one full-width page per photo) and sync the index after scrolling rests, so swipes are interruptible and feel like a phone's native gallery.
 - Keep all open lightbox photos eagerly mounted with stable keys, so consecutive native swipes never reach empty index-window pages or remount previously viewed photos.

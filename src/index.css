@@ -76,6 +76,12 @@ All colors MUST be HSL.
     --glass-blur: 36px;
     --glass-inner-glow: inset 0 1px 1px 0 hsl(0 0% 100% / 0.14), inset 0 0 30px 0 hsl(45 60% 55% / 0.06);
     --glass-shadow: 0 8px 40px -6px hsl(0 0% 0% / 0.65), 0 2px 8px hsl(0 0% 0% / 0.4), 0 0 0 0.5px hsl(45 50% 60% / 0.15);
+    --auth-champagne: 43 62% 78%;
+    --auth-glass-surface: linear-gradient(165deg, hsl(var(--surface-elevated) / 0.94), hsl(var(--background) / 0.96) 70%);
+    --auth-glass-highlight: linear-gradient(180deg, hsl(var(--foreground) / 0.07), transparent 55%);
+    --auth-glass-border: hsl(var(--gold-subtle) / 0.48);
+    --auth-glass-shadow: inset 0 1px 0 hsl(var(--auth-champagne) / 0.14), inset 0 -1px 0 hsl(var(--background) / 0.8), 0 8px 24px -12px hsl(var(--gold) / 0.25);
+    --auth-glass-hover-shadow: inset 0 1px 0 hsl(var(--auth-champagne) / 0.22), inset 0 -1px 0 hsl(var(--background) / 0.8), 0 8px 28px -10px hsl(var(--gold) / 0.38);
 
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -401,41 +407,24 @@ All colors MUST be HSL.
   }
 }
 
-/* Premium CTA gold — layered metallic champagne gradient for the auth
-   sign-in button. A soft top light + symmetric highlight band reads as
-   polished metal instead of the flat brassy ramp it replaces. */
-.gold-cta {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.38) 0%, rgba(255, 255, 255, 0) 34%),
-    linear-gradient(
-      135deg,
-      #6e4f12 0%,
-      #a07c25 16%,
-      #cfab4b 36%,
-      #ecd28b 48%,
-      #d9b95f 60%,
-      #a07c25 82%,
-      #6e4f12 100%
-    );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
-    0 10px 30px -12px rgba(212, 175, 55, 0.45);
+/* Obsidian sign-in glass uses the shared six-second border light catch. */
+.auth-obsidian {
+  border: 1px solid var(--auth-glass-border);
+  background: var(--auth-glass-highlight), var(--auth-glass-surface);
+  color: hsl(var(--auth-champagne));
+  box-shadow: var(--auth-glass-shadow);
+  backdrop-filter: blur(var(--glass-blur));
+  transition: box-shadow 250ms ease, border-color 250ms ease, transform 150ms ease;
+  letter-spacing: 0;
 }
 
-.gold-cta:hover:not(:disabled) {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.46) 0%, rgba(255, 255, 255, 0) 34%),
-    linear-gradient(
-      135deg,
-      #7b5a15 0%,
-      #b08a2b 16%,
-      #dcba58 36%,
-      #f2e09c 48%,
-      #e2c467 60%,
-      #b08a2b 82%,
-      #7b5a15 100%
-    );
+.auth-obsidian:hover:not(:disabled) {
+  border-color: hsl(var(--auth-champagne) / 0.72);
+  box-shadow: var(--auth-glass-hover-shadow);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-obsidian { transition: none; }
 }
 
 /* Sweeping gold light shared by every card box (Bio, contact, carousels, quote,
