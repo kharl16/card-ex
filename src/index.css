@@ -152,7 +152,8 @@ All colors MUST be HSL.
      .gold-pulse-lining shares the exact same sweep and 6s timing so every
      card box's light travels in sync, replacing the old border pulse. */
   .glass-shimmer,
-  .gold-pulse-lining {
+  .gold-pulse-lining,
+  .silver-shimmer {
     position: relative;
     overflow: hidden;
   }
@@ -170,6 +171,29 @@ All colors MUST be HSL.
       hsl(45 70% 65% / 0.4) 38%,
       hsl(45 80% 78% / 0.65) 50%,
       hsl(45 70% 65% / 0.4) 62%,
+      transparent 80%
+    );
+    background-size: 200% 100%;
+    animation: glass-shimmer-sweep 6s ease-in-out infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .silver-shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      110deg,
+      transparent 20%,
+      hsl(210 12% 78% / 0.35) 38%,
+      hsl(210 18% 92% / 0.6) 50%,
+      hsl(210 12% 78% / 0.35) 62%,
       transparent 80%
     );
     background-size: 200% 100%;
@@ -446,7 +470,8 @@ All colors MUST be HSL.
    the static hairline gold. */
 @media (prefers-reduced-motion: reduce) {
   .glass-shimmer::after,
-  .gold-pulse-lining::after {
+  .gold-pulse-lining::after,
+  .silver-shimmer::after {
     animation: none !important;
   }
 }
