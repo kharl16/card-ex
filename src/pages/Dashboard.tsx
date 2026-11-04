@@ -133,9 +133,20 @@ export default function Dashboard() {
   const loadCards = async () => {
     setLoading(true);
     setCardsError(false);
+    try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // A failed verification request is not evidence that the session ended.
+    // Preserve local credentials and use the existing Retry state for outages.
+    const invalidSession = userError && userError.name !== "AuthRetryableFetchError" && (
+      userError.status === 401 || userError.status === 403 ||
+      userError.name === "AuthSessionMissingError" ||
+      userError.code === "session_not_found" || userError.code === "session_expired"
+    );
+    if (userError && !invalidSession) {
+      setCardsError(true);
+      return;
+    }
     if (userError || !user) {
-      setLoading(false);
       await supabase.auth.signOut({ scope: "local" });
       window.location.replace(`/auth?redirect=${encodeURIComponent("/dashboard")}`);
       return;
@@ -176,7 +187,12 @@ export default function Dashboard() {
         toast.error("Failed to load cards");
       }
     }
-    setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setCardsError(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openShareDialog = (cardId: string, e: React.MouseEvent) => {
