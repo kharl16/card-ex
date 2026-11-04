@@ -1,5 +1,4 @@
 import React, { useMemo, useRef, useState } from "react";
-import { openIamShopSheet } from "@/components/carousel/IamShopSheet";
 import { BookOpen, Package, Play, ShoppingBag, Star, type LucideIcon } from "lucide-react";
 import LightboxDialog from "@/components/LightboxDialog";
 import VideoFullscreenDialog from "@/components/video/VideoFullscreenDialog";
@@ -246,7 +245,7 @@ export default function ImmersiveShowcase({
 
     switch (cta.action) {
       case "link":
-        if (cta.href) { if (!openIamShopSheet(cta.href)) window.open(cta.href, cta.target || "_blank"); }
+        if (cta.href) window.open(cta.href, cta.target || "_blank");
         else toast.error("Link URL not configured");
         break;
 

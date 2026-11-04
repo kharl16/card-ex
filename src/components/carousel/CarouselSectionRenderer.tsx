@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { openIamShopSheet } from "@/components/carousel/IamShopSheet";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import CardExCarousel from "@/components/CardExCarousel";
@@ -87,7 +86,7 @@ export default function CarouselSectionRenderer({
     switch (cta?.action) {
       case "link":
         if (cta.href) {
-          if (!openIamShopSheet(cta.href)) window.open(cta.href, cta.target || "_blank");
+          window.open(cta.href, cta.target || "_blank");
         } else {
           toast.error("Link URL not configured");
         }
