@@ -170,6 +170,11 @@ export default function Dashboard() {
             });
         }
       }
+      } catch (err) {
+        console.error(err);
+        setCardsError(true);
+        toast.error("Failed to load cards");
+      }
     }
     setLoading(false);
   };
