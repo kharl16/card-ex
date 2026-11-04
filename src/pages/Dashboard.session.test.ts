@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
+import { transpileModule } from "typescript";
 
 // Exercise the actual loader without mounting unrelated dashboard tools.
 const source = readFileSync("src/pages/Dashboard.tsx", "utf8");
 const start = source.indexOf("  const loadCards = async () => {");
 const end = source.indexOf("\n  const openShareDialog", start);
-const loader = source.slice(start, end).replace(/const loadCards =/, "return");
+const loader = transpileModule(source.slice(start, end), { compilerOptions: { target: 99 } }).outputText + "\nreturn loadCards;";
 
 function setup(error: unknown, user: { id: string } | null = null) {
   const signOut = vi.fn().mockResolvedValue({ error: null });
