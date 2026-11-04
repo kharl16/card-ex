@@ -142,6 +142,7 @@ export default function Dashboard() {
     }
     const targetId = viewAsUserId || user.id;
     if (targetId) {
+      try {
       const { data, error } = await supabase
         .from("cards")
         .select("*")
