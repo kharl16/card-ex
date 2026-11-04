@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 
 // Exercise the actual loader without mounting unrelated dashboard tools.
-const source = readFileSync(new URL("./Dashboard.tsx", import.meta.url), "utf8");
+const source = readFileSync("src/pages/Dashboard.tsx", "utf8");
 const start = source.indexOf("  const loadCards = async () => {");
 const end = source.indexOf("\n  const openShareDialog", start);
 const loader = source.slice(start, end).replace(/const loadCards =/, "return");
