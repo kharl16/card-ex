@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { CreditCard, Palette, ListTree } from "lucide-react";
+import { CreditCard, Palette, ListTree, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -77,6 +77,7 @@ export default function Dashboard() {
 
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cardsError, setCardsError] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [cardViewsMap, setCardViewsMap] = useState<Record<string, number>>({});
   const [referralsExpanded, setReferralsExpanded] = useState(false);
@@ -131,6 +132,7 @@ export default function Dashboard() {
 
   const loadCards = async () => {
     setLoading(true);
+    setCardsError(false);
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       setLoading(false);
@@ -140,6 +142,7 @@ export default function Dashboard() {
     }
     const targetId = viewAsUserId || user.id;
     if (targetId) {
+      try {
       const { data, error } = await supabase
         .from("cards")
         .select("*")
@@ -147,6 +150,7 @@ export default function Dashboard() {
         .order("created_at", { ascending: false });
       if (error) {
         console.error(error);
+        setCardsError(true);
         toast.error("Failed to load cards");
       } else {
         setCards(data || []);
@@ -165,6 +169,11 @@ export default function Dashboard() {
               setCardViewsMap(map);
             });
         }
+      }
+      } catch (err) {
+        console.error(err);
+        setCardsError(true);
+        toast.error("Failed to load cards");
       }
     }
     setLoading(false);
@@ -535,6 +544,25 @@ export default function Dashboard() {
         {/* Cards section */}
         {loading ? (
           <LoadingAnimation />
+        ) : cardsError ? (
+          <Card className="border-primary/30 bg-card/60">
+            <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                <AlertTriangle className="h-8 w-8 text-primary/70" />
+              </div>
+              <h3 className="mb-2 text-lg font-bold">We couldn't load your cards</h3>
+              <p className="mb-6 max-w-xs text-sm text-muted-foreground">
+                Something went wrong while connecting. Check your internet connection and try again — your cards are safe.
+              </p>
+              <Button
+                onClick={loadCards}
+                className="h-12 gap-2 rounded-xl px-8 text-base font-semibold"
+              >
+                <RefreshCw className="h-5 w-5" />
+                Retry
+              </Button>
+            </CardContent>
+          </Card>
         ) : cards.length === 0 ? (
           <Card className="border-dashed border-border/40 bg-card/50">
             <CardContent className="flex flex-col items-center justify-center py-20">
