@@ -20,7 +20,7 @@ function setup(error: unknown, user: { id: string } | null = null) {
   const run = new Function("supabase", "window", "setLoading", "setCardsError", "viewAsUserId", "setCards", "setCardViewsMap", "toast", loader)(
     supabase, { location: { replace } }, setLoading, setCardsError, null, setCards, vi.fn(), { error: vi.fn() },
   );
-  return { run, signOut, replace, setCardsError, setLoading, setCards, getUser };
+  return { run, signOut, replace, setCardsError, setLoading, setCards, getUser, query };
 }
 
 describe("Dashboard session recovery", () => {
@@ -41,10 +41,31 @@ describe("Dashboard session recovery", () => {
     const state = setup({ name: "AuthRetryableFetchError", status: 0, message: "Failed to fetch" });
     await state.run();
     state.getUser.mockResolvedValueOnce({ data: { user: { id: "member-1" } }, error: null });
+    const cards = [{ id: "card-1", user_id: "member-1", full_name: "Member Card" }];
+    state.query.order.mockResolvedValueOnce({ data: cards, error: null });
+    // Analytics is independent of loading the recovered cards.
+    state.query.select.mockReturnValueOnce(state.query).mockReturnValueOnce({
+      in: () => Promise.resolve({ data: [] }),
+    });
     await state.run();
-    expect(state.setCards).toHaveBeenCalledWith([]);
+    expect(state.setCards).toHaveBeenCalledWith(cards);
     expect(state.setCardsError).toHaveBeenLastCalledWith(false);
     expect(state.signOut).not.toHaveBeenCalled();
+  });
+
+  it("offers retry without signing out when verification throws", async () => {
+    const state = setup(null);
+    state.getUser.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      await state.run();
+      expect(state.signOut).not.toHaveBeenCalled();
+      expect(state.replace).not.toHaveBeenCalled();
+      expect(state.setCardsError).toHaveBeenLastCalledWith(true);
+      expect(state.setLoading).toHaveBeenLastCalledWith(false);
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it.each([
