@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import { CreditCard, Palette, ListTree } from "lucide-react";
+import { CreditCard, Palette, ListTree, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo.png";
@@ -77,6 +77,7 @@ export default function Dashboard() {
 
   const [cards, setCards] = useState<CardData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cardsError, setCardsError] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [cardViewsMap, setCardViewsMap] = useState<Record<string, number>>({});
   const [referralsExpanded, setReferralsExpanded] = useState(false);
@@ -131,6 +132,7 @@ export default function Dashboard() {
 
   const loadCards = async () => {
     setLoading(true);
+    setCardsError(false);
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       setLoading(false);
@@ -147,6 +149,7 @@ export default function Dashboard() {
         .order("created_at", { ascending: false });
       if (error) {
         console.error(error);
+        setCardsError(true);
         toast.error("Failed to load cards");
       } else {
         setCards(data || []);
