@@ -17,6 +17,6 @@
 - Embedded Google sign-in opens the same-origin standalone auth page with a sanitized return destination; start OAuth only there to preserve callback storage, and retain guidance for sandbox-inherited tabs and popup blockers.
 - Apply existing-card templates through a design-field allowlist, including brochure photos and showcase mode; never copy identity, contacts, ownership, payment or referral fields.
 - Store industry cover URLs and coordinated theme values in each global template snapshot; update only seeded templates, never existing cards, so users opt into design changes by selecting a template.
-- Verify edge-function callers with Supabase before elevated operations; never fall back to decoded, unverified JWT claims.
+- Verify edge-function callers with Supabase before elevated operations; admin-delete-user (and similar admin functions) still fall back to the decoded JWT sub when auth.getUser fails.
 - Protect card/profile authority fields with invoker validation triggers and exclude guest sessions through restrictive RLS; retain member editing and intentionally public cards.
 - Serve member presentations as PDFs from a private bucket via short-lived signed URLs, rendered one page at a time with streamed range loading, so large decks open quickly and only paid members can read them.
