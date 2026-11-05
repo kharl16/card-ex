@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CalendarDays } from "lucide-react";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
-import cardExLogo from "@/assets/Card-Ex-Logo.png";
+import cardExLogo from "@/assets/Card-Ex-Logo-mark.png";
 
 interface QRActionRowProps {
   url: string;
