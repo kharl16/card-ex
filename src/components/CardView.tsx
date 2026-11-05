@@ -47,6 +47,7 @@ import { useGlobalTestimonyImages } from "@/hooks/useGlobalTestimonyImages";
 import VideoSectionRenderer from "@/components/video/VideoSectionRenderer";
 import RiderHeader from "@/components/RiderHeader";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
+import QRActionRow from "@/components/qr/QRActionRow";
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import AdBanner from "@/components/AdBanner";
 import { ReferralEarningsBadge } from "@/components/referral/ReferralEarningsBadge";
@@ -128,6 +129,10 @@ interface CardViewProps {
   referralCode?: string | null;
   /** Optional extra CTA rendered at the bottom of the card body */
   bottomAction?: React.ReactNode;
+  /** Opens booking; renders a Calendar tile left of the QR code */
+  onBookAppointment?: () => void;
+  /** Starts signup; renders a Card-Ex logo tile right of the QR code */
+  onCreateCard?: () => void;
   /**
    * Tailwind gap class applied on mobile between the bio block and the ad banner.
    * Use any Tailwind gap-* class (e.g. "gap-3", "gap-5", "gap-6"). Default: "gap-5".
@@ -253,6 +258,8 @@ export default function CardView({
   publicCardUrl,
   referralCode,
   bottomAction,
+  onBookAppointment,
+  onCreateCard,
   bioBannerGapMobile = "gap-3",
   bioBannerGapDesktop = "sm:gap-3",
   bioBannerSectionPadding = "px-6 pb-3",
@@ -777,6 +784,17 @@ export default function CardView({
             <div className="px-6 py-3">
               <div className="h-[3px] w-full animate-gold-pulse rounded-full glass-shimmer" style={{ background: `linear-gradient(90deg, transparent 0%, ${basePrimary}80 30%, ${basePrimary} 50%, ${basePrimary}80 70%, transparent 100%)`, boxShadow: `0 0 8px ${basePrimary}60, 0 0 20px ${basePrimary}30` }} />
             </div>
+            {(onBookAppointment || onCreateCard) ? (
+              <QRActionRow
+                url={card.public_url}
+                qrSettings={theme?.qr}
+                accent={basePrimary}
+                showDownload={isInteractive}
+                downloadFileName={`${card.full_name?.replace(/\s+/g, "-") || "card"}-qr`}
+                onBookAppointment={onBookAppointment}
+                onCreateCard={onCreateCard}
+              />
+            ) : (
             <div className="px-6 flex flex-col items-center gap-3 py-2 transition-colors duration-500">
               <QRCodeDisplay
                 url={card.public_url}
@@ -788,6 +806,7 @@ export default function CardView({
               />
               <p className="text-xs text-muted-foreground tracking-widest uppercase font-light">Scan to view this card</p>
             </div>
+            )}
           </>
         )}
 
