@@ -92,8 +92,8 @@ export default function QRActionRow({
       </div>
 
       {showDownload && (
-        <div className="mt-3 flex justify-center">
-          <QRCodeDisplay url={url} settings={qrSettings} size={1} showDownload downloadFileName={downloadFileName} className="hidden" />
+        <div className="mt-3 flex justify-center [&>div>*:first-child]:hidden">
+          <QRCodeDisplay url={url} settings={qrSettings} size={512} showDownload downloadFileName={downloadFileName} />
         </div>
       )}
     </div>

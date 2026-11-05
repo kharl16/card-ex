@@ -317,18 +317,8 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
           showVCardButtons={true}
           publicCardUrl={getPublicCardUrl(card.custom_slug || card.slug, !!card.custom_slug)}
           referralCode={ownerReferralCode}
-          bottomAction={
-            bookingEnabled ? (
-              <Button
-                onClick={() => setBookingDialogOpen(true)}
-                className="w-full gap-2 h-12 text-base font-semibold rounded-2xl"
-                style={{ backgroundColor: theme?.primary || "#D4AF37" }}
-              >
-                <CalendarDays className="h-5 w-5" />
-                Book Appointment
-              </Button>
-            ) : undefined
-          }
+          onBookAppointment={bookingEnabled ? () => setBookingDialogOpen(true) : undefined}
+          onCreateCard={handleCreateCard}
         />
 
         {/* View Team button */}
@@ -345,20 +335,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
             </Link>
           </div>
         )}
-        {/* Create your own Card-Ex button */}
-        <div className="px-4 pb-8 pt-3">
-          <Button
-            onClick={handleCreateCard}
-            variant="outline"
-            className="w-full gap-2 h-11 text-sm font-semibold"
-          >
-            <Plus className="h-4 w-4" />
-            Create your own Card-Ex
-          </Button>
-          <p className="text-center text-xs text-muted-foreground mt-2">
-            Get your professional digital business card
-          </p>
-        </div>
+        <div className="pb-8" />
 
         {/* Bottom spacer for floating FAB */}
         <div className="h-20" />
