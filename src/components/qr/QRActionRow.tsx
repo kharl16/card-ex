@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { CalendarDays } from "lucide-react";
 import QRCodeDisplay from "@/components/qr/QRCodeDisplay";
-import cardExLogo from "@/assets/Card-Ex-Logo.png";
+import cardExLogo from "@/assets/Card-Ex-Logo-mark.png";
 
 interface QRActionRowProps {
   url: string;
@@ -86,7 +86,7 @@ export default function QRActionRow({
 
         {onCreateCard && (
           <ActionTile onClick={onCreateCard} label="Create Your Own Card-Ex">
-            <img src={cardExLogo} alt="" className="w-3/5 h-3/5 object-contain" style={{ filter: `drop-shadow(0 0 8px ${accent}55)` }} />
+            <img src={cardExLogo} alt="" className="w-2/3 h-2/3 object-contain" style={{ filter: `drop-shadow(0 0 8px ${accent}55)` }} />
           </ActionTile>
         )}
       </div>
