@@ -188,6 +188,17 @@ export default function RiderHeader({
           <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
         </div>
 
+        {/* Full glowing gold frame: hairline gold on all four edges with a soft
+            gold bloom fading inward, plus the shared 6s light sweep. */}
+        <div
+          aria-hidden
+          className="cover-gold-frame pointer-events-none absolute inset-0 z-10"
+          style={{
+            border: `1px solid ${basePrimary}B3`,
+            boxShadow: `inset 0 0 0 1px ${basePrimary}26, inset 0 0 16px ${basePrimary}4D, inset 0 0 46px ${basePrimary}26`,
+          }}
+        />
+
         {/* Gold accent line under cover */}
         <div
           className="absolute inset-x-0 bottom-0 h-[3px] animate-gold-pulse"

@@ -211,6 +211,32 @@ All colors MUST be HSL.
     100% { background-position: 200% 0; }
   }
 
+  /* Cover-photo frame: the same 6s light sweep, painted on the border ring only
+     (mask trick) so the travelling light matches every other card box. The
+     frame's gold hairline and inward bloom come from the element's own style. */
+  .cover-gold-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      110deg,
+      transparent 20%,
+      hsl(45 70% 65% / 0.45) 38%,
+      hsl(45 80% 82% / 0.8) 50%,
+      hsl(45 70% 65% / 0.45) 62%,
+      transparent 80%
+    );
+    background-size: 200% 100%;
+    animation: glass-shimmer-sweep 6s ease-in-out infinite;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
   /* 3D Carousel utilities */
   .shadow-cardex {
     box-shadow: 0 14px 40px rgba(16, 185, 129, 0.35), 
