@@ -497,7 +497,8 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .glass-shimmer::after,
   .gold-pulse-lining::after,
-  .silver-shimmer::after {
+  .silver-shimmer::after,
+  .cover-gold-frame::after {
     animation: none !important;
   }
 }
