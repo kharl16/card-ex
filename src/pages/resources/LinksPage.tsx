@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, ExternalLink, Copy, Heart, X, Plus, Pencil } from "lucide-react";
+import { ArrowLeft, Search, ExternalLink, Copy, Heart, X, Plus, Pencil, Share2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { shareResourceLink } from "@/lib/shareResourceLink";
 import { ResourcesProvider } from "@/contexts/ResourcesContext";
 import { useResourceData } from "@/hooks/useResourceData";
 import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
@@ -55,9 +56,9 @@ function LinksPageContent() {
     }
   };
 
-  const handleOpen = (link: typeof links[0]) => {
-    logEvent("link", link.id, "open_link");
-    window.open(link.link, "_blank");
+  const handleShare = (link: typeof links[0]) => {
+    logEvent("link", link.id, "share");
+    void shareResourceLink({ name: link.name, link: link.link });
   };
 
   const clearFilters = () => {
@@ -175,7 +176,15 @@ function LinksPageContent() {
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-lg md:text-xl mb-2">{link.name}</h3>
-                        <p className="text-sm text-muted-foreground truncate">{link.link}</p>
+                        <a
+                          href={link.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => logEvent("link", link.id, "open_link")}
+                          className="block text-sm text-blue-400 underline-offset-2 hover:text-blue-300 hover:underline truncate"
+                        >
+                          {link.link}
+                        </a>
                       </div>
                       <Button
                         size="lg"
@@ -214,10 +223,10 @@ function LinksPageContent() {
                         variant="default"
                         size="lg"
                         className="flex-1 h-12 gap-2 text-base"
-                        onClick={() => handleOpen(link)}
+                        onClick={() => handleShare(link)}
                       >
-                        <ExternalLink className="h-5 w-5" />
-                        Open
+                        <Share2 className="h-5 w-5" />
+                        Share
                       </Button>
                     </div>
                   </CardContent>
