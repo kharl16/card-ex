@@ -466,6 +466,7 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
+        <Route path="/__ql-preview" element={<QuickLinksPreview />} />
         <Route
           path="/resources/directory"
           element={
