@@ -468,6 +468,7 @@ const AnimatedRoutes = () => {
           }
         />
         <Route path="/__ql-preview" element={<QuickLinksPreview />} />
+        <Route path="/__links-preview" element={<LinksPage />} />
         <Route
           path="/resources/directory"
           element={
