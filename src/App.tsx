@@ -38,7 +38,6 @@ import ResourcesHub from "./pages/ResourcesHub";
 import FilesPage from "./pages/resources/FilesPage";
 
 import LinksPage from "./pages/resources/LinksPage";
-import QuickLinksPreview from "./pages/__QuickLinksPreview";
 import DirectoryPage from "./pages/resources/DirectoryPage";
 import WaysPage from "./pages/resources/WaysPage";
 import FavoritesPage from "./pages/resources/FavoritesPage";
@@ -467,8 +466,6 @@ const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
-        <Route path="/__ql-preview" element={<QuickLinksPreview />} />
-        <Route path="/__links-preview" element={<LinksPage />} />
         <Route
           path="/resources/directory"
           element={
