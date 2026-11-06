@@ -1,8 +1,9 @@
-import { ExternalLink, Copy, Heart } from "lucide-react";
+import { Share2, Copy, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { shareResourceLink } from "@/lib/shareResourceLink";
 import type { IAMLink, EventType } from "@/types/resources";
 
 interface QuickLinksGridProps {
@@ -27,6 +28,11 @@ export function QuickLinksGrid({
     }
   };
 
+  const handleShare = (link: IAMLink) => {
+    onLogEvent(link.id, "share");
+    void shareResourceLink({ name: link.name, link: link.link });
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {links.map((link) => {
@@ -45,7 +51,15 @@ export function QuickLinksGrid({
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm truncate text-foreground">{link.name}</h3>
-                <p className="text-[10px] text-muted-foreground truncate">{link.link}</p>
+                <a
+                  href={link.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => onLogEvent(link.id, "open_link")}
+                  className="block text-[10px] text-blue-400 underline-offset-2 hover:text-blue-300 hover:underline truncate"
+                >
+                  {link.link}
+                </a>
               </div>
               <div className="flex items-center gap-0.5 flex-shrink-0 opacity-60 group-hover:opacity-100 transition-opacity">
                 <Button
@@ -60,16 +74,10 @@ export function QuickLinksGrid({
                   size="icon"
                   variant="ghost"
                   className="h-8 w-8 hover:bg-primary/10"
-                  asChild
+                  aria-label={`Share ${link.name}`}
+                  onClick={() => handleShare(link)}
                 >
-                  <a
-                    href={link.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => onLogEvent(link.id, "open_link")}
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                  <Share2 className="h-3.5 w-3.5" />
                 </Button>
                 <Button
                   size="icon"
