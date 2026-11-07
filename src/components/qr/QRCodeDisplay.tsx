@@ -161,7 +161,7 @@ export default function QRCodeDisplay({
         width: pixelSize,
         height: pixelSize,
         data: url,
-        margin: 8,
+        margin: Math.round(8 * dpr),
         dotsOptions: {
           color: useGradient ? undefined : (settings.darkColor || "#000000"),
           type: (dotTypeMap[settings.pattern || "squares"] || "square") as any,
@@ -182,7 +182,7 @@ export default function QRCodeDisplay({
         },
         imageOptions: {
           crossOrigin: "anonymous",
-          margin: 8,
+          margin: Math.round(8 * dpr),
           imageSize: 0.4,
         },
         image: !isBackgroundMode && settings.logoUrl ? settings.logoUrl : undefined,
@@ -203,7 +203,7 @@ export default function QRCodeDisplay({
         blobData = await compositeQRWithBackground(
           blobData,
           settings.logoUrl,
-          size,
+          pixelSize,
           settings.logoOpacity || 0.3,
           settings.lightColor || "#FFFFFF"
         );
