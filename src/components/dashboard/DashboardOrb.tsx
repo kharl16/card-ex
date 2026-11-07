@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { Zap, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBackButtonClose } from "@/hooks/useBackButtonClose";
-import CardExLogo from "@/assets/Card-Ex-Big.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 
 export interface QuickAction {
   id: string;
@@ -367,7 +367,7 @@ export function DashboardOrb({ actions, label = "Quick Actions" }: DashboardOrbP
             src={CardExLogo}
             alt=""
             draggable={false}
-            className="w-full h-full rounded-full object-cover pointer-events-none select-none"
+             className="w-full h-full rounded-full object-contain p-2 pointer-events-none select-none"
           />
           {/* Action badge */}
           <span
