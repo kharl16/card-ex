@@ -156,12 +156,14 @@ export default function QRCodeDisplay({
       // Render at the screen's pixel density so small on-card codes stay sharp.
       const dpr = typeof window !== "undefined" ? Math.min(3, Math.max(1, window.devicePixelRatio || 1)) : 1;
       const pixelSize = Math.round(size * dpr);
+      // Quiet zone shrinks with very small codes so the pattern fills the tile.
+      const quietZone = Math.round(Math.min(8, Math.max(4, size * 0.05)) * dpr);
 
       const qrCode = new QRCodeStyling({
         width: pixelSize,
         height: pixelSize,
         data: url,
-        margin: Math.round(8 * dpr),
+        margin: quietZone,
         dotsOptions: {
           color: useGradient ? undefined : (settings.darkColor || "#000000"),
           type: (dotTypeMap[settings.pattern || "squares"] || "square") as any,
