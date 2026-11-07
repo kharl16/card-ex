@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield, CheckCircle2, XCircle, Loader2, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 
 type ConsentStatus = "loading" | "ready" | "processing" | "error" | "needs_login";
 

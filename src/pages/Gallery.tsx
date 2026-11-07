@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import GalleryManager from "@/components/GalleryManager";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import SignOutButton from "@/components/auth/SignOutButton";
 import LoadingAnimation from "@/components/LoadingAnimation";
 

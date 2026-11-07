@@ -43,7 +43,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import { format } from "date-fns";
 import { PayoutExportPanel } from "@/components/referral/PayoutExportPanel";

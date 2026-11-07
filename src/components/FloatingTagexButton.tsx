@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { ExternalLink } from "lucide-react";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import { supabase } from "@/integrations/supabase/client";
 
 interface FloatingTagexButtonProps {

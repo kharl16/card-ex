@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, RefreshCw, LogOut } from "lucide-react";
 import { toast } from "sonner";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 

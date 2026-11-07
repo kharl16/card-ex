@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Heart, Clock, FolderOpen, Settings, Shield, ArrowLeft } from "lucide-react";
 import { useResources } from "@/contexts/ResourcesContext";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import SignOutButton from "@/components/auth/SignOutButton";
 
 interface ResourcesHeaderProps {

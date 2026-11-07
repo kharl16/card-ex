@@ -13,7 +13,7 @@ import { verifySignupAllowed, recordAuthEvent } from "@/lib/authClient";
 import { GOOGLE_BLOCKED_GUIDANCE, GOOGLE_PREVIEW_GUIDANCE, googlePreviewUrl, googleReturnPath, openGooglePreview, type GoogleGuidance } from "@/lib/googlePreview";
 import { GooglePreviewGuidance } from "@/components/auth/GooglePreviewGuidance";
 
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import { getAppUrl, getAuthCallbackUrl, storeAuthNext } from "@/lib/authUrl";
 import { SEO } from "@/components/SEO";
 

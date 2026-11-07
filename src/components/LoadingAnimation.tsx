@@ -1,4 +1,4 @@
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 
 const LoadingAnimation = () => {
   return (
