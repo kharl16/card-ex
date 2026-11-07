@@ -20,3 +20,4 @@
 - Verify edge-function callers with Supabase before elevated operations; admin-delete-user (and similar admin functions) still fall back to the decoded JWT sub when auth.getUser fails.
 - Protect card/profile authority fields with invoker validation triggers and exclude guest sessions through restrictive RLS; retain member editing and intentionally public cards.
 - Serve member presentations as PDFs from a private bucket via short-lived signed URLs, rendered one page at a time with streamed range loading, so large decks open quickly and only paid members can read them.
+- Scale the card's QR frame, quiet zone and render density with its tile size, so phone tiles show the code at the same proportion and sharpness as laptops.
