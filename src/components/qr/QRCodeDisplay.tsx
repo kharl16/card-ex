@@ -153,11 +153,17 @@ export default function QRCodeDisplay({
           }
         : undefined;
 
+      // Render at the screen's pixel density so small on-card codes stay sharp.
+      const dpr = typeof window !== "undefined" ? Math.min(3, Math.max(1, window.devicePixelRatio || 1)) : 1;
+      const pixelSize = Math.round(size * dpr);
+      // Quiet zone shrinks with very small codes so the pattern fills the tile.
+      const quietZone = Math.round(Math.min(8, Math.max(4, size * 0.05)) * dpr);
+
       const qrCode = new QRCodeStyling({
-        width: size,
-        height: size,
+        width: pixelSize,
+        height: pixelSize,
         data: url,
-        margin: 8,
+        margin: quietZone,
         dotsOptions: {
           color: useGradient ? undefined : (settings.darkColor || "#000000"),
           type: (dotTypeMap[settings.pattern || "squares"] || "square") as any,
@@ -178,7 +184,7 @@ export default function QRCodeDisplay({
         },
         imageOptions: {
           crossOrigin: "anonymous",
-          margin: 8,
+          margin: Math.round(8 * dpr),
           imageSize: 0.4,
         },
         image: !isBackgroundMode && settings.logoUrl ? settings.logoUrl : undefined,
@@ -199,7 +205,7 @@ export default function QRCodeDisplay({
         blobData = await compositeQRWithBackground(
           blobData,
           settings.logoUrl,
-          size,
+          pixelSize,
           settings.logoOpacity || 0.3,
           settings.lightColor || "#FFFFFF"
         );
