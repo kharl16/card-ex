@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import AppointmentSettings from "@/components/appointments/AppointmentSettings";
 import AppointmentManager from "@/components/appointments/AppointmentManager";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import SignOutButton from "@/components/auth/SignOutButton";
 
 export default function Appointments() {

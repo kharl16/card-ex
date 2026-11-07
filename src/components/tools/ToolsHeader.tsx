@@ -3,7 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SignOutButton from "@/components/auth/SignOutButton";
 import AdminButton from "@/components/AdminButton";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 
 export function ToolsHeader() {
   const navigate = useNavigate();

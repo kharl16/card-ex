@@ -20,7 +20,7 @@ import AdminButton from "@/components/AdminButton";
 import { CreditCard, Palette, ListTree, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import deepSearchBackdrop from "@/assets/tiles/tile-deep-search.jpg";
 import eagleImg from "@/assets/disc/eagle.jpg";

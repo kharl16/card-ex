@@ -45,7 +45,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables, Json } from "@/integrations/supabase/types";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import { TemplateSelector } from "@/components/patcher/TemplateSelector";
 import { CardSelector } from "@/components/patcher/CardSelector";

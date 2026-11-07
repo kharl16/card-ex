@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { CheckCircle } from "lucide-react";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 
 type Phase = "checking" | "ready" | "invalid";
 

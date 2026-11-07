@@ -19,7 +19,7 @@ import ProspectAnalytics from "@/components/prospects/ProspectAnalytics";
 import AddProspectDialog from "@/components/prospects/AddProspectDialog";
 import ImportContactsDialog from "@/components/prospects/ImportContactsDialog";
 import SignOutButton from "@/components/auth/SignOutButton";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import type { Prospect } from "@/hooks/useProspects";
 
 export default function ProspectListPage() {

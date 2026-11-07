@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Users, Database, Link2 } from "lucide-react";
 import { toast } from "sonner";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import SignOutButton from "@/components/auth/SignOutButton";
 import BulkCoverReplaceTool from "@/components/admin/BulkCoverReplaceTool";
 

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Shield, ShieldCheck, ShieldAlert, LogOut, Mail, Loader2, MailCheck, MailX, KeyRound } from "lucide-react";
 import { toast } from "sonner";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 
 type EmailStatus = "sent" | "failed" | "skipped" | undefined;
 

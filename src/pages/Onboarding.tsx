@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Loader2, Sparkles, Layers } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import CardExLogo from "@/assets/Card-Ex-Logo.png";
+import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import { TemplateSelectionModal } from "@/components/templates/TemplateSelectionModal";
 import { Badge } from "@/components/ui/badge";
 import { createCardFromOnboarding } from "@/lib/createCardFromOnboarding";
