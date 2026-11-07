@@ -153,9 +153,13 @@ export default function QRCodeDisplay({
           }
         : undefined;
 
+      // Render at the screen's pixel density so small on-card codes stay sharp.
+      const dpr = typeof window !== "undefined" ? Math.min(3, Math.max(1, window.devicePixelRatio || 1)) : 1;
+      const pixelSize = Math.round(size * dpr);
+
       const qrCode = new QRCodeStyling({
-        width: size,
-        height: size,
+        width: pixelSize,
+        height: pixelSize,
         data: url,
         margin: 8,
         dotsOptions: {
