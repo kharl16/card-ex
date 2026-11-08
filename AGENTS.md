@@ -21,3 +21,4 @@
 - Protect card/profile authority fields with invoker validation triggers and exclude guest sessions through restrictive RLS; retain member editing and intentionally public cards.
 - Serve member presentations as PDFs from a private bucket via short-lived signed URLs, rendered one page at a time with streamed range loading, so large decks open quickly and only paid members can read them.
 - Scale the card's QR frame, quiet zone and render density with its tile size, so phone tiles show the code at the same proportion and sharpness as laptops.
+- Extract chatbot knowledge from global library photos through a super-admin edge function that only proposes Q&A; saving happens after admin review on the AI Training page, so unverified AI text never reaches card chatbots automatically.

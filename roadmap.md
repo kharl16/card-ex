@@ -31,3 +31,4 @@
 - [x] Test all 11 industry selectors, onboarding data and existing-card template confirmation; 48 tests verify personal details and showcase settings.
 - [ ] Verify authenticated onboarding, existing-card persistence and registered-member/admin Vault access end-to-end; blocked by unavailable authenticated session for external Supabase.
 - [x] Add clean photographic covers and coordinated dark backgrounds to all 11 industry templates; 49 tests pass and all hosted covers render in CardView. Existing cards untouched; authenticated saving remains blocked by the session limitation above.
+- [x] Add a reviewed "Extract from Global Photos" scanner to AI Training for Packages, Products, Brochures and Testimonies; AI reading verified on a sample photo, 5 tests pass. Signed-in scan-and-save remains unverified (no preview session for external Supabase).

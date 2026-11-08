@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { BulkImportDialog } from "@/components/ai-training/BulkImportDialog";
 import { TemplateQADialog } from "@/components/ai-training/TemplateQADialog";
+import { PhotoKnowledgeExtractor } from "@/components/ai-training/PhotoKnowledgeExtractor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -186,6 +187,12 @@ export default function AdminAITraining() {
           <BulkImportDialog cardId={null} onImported={fetchGlobalQA} existingCount={qaItems.length} />
           <TemplateQADialog cardId={null} onImported={fetchGlobalQA} existingCount={qaItems.length} />
         </div>
+
+        <PhotoKnowledgeExtractor
+          existingQuestions={qaItems.map((q) => q.question)}
+          existingCount={qaItems.length}
+          onSaved={fetchGlobalQA}
+        />
 
         {/* Add new Q&A */}
         <Card>
