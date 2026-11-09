@@ -33,3 +33,5 @@
 - [x] Add clean photographic covers and coordinated dark backgrounds to all 11 industry templates; 49 tests pass and all hosted covers render in CardView. Existing cards untouched; authenticated saving remains blocked by the session limitation above.
 - [x] Add a reviewed "Extract from Global Photos" scanner to AI Training for Packages, Products, Brochures and Testimonies; AI reading verified on a sample photo, 5 tests pass. Signed-in scan-and-save remains unverified (no preview session for external Supabase).
 - [x] Show each scanned photo's source images, listed price and original extracted text beside its suggested Q&A, and flag answer numbers missing from the photo text; 9 tests pass. Signed-in scan remains unverified (no preview session).
+- [x] Require explicit confirmation for Q&A with unverified numbers; unconfirmed ones are saved on hold and kept out of the chatbot by a database rule (verified), 13 tests pass.
+- [x] Save each photo Q&A's source image and extracted text, and let admins reopen them from the repository. Signed-in page check remains unverified (no preview session).

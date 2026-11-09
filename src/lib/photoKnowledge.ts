@@ -14,6 +14,8 @@ export interface DraftQA {
   answer: string;
   selected: boolean;
   duplicate: boolean;
+  /** Numbers key the admin explicitly confirmed; stale once the flagged numbers change. */
+  confirmedFor?: string | null;
 }
 
 /** Split ids into scan batches so each request stays well inside time limits. */
@@ -92,4 +94,73 @@ export function findUnverifiedNumbers(answer: string, sourceText: string): strin
     if (!known.has(norm) && !out.includes(raw)) out.push(raw);
   }
   return out;
+}
+
+/** All source text a number may legitimately come from. */
+export function sourceCheckText(src: { extractedText?: string | null; srp?: string | null; caption?: string | null }): string {
+  return [src.extractedText, src.srp, src.caption].filter(Boolean).join("\n");
+}
+
+export function numbersKey(numbers: string[]): string {
+  return numbers.join("|");
+}
+
+/** A draft needs no confirmation when nothing is flagged; otherwise only an explicit confirmation of these exact numbers counts. */
+export function isDraftConfirmed(draft: Pick<DraftQA, "confirmedFor">, unverified: string[]): boolean {
+  return unverified.length === 0 || draft.confirmedFor === numbersKey(unverified);
+}
+
+export interface RepositoryRow {
+  question: string;
+  answer: string;
+  card_id: null;
+  sort_order: number;
+  is_active: boolean;
+  unverified_numbers: string[];
+  numbers_confirmed_at: string | null;
+  source_category: PhotoCategory;
+  source_image_id: string;
+  source_image_url: string;
+  source_image_url_2: string | null;
+  source_caption: string | null;
+  source_srp: string | null;
+  source_extracted_text: string;
+}
+
+/**
+ * Build the repository row for a reviewed draft. The source photo and its
+ * extracted text travel with the answer; flagged answers the admin has not
+ * confirmed are saved switched off so no chatbot can use them.
+ */
+export function toRepositoryRow(
+  draft: DraftQA,
+  source: PhotoSource,
+  category: PhotoCategory,
+  sortOrder: number,
+  now: string = new Date().toISOString(),
+): RepositoryRow {
+  const answer = draft.answer.trim();
+  const unverified = findUnverifiedNumbers(answer, sourceCheckText(source));
+  const confirmed = unverified.length > 0 && isDraftConfirmed(draft, unverified);
+  return {
+    question: draft.question.trim(),
+    answer,
+    card_id: null,
+    sort_order: sortOrder,
+    is_active: unverified.length === 0 || confirmed,
+    unverified_numbers: unverified,
+    numbers_confirmed_at: confirmed ? now : null,
+    source_category: category,
+    source_image_id: source.imageId,
+    source_image_url: source.url,
+    source_image_url_2: source.url2,
+    source_caption: source.caption,
+    source_srp: source.srp,
+    source_extracted_text: source.extractedText,
+  };
+}
+
+/** Saved answers whose flagged numbers were never confirmed stay out of the chatbot. */
+export function isOnHold(row: { unverified_numbers?: string[] | null; numbers_confirmed_at?: string | null }): boolean {
+  return (row.unverified_numbers?.length ?? 0) > 0 && !row.numbers_confirmed_at;
 }
