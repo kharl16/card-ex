@@ -74,8 +74,18 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          numbers_confirmed_at: string | null
+          numbers_confirmed_by: string | null
           question: string
           sort_order: number | null
+          source_caption: string | null
+          source_category: string | null
+          source_extracted_text: string | null
+          source_image_id: string | null
+          source_image_url: string | null
+          source_image_url_2: string | null
+          source_srp: string | null
+          unverified_numbers: string[]
           updated_at: string
         }
         Insert: {
@@ -84,8 +94,18 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          numbers_confirmed_at?: string | null
+          numbers_confirmed_by?: string | null
           question: string
           sort_order?: number | null
+          source_caption?: string | null
+          source_category?: string | null
+          source_extracted_text?: string | null
+          source_image_id?: string | null
+          source_image_url?: string | null
+          source_image_url_2?: string | null
+          source_srp?: string | null
+          unverified_numbers?: string[]
           updated_at?: string
         }
         Update: {
@@ -94,8 +114,18 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          numbers_confirmed_at?: string | null
+          numbers_confirmed_by?: string | null
           question?: string
           sort_order?: number | null
+          source_caption?: string | null
+          source_category?: string | null
+          source_extracted_text?: string | null
+          source_image_id?: string | null
+          source_image_url?: string | null
+          source_image_url_2?: string | null
+          source_srp?: string | null
+          unverified_numbers?: string[]
           updated_at?: string
         }
         Relationships: [
