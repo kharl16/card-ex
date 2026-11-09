@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildDrafts, chunk, normalizeQuestion } from "./photoKnowledge";
+import { buildDrafts, chunk, findUnverifiedNumbers, normalizeQuestion } from "./photoKnowledge";
 
 describe("photo knowledge drafts", () => {
   it("batches photos into groups of at most 3", () => {
@@ -35,5 +35,21 @@ describe("photo knowledge drafts", () => {
 
   it("normalizes punctuation and case", () => {
     expect(normalizeQuestion("  What's  the PRICE?! ")).toBe("what s the price");
+  });
+});
+
+describe("answer numbers vs photo text", () => {
+  it("flags a price in the answer that is not on the photo", () => {
+    expect(findUnverifiedNumbers("The Gold package costs ₱8,500.", "GOLD PACKAGE ₱7,500 includes 10 boxes")).toEqual([
+      "8,500",
+    ]);
+  });
+
+  it("accepts prices written with or without commas and decimals", () => {
+    expect(findUnverifiedNumbers("It costs ₱7500.00 and has 10 boxes.", "GOLD ₱7,500 — 10 boxes")).toEqual([]);
+  });
+
+  it("flags quantities that differ from the photo", () => {
+    expect(findUnverifiedNumbers("Includes 12 boxes of Pure Barley.", "Pure Barley x10 boxes")).toEqual(["12"]);
   });
 });

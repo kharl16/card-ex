@@ -61,3 +61,35 @@ export function buildDrafts(
   }
   return drafts;
 }
+
+/** What the scanner keeps for each photo so admins can verify drafts against it. */
+export interface PhotoSource {
+  imageId: string;
+  url: string;
+  url2: string | null;
+  caption: string | null;
+  srp: string | null;
+  extractedText: string;
+}
+
+function numberTokens(text: string): string[] {
+  const matches = text.match(/\d[\d,]*(?:\.\d+)?/g) ?? [];
+  return matches
+    .map((m) => m.replace(/,/g, "").replace(/\.0+$/, ""))
+    .filter((m) => m.length > 0);
+}
+
+/**
+ * Numbers (prices, quantities, PV) mentioned in an answer that do not appear
+ * anywhere in the photo's extracted text or listed price. These are the
+ * figures most worth double-checking before saving.
+ */
+export function findUnverifiedNumbers(answer: string, sourceText: string): string[] {
+  const known = new Set(numberTokens(sourceText));
+  const out: string[] = [];
+  for (const raw of answer.match(/\d[\d,]*(?:\.\d+)?/g) ?? []) {
+    const norm = raw.replace(/,/g, "").replace(/\.0+$/, "");
+    if (!known.has(norm) && !out.includes(raw)) out.push(raw);
+  }
+  return out;
+}
