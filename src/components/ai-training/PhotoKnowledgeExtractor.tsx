@@ -8,13 +8,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ScanText, Loader2, Square, Save, X, AlertTriangle, ExternalLink } from "lucide-react";
+import { ScanText, Loader2, Square, Save, X, AlertTriangle, CheckCircle2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { PhotoSourcePanel } from "@/components/ai-training/PhotoSourcePanel";
 import {
   buildDrafts,
   chunk,
   findUnverifiedNumbers,
+  isDraftConfirmed,
   normalizeQuestion,
+  numbersKey,
   PHOTO_CATEGORY_TABLES,
+  sourceCheckText,
+  toRepositoryRow,
   type DraftQA,
   type PhotoCategory,
   type PhotoSource,
@@ -38,6 +53,7 @@ interface Photo {
 }
 
 interface ScannedSource extends PhotoSource {
+  category: PhotoCategory;
   /** Number of Q&As the AI suggested, so photos with none still show for review. */
   suggested: number;
 }
@@ -58,6 +74,7 @@ export function PhotoKnowledgeExtractor({ existingQuestions, existingCount, onSa
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [failed, setFailed] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const stopRef = useRef(false);
 
   useEffect(() => {
@@ -134,6 +151,7 @@ export function PhotoKnowledgeExtractor({ existingQuestions, existingCount, onSa
           .map((r) => {
             const p = byId[r.image_id];
             return {
+              category,
               imageId: p.id,
               url: p.url,
               url2: p.url_2 ?? null,
@@ -157,29 +175,48 @@ export function PhotoKnowledgeExtractor({ existingQuestions, existingCount, onSa
   const updateDraft = (key: string, patch: Partial<DraftQA>) =>
     setDrafts((prev) => prev.map((d) => (d.key === key ? { ...d, ...patch } : d)));
 
-  const saveSelected = async () => {
-    const chosen = drafts.filter((d) => d.selected && d.question.trim() && d.answer.trim());
-    if (!chosen.length) return;
-    setSaving(true);
-    const { error } = await supabase.from("ai_training_qa").insert(
-      chosen.map((d, i) => ({
-        question: d.question.trim(),
-        answer: d.answer.trim(),
-        card_id: null,
-        sort_order: existingCount + i,
-      })),
+  const chosenDrafts = () =>
+    drafts.filter((d) => d.selected && d.question.trim() && d.answer.trim() && sources[d.imageId]);
+
+  const unconfirmedChosen = () =>
+    chosenDrafts().filter(
+      (d) => !isDraftConfirmed(d, findUnverifiedNumbers(d.answer, sourceCheckText(sources[d.imageId]))),
     );
+
+  const requestSave = () => {
+    if (unconfirmedChosen().length > 0) setConfirmOpen(true);
+    else void saveSelected();
+  };
+
+  const saveSelected = async () => {
+    setConfirmOpen(false);
+    const chosen = chosenDrafts();
+    if (!chosen.length) return;
+    const rows = chosen.map((d, i) => {
+      const src = sources[d.imageId];
+      return toRepositoryRow(d, src, src.category, existingCount + i);
+    });
+    setSaving(true);
+    const { error } = await supabase.from("ai_training_qa").insert(rows);
     setSaving(false);
     if (error) {
       console.error(error);
       toast.error("Could not save to the repository");
       return;
     }
-    toast.success(`${chosen.length} Q&A saved — every card chatbot can use them now`);
+    const held = rows.filter((r) => !r.is_active).length;
+    const live = rows.length - held;
+    toast.success(
+      held > 0
+        ? `${live} Q&A now used by chatbots · ${held} on hold until you confirm their numbers`
+        : `${live} Q&A saved — every card chatbot can use them now`,
+    );
     const savedKeys = new Set(chosen.map((d) => d.key));
     setDrafts((prev) => prev.filter((d) => !savedKeys.has(d.key)));
     onSaved();
   };
+
+  const pendingCount = confirmOpen ? unconfirmedChosen().length : 0;
 
   const pct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
 
@@ -254,7 +291,7 @@ export function PhotoKnowledgeExtractor({ existingQuestions, existingCount, onSa
                 <Button variant="ghost" className="min-h-11" onClick={() => setDrafts((p) => p.map((d) => ({ ...d, selected: false })))}>
                   Clear
                 </Button>
-                <Button className="min-h-11 gap-2" onClick={saveSelected} disabled={!selectedCount || saving}>
+                <Button className="min-h-11 gap-2" onClick={requestSave} disabled={!selectedCount || saving}>
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Save {selectedCount} to Repository
                 </Button>
@@ -263,58 +300,19 @@ export function PhotoKnowledgeExtractor({ existingQuestions, existingCount, onSa
 
             {grouped.map(([imageId, items]) => {
               const src = sources[imageId];
-              const checkText = [src.extractedText, src.srp, src.caption].filter(Boolean).join("\n");
-              const images = [
-                { url: src.url, label: "Front" },
-                ...(src.url2 ? [{ url: src.url2, label: "Back" }] : []),
-              ];
+              const checkText = sourceCheckText(src);
               return (
                 <article
                   key={imageId}
                   className="grid gap-4 rounded-2xl border border-border p-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
                 >
-                  <section aria-label="Source photo and text read from it" className="min-w-0 space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-sm font-semibold break-words">{src.caption || "Untitled photo"}</h3>
-                      {src.srp && <Badge variant="outline">Listed price: {src.srp}</Badge>}
-                    </div>
-                    <div className={`grid gap-2 ${images.length > 1 ? "grid-cols-2" : "grid-cols-1"}`}>
-                      {images.map((img) => (
-                        <a
-                          key={img.label}
-                          href={img.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="group block space-y-1 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                        >
-                          <img
-                            src={img.url}
-                            alt={`${src.caption ?? "Library photo"} — ${img.label.toLowerCase()}`}
-                            className="max-h-80 w-full rounded-xl border border-border bg-muted/30 object-contain"
-                            loading="lazy"
-                          />
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground group-hover:text-foreground">
-                            {images.length > 1 ? img.label : "Photo"} · Open full size
-                            <ExternalLink className="h-3 w-3" />
-                          </span>
-                        </a>
-                      ))}
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                        Text read from the photo
-                      </p>
-                      <div
-                        className="max-h-72 overflow-y-auto whitespace-pre-wrap break-words rounded-xl border border-border bg-muted/20 p-3 text-sm leading-relaxed"
-                        tabIndex={0}
-                        aria-label="Original text read from the photo"
-                      >
-                        {src.extractedText || (
-                          <span className="text-muted-foreground">No readable text was found on this photo.</span>
-                        )}
-                      </div>
-                    </div>
-                  </section>
+                  <PhotoSourcePanel
+                    url={src.url}
+                    url2={src.url2}
+                    caption={src.caption}
+                    srp={src.srp}
+                    extractedText={src.extractedText}
+                  />
 
                   <section aria-label="Suggested questions and answers" className="min-w-0 space-y-3">
                     <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -359,12 +357,33 @@ export function PhotoKnowledgeExtractor({ existingQuestions, existingCount, onSa
                               aria-label="Answer"
                             />
                             {unverified.length > 0 && (
-                              <p className="flex items-start gap-1.5 text-xs text-destructive">
-                                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                                <span>
-                                  Check {unverified.join(", ")} — not found in the photo text.
-                                </span>
-                              </p>
+                              <div className="space-y-2 rounded-xl border border-destructive/40 p-2">
+                                <p className="flex items-start gap-1.5 text-xs text-destructive">
+                                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                                  <span>Check {unverified.join(", ")} — not found in the photo text.</span>
+                                </p>
+                                <label className="flex min-h-11 cursor-pointer items-center gap-3 text-sm">
+                                  <Checkbox
+                                    className="h-5 w-5"
+                                    checked={isDraftConfirmed(d, unverified)}
+                                    onCheckedChange={(c) =>
+                                      updateDraft(d.key, { confirmedFor: c === true ? numbersKey(unverified) : null })
+                                    }
+                                  />
+                                  <span>
+                                    I checked {unverified.join(", ")} — {unverified.length > 1 ? "they are" : "it is"}{" "}
+                                    correct
+                                  </span>
+                                  {isDraftConfirmed(d, unverified) && (
+                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+                                  )}
+                                </label>
+                                {!isDraftConfirmed(d, unverified) && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Until you confirm, this answer is saved on hold and no chatbot will use it.
+                                  </p>
+                                )}
+                              </div>
                             )}
                           </div>
                           <Button
@@ -386,6 +405,27 @@ export function PhotoKnowledgeExtractor({ existingQuestions, existingCount, onSa
           </div>
         )}
       </CardContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingCount} {pendingCount === 1 ? "answer has" : "answers have"} unconfirmed numbers
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              These numbers were not found on the photo and you haven't confirmed them. If you save now, those answers
+              go to the repository on hold — no chatbot will use them until you confirm them there. The rest will be
+              used right away.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="min-h-11">Go back and check</AlertDialogCancel>
+            <AlertDialogAction className="min-h-11" onClick={() => void saveSelected()}>
+              Save, keep {pendingCount} on hold
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
