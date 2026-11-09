@@ -23,6 +23,10 @@ import {
 import { BulkImportDialog } from "@/components/ai-training/BulkImportDialog";
 import { TemplateQADialog } from "@/components/ai-training/TemplateQADialog";
 import { PhotoKnowledgeExtractor } from "@/components/ai-training/PhotoKnowledgeExtractor";
+import { QASourceDialog } from "@/components/ai-training/QASourceDialog";
+import { Badge } from "@/components/ui/badge";
+import { findUnverifiedNumbers, isOnHold, sourceCheckText } from "@/lib/photoKnowledge";
+import type { Tables } from "@/integrations/supabase/types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,14 +39,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface QAItem {
-  id: string;
-  question: string;
-  answer: string;
-  is_active: boolean;
-  sort_order: number;
-  card_id: string | null;
-}
+type QAItem = Tables<"ai_training_qa">;
+
+const hasSource = (q: QAItem) => Boolean(q.source_image_url || q.source_extracted_text);
 
 export default function AdminAITraining() {
   const { isAdmin, loading: authLoading } = useAuth();
@@ -103,19 +102,47 @@ export default function AdminAITraining() {
     setSaving(false);
   };
 
-  const updateQA = async (id: string, updates: Partial<QAItem>) => {
-    const { error } = await supabase
-      .from("ai_training_qa")
-      .update(updates)
-      .eq("id", id);
+  const updateQA = async (id: string, updates: Partial<QAItem>): Promise<boolean> => {
+    const current = qaItems.find((q) => q.id === id);
+    const payload: Partial<QAItem> = { ...updates };
+    // Photo-sourced answers are re-checked against their photo text whenever the answer changes.
+    if (current && hasSource(current) && typeof updates.answer === "string") {
+      payload.unverified_numbers = findUnverifiedNumbers(
+        updates.answer,
+        sourceCheckText({
+          extractedText: current.source_extracted_text,
+          srp: current.source_srp,
+          caption: current.source_caption,
+        }),
+      );
+    }
 
-    if (error) {
+    const { data, error } = await supabase
+      .from("ai_training_qa")
+      .update(payload)
+      .eq("id", id)
+      .select()
+      .single();
+
+    if (error || !data) {
       toast.error("Failed to update");
       console.error(error);
-    } else {
-      setQaItems(qaItems.map((q) => (q.id === id ? { ...q, ...updates } : q)));
+      return false;
     }
+    setQaItems((prev) => prev.map((q) => (q.id === id ? data : q)));
+    if (current && !isOnHold(current) && isOnHold(data)) {
+      toast.warning("This answer has numbers not found on its photo — it's on hold until you confirm them.");
+    }
+    return true;
   };
+
+  const confirmNumbers = async (id: string) => {
+    const ok = await updateQA(id, { numbers_confirmed_at: new Date().toISOString(), is_active: true });
+    if (ok) toast.success("Numbers confirmed — chatbots can use this answer now");
+    return ok;
+  };
+
+  const heldCount = qaItems.filter(isOnHold).length;
 
   const deleteQA = async (id: string) => {
     const { error } = await supabase
@@ -235,6 +262,12 @@ export default function AdminAITraining() {
             <MessageSquare className="h-5 w-5" />
             Global Q&A Entries ({qaItems.length})
           </h2>
+          {heldCount > 0 && (
+            <p className="text-sm text-destructive">
+              {heldCount} {heldCount === 1 ? "answer is" : "answers are"} on hold — chatbots won't use{" "}
+              {heldCount === 1 ? "it" : "them"} until you review and confirm the numbers.
+            </p>
+          )}
 
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => (
@@ -250,8 +283,30 @@ export default function AdminAITraining() {
             </Card>
           ) : (
             qaItems.map((item) => (
-              <Card key={item.id} className={!item.is_active ? "opacity-60" : ""}>
+              <Card
+                key={item.id}
+                className={isOnHold(item) ? "border-destructive/50" : !item.is_active ? "opacity-60" : ""}
+              >
                 <CardContent className="p-4 space-y-3">
+                  {(hasSource(item) || isOnHold(item)) && (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {hasSource(item) && (
+                          <Badge variant="secondary" className="max-w-full truncate">
+                            From photo: {item.source_caption || "Library photo"}
+                          </Badge>
+                        )}
+                        {isOnHold(item) && (
+                          <Badge variant="destructive">
+                            On hold · check {(item.unverified_numbers ?? []).join(", ")}
+                          </Badge>
+                        )}
+                      </div>
+                      {hasSource(item) && (
+                        <QASourceDialog item={item} onConfirm={() => confirmNumbers(item.id)} />
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 space-y-2">
                       <div>
@@ -287,6 +342,14 @@ export default function AdminAITraining() {
                     <div className="flex flex-col items-center gap-2 pt-5">
                       <Switch
                         checked={item.is_active}
+                        disabled={isOnHold(item)}
+                        aria-label={
+                          isOnHold(item)
+                            ? "On hold until numbers are confirmed"
+                            : item.is_active
+                              ? "Used by chatbots"
+                              : "Not used by chatbots"
+                        }
                         onCheckedChange={(checked) =>
                           updateQA(item.id, { is_active: checked })
                         }
