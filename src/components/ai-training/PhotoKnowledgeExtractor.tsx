@@ -99,7 +99,9 @@ export function PhotoKnowledgeExtractor({ existingQuestions, existingCount, onSa
     const rows = data as unknown as Photo[];
     const byId = Object.fromEntries(rows.map((p) => [p.id, p]));
     const batches = chunk(rows.map((p) => p.id), BATCH_SIZE);
-    const seen = new Set([...existingQuestions, ...drafts.map((d) => d.question)].map(normalizeQuestion));
+    const seen = new Set(
+      [...existingQuestions, ...drafts.filter((d) => !byId[d.imageId]).map((d) => d.question)].map(normalizeQuestion),
+    );
 
     stopRef.current = false;
     setScanning(true);
