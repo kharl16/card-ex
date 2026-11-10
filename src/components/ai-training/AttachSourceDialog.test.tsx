@@ -48,7 +48,8 @@ describe("AttachSourceDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /Attach source photo/ }));
 
     const gold = await screen.findByRole("button", { name: /Gold Package/ });
-    expect(screen.queryByRole("button", { name: /Silver Package/ })).toBeNull();
+    const tiles = screen.getAllByRole("button", { name: /Package/ }).filter((b) => b.querySelector("img"));
+    expect(tiles[0].textContent).toContain("Gold Package");
     fireEvent.click(gold);
 
     const text = await screen.findByLabelText("Original text read from the photo");
