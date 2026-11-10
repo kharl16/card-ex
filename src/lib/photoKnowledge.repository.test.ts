@@ -79,4 +79,14 @@ describe("attaching a source photo to an older answer", () => {
     expect(patch.is_active).toBe(true);
     expect(patch.source_extracted_text).toBe(source.extractedText);
   });
+
+  it("flags a price at the end of a phrase without its trailing comma", () => {
+    const patch = buildSourcePatch(
+      { answer: "The Copper package costs ₱5,600, as of 2026.", is_active: true },
+      source,
+      "packages",
+      null,
+    );
+    expect(patch.unverified_numbers).toEqual(["5,600", "2026"]);
+  });
 });
