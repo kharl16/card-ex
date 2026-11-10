@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,8 +24,17 @@ import { BulkImportDialog } from "@/components/ai-training/BulkImportDialog";
 import { TemplateQADialog } from "@/components/ai-training/TemplateQADialog";
 import { PhotoKnowledgeExtractor } from "@/components/ai-training/PhotoKnowledgeExtractor";
 import { QASourceDialog } from "@/components/ai-training/QASourceDialog";
+import { AttachSourceDialog } from "@/components/ai-training/AttachSourceDialog";
 import { Badge } from "@/components/ui/badge";
-import { findUnverifiedNumbers, isOnHold, sourceCheckText } from "@/lib/photoKnowledge";
+import {
+  filterRepository,
+  findUnverifiedNumbers,
+  hasPhotoSource as hasSource,
+  isOnHold,
+  sourceCheckText,
+  type RepositoryFilter,
+  type SourcePatch,
+} from "@/lib/photoKnowledge";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   AlertDialog,
@@ -41,8 +50,6 @@ import {
 
 type QAItem = Tables<"ai_training_qa">;
 
-const hasSource = (q: QAItem) => Boolean(q.source_image_url || q.source_extracted_text);
-
 export default function AdminAITraining() {
   const { isAdmin, loading: authLoading } = useAuth();
   const [qaItems, setQaItems] = useState<QAItem[]>([]);
@@ -50,6 +57,8 @@ export default function AdminAITraining() {
   const [saving, setSaving] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
   const [newAnswer, setNewAnswer] = useState("");
+  const [filter, setFilter] = useState<RepositoryFilter>("all");
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isAdmin) fetchGlobalQA();
@@ -142,7 +151,26 @@ export default function AdminAITraining() {
     return ok;
   };
 
+  const attachSource = async (id: string, patch: SourcePatch) => {
+    const ok = await updateQA(id, patch);
+    if (ok && !isOnHold(patch)) toast.success("Source photo attached");
+    return ok;
+  };
+
   const heldCount = qaItems.filter(isOnHold).length;
+  const unsourcedCount = qaItems.filter((q) => !hasSource(q)).length;
+  const visibleItems = filterRepository(qaItems, filter);
+
+  const showFilter = (next: RepositoryFilter) => {
+    setFilter(next);
+    listRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const FILTERS: { key: RepositoryFilter; label: string; count: number }[] = [
+    { key: "all", label: "All", count: qaItems.length },
+    { key: "held", label: "On hold", count: heldCount },
+    { key: "unsourced", label: "No source photo", count: unsourcedCount },
+  ];
 
   const deleteQA = async (id: string) => {
     const { error } = await supabase
@@ -209,6 +237,20 @@ export default function AdminAITraining() {
           </CardContent>
         </Card>
 
+        {heldCount > 0 && (
+          <Card className="border-destructive/50">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <p className="text-sm">
+                <strong>{heldCount}</strong> {heldCount === 1 ? "answer is" : "answers are"} waiting for you to
+                confirm {heldCount === 1 ? "its" : "their"} numbers.
+              </p>
+              <Button variant="destructive" className="min-h-11" onClick={() => showFilter("held")}>
+                Review on hold
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Quick actions */}
         <div className="flex flex-wrap gap-2">
           <BulkImportDialog cardId={null} onImported={fetchGlobalQA} existingCount={qaItems.length} />
@@ -257,11 +299,26 @@ export default function AdminAITraining() {
         </Card>
 
         {/* Existing Q&A list */}
-        <div className="space-y-3">
+        <div ref={listRef} className="space-y-3 scroll-mt-24">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <MessageSquare className="h-5 w-5" />
             Global Q&A Entries ({qaItems.length})
           </h2>
+          <div className="flex flex-wrap gap-2" role="group" aria-label="Show answers">
+            {FILTERS.map(({ key, label, count }) => (
+              <Button
+                key={key}
+                type="button"
+                variant={filter === key ? (key === "held" ? "destructive" : "default") : "outline"}
+                className="min-h-11 gap-2"
+                aria-pressed={filter === key}
+                onClick={() => setFilter(key)}
+              >
+                {label}
+                <span className="text-xs opacity-80">{count}</span>
+              </Button>
+            ))}
+          </div>
           {heldCount > 0 && (
             <p className="text-sm text-destructive">
               {heldCount} {heldCount === 1 ? "answer is" : "answers are"} on hold — chatbots won't use{" "}
@@ -281,16 +338,29 @@ export default function AdminAITraining() {
                 <p className="text-sm">Add entries above to train the AI chatbot.</p>
               </CardContent>
             </Card>
+          ) : visibleItems.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center text-muted-foreground">
+                <p>
+                  {filter === "held"
+                    ? "Nothing is on hold — every answer with numbers has been confirmed."
+                    : "Every answer has a source photo attached."}
+                </p>
+                <Button variant="outline" className="mt-3 min-h-11" onClick={() => setFilter("all")}>
+                  Show all answers
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
-            qaItems.map((item) => (
+            visibleItems.map((item) => (
               <Card
                 key={item.id}
                 className={isOnHold(item) ? "border-destructive/50" : !item.is_active ? "opacity-60" : ""}
               >
                 <CardContent className="p-4 space-y-3">
-                  {(hasSource(item) || isOnHold(item)) && (
-                    <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-2">
+                        {!hasSource(item) && <Badge variant="outline">No source photo</Badge>}
                         {hasSource(item) && (
                           <Badge variant="secondary" className="max-w-full truncate">
                             From photo: {item.source_caption || "Library photo"}
@@ -302,11 +372,17 @@ export default function AdminAITraining() {
                           </Badge>
                         )}
                       </div>
-                      {hasSource(item) && (
-                        <QASourceDialog item={item} onConfirm={() => confirmNumbers(item.id)} />
-                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {hasSource(item) && (
+                          <QASourceDialog item={item} onConfirm={() => confirmNumbers(item.id)} />
+                        )}
+                        <AttachSourceDialog
+                          item={item}
+                          repository={qaItems}
+                          onSave={(patch) => attachSource(item.id, patch)}
+                        />
+                      </div>
                     </div>
-                  )}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 space-y-2">
                       <div>

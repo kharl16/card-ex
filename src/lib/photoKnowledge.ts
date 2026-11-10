@@ -164,3 +164,108 @@ export function toRepositoryRow(
 export function isOnHold(row: { unverified_numbers?: string[] | null; numbers_confirmed_at?: string | null }): boolean {
   return (row.unverified_numbers?.length ?? 0) > 0 && !row.numbers_confirmed_at;
 }
+
+export type RepositoryFilter = "all" | "held" | "unsourced";
+
+export function hasPhotoSource(row: { source_image_url?: string | null; source_extracted_text?: string | null }): boolean {
+  return Boolean(row.source_image_url || row.source_extracted_text);
+}
+
+/** Narrow the repository list to the answers an admin wants to review. */
+export function filterRepository<T extends Parameters<typeof isOnHold>[0] & Parameters<typeof hasPhotoSource>[0]>(
+  rows: T[],
+  filter: RepositoryFilter,
+): T[] {
+  if (filter === "held") return rows.filter(isOnHold);
+  if (filter === "unsourced") return rows.filter((r) => !hasPhotoSource(r));
+  return rows;
+}
+
+const STOP_WORDS = new Set(
+  "the a an and or of to in on for with is are was were be by at as it its this that what how much does do you your our from can i my me we has have".split(
+    " ",
+  ),
+);
+
+function words(text: string): Set<string> {
+  return new Set(
+    normalizeQuestion(text)
+      .split(" ")
+      .filter((w) => w.length > 2 && !STOP_WORDS.has(w)),
+  );
+}
+
+export interface MatchablePhoto {
+  id: string;
+  caption: string | null;
+  srp?: string | null;
+}
+
+/**
+ * Order library photos by how many distinctive words they share with an
+ * answer, using the caption, listed price and any text already read from the
+ * photo. Ties keep library order. Only a suggestion — the admin picks.
+ */
+export function rankPhotoMatches<P extends MatchablePhoto>(
+  qa: { question: string; answer: string },
+  photos: P[],
+  knownText: Record<string, string> = {},
+): { photo: P; score: number }[] {
+  const target = words(`${qa.question} ${qa.answer}`);
+  return photos
+    .map((photo, index) => {
+      const captionWords = words(photo.caption ?? "");
+      const textWords = words(`${photo.srp ?? ""} ${knownText[photo.id] ?? ""}`);
+      let score = 0;
+      target.forEach((w) => {
+        if (captionWords.has(w)) score += 3;
+        else if (textWords.has(w)) score += 1;
+      });
+      return { photo, score, index };
+    })
+    .sort((a, b) => b.score - a.score || a.index - b.index)
+    .map(({ photo, score }) => ({ photo, score }));
+}
+
+export interface SourcePatch {
+  source_category: PhotoCategory;
+  source_image_id: string;
+  source_image_url: string;
+  source_image_url_2: string | null;
+  source_caption: string | null;
+  source_srp: string | null;
+  source_extracted_text: string;
+  unverified_numbers: string[];
+  numbers_confirmed_at: string | null;
+  is_active: boolean;
+}
+
+/**
+ * Attach a reviewed source photo to an existing answer. The answer is checked
+ * against the new photo's text; a confirmation for the old photo never carries
+ * over, so unconfirmed flagged numbers put the answer on hold.
+ */
+export function buildSourcePatch(
+  row: { answer: string; is_active: boolean; unverified_numbers?: string[] | null; numbers_confirmed_at?: string | null },
+  source: PhotoSource,
+  category: PhotoCategory,
+  confirmedFor: string | null,
+  now: string = new Date().toISOString(),
+): SourcePatch {
+  const unverified = findUnverifiedNumbers(row.answer, sourceCheckText(source));
+  const confirmed = unverified.length > 0 && confirmedFor === numbersKey(unverified);
+  const held = unverified.length > 0 && !confirmed;
+  return {
+    source_category: category,
+    source_image_id: source.imageId,
+    source_image_url: source.url,
+    source_image_url_2: source.url2,
+    source_caption: source.caption,
+    source_srp: source.srp,
+    source_extracted_text: source.extractedText,
+    unverified_numbers: unverified,
+    numbers_confirmed_at: confirmed ? now : null,
+    // Answers released from hold go back to chatbots; others keep the admin's on/off choice.
+    is_active: held ? false : isOnHold(row) ? true : row.is_active,
+  };
+}
