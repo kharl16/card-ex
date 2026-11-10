@@ -75,7 +75,7 @@ export interface PhotoSource {
 }
 
 function numberTokens(text: string): string[] {
-  const matches = text.match(/\d[\d,]*(?:\.\d+)?/g) ?? [];
+  const matches = text.match(/\d(?:[\d,]*\d)?(?:\.\d+)?/g) ?? [];
   return matches
     .map((m) => m.replace(/,/g, "").replace(/\.0+$/, ""))
     .filter((m) => m.length > 0);
@@ -89,7 +89,7 @@ function numberTokens(text: string): string[] {
 export function findUnverifiedNumbers(answer: string, sourceText: string): string[] {
   const known = new Set(numberTokens(sourceText));
   const out: string[] = [];
-  for (const raw of answer.match(/\d[\d,]*(?:\.\d+)?/g) ?? []) {
+  for (const raw of answer.match(/\d(?:[\d,]*\d)?(?:\.\d+)?/g) ?? []) {
     const norm = raw.replace(/,/g, "").replace(/\.0+$/, "");
     if (!known.has(norm) && !out.includes(raw)) out.push(raw);
   }
