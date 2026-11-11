@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getFreeAccessState, hasCardAccess, daysLeftLabel } from "./freeAccess";
+import { getFreeAccessState, hasCardAccess, daysLeftLabel, isPathAllowedWhileLocked } from "./freeAccess";
 
 const now = new Date("2026-11-11T06:00:00Z");
 const inDays = (d: number) => new Date(now.getTime() + d * 86400000).toISOString();
