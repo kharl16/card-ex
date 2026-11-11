@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { hasCardAccess } from "@/lib/freeAccess";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -684,9 +685,9 @@ export default function CardEditor() {
   const togglePublish = async () => {
     if (!card) return;
 
-    // If card is unpaid and trying to publish, redirect to billing
-    if (!card.is_paid && !card.is_published) {
-      toast.info("Please complete payment to publish your card");
+    // Unpaid cards can publish only during their 7-day free access
+    if (!card.is_published && !hasCardAccess(card as any) && !publishLimitIsAdmin) {
+      toast.info("Your free access has ended. Activate your plan to publish your card.");
       navigate(`/billing/${card.id}`);
       return;
     }
