@@ -37,3 +37,16 @@ describe("7-day free access", () => {
     expect(daysLeftLabel(5)).toBe("5 days left");
   });
 });
+
+describe("isPathAllowedWhileLocked", () => {
+  it("keeps plan activation open after the free week ends", () => {
+    expect(isPathAllowedWhileLocked("/billing/abc")).toBe(true);
+    expect(isPathAllowedWhileLocked("/billing/abc/success")).toBe(true);
+  });
+  it("closes every other signed-in page", () => {
+    expect(isPathAllowedWhileLocked("/dashboard")).toBe(false);
+    expect(isPathAllowedWhileLocked("/cards/abc/edit")).toBe(false);
+    expect(isPathAllowedWhileLocked("/dashboard/presentations")).toBe(false);
+    expect(isPathAllowedWhileLocked("/billingx")).toBe(false);
+  });
+});
