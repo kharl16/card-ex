@@ -145,6 +145,87 @@ export type Database = {
           },
         ]
       }
+      ai_training_qa_history: {
+        Row: {
+          actor_id: string | null
+          actor_name: string | null
+          answer: string | null
+          card_id: string | null
+          confirmed_by_name: string | null
+          created_at: string
+          events: string[]
+          hold_reason: string | null
+          id: string
+          is_active: boolean | null
+          note: string | null
+          numbers_confirmed_at: string | null
+          numbers_confirmed_by: string | null
+          previous_answer: string | null
+          previous_question: string | null
+          previous_source_caption: string | null
+          previous_source_image_url: string | null
+          qa_id: string
+          question: string | null
+          source_caption: string | null
+          source_category: string | null
+          source_image_id: string | null
+          source_image_url: string | null
+          unverified_numbers: string[]
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_name?: string | null
+          answer?: string | null
+          card_id?: string | null
+          confirmed_by_name?: string | null
+          created_at?: string
+          events?: string[]
+          hold_reason?: string | null
+          id?: string
+          is_active?: boolean | null
+          note?: string | null
+          numbers_confirmed_at?: string | null
+          numbers_confirmed_by?: string | null
+          previous_answer?: string | null
+          previous_question?: string | null
+          previous_source_caption?: string | null
+          previous_source_image_url?: string | null
+          qa_id: string
+          question?: string | null
+          source_caption?: string | null
+          source_category?: string | null
+          source_image_id?: string | null
+          source_image_url?: string | null
+          unverified_numbers?: string[]
+        }
+        Update: {
+          actor_id?: string | null
+          actor_name?: string | null
+          answer?: string | null
+          card_id?: string | null
+          confirmed_by_name?: string | null
+          created_at?: string
+          events?: string[]
+          hold_reason?: string | null
+          id?: string
+          is_active?: boolean | null
+          note?: string | null
+          numbers_confirmed_at?: string | null
+          numbers_confirmed_by?: string | null
+          previous_answer?: string | null
+          previous_question?: string | null
+          previous_source_caption?: string | null
+          previous_source_image_url?: string | null
+          qa_id?: string
+          question?: string | null
+          source_caption?: string | null
+          source_category?: string | null
+          source_image_id?: string | null
+          source_image_url?: string | null
+          unverified_numbers?: string[]
+        }
+        Relationships: []
+      }
       ambassadors_library: {
         Row: {
           allowed_sites: string[] | null
@@ -3960,6 +4041,7 @@ export type Database = {
         }
         Returns: string
       }
+      qa_history_person_name: { Args: { _user_id: string }; Returns: string }
       qualify_pending_referrals: {
         Args: never
         Returns: {
