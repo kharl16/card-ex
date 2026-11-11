@@ -687,7 +687,7 @@ export default function CardEditor() {
 
     // Unpaid cards can publish only during their 7-day free access
     if (!card.is_published && !hasCardAccess(card as any) && !publishLimitIsAdmin) {
-      toast.info("Your free access has ended. Activate your plan to publish your card.");
+      toast.info("Activate your plan to publish your card.");
       navigate(`/billing/${card.id}`);
       return;
     }
