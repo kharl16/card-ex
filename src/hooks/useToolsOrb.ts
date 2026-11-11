@@ -153,13 +153,9 @@ export function useMergedToolsOrb() {
       return;
     }
     const check = async () => {
-      const { data } = await supabase
-        .from("cards")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("is_paid", true)
-        .limit(1);
-      setHasPaidCard(!!(data && data.length > 0));
+      // Paid members and new cardholders in their 7-day free access
+      const { data } = await supabase.rpc("is_paid_member", { _user_id: user.id });
+      setHasPaidCard(data === true);
     };
     check();
   }, [user]);

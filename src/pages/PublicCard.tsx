@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { PauseCircle } from "lucide-react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -46,6 +47,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   const [bookingEnabled, setBookingEnabled] = useState(false);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [orgSlug, setOrgSlug] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Get the effective theme (with A/B variant support)
   const rawTheme = (card?.theme ?? null) as unknown as CardTheme | null;
@@ -110,6 +112,12 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       : await query.eq("slug", slugValue).single();
 
     const data = rawData as unknown as CardData | null;
+
+    if (error || !data) {
+      // A card whose free access ended is kept safe but paused — say so instead of "not found".
+      const { data: paused } = await supabase.rpc("get_card_pause_state" as any, { p_slug: slugValue });
+      setIsPaused(paused === true);
+    }
 
     if (!error && data) {
       setCard(data);
@@ -252,6 +260,20 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
 
   if (loading) {
     return <LoadingAnimation />;
+  }
+
+  if (!card && isPaused) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-6">
+        <div className="glass-shimmer relative max-w-md overflow-hidden rounded-2xl border border-primary/40 bg-card p-8 text-center">
+          <PauseCircle className="mx-auto mb-4 h-12 w-12 text-primary" aria-hidden />
+          <h1 className="mb-2 text-2xl font-semibold text-foreground">This Card-Ex is on pause</h1>
+          <p className="text-base text-muted-foreground">
+            The owner can turn it back on anytime from their dashboard.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (!card) {

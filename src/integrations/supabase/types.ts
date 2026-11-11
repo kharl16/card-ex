@@ -1109,6 +1109,7 @@ export type Database = {
           testimony_images: Json
           theme: Json | null
           title: string | null
+          trial_ends_at: string | null
           unique_views: number | null
           updated_at: string
           user_id: string
@@ -1176,6 +1177,7 @@ export type Database = {
           testimony_images?: Json
           theme?: Json | null
           title?: string | null
+          trial_ends_at?: string | null
           unique_views?: number | null
           updated_at?: string
           user_id: string
@@ -1243,6 +1245,7 @@ export type Database = {
           testimony_images?: Json
           theme?: Json | null
           title?: string | null
+          trial_ends_at?: string | null
           unique_views?: number | null
           updated_at?: string
           user_id?: string
@@ -1612,6 +1615,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      free_access_grants: {
+        Row: {
+          card_id: string | null
+          ends_at: string | null
+          granted_at: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          card_id?: string | null
+          ends_at?: string | null
+          granted_at?: string
+          source?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string | null
+          ends_at?: string | null
+          granted_at?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       global_brochure_images: {
         Row: {
@@ -3942,6 +3969,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: string
       }
+      expire_free_access_cards: { Args: never; Returns: number }
       expire_stale_approval_requests: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
       get_account_status: {
@@ -3954,6 +3982,7 @@ export type Database = {
           appointment_time: string
         }[]
       }
+      get_card_pause_state: { Args: { p_slug: string }; Returns: boolean }
       get_card_referral_stats: {
         Args: { p_card_id: string }
         Returns: {

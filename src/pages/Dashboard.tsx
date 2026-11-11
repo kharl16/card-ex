@@ -56,6 +56,8 @@ import { ReferralsFeed } from "@/components/dashboard/ReferralsFeed";
 import { DashboardOrb } from "@/components/dashboard/DashboardOrb";
 import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
 import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
+import { FreeAccessBanner } from "@/components/dashboard/FreeAccessBanner";
+import { hasCardAccess } from "@/lib/freeAccess";
 import { Presentation as PresentationIcon } from "lucide-react";
 import { DashboardQuadrantTiles } from "@/components/dashboard/DashboardQuadrantTiles";
 import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
@@ -230,11 +232,11 @@ export default function Dashboard() {
     const willPublish = !card.is_published;
 
     if (willPublish && !isAdmin) {
-      if (!(card as any).is_paid) {
+      if (!hasCardAccess(card as any)) {
         toast.info("Activate this card to publish it.", {
           description: "You'll be redirected to choose a plan and pay.",
         });
-        navigate(`/billing?cardId=${card.id}`);
+        navigate(`/billing/${card.id}`);
         return;
       }
       const otherPublished = cards.find((c) => c.id !== card.id && c.is_published);
@@ -507,6 +509,7 @@ export default function Dashboard() {
         {/* Welcome + Quote */}
         <div className="space-y-4">
           <WelcomeBanner profile={profile} cards={cards} />
+          <FreeAccessBanner card={primaryCard as any} />
           <div className="w-full sm:max-w-xs">
             <AddToHomeScreenButton label="Install Card-Ex" variant="outline" />
           </div>

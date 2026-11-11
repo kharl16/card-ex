@@ -126,7 +126,9 @@ export default function Onboarding() {
         selectedTemplate,
         updateProfile: true,
       });
-      toast.success("Card created! Preview it on your dashboard.");
+      toast.success("Card created! Your 7-day free access has started.", {
+        description: "Publish and share your card free this week.",
+      });
       navigate("/dashboard", { replace: true });
     } catch (err: any) {
       console.error("Onboarding failed:", err);
