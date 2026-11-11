@@ -3990,6 +3990,14 @@ export type Database = {
           paid_out_count: number
         }[]
       }
+      get_free_access_lock: {
+        Args: never
+        Returns: {
+          card_id: string
+          ended_at: string
+          locked: boolean
+        }[]
+      }
       get_referral_code_for_user: {
         Args: { p_user_id: string }
         Returns: string

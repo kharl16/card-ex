@@ -50,3 +50,11 @@ export function daysLeftLabel(daysLeft: number): string {
   if (daysLeft <= 1) return "Last day";
   return `${daysLeft} days left`;
 }
+
+/**
+ * Pages a member may still open after their free week ended unpaid:
+ * only plan activation (billing and its success page). Everything else shows the lock screen.
+ */
+export function isPathAllowedWhileLocked(pathname: string): boolean {
+  return pathname === "/billing" || pathname.startsWith("/billing/");
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getFreeAccessState, hasCardAccess, daysLeftLabel } from "./freeAccess";
+import { getFreeAccessState, hasCardAccess, daysLeftLabel, isPathAllowedWhileLocked } from "./freeAccess";
 
 const now = new Date("2026-11-11T06:00:00Z");
 const inDays = (d: number) => new Date(now.getTime() + d * 86400000).toISOString();
@@ -35,5 +35,18 @@ describe("7-day free access", () => {
   it("labels the final 24 hours as the last day", () => {
     expect(daysLeftLabel(1)).toBe("Last day");
     expect(daysLeftLabel(5)).toBe("5 days left");
+  });
+});
+
+describe("isPathAllowedWhileLocked", () => {
+  it("keeps plan activation open after the free week ends", () => {
+    expect(isPathAllowedWhileLocked("/billing/abc")).toBe(true);
+    expect(isPathAllowedWhileLocked("/billing/abc/success")).toBe(true);
+  });
+  it("closes every other signed-in page", () => {
+    expect(isPathAllowedWhileLocked("/dashboard")).toBe(false);
+    expect(isPathAllowedWhileLocked("/cards/abc/edit")).toBe(false);
+    expect(isPathAllowedWhileLocked("/dashboard/presentations")).toBe(false);
+    expect(isPathAllowedWhileLocked("/billingx")).toBe(false);
   });
 });
