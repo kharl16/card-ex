@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,12 +8,18 @@ import { toast } from "sonner";
 import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
+import { useFreeAccessLock } from "@/hooks/useFreeAccessLock";
+import { FreeAccessLockScreen } from "@/components/auth/FreeAccessLockScreen";
+import { isPathAllowedWhileLocked } from "@/lib/freeAccess";
 
 export default function RequireAuth({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
-  const { session, isAdmin, loading, status, mustChangePassword } = useAuth();
+  const location = useLocation();
+  const { session, isAdmin, isSuperAdmin, loading, status, mustChangePassword } = useAuth();
   const [resending, setResending] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const allowedWhileLocked = isPathAllowedWhileLocked(location.pathname);
+  const lockQuery = useFreeAccessLock(session?.user?.id, loading || isAdmin || isSuperAdmin || allowedWhileLocked);
 
   useEffect(() => {
     if (mustChangePassword && window.location.pathname !== "/change-password") {
@@ -166,6 +172,20 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
         </Card>
       </div>
     );
+  }
+
+  // Free week ended without activation: everything except plan activation is closed.
+  if (!isAdmin && !isSuperAdmin && !allowedWhileLocked) {
+    if (lockQuery.isLoading) {
+      return (
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      );
+    }
+    if (lockQuery.data?.locked) {
+      return <FreeAccessLockScreen cardId={lockQuery.data.cardId} endedAt={lockQuery.data.endedAt} />;
+    }
   }
 
   // Device-approval email codes removed: users verify email once at signup; Google OAuth is trusted.

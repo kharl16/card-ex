@@ -114,7 +114,7 @@ export default function Onboarding() {
 
     setSubmitting(true);
     try {
-      await createCardFromOnboarding({
+      const { cardId } = await createCardFromOnboarding({
         user,
         firstName: parsed.data.firstName,
         lastName: parsed.data.lastName,
@@ -126,10 +126,10 @@ export default function Onboarding() {
         selectedTemplate,
         updateProfile: true,
       });
-      toast.success("Card created! Your 7-day free access has started.", {
-        description: "Publish and share your card free this week.",
+      toast.success("Your card is live! Your 7-day free access has started.", {
+        description: "Add your photos and details — every change shows on your card right away.",
       });
-      navigate("/dashboard", { replace: true });
+      navigate(`/cards/${cardId}/edit`, { replace: true });
     } catch (err: any) {
       console.error("Onboarding failed:", err);
       toast.error(err.message ?? "Failed to create your card");
