@@ -25,6 +25,7 @@ import { TemplateQADialog } from "@/components/ai-training/TemplateQADialog";
 import { PhotoKnowledgeExtractor } from "@/components/ai-training/PhotoKnowledgeExtractor";
 import { QASourceDialog } from "@/components/ai-training/QASourceDialog";
 import { AttachSourceDialog } from "@/components/ai-training/AttachSourceDialog";
+import { QAHistoryDialog } from "@/components/ai-training/QAHistoryDialog";
 import { Badge } from "@/components/ui/badge";
 import {
   filterRepository,
@@ -381,6 +382,7 @@ export default function AdminAITraining() {
                           repository={qaItems}
                           onSave={(patch) => attachSource(item.id, patch)}
                         />
+                        <QAHistoryDialog qaId={item.id} refreshKey={item.updated_at} />
                       </div>
                     </div>
                   <div className="flex items-start justify-between gap-3">
