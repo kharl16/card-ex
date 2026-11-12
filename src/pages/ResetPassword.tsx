@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveSignInDestination } from "@/lib/authDestination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -100,8 +101,9 @@ export default function ResetPassword() {
       setSuccess(true);
       toast.success("Password updated successfully!");
 
-      setTimeout(() => {
-        navigate("/dashboard");
+      setTimeout(async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        navigate(user ? await resolveSignInDestination(user, "/dashboard") : "/dashboard");
       }, 2000);
     } catch (error: any) {
       toast.error(error.message || "Failed to update password. Please try again.");

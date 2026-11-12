@@ -30,9 +30,11 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!loading && !session) {
-      navigate("/auth", { replace: true });
+      // Return to the requested page (e.g. an emailed plan-activation link) after sign-in.
+      const back = location.pathname + location.search;
+      navigate(back && back !== "/" ? `/auth?redirect=${encodeURIComponent(back)}` : "/auth", { replace: true });
     }
-  }, [loading, session, navigate]);
+  }, [loading, session, navigate, location.pathname, location.search]);
 
   const handleResendVerification = async () => {
     if (!session?.user?.email) return;

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { cardHomePath } from "@/lib/authDestination";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTemplates, type CardTemplate } from "@/hooks/useTemplates";
 import { Button } from "@/components/ui/button";
@@ -78,11 +79,13 @@ export default function Onboarding() {
         .from("cards")
         .select("id")
         .eq("user_id", user.id)
+        .eq("is_template", false)
+        .order("created_at", { ascending: true })
         .limit(1)
         .maybeSingle();
 
       if (existing) {
-        navigate("/dashboard", { replace: true });
+        navigate(cardHomePath(existing.id), { replace: true });
         return;
       }
       setChecking(false);

@@ -35,3 +35,5 @@
 - [x] Show each scanned photo's source images, listed price and original extracted text beside its suggested Q&A, and flag answer numbers missing from the photo text; 9 tests pass. Signed-in scan remains unverified (no preview session).
 - [x] Require explicit confirmation for Q&A with unverified numbers; unconfirmed ones are saved on hold and kept out of the chatbot by a database rule (verified), 13 tests pass.
 - [x] Save each photo Q&A's source image and extracted text, and let admins reopen them from the repository. Signed-in page check remains unverified (no preview session).
+- [x] Land members on their own card page after setup and on every sign-in; 4 tests pass. Signed-in click-through unverified (no preview session).
+- [x] Email cardholders 2 days before their free week ends and when it ends, with an Activate Plan link; sending rules verified on the database, hourly schedule live. No real email sent yet (none due until Nov 16).

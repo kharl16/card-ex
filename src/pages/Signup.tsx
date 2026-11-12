@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
+import { resolveSignInDestination } from "@/lib/authDestination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,17 +51,16 @@ export default function Signup() {
   }, [searchParams]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        navigate(redirectTo, { replace: true });
-      }
-    });
+    let leaving = false;
+    // Signed in: open the member's card page unless a specific page was requested.
+    const go = (session: Session | null) => {
+      if (!session || leaving) return;
+      leaving = true;
+      void resolveSignInDestination(session.user, redirectTo).then((to) => navigate(to, { replace: true }));
+    };
+    supabase.auth.getSession().then(({ data: { session } }) => go(session));
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate(redirectTo, { replace: true });
-      }
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => go(session));
     return () => subscription.unsubscribe();
   }, [navigate, redirectTo]);
 

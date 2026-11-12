@@ -77,3 +77,6 @@ otp_length = 6
 # Maximum allowed by Supabase: 86400 seconds (24 hours).
 # Anything above 86400 is capped at 24 hours for security.
 otp_expiry = 86400
+
+[functions.send-free-access-emails]
+verify_jwt = false

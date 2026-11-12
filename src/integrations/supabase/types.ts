@@ -1619,22 +1619,28 @@ export type Database = {
       free_access_grants: {
         Row: {
           card_id: string | null
+          ended_notice_sent_at: string | null
           ends_at: string | null
           granted_at: string
+          reminder_sent_at: string | null
           source: string
           user_id: string
         }
         Insert: {
           card_id?: string | null
+          ended_notice_sent_at?: string | null
           ends_at?: string | null
           granted_at?: string
+          reminder_sent_at?: string | null
           source?: string
           user_id: string
         }
         Update: {
           card_id?: string | null
+          ended_notice_sent_at?: string | null
           ends_at?: string | null
           granted_at?: string
+          reminder_sent_at?: string | null
           source?: string
           user_id?: string
         }
@@ -3947,6 +3953,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      claim_free_access_emails: {
+        Args: never
+        Returns: {
+          card_id: string
+          ends_at: string
+          kind: string
+          user_id: string
+        }[]
+      }
       cleanup_old_rate_limits: { Args: never; Returns: undefined }
       cleanup_old_signup_attempts: { Args: never; Returns: undefined }
       create_referral_payout_batch: {
@@ -4088,6 +4103,10 @@ export type Database = {
           referrer_name: string
           referrer_user_id: string
         }[]
+      }
+      release_free_access_email: {
+        Args: { _kind: string; _user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
