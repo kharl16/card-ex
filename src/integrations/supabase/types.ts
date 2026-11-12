@@ -1616,6 +1616,48 @@ export type Database = {
           },
         ]
       }
+      free_access_email_tests: {
+        Row: {
+          activate_url: string | null
+          delivery_checked_at: string | null
+          delivery_status: string | null
+          error: string | null
+          id: string
+          kind: string
+          recipient: string | null
+          requested_at: string
+          resend_id: string | null
+          sent_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activate_url?: string | null
+          delivery_checked_at?: string | null
+          delivery_status?: string | null
+          error?: string | null
+          id?: string
+          kind: string
+          recipient?: string | null
+          requested_at?: string
+          resend_id?: string | null
+          sent_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activate_url?: string | null
+          delivery_checked_at?: string | null
+          delivery_status?: string | null
+          error?: string | null
+          id?: string
+          kind?: string
+          recipient?: string | null
+          requested_at?: string
+          resend_id?: string | null
+          sent_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       free_access_grants: {
         Row: {
           card_id: string | null

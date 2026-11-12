@@ -37,3 +37,6 @@
 - [x] Save each photo Q&A's source image and extracted text, and let admins reopen them from the repository. Signed-in page check remains unverified (no preview session).
 - [x] Land members on their own card page after setup and on every sign-in; 4 tests pass. Signed-in click-through unverified (no preview session).
 - [x] Email cardholders 2 days before their free week ends and when it ends, with an Activate Plan link; sending rules verified on the database, hourly schedule live. No real email sent yet (none due until Nov 16).
+- [x] Send a test reminder to kharl16@yahoo.com: accepted by the email service; sender records (SPF, DKIM, DMARC) present; activation link opens that card's payment page after sign-in in the preview (3 tests).
+- [ ] Confirm the test email reached the Yahoo inbox. Waiting on the user, because the email key can't read delivery status.
+- [ ] Publish so the live site keeps the payment page through sign-in. Waiting on the user to publish.
