@@ -79,6 +79,75 @@ async function sendEmail(to: string, subject: string, html: string, text: string
     body: JSON.stringify({ from: FROM, to: [to], subject, html, text }),
   });
   if (!res.ok) throw new Error(`Resend ${res.status}: ${await res.text()}`);
+  const body = await res.json().catch(() => ({}));
+  return (body?.id as string | undefined) ?? null;
+}
+
+async function deliveryStatus(id: string): Promise<string | null> {
+  const res = await fetch(`https://api.resend.com/emails/${id}`, {
+    headers: { Authorization: `Bearer ${RESEND_API_KEY}` },
+  });
+  if (!res.ok) return `lookup_failed_${res.status}`;
+  const body = await res.json().catch(() => ({}));
+  return (body?.last_event as string | undefined) ?? null;
+}
+
+type Admin = ReturnType<typeof createClient>;
+
+/** Builds and sends one free-week email for a member. Returns where it went. */
+async function sendFor(admin: Admin, userId: string, cardIdHint: string | null, kind: Kind, endsAt: string) {
+  const { data: u, error: uErr } = await admin.auth.admin.getUserById(userId);
+  const email = u?.user?.email;
+  if (uErr || !email) throw new Error(uErr?.message ?? "no email on account");
+
+  let cardId = cardIdHint;
+  if (!cardId) {
+    const { data: c } = await admin.from("cards").select("id").eq("user_id", userId)
+      .eq("is_template", false).order("created_at", { ascending: true }).limit(1).maybeSingle();
+    cardId = (c as { id: string } | null)?.id ?? null;
+  }
+  const { data: p } = await admin.from("profiles").select("full_name").eq("id", userId).maybeSingle();
+  const name = (((p as { full_name?: string } | null)?.full_name) || (u.user.user_metadata?.full_name as string) || "").trim();
+  const activateUrl = cardId ? `${APP_URL}/billing/${cardId}` : `${APP_URL}/dashboard`;
+
+  const { subject, html, text } = buildEmail(kind, name, endsAt, activateUrl);
+  const resendId = await sendEmail(email, subject, html, text);
+  return { email, activateUrl, resendId };
+}
+
+/**
+ * Test emails: only rows inserted by the system or an admin into free_access_email_tests are
+ * sent (members cannot add rows). Tests never mark the real reminder as sent.
+ */
+async function processTests(admin: Admin) {
+  const out: unknown[] = [];
+  const { data: pending } = await admin.from("free_access_email_tests")
+    .select("id,user_id,kind").is("sent_at", null).is("error", null).limit(5);
+  for (const t of (pending ?? []) as { id: string; user_id: string; kind: Kind }[]) {
+    try {
+      const { data: g } = await admin.from("free_access_grants").select("card_id,ends_at").eq("user_id", t.user_id).maybeSingle();
+      const grant = g as { card_id: string | null; ends_at: string | null } | null;
+      const r = await sendFor(admin, t.user_id, grant?.card_id ?? null, t.kind, grant?.ends_at ?? new Date().toISOString());
+      await admin.from("free_access_email_tests").update({
+        sent_at: new Date().toISOString(), recipient: r.email, activate_url: r.activateUrl, resend_id: r.resendId, delivery_status: "sent",
+      }).eq("id", t.id);
+      out.push({ id: t.id, sent: true });
+    } catch (e) {
+      await admin.from("free_access_email_tests").update({ error: (e as Error).message }).eq("id", t.id);
+      out.push({ id: t.id, sent: false, error: (e as Error).message });
+    }
+  }
+  // Refresh delivery status for recent test sends.
+  const since = new Date(Date.now() - 2 * 86400000).toISOString();
+  const { data: recent } = await admin.from("free_access_email_tests")
+    .select("id,resend_id,delivery_status").not("resend_id", "is", null).gte("sent_at", since).limit(10);
+  for (const r of (recent ?? []) as { id: string; resend_id: string; delivery_status: string | null }[]) {
+    if (r.delivery_status && ["delivered", "bounced", "complained"].includes(r.delivery_status)) continue;
+    const status = await deliveryStatus(r.resend_id);
+    await admin.from("free_access_email_tests").update({ delivery_status: status, delivery_checked_at: new Date().toISOString() }).eq("id", r.id);
+    out.push({ id: r.id, delivery_status: status });
+  }
+  return out;
 }
 
 Deno.serve(async (req) => {
@@ -98,22 +167,7 @@ Deno.serve(async (req) => {
   let sent = 0, failed = 0;
   for (const row of (due ?? []) as { user_id: string; card_id: string | null; kind: Kind; ends_at: string }[]) {
     try {
-      const { data: u, error: uErr } = await admin.auth.admin.getUserById(row.user_id);
-      const email = u?.user?.email;
-      if (uErr || !email) throw new Error(uErr?.message ?? "no email on account");
-
-      let cardId = row.card_id;
-      if (!cardId) {
-        const { data: c } = await admin.from("cards").select("id").eq("user_id", row.user_id)
-          .eq("is_template", false).order("created_at", { ascending: true }).limit(1).maybeSingle();
-        cardId = c?.id ?? null;
-      }
-      const { data: p } = await admin.from("profiles").select("full_name").eq("id", row.user_id).maybeSingle();
-      const name = (p?.full_name || (u.user.user_metadata?.full_name as string) || "").trim();
-      const activateUrl = cardId ? `${APP_URL}/billing/${cardId}` : `${APP_URL}/dashboard`;
-
-      const { subject, html, text } = buildEmail(row.kind, name, row.ends_at, activateUrl);
-      await sendEmail(email, subject, html, text);
+      await sendFor(admin, row.user_id, row.card_id, row.kind, row.ends_at);
       sent++;
       console.log(`Sent ${row.kind} email for user ${row.user_id}`);
     } catch (e) {
@@ -123,5 +177,6 @@ Deno.serve(async (req) => {
       await admin.rpc("release_free_access_email", { _user_id: row.user_id, _kind: row.kind });
     }
   }
-  return json({ due: due?.length ?? 0, sent, failed });
+  const tests = await processTests(admin);
+  return json({ due: due?.length ?? 0, sent, failed, tests });
 });
