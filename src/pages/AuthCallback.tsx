@@ -3,7 +3,7 @@ import type { User } from "@supabase/supabase-js";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { getAndClearAuthNext, safeRedirectPath } from "@/lib/authUrl";
-import { resolveAuthenticatedDestination } from "@/lib/authDestination";
+import { resolveSignInDestination } from "@/lib/authDestination";
 import { Button } from "@/components/ui/button";
 import { recordAuthEvent } from "@/lib/authClient";
 
@@ -25,19 +25,8 @@ export default function AuthCallback() {
       return nextParam ? safeRedirectPath(nextParam) : getAndClearAuthNext();
     };
 
-    const continueAfterAuthentication = async (user: User) => {
-      const requested = requestedDestination();
-      if (requested !== "/dashboard") return requested;
-      // Never let a slow/blocked lookup strand the user on the spinner.
-      try {
-        return await Promise.race([
-          resolveAuthenticatedDestination(user),
-          new Promise<string>((resolve) => setTimeout(() => resolve("/dashboard"), 4000)),
-        ]);
-      } catch {
-        return "/dashboard";
-      }
-    };
+    const continueAfterAuthentication = (user: User) =>
+      resolveSignInDestination(user, requestedDestination());
 
     const handleCallback = async () => {
       if (import.meta.env.DEV) {
