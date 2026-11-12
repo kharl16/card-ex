@@ -5,17 +5,18 @@ import { Button } from "@/components/ui/button";
 import { TrendingUp, Users, Shield } from "lucide-react";
 import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import { SEO } from "@/components/SEO";
+import { resolveSignInDestination } from "@/lib/authDestination";
 const Index = () => {
   const navigate = useNavigate();
   useEffect(() => {
-    // Redirect to dashboard if already authenticated
-    supabase.auth.getSession().then(({
+    // Already signed in: open the member's own card page
+    supabase.auth.getSession().then(async ({
       data: {
         session
       }
     }) => {
       if (session) {
-        navigate("/dashboard", {
+        navigate(await resolveSignInDestination(session.user, "/dashboard"), {
           replace: true
         });
       }
