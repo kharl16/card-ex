@@ -1688,6 +1688,139 @@ export type Database = {
         }
         Relationships: []
       }
+      gcash_payment_settings: {
+        Row: {
+          account_name: string
+          enabled: boolean
+          gcash_number: string
+          id: boolean
+          instructions: string | null
+          qr_image_url: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          account_name?: string
+          enabled?: boolean
+          gcash_number?: string
+          id?: boolean
+          instructions?: string | null
+          qr_image_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          account_name?: string
+          enabled?: boolean
+          gcash_number?: string
+          id?: boolean
+          instructions?: string | null
+          qr_image_url?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      gcash_payment_submissions: {
+        Row: {
+          amount: number
+          card_id: string
+          created_at: string
+          id: string
+          payment_id: string | null
+          plan_id: string
+          proof_path: string | null
+          reference_number: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sender_name: string | null
+          sender_number: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          card_id: string
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          plan_id: string
+          proof_path?: string | null
+          reference_number: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_name?: string | null
+          sender_number: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          amount?: number
+          card_id?: string
+          created_at?: string
+          id?: string
+          payment_id?: string | null
+          plan_id?: string
+          proof_path?: string | null
+          reference_number?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_name?: string | null
+          sender_number?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gcash_payment_submissions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gcash_payment_submissions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gcash_payment_submissions_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gcash_payment_submissions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gcash_payment_submissions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "card_plans_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gcash_payment_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       global_brochure_images: {
         Row: {
           brochure_id: string | null
@@ -4149,6 +4282,10 @@ export type Database = {
       release_free_access_email: {
         Args: { _kind: string; _user_id: string }
         Returns: undefined
+      }
+      review_gcash_payment: {
+        Args: { _approve: boolean; _note?: string; _submission_id: string }
+        Returns: string
       }
     }
     Enums: {
