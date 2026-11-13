@@ -335,12 +335,24 @@ function SubmissionsCard() {
 }
 
 export default function AdminGcashPayments() {
-  const { isSuperAdmin, loading } = useAuth();
+  const { user, loading } = useAuth();
+  // Resolve the role here: the shared auth state finishes loading before roles do.
+  const [allowed, setAllowed] = useState<boolean | null>(null);
 
-  if (loading) {
+  useEffect(() => {
+    if (loading) return;
+    if (!user) { setAllowed(false); return; }
+    let active = true;
+    void supabase.rpc("is_super_admin", { _user_id: user.id }).then(({ data }) => {
+      if (active) setAllowed(!!data);
+    });
+    return () => { active = false; };
+  }, [user, loading]);
+
+  if (allowed === null) {
     return <div className="mx-auto max-w-4xl space-y-4 px-4 py-8"><Skeleton className="h-10 w-64" /><Skeleton className="h-80" /></div>;
   }
-  if (!isSuperAdmin) return <Navigate to="/dashboard" replace />;
+  if (!allowed) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">

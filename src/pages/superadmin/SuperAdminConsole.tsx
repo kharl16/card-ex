@@ -1,5 +1,5 @@
 import { Link, Navigate } from "react-router-dom";
-import { ArrowLeft, Users, Shield, Settings, Activity, Brain, ShieldAlert, Quote, Building2 } from "lucide-react";
+import { ArrowLeft, Users, Shield, Settings, Activity, Brain, ShieldAlert, Quote, Building2, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,6 +63,13 @@ function SuperAdminConsoleContent() {
       icon: <Settings className="h-8 w-8" />,
       href: "/admin/resources",
       color: "bg-green-500/10 text-green-500",
+    },
+    {
+      title: "GCash Payments",
+      description: "Set your GCash number and QR, then approve members who paid you directly",
+      icon: <Smartphone className="h-8 w-8" />,
+      href: "/admin/gcash-payments",
+      color: "bg-primary/10 text-primary",
     },
     {
       title: "AI Chat Training",

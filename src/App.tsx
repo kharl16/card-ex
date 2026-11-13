@@ -44,6 +44,7 @@ import FavoritesPage from "./pages/resources/FavoritesPage";
 import RecentPage from "./pages/resources/RecentPage";
 import AdminResources from "./pages/admin/AdminResources";
 import AdminAITraining from "./pages/admin/AdminAITraining";
+import AdminGcashPayments from "./pages/admin/AdminGcashPayments";
 import AdminGlobalProducts from "./pages/admin/AdminGlobalProducts";
 import AdminGlobalBrochures from "./pages/admin/AdminGlobalBrochures";
 import AdminBrochurePreview from "./pages/admin/AdminBrochurePreview";
@@ -292,6 +293,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <AdminReferrals />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/gcash-payments"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminGcashPayments />
               </RequireAuth>
             </PageTransition>
           }
