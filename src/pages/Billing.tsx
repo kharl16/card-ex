@@ -7,6 +7,7 @@ import { useCardPlans, CardPlan } from "@/hooks/useCardPlans";
 import { useSubmitPayment, PaymentMethod } from "@/hooks/usePayments";
 import { PlanSelector } from "@/components/billing/PlanSelector";
 import { PaymentMethodSelector, UserPaymentMethod } from "@/components/billing/PaymentMethodSelector";
+import { GcashPayPanel } from "@/components/billing/GcashPayPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -179,6 +180,14 @@ export default function Billing() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Direct GCash payment, checked by a super admin before activation */}
+            {cardId && (
+              <GcashPayPanel
+                cardId={cardId}
+                plan={selectedPlan ? { id: selectedPlan.id, name: selectedPlan.name, retail_price: Number(selectedPlan.retail_price) } : undefined}
+              />
+            )}
 
             {/* Payment Method — manual payment restricted to permanent super admin */}
             {isPermanentSuperAdmin && (
