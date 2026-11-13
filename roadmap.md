@@ -40,3 +40,5 @@
 - [x] Send a test reminder to kharl16@yahoo.com: accepted by the email service; sender records (SPF, DKIM, DMARC) present; activation link opens that card's payment page after sign-in in the preview (3 tests).
 - [ ] Confirm the test email reached the Yahoo inbox. Waiting on the user, because the email key can't read delivery status.
 - [x] Publish so the live site keeps the payment page through sign-in; verified signed-out on tagex.app and www.tagex.app (redirect preserved). Signed-in completion on live unverified (no session available).
+- [x] Let members pay the owner's GCash directly (QR/number on the payment page) and have super admins approve before activation; database rules verified with trial runs, 5 tests pass. Signed-in click-through unverified (no preview session).
+- [ ] Enter the real GCash account name, number and QR, then switch GCash on. Waiting on the owner (Super Admin → GCash Payments).
