@@ -68,9 +68,10 @@ export default function QRActionRow({
         type="button"
         onClick={onClick}
         aria-label={label}
-        className="glass-shimmer relative aspect-square w-full rounded-2xl flex items-center justify-center overflow-hidden transition-transform duration-200 hover:brightness-110 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="glass-shimmer relative isolate aspect-square w-full rounded-2xl flex items-center justify-center overflow-hidden transition-transform duration-200 hover:brightness-110 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         style={tileStyle}
       >
+        <span aria-hidden className="guilloche-rosette -z-10 left-1/2 top-1/2 w-[135%] -translate-x-1/2 -translate-y-1/2" />
         {children}
       </button>
       <span className="text-[11px] sm:text-xs font-semibold text-center leading-tight tracking-wide uppercase text-foreground/85">
