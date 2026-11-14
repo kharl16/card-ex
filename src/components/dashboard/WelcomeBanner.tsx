@@ -54,7 +54,9 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
   }, [cards]);
 
   return (
-    <div className="space-y-0.5">
+    <div className="relative isolate space-y-0.5 overflow-hidden py-2">
+      <div aria-hidden className="guilloche-rosette -z-10 -right-12 top-1/2 w-44 -translate-y-1/2 sm:w-60" />
+      <div aria-hidden className="guilloche-band -z-10 inset-x-0 bottom-0 h-3" />
       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">Dashboard</p>
       <h1 className="text-2xl font-bold tracking-tight sm:text-3xl break-words">
         {greeting},{" "}

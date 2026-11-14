@@ -212,6 +212,9 @@ export default function RiderHeader({
         <div className="absolute left-0 right-0 bottom-0 translate-y-1/2 flex items-end justify-between px-8 sm:px-10 z-[9999] pointer-events-none">
         {/* Avatar with animated rotating ring */}
         <div className="relative size-24 sm:size-28 shrink-0 rounded-full shadow-luxury transition-all duration-500 hover:scale-105 group/avatar pointer-events-auto">
+          {/* Guilloche watch-dial rosette radiating from behind the photo */}
+          <div aria-hidden className="guilloche-rosette -z-10 left-1/2 top-1/2 w-[230%] -translate-x-1/2 -translate-y-1/2" style={{ ["--guilloche-strength" as string]: 0.32 }} />
+
           {/* Rotating conic-gradient ring */}
           <div
             className="absolute inset-0 rounded-full animate-ring-rotate"

@@ -27,3 +27,5 @@
 - Send free-week emails from the send-free-access-emails edge function on an hourly cron; it reserves each email through the service-role claim_free_access_emails RPC (released on delivery failure), so overlapping or public calls can never send duplicates; test sends are queued only by the system/admins in free_access_email_tests and never mark the real email as sent.
 - Resolve every post-sign-in landing through src/lib/authDestination.ts: an explicit return path wins, the default Dashboard becomes the member's own card page, so all sign-in entry points agree.
 - Take direct GCash payments as member submissions in gcash_payment_submissions (server-set amount, private gcash-proofs screenshots) and activate only through the super-admin review_gcash_payment RPC, which reuses process_card_payment plus referral credit, so members can never mark their own card paid.
+
+- Paint guilloche engravings only through the shared .guilloche-rosette / .guilloche-band CSS mask classes tinted by the gold token (strength via --guilloche-strength), absolutely positioned and aria-hidden, so the motif stays themeable and never affects layout.

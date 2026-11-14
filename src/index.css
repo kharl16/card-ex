@@ -502,3 +502,40 @@ All colors MUST be HSL.
     animation: none !important;
   }
 }
+
+/* Guilloche watermark: hairline watch-dial engraving tinted with the gold token.
+   The pattern is a CSS mask, so it stays themeable, never adds layout and never
+   moves. Parents must be positioned; use -z-10 inside an isolated parent to sit
+   behind content. --guilloche-strength sets how visible the engraving is. */
+:root {
+    --guilloche-rosette: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-100 -100 200 200'%3E%3Cdefs%3E%3CradialGradient id='f'%3E%3Cstop offset='.15' stop-color='%23fff'/%3E%3Cstop offset='.7' stop-color='%23fff' stop-opacity='.55'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/radialGradient%3E%3Cmask id='m'%3E%3Crect x='-100' y='-100' width='200' height='200' fill='url(%23f)'/%3E%3C/mask%3E%3C/defs%3E%3Cg fill='none' stroke='%23fff' stroke-width='.35' mask='url(%23m)'%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(0)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(5)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(10)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(15)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(20)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(25)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(30)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(35)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(40)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(45)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(50)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(55)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(60)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(65)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(70)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(75)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(80)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(85)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(90)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(95)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(100)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(105)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(110)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(115)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(120)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(125)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(130)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(135)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(140)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(145)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(150)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(155)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(160)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(165)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(170)%22/%3E%3Cellipse rx=%2292%22 ry=%2230%22 transform=%22rotate(175)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(0)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(15)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(30)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(45)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(60)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(75)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(90)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(105)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(120)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(135)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(150)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(165)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(180)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(195)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(210)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(225)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(240)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(255)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(270)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(285)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(300)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(315)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(330)%22/%3E%3Ccircle r=%2238%22 cx=%2238%22 transform=%22rotate(345)%22/%3E%3Ccircle r=%2218%22/%3E%3Ccircle r=%2220%22/%3E%3Ccircle r=%2278%22/%3E%3Ccircle r=%2280.5%22/%3E%3Ccircle r=%2297%22/%3E%3C/g%3E%3C/svg%3E");
+    --guilloche-waves: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 40' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='h' gradientUnits='userSpaceOnUse' x2='400'%3E%3Cstop offset='0' stop-color='%23fff' stop-opacity='0'/%3E%3Cstop offset='.2' stop-color='%23fff'/%3E%3Cstop offset='.8' stop-color='%23fff'/%3E%3Cstop offset='1' stop-color='%23fff' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='none' stroke='url(%23h)' stroke-width='.7' vector-effect='non-scaling-stroke'%3E%3Cpath d='M-60.0,20 q15,-28 30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M-52.5,20 q15,-28 30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M-45.0,20 q15,-28 30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M-37.5,20 q15,-28 30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M-30.0,20 q15,-28 30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M-22.5,20 q15,-28 30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M-15.0,20 q15,-28 30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M-7.5,20 q15,-28 30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0 t30,0' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.guilloche-rosette,
+.guilloche-band {
+  position: absolute;
+  pointer-events: none;
+  background-color: hsl(var(--gold) / var(--guilloche-strength));
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.guilloche-rosette {
+  --guilloche-strength: 0.2;
+  aspect-ratio: 1 / 1;
+  -webkit-mask-image: var(--guilloche-rosette);
+  mask-image: var(--guilloche-rosette);
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.guilloche-band {
+  --guilloche-strength: 0.14;
+  -webkit-mask-image: var(--guilloche-waves);
+  mask-image: var(--guilloche-waves);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
