@@ -421,6 +421,16 @@ All colors MUST be HSL.
   .lightbox-fade-in { animation: none !important; opacity: 1 !important; }
 }
 
+/* Hide the scrollbar on horizontally scrollable strips (e.g. showcase tabs)
+   while keeping touch/mouse scrolling. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Showcase scroll cue. Paints inside the carousel's existing bottom gap, so
    the carousel box height is untouched. */
 .showcase-scroll-cue-glow {
