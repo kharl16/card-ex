@@ -343,9 +343,9 @@ export default function ImmersiveShowcase({
       <div className="relative z-10 pb-3 pt-2">
         <nav
           aria-label="Showcase categories"
-          className="mb-2 max-w-full overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-5"
+          className="mb-2 max-w-full px-3 pb-1"
         >
-          <div className="flex w-max min-w-full items-center justify-between gap-2">
+          <div className="flex w-full flex-wrap items-center justify-between gap-1">
             {visibleCategoryKeys.map((key) => {
               const shortcut = CATEGORY_SHORTCUTS[key];
               const Icon = shortcut.icon;
@@ -355,7 +355,7 @@ export default function ImmersiveShowcase({
                   type="button"
                   variant="outline"
                   onClick={() => jumpToCategory(key)}
-                  className="h-11 flex-1 rounded-full border-primary/40 bg-card/70 px-3 text-foreground shadow-sm backdrop-blur-md hover:border-primary hover:bg-primary/10 hover:text-primary"
+                  className="h-11 flex-1 gap-1 rounded-full border-primary/40 bg-card/70 px-2 text-foreground shadow-sm backdrop-blur-md hover:border-primary hover:bg-primary/10 hover:text-primary"
                 >
                   <Icon aria-hidden="true" />
                   {shortcut.label}
