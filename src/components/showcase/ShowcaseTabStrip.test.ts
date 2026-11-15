@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import path from "node:path";
 
-const source = readFileSync(new URL("./ImmersiveShowcase.tsx", import.meta.url), "utf8");
+const source = readFileSync(
+  path.join(process.cwd(), "src/components/showcase/ImmersiveShowcase.tsx"),
+  "utf8"
+);
 
 /** The category tab strip: a single <div> wrapping the mapped shortcut buttons. */
 function tabStripClasses(): string {
