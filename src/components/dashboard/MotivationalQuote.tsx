@@ -134,7 +134,7 @@ export function MotivationalQuote() {
       onTouchEnd={onTouchEnd}
       aria-roledescription="carousel"
     >
-      <div aria-hidden className="guilloche-band inset-x-0 bottom-1 z-[5] h-4" />
+      <div aria-hidden className="guilloche-band inset-x-0 bottom-1 z-[5] h-4" style={{ ["--guilloche-strength" as string]: 0.07 }} />
 
       <div
         className="flex transition-transform duration-300 ease-out"

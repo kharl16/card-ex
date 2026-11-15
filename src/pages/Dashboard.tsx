@@ -519,7 +519,7 @@ export default function Dashboard() {
             onClick={() => navigate("/dashboard/presentations")}
             className="relative isolate flex min-h-[64px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/30 bg-card p-4 text-left transition-colors hover:bg-primary/10"
           >
-            <span aria-hidden className="guilloche-rosette -z-10 -right-8 top-1/2 w-36 -translate-y-1/2" />
+            <span aria-hidden className="guilloche-rosette -z-10 -right-8 top-1/2 w-36 -translate-y-1/2" style={{ ["--guilloche-strength" as string]: 0.08 }} />
             <PresentationIcon className="h-8 w-8 shrink-0 text-primary" />
             <span className="flex-1">
               <span className="block text-lg font-semibold text-foreground">Presentations</span>
