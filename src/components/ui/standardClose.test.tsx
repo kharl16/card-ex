@@ -30,7 +30,7 @@ describe("standard close button", () => {
 });
 
 describe("floating Share button over open windows", () => {
-  it("pressing the Share button does not close an open window", () => {
+  it("pressing the Share button does not close an open window", async () => {
     const changes: boolean[] = [];
     render(
       <>
@@ -40,11 +40,12 @@ describe("floating Share button over open windows", () => {
         </Dialog>
       </>,
     );
+    await new Promise((r) => setTimeout(r, 10)); // window starts listening for outside presses
     fireEvent.pointerDown(screen.getByText("Share"));
     expect(changes).toEqual([]);
   });
 
-  it("pressing elsewhere outside still closes the window", () => {
+  it("pressing elsewhere outside still closes the window", async () => {
     const changes: boolean[] = [];
     render(
       <>
@@ -54,6 +55,7 @@ describe("floating Share button over open windows", () => {
         </Dialog>
       </>,
     );
+    await new Promise((r) => setTimeout(r, 10));
     fireEvent.pointerDown(screen.getByText("Elsewhere"));
     expect(changes).toEqual([false]);
   });
