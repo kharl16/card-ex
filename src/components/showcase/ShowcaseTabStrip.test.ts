@@ -41,10 +41,26 @@ describe("showcase category tab strip", () => {
     expect(classes).toContain("sm:overflow-visible");
   });
 
-  it("keeps phone tabs full size and laptop tabs stretched", () => {
+  it("keeps phone tabs full height and laptop tabs stretched", () => {
     const classes = tabButtonClasses();
     expect(classes).toContain("shrink-0");
     expect(classes).toContain("whitespace-nowrap");
+    expect(classes).toContain("h-11");
     expect(classes).toContain("sm:flex-1");
+  });
+
+  it("shrinks phone tabs so more labels fit, and restores them on laptops", () => {
+    const classes = tabButtonClasses();
+    // Phone: tighter padding, smaller label and icon.
+    expect(classes).toContain("px-2");
+    expect(classes).toContain("text-xs");
+    expect(classes).toContain("[&_svg]:size-3.5");
+    // Laptop: original label size, icon size and spread.
+    expect(classes).toContain("sm:text-sm");
+    expect(classes).toContain("sm:[&_svg]:size-4");
+    expect(classes).toContain("sm:gap-1");
+    const base = classes.split(/\s+/).filter((c) => !c.startsWith("sm:"));
+    expect(base).not.toContain("px-3");
+    expect(base).not.toContain("text-sm");
   });
 });
