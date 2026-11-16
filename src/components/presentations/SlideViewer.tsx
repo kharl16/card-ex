@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import * as pdfjs from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import { ChevronLeft, ChevronRight, Maximize, X, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CloseButton3D } from "@/components/ui/close-button-3d";
 
