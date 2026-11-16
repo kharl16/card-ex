@@ -1,9 +1,10 @@
 import { useRef, useState, useEffect, useCallback, useLayoutEffect, useMemo } from "react";
-import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2, Maximize2, Minimize2, X } from "lucide-react";
+import { Download, ExternalLink, Play, Heart, ChevronLeft, ChevronRight, ImageUp, ImageOff, Loader2, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { TopRightActions } from "@/components/ui/top-right-actions";
+import { CloseButton3D } from "@/components/ui/close-button-3d";
 import { cn } from "@/lib/utils";
 import type { FileResource, EventType } from "@/types/resources";
 import { uploadOptimizedFile } from "@/lib/images/uploadOptimizedFile";
@@ -575,7 +576,7 @@ function FilePreviewDialogInner({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className={cn(
+        <DialogContent hideClose={fullScreen} className={cn(
           fullScreen
             ? "max-w-none w-screen h-[100dvh] left-0 top-0 translate-x-0 translate-y-0 p-0 gap-0 overflow-hidden bg-black border-0 rounded-none sm:rounded-none"
             : "max-w-2xl w-[95vw] p-0 gap-0 overflow-hidden bg-background border-border/30 shadow-2xl shadow-black/20 rounded-2xl"
@@ -660,14 +661,11 @@ function FilePreviewDialogInner({
 
           {/* Exit button in full screen (top-right) */}
           {fullScreen && (
-            <button
-              type="button"
+            <CloseButton3D
               onClick={() => setFullScreen(false)}
-              aria-label="Exit full screen"
-              className="absolute top-3 right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/15 active:scale-95"
-            >
-              <X className="h-5 w-5" />
-            </button>
+              className="absolute top-3 right-3 z-30"
+              label="Exit full screen"
+            />
           )}
 
           {/* Photo 1 / Photo 2 switcher */}

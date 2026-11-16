@@ -29,3 +29,5 @@
 - Take direct GCash payments as member submissions in gcash_payment_submissions (server-set amount, private gcash-proofs screenshots) and activate only through the super-admin review_gcash_payment RPC, which reuses process_card_payment plus referral credit, so members can never mark their own card paid.
 
 - Paint guilloche engravings only through the shared .guilloche-rosette / .guilloche-band CSS mask classes tinted by the gold token (strength via --guilloche-strength), absolutely positioned and aria-hidden, so the motif stays themeable and never affects layout.
+- Render every window/viewer close (X) through the single variant-free CloseButton3D; Dialog/Sheet content takes `hideClose` when a window draws its own, so no surface ever shows two or mismatched close buttons.
+- Mark page-level floating controls with `data-floating-control` and `pointer-events: auto`; shared Dialog/Sheet content ignores outside presses on them, so the draggable Share button stays movable and tappable while any window is open.

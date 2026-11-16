@@ -221,9 +221,6 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
               </div>
             </div>
             <CloseButton3D
-              variant="subtle"
-              iconSize="h-4 w-4"
-              className="h-8 w-8"
               onClick={() => setOpen(false)}
               label="Close chat"
             />

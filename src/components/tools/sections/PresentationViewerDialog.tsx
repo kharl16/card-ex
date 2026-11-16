@@ -1,6 +1,7 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, ExternalLink, Maximize2, Minimize2 } from "lucide-react";
+import { ExternalLink, Maximize2, Minimize2 } from "lucide-react";
+import { CloseButton3D } from "@/components/ui/close-button-3d";
 import { useEffect, useState } from "react";
 import { toEmbedUrl, detectPresentationSource } from "@/lib/presentationUtils";
 
@@ -43,7 +44,7 @@ export default function PresentationViewerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] w-[95vw] max-h-[95vh] h-[90vh] p-0 gap-0 overflow-hidden bg-black border-none">
+      <DialogContent hideClose className="max-w-[95vw] w-[95vw] max-h-[95vh] h-[90vh] p-0 gap-0 overflow-hidden bg-black border-none">
         {/* Top bar */}
         <div className="flex items-center justify-between px-4 py-2 bg-background/95 backdrop-blur border-b border-border/30">
           <div className="flex items-center gap-2 min-w-0">
@@ -69,14 +70,7 @@ export default function PresentationViewerDialog({
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              onClick={() => onOpenChange(false)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            <CloseButton3D className="ml-1" onClick={() => onOpenChange(false)} />
           </div>
         </div>
 

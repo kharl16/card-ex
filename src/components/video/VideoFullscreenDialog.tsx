@@ -58,11 +58,10 @@ export default function VideoFullscreenDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30">
+      <DialogContent hideClose className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-border/30">
         <div className="relative w-full h-full flex items-center justify-center">
           {/* Close button */}
           <CloseButton3D
-            variant="prominent"
             onClick={() => onOpenChange(false)}
             className="absolute top-4 right-4 z-20"
             label="Close"

@@ -332,11 +332,10 @@ const ProductImageCarousel: React.FC<ProductImageCarouselProps> = ({ images, aut
 
       {/* Lightbox Dialog */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-emerald-500/30">
+        <DialogContent hideClose className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 bg-black/95 border-emerald-500/30">
           <div className="relative w-full h-full flex items-center justify-center">
             {/* Close button */}
             <CloseButton3D
-              variant="prominent"
               onClick={closeLightbox}
               className="absolute top-4 right-4 z-20"
               label="Close lightbox"
