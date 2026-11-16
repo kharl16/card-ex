@@ -32,7 +32,7 @@ export function TopRightActions({
   children,
   ...props
 }: TopRightActionsProps) {
-  const rightClass = right ?? (reserveCloseSlot ? "right-14" : "right-3");
+  const rightClass = right ?? (reserveCloseSlot ? "right-16" : "right-3");
   return (
     <div
       className={cn(

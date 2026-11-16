@@ -49,17 +49,38 @@ const sheetVariants = cva(
 
 interface SheetContentProps
   extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
-    VariantProps<typeof sheetVariants> {}
+    VariantProps<typeof sheetVariants> {
+  /** Hide the built-in close button when the panel renders its own standard one. */
+  hideClose?: boolean;
+}
+
+/** Floating page controls (e.g. the draggable Share button) stay usable while a panel is open. */
+const isFloatingControl = (target: EventTarget | null) =>
+  !!(target as HTMLElement | null)?.closest?.("[data-floating-control]");
 
 const SheetContent = React.forwardRef<React.ElementRef<typeof SheetPrimitive.Content>, SheetContentProps>(
-  ({ side = "right", className, children, ...props }, ref) => (
+  ({ side = "right", className, children, hideClose = false, onInteractOutside, onPointerDownOutside, ...props }, ref) => (
     <SheetPortal>
       <SheetOverlay />
-      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
+      <SheetPrimitive.Content
+        ref={ref}
+        className={cn(sheetVariants({ side }), className)}
+        onPointerDownOutside={(event) => {
+          if (isFloatingControl(event.target)) event.preventDefault();
+          onPointerDownOutside?.(event);
+        }}
+        onInteractOutside={(event) => {
+          if (isFloatingControl(event.target)) event.preventDefault();
+          onInteractOutside?.(event);
+        }}
+        {...props}
+      >
         {children}
-        <SheetPrimitive.Close asChild className="absolute right-3 top-3">
-          <CloseButton3D variant="subtle" />
-        </SheetPrimitive.Close>
+        {!hideClose && (
+          <SheetPrimitive.Close asChild className="absolute right-3 top-3 z-30">
+            <CloseButton3D />
+          </SheetPrimitive.Close>
+        )}
       </SheetPrimitive.Content>
     </SheetPortal>
   ),

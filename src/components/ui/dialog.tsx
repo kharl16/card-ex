@@ -27,14 +27,29 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-const DialogContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+/** Floating page controls (e.g. the draggable Share button) stay usable while a window is open. */
+const isFloatingControl = (target: EventTarget | null) =>
+  !!(target as HTMLElement | null)?.closest?.("[data-floating-control]");
+
+interface DialogContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  /** Hide the built-in close button when the window renders its own standard one. */
+  hideClose?: boolean;
+}
+
+const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Content>, DialogContentProps>(
+  ({ className, children, hideClose = false, onInteractOutside, onPointerDownOutside, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
+      onPointerDownOutside={(event) => {
+        if (isFloatingControl(event.target)) event.preventDefault();
+        onPointerDownOutside?.(event);
+      }}
+      onInteractOutside={(event) => {
+        if (isFloatingControl(event.target)) event.preventDefault();
+        onInteractOutside?.(event);
+      }}
       className={cn(
         "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
         className,
@@ -42,9 +57,11 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close asChild className="absolute right-3 top-3">
-        <CloseButton3D variant="subtle" />
-      </DialogPrimitive.Close>
+      {!hideClose && (
+        <DialogPrimitive.Close asChild className="absolute right-3 top-3 z-30">
+          <CloseButton3D />
+        </DialogPrimitive.Close>
+      )}
     </DialogPrimitive.Content>
   </DialogPortal>
 ));

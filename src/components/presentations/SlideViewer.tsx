@@ -3,6 +3,7 @@ import * as pdfjs from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { ChevronLeft, ChevronRight, Maximize, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CloseButton3D } from "@/components/ui/close-button-3d";
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
 
@@ -247,13 +248,11 @@ export function SlideViewer({ url, title }: SlideViewerProps) {
 
       {isFull && (
         <>
-          <button
-            aria-label="Close full screen"
+          <CloseButton3D
+            label="Close full screen"
             onClick={toggleFull}
-            className="absolute right-2 top-2 z-20 flex h-10 items-center gap-1 rounded-full border border-primary/50 bg-background/60 px-3 text-sm font-semibold text-primary backdrop-blur-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:right-4 sm:top-4 sm:h-12 sm:gap-2 sm:px-4 sm:text-base"
-          >
-            <X className="h-5 w-5 sm:h-6 sm:w-6" /> Close
-          </button>
+            className="absolute right-3 top-3 z-20 sm:right-4 sm:top-4"
+          />
           {!loading && !error && (
             <p
               aria-live="polite"

@@ -312,9 +312,7 @@ export default function LightboxDialog({
       <Dialog modal={false} open={open} onOpenChange={onOpenChange}>
         <DialogContent
           data-card-lightbox
-          onInteractOutside={(event) => {
-            if ((event.target as HTMLElement)?.closest?.("[data-share-fab]")) event.preventDefault();
-          }}
+          hideClose
           className={
             fullScreen
               ? "max-w-none w-screen h-[100dvh] p-0 gap-0 bg-black border-0 rounded-none translate-x-0 translate-y-0 left-0 top-0 sm:rounded-none"
@@ -324,17 +322,13 @@ export default function LightboxDialog({
           <div className="relative flex h-full w-full flex-col overflow-hidden">
             {/* Close button */}
             {fullScreen ? (
-              <button
-                type="button"
+              <CloseButton3D
                 onClick={() => setFullScreen(false)}
-                aria-label="Exit full screen"
-                className="absolute top-4 right-4 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-md border border-white/15 active:scale-95"
-              >
-                <X className="h-5 w-5" />
-              </button>
+                className="absolute top-4 right-4 z-30"
+                label="Exit full screen"
+              />
             ) : (
               <CloseButton3D
-                variant="prominent"
                 onClick={onClose}
                 className="absolute top-4 right-4 z-20"
                 label="Close lightbox"
