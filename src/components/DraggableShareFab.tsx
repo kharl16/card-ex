@@ -130,6 +130,7 @@ export default function DraggableShareFab({ onClick, storageKey = STORAGE_KEY_DE
     <Button
       type="button"
       data-share-fab
+      data-floating-control
       size="icon"
       variant="ghost"
       aria-label="Share card (drag to move)"
@@ -142,7 +143,9 @@ export default function DraggableShareFab({ onClick, storageKey = STORAGE_KEY_DE
         if (suppressClick.current) { e.preventDefault(); suppressClick.current = false; return; }
         onClick(); // Keyboard activation
       }}
-      style={{ left: pos.x, top: pos.y, touchAction: "none", cursor: dragging ? "grabbing" : "grab" }}
+      // pointerEvents: open windows switch off taps on the page behind them; the
+      // Share button opts back in so it can be dragged or tapped at any time.
+      style={{ left: pos.x, top: pos.y, touchAction: "none", pointerEvents: "auto", cursor: dragging ? "grabbing" : "grab" }}
       className="fixed z-[60] !h-12 !w-12 rounded-full border border-primary/55 bg-card/90 text-primary shadow-gold backdrop-blur-xl ring-1 ring-inset ring-primary/20 hover:bg-accent hover:text-primary focus-visible:ring-primary active:scale-95"
     >
       <Share2 className="!h-[18px] !w-[18px]" strokeWidth={1.7} />

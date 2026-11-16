@@ -2,7 +2,7 @@ import React, { useCallback, useState, useRef, useEffect, useLayoutEffect, useMe
 import { useReducedMotion } from "framer-motion";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Share2, ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from "lucide-react";
+import { Download, Share2, ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 import { CloseButton3D } from "@/components/ui/close-button-3d";
 import { shareSingleImage, downloadSingleImage } from "@/lib/share";
 import ShareModal from "@/components/carousel/ShareModal";
