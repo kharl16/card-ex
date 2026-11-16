@@ -49,18 +49,23 @@ describe("showcase category tab strip", () => {
     expect(classes).toContain("sm:flex-1");
   });
 
-  it("shrinks phone tabs so more labels fit, and restores them on laptops", () => {
+  it("keeps phone tabs a readable size, and restores laptop sizing", () => {
     const classes = tabButtonClasses();
-    // Phone: tighter padding, smaller label and icon.
-    expect(classes).toContain("px-2");
-    expect(classes).toContain("text-xs");
-    expect(classes).toContain("[&_svg]:size-3.5");
-    // Laptop: original label size, icon size and spread.
-    expect(classes).toContain("sm:text-sm");
-    expect(classes).toContain("sm:[&_svg]:size-4");
-    expect(classes).toContain("sm:gap-1");
     const base = classes.split(/\s+/).filter((c) => !c.startsWith("sm:"));
-    expect(base).not.toContain("px-3");
+    // Phone: roomier padding, 13px label and 16px icon than the tightest fit.
+    expect(base).toContain("px-2.5");
+    expect(base).toContain("text-[13px]");
+    expect(base).toContain("[&_svg]:size-4");
+    expect(base).toContain("gap-1");
+    // Laptop: original label size, padding, icon size and spread.
+    expect(classes).toContain("sm:text-sm");
+    expect(classes).toContain("sm:px-2");
+    expect(classes).toContain("sm:[&_svg]:size-4");
+    expect(classes).toContain("sm:flex-1");
+    // Phone must not inherit the laptop label size or the tightest fit.
     expect(base).not.toContain("text-sm");
+    expect(base).not.toContain("text-xs");
+    expect(base).not.toContain("px-2");
+    expect(base).not.toContain("px-3");
   });
 });
