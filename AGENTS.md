@@ -6,7 +6,7 @@
 - Page both the Actual Card and Resources file/folder lightboxes with native CSS scroll-snap (one full-width page per photo) and sync the index after scrolling rests, so swipes are interruptible and feel like a phone's native gallery.
 - Keep all open lightbox photos eagerly mounted with stable keys, so consecutive native swipes never reach empty index-window pages or remount previously viewed photos.
 - Re-pin the lightbox scroller to the current photo via ResizeObserver, so Full Screen and phone rotation cannot expose stale-width neighboring photos.
-- Keep public-card floating controls bounded to the centered card on wide screens, except Share, which may be dragged across the whole viewport on every screen (it still first appears beside the card's corner), so it can always be moved out of the way.
+- Keep public-card floating controls bounded to the centered card on wide screens, except Share, which may be dragged across the whole viewport on every screen (it still first appears at middle-right, beside the card's right edge), so it can always be moved out of the way.
 - Deliver gallery photos through the existing bounded image presets and warm decoded previews; retain originals for downloads so swiping does not fetch full-resolution raw uploads.
 - Optimize Resources preview photo replacements through the shared content-hashed uploader so new photos are compressed and immutable-cacheable.
 - Share the manifest-only installation control between dashboard and the floating Actual Card action, outside Share; never add offline caching for installation alone. Use current browser installation signals instead of a permanent storage flag so uninstall cannot strand the action hidden.
