@@ -13,20 +13,23 @@ const EDGE = 12;
 const DRAG_THRESHOLD = 6;
 type Position = { x: number; y: number };
 
-// On laptops the public card is narrower than the viewport. The photo viewer
-// temporarily expands the available drag area to the viewer itself.
+// Share may be dragged anywhere on the screen (laptops included). Phones were
+// already full-width, so their behaviour is unchanged.
 function bounds() {
-  const viewer = document.querySelector<HTMLElement>("[data-card-lightbox][data-state='open']");
-  const card = document.querySelector<HTMLElement>("[data-card-page]");
-  const rect = viewer?.getBoundingClientRect() ?? card?.getBoundingClientRect();
-  const left = rect ? Math.max(0, rect.left) : 0;
-  const right = rect ? Math.min(window.innerWidth, rect.right) : window.innerWidth;
   return {
-    minX: left + EDGE,
-    maxX: Math.max(left + EDGE, right - SIZE - EDGE),
+    minX: EDGE,
+    maxX: Math.max(EDGE, window.innerWidth - SIZE - EDGE),
     minY: EDGE,
     maxY: Math.max(EDGE, window.innerHeight - SIZE - EDGE),
   };
+}
+
+// First appearance stays beside the card's bottom-right corner on laptops.
+function defaultPosition(): Position {
+  const { maxX, maxY } = bounds();
+  const card = document.querySelector<HTMLElement>("[data-card-page]")?.getBoundingClientRect();
+  const x = card ? Math.min(maxX, Math.max(EDGE, card.right - SIZE - EDGE)) : maxX;
+  return { x, y: Math.max(EDGE, maxY - (window.innerWidth < 640 ? 76 : 20)) };
 }
 
 function clamp({ x, y }: Position): Position {
@@ -34,10 +37,6 @@ function clamp({ x, y }: Position): Position {
   return { x: Math.max(minX, Math.min(maxX, x)), y: Math.max(minY, Math.min(maxY, y)) };
 }
 
-function defaultPosition(): Position {
-  const { maxX, maxY } = bounds();
-  return { x: maxX, y: Math.max(EDGE, maxY - (window.innerWidth < 640 ? 76 : 20)) };
-}
 
 export default function DraggableShareFab({ onClick, storageKey = STORAGE_KEY_DEFAULT }: DraggableShareFabProps) {
   const [pos, setPos] = useState<Position | null>(null);
@@ -69,24 +68,9 @@ export default function DraggableShareFab({ onClick, storageKey = STORAGE_KEY_DE
     const reclamp = () => moveTo(posRef.current ?? defaultPosition());
     window.addEventListener("resize", reclamp);
     window.addEventListener("orientationchange", reclamp);
-    // The lightbox is portaled; opening and resizing it need not resize the window.
-    let observedViewer: HTMLElement | null = null;
-    const resizeObserver = new ResizeObserver(() => { if (!dragRef.current) reclamp(); });
-    const syncViewer = () => {
-      const viewer = document.querySelector<HTMLElement>("[data-card-lightbox][data-state='open']");
-      if (viewer === observedViewer) return;
-      if (observedViewer) resizeObserver.unobserve(observedViewer);
-      observedViewer = viewer;
-      if (viewer) resizeObserver.observe(viewer);
-      if (!dragRef.current) reclamp();
-    };
-    const observer = new MutationObserver(syncViewer);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-state"] });
     return () => {
       window.removeEventListener("resize", reclamp);
       window.removeEventListener("orientationchange", reclamp);
-      observer.disconnect();
-      resizeObserver.disconnect();
     };
   }, [moveTo]);
 
