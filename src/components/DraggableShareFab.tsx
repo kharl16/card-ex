@@ -24,12 +24,13 @@ function bounds() {
   };
 }
 
-// First appearance stays beside the card's bottom-right corner on laptops.
+// First appearance is at middle-right: beside the card's right edge (laptops)
+// or the screen's right edge (phones), vertically centred.
 function defaultPosition(): Position {
-  const { maxX, maxY } = bounds();
+  const { maxX } = bounds();
   const card = document.querySelector<HTMLElement>("[data-card-page]")?.getBoundingClientRect();
   const x = card ? Math.min(maxX, Math.max(EDGE, card.right - SIZE - EDGE)) : maxX;
-  return { x, y: Math.max(EDGE, maxY - (window.innerWidth < 640 ? 76 : 20)) };
+  return { x, y: Math.max(EDGE, Math.round((window.innerHeight - SIZE) / 2)) };
 }
 
 function clamp({ x, y }: Position): Position {
