@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
+import { CloseButton3D } from "@/components/ui/close-button-3d";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -475,6 +476,8 @@ export default function ToolsDrawer({
                   <DrawerTitle className="sr-only">Tools Hub</DrawerTitle>
                 </DrawerHeader>
               )}
+              {/* Same standard X as the laptop Tools panel, so phones are not swipe-only. */}
+              <CloseButton3D label="Close tools" onClick={() => onOpenChange(false)} className="absolute right-3 top-3 z-30" />
               <div data-tools-drawer-scroll="outer" className="flex-1 overflow-y-auto [overflow-x:clip] overscroll-x-none touch-pan-y w-full max-w-full">
                 {renderContent()}
               </div>
