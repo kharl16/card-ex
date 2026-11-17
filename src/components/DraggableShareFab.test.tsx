@@ -46,6 +46,15 @@ describe("Share button drag area", () => {
     expect(btn.style.left).toBe(`${1280 - 48 - 12}px`);
   });
 
+  it("first appears at middle-right, vertically centred beside the card's right edge", () => {
+    setViewport(1280, 800);
+    mountCard(304, 976);
+    render(<DraggableShareFab onClick={() => {}} />);
+    const btn = screen.getByRole("button", { name: /share card/i });
+    expect(btn.style.left).toBe(`${976 - 48 - 12}px`);
+    expect(btn.style.top).toBe(`${Math.round((800 - 48) / 2)}px`);
+  });
+
   it("keeps the same phone limits: 12px from either screen edge", () => {
     setViewport(390, 844);
     mountCard(0, 390);
