@@ -58,7 +58,7 @@ import { AnimatedStatsCards } from "@/components/dashboard/AnimatedStatsCards";
 import { MotivationalQuote } from "@/components/dashboard/MotivationalQuote";
 import { FreeAccessBanner } from "@/components/dashboard/FreeAccessBanner";
 import { hasCardAccess } from "@/lib/freeAccess";
-import { Presentation as PresentationIcon } from "lucide-react";
+import { Presentation as PresentationIcon, Crown, ChevronRight } from "lucide-react";
 import { DashboardQuadrantTiles } from "@/components/dashboard/DashboardQuadrantTiles";
 import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
 import { GlobalSearch } from "@/components/dashboard/GlobalSearch";
@@ -70,7 +70,7 @@ type CardData = Tables<"cards">;
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isSuperAdmin } = useAuth();
   const [searchParams] = useSearchParams();
   useEffect(() => {
     setHomeScreenIdentity("Card-Ex Dashboard", "Card-Ex", "/dashboard");
@@ -526,6 +526,20 @@ export default function Dashboard() {
               <span className="block text-sm text-muted-foreground">View slides right here, one at a time</span>
             </span>
           </button>
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => navigate("/superadmin")}
+              className="relative isolate flex min-h-[64px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/50 bg-primary/10 p-4 text-left transition-colors hover:bg-primary/20"
+            >
+              <Crown className="h-8 w-8 shrink-0 text-primary" />
+              <span className="flex-1">
+                <span className="block text-lg font-semibold text-foreground">Super Admin</span>
+                <span className="block text-sm text-muted-foreground">Users, GCash payments, AI training and system controls</span>
+              </span>
+              <ChevronRight className="h-6 w-6 shrink-0 text-primary" />
+            </button>
+          )}
           <TodaySummary cards={cards} />
           <DashboardQuadrantTiles />
         </div>

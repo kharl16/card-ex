@@ -34,6 +34,8 @@ import {
   ShieldCheck,
   Eye,
   Filter,
+  Smartphone,
+  Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -433,7 +435,7 @@ function FilterableHead({ label, options, selected, onChange, className }: Filte
 
 export default function AdminCards() {
   const navigate = useNavigate();
-  const { isAdmin, loading: authLoading, session } = useAuth();
+  const { isAdmin, isSuperAdmin, loading: authLoading, session } = useAuth();
   const [cards, setCards] = useState<CardData[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [userReferrals, setUserReferrals] = useState<Record<string, UserReferralData>>({});
@@ -1002,6 +1004,18 @@ export default function AdminCards() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-4 flex flex-wrap gap-2">
+          {isSuperAdmin && (
+            <>
+              <Button onClick={() => navigate("/admin/gcash-payments")} className="gap-2">
+                <Smartphone className="h-4 w-4" />
+                GCash Payments
+              </Button>
+              <Button onClick={() => navigate("/superadmin")} variant="outline" className="gap-2">
+                <Shield className="h-4 w-4" />
+                Super Admin Console
+              </Button>
+            </>
+          )}
           <Button onClick={() => navigate("/admin/data-tools")} variant="outline">
             Data Tools & Migration
           </Button>

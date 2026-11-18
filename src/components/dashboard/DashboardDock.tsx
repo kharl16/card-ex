@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Bell, User, Settings, Shield, CreditCard, FileText, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Bell, User, Settings, Shield, CreditCard, FileText, ShieldAlert, Crown, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useState } from "react";
@@ -17,6 +17,8 @@ const globalTabs = [
 ];
 
 const adminTabs = [
+  { icon: Crown, label: "Super Admin Console", path: "/superadmin" },
+  { icon: Smartphone, label: "GCash Payments", path: "/admin/gcash-payments" },
   { icon: Shield, label: "Admin Cards", path: "/admin/cards" },
   { icon: CreditCard, label: "Admin Referrals", path: "/admin/referrals" },
   { icon: FileText, label: "Admin Templates", path: "/admin/templates" },

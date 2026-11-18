@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { PageBackButton } from "@/components/PageBackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveSignInDestination } from "@/lib/authDestination";
 import { Button } from "@/components/ui/button";
@@ -126,6 +127,7 @@ export default function ResetPassword() {
   if (phase === "invalid") {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
+        <PageBackButton floating to="/auth" label="Back to sign in" />
         <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
           <CardHeader className="space-y-1 text-center">
             <CardTitle className="text-2xl font-bold">Link expired</CardTitle>
@@ -146,6 +148,7 @@ export default function ResetPassword() {
   if (success) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
+        <PageBackButton floating to="/auth" label="Back to sign in" />
         <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10">
@@ -163,6 +166,7 @@ export default function ResetPassword() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
+      <PageBackButton floating to="/auth" label="Back to sign in" />
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden bg-transparent animate-fade-in">

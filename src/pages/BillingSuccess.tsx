@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { PageBackButton } from "@/components/PageBackButton";
 import { CheckCircle, Copy, Share2, ExternalLink, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -141,6 +142,7 @@ export default function BillingSuccess() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <PageBackButton floating to="/dashboard" label="Back to dashboard" />
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

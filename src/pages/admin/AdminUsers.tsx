@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { PageBackButton } from "@/components/PageBackButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -313,12 +314,15 @@ export default function AdminUsers() {
       <SEO title="User Management — Card-Ex Admin" description="Manage Card-Ex accounts, roles and access." path="/admin/users" noIndex />
 
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <div>
+        <div className="flex items-center gap-3">
+          <PageBackButton to="/superadmin" label="Back to Super Admin Console" />
+          <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold">
             <ShieldCheck className="h-6 w-6 text-primary" />
             User Management
           </h1>
           <p className="text-sm text-muted-foreground">{users.length} accounts</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="h-11 gap-2" onClick={loadUsers} disabled={loading}>

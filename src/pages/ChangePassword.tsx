@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageBackButton } from "@/components/PageBackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,7 @@ export default function ChangePassword() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
+      <PageBackButton floating to="/dashboard" label="Go back" />
       <SEO title="Set your password — Card-Ex" description="Choose a new password for your Card-Ex account." path="/change-password" noIndex />
       <Card className="w-full max-w-md border-border/50 bg-card/50 backdrop-blur">
         <CardHeader className="space-y-1 text-center">

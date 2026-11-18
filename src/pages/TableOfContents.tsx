@@ -178,6 +178,7 @@ const SECTIONS: TocSection[] = [
     size: "md",
     entries: [
       { label: "Super Admin Console", description: "System controls", path: "/superadmin", badge: "Super" },
+      { label: "GCash Payments", description: "Your GCash details and member payment approvals", path: "/admin/gcash-payments", badge: "Super" },
       { label: "User Roles", description: "Roles and permissions", path: "/superadmin/users", badge: "Super" },
       { label: "Visibility Policies", description: "Resource visibility", path: "/superadmin/visibility", badge: "Super" },
     ],

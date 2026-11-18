@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { PageBackButton } from "@/components/PageBackButton";
 import { supabase } from "@/integrations/supabase/client";
 import type { Session } from "@supabase/supabase-js";
 import { resolveSignInDestination } from "@/lib/authDestination";
@@ -174,6 +175,7 @@ export default function Signup() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
+      <PageBackButton floating to="/auth" label="Back to sign in" />
       <SEO
         title="Create your Card-Ex account — Digital Business Portfolio"
         description="Sign up for Card-Ex and launch your premium, shareable digital business portfolio in minutes."

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PageBackButton } from "@/components/PageBackButton";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { cardHomePath } from "@/lib/authDestination";
@@ -151,6 +152,7 @@ export default function Onboarding() {
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
+      <PageBackButton floating to="/" label="Go back" />
       <Card className="w-full max-w-lg border-border/50 bg-card/50 backdrop-blur">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-2xl overflow-hidden bg-transparent">

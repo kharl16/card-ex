@@ -29,6 +29,13 @@ function SuperAdminConsoleContent() {
 
   const consoleLinks = [
     {
+      title: "GCash Payments",
+      description: "Set your GCash number and QR, then approve members who paid you directly",
+      icon: <Smartphone className="h-8 w-8" />,
+      href: "/admin/gcash-payments",
+      color: "bg-primary/10 text-primary",
+    },
+    {
       title: "User Management",
       description: "Create accounts, set roles and status, reset passwords, and sign in as a user.",
       icon: <Users className="h-8 w-8" />,
@@ -63,13 +70,6 @@ function SuperAdminConsoleContent() {
       icon: <Settings className="h-8 w-8" />,
       href: "/admin/resources",
       color: "bg-green-500/10 text-green-500",
-    },
-    {
-      title: "GCash Payments",
-      description: "Set your GCash number and QR, then approve members who paid you directly",
-      icon: <Smartphone className="h-8 w-8" />,
-      href: "/admin/gcash-payments",
-      color: "bg-primary/10 text-primary",
     },
     {
       title: "AI Chat Training",
