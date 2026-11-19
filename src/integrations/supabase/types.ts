@@ -1059,6 +1059,7 @@ export type Database = {
           card_type: string | null
           carousel_enabled: boolean
           carousel_settings: Json | null
+          chatbot_name: string | null
           company: string | null
           company_id: string | null
           cover_url: string | null
@@ -1127,6 +1128,7 @@ export type Database = {
           card_type?: string | null
           carousel_enabled?: boolean
           carousel_settings?: Json | null
+          chatbot_name?: string | null
           company?: string | null
           company_id?: string | null
           cover_url?: string | null
@@ -1195,6 +1197,7 @@ export type Database = {
           card_type?: string | null
           carousel_enabled?: boolean
           carousel_settings?: Json | null
+          chatbot_name?: string | null
           company?: string | null
           company_id?: string | null
           cover_url?: string | null
@@ -3960,6 +3963,7 @@ export type Database = {
           card_type: string | null
           carousel_enabled: boolean | null
           carousel_settings: Json | null
+          chatbot_name: string | null
           company: string | null
           cover_url: string | null
           created_at: string | null
@@ -4007,6 +4011,7 @@ export type Database = {
           card_type?: string | null
           carousel_enabled?: boolean | null
           carousel_settings?: Json | null
+          chatbot_name?: string | null
           company?: string | null
           cover_url?: string | null
           created_at?: string | null
@@ -4054,6 +4059,7 @@ export type Database = {
           card_type?: string | null
           carousel_enabled?: boolean | null
           carousel_settings?: Json | null
+          chatbot_name?: string | null
           company?: string | null
           cover_url?: string | null
           created_at?: string | null

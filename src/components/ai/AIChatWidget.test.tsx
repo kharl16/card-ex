@@ -21,4 +21,23 @@ describe("AI assistant trigger", () => {
 
     expect(screen.getByRole("button", { name: "Ask AI — open AI assistant" })).toBeTruthy();
   });
+
+  it("uses the owner's custom chat name and shows every character without cutting it off", () => {
+    const longName = "Coach Maria Sofia Dela Cruz PH";
+    render(<AIChatWidget cardId="card-3" cardOwnerName="Ma Sofia Requejo" chatbotName={longName} />);
+
+    const trigger = screen.getByRole("button", { name: `Ask ${longName} — open AI assistant` });
+    const label = trigger.querySelector("[data-chat-trigger-label]") as HTMLElement;
+    expect(label.textContent?.trim()).toBe(`Ask ${longName}`);
+    expect(label.className).not.toMatch(/truncate|max-w-40/);
+    expect(trigger.className).not.toMatch(/(^|\s)h-14(\s|$)/);
+
+    fireEvent.click(trigger);
+    expect(screen.getByText(`${longName}'s Assistant`)).toBeTruthy();
+  });
+
+  it("falls back to the first name when the custom chat name is blank", () => {
+    render(<AIChatWidget cardId="card-4" cardOwnerName="Ma Sofia Requejo" chatbotName="   " />);
+    expect(screen.getByRole("button", { name: "Ask Ma — open AI assistant" })).toBeTruthy();
+  });
 });

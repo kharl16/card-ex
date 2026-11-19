@@ -57,6 +57,8 @@ import { CarouselSettingsSection } from "@/components/editor/sections/CarouselSe
 import { AdBannerSection } from "@/components/editor/sections/AdBannerSection";
 import { CustomUrlSection } from "@/components/editor/sections/CustomUrlSection";
 import { AITrainingSection } from "@/components/editor/sections/AITrainingSection";
+import { ChatbotNameField } from "@/components/editor/sections/ChatbotNameField";
+import { normalizeChatbotNameForSave } from "@/lib/chatbotName";
 
 type CardData = Tables<"cards">;
 
@@ -317,6 +319,7 @@ export default function CardEditor() {
         image_carousels: (card as any).image_carousels,
         show_daily_quote: (card as any).show_daily_quote,
         show_referral_earnings: (card as any).show_referral_earnings,
+        chatbot_name: normalizeChatbotNameForSave(card.chatbot_name),
       })
       .eq("id", card.id);
 
@@ -664,6 +667,7 @@ export default function CardEditor() {
         qr_code_url: qrCodeUrl,
         slug: card.slug,
         custom_slug: card.custom_slug,
+        chatbot_name: normalizeChatbotNameForSave(card.chatbot_name),
       })
       .eq("id", card.id);
 
@@ -952,7 +956,16 @@ export default function CardEditor() {
         description: "Custom Q&A for your card's AI chatbot",
         icon: <Settings className="h-4 w-4" />,
         progress: 100,
-        content: <AITrainingSection cardId={id!} />,
+        content: (
+          <div className="space-y-6">
+            <ChatbotNameField
+              value={card.chatbot_name}
+              fullName={getFormattedName() || card.full_name}
+              onChange={(value) => handleCardChange({ chatbot_name: value })}
+            />
+            <AITrainingSection cardId={id!} />
+          </div>
+        ),
       },
     };
 

@@ -392,6 +392,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
       <AIChatWidget
         cardId={card.id}
         cardOwnerName={card.full_name}
+        chatbotName={(card as any).chatbot_name}
         accentColor={theme?.primary || "#D4AF37"}
       />
       <FloatingTagexButton referralCode={ownerReferralCode} cardId={card.id} />

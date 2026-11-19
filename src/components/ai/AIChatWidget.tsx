@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CloseButton3D } from "@/components/ui/close-button-3d";
 import ReactMarkdown from "react-markdown";
+import { chatTriggerLabel, resolveChatbotName } from "@/lib/chatbotName";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -12,6 +13,8 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/card-ai-chat
 interface AIChatWidgetProps {
   cardId: string;
   cardOwnerName: string;
+  /** Owner-chosen name for the assistant; falls back to the first name. */
+  chatbotName?: string | null;
   accentColor?: string;
 }
 
@@ -109,7 +112,7 @@ async function streamChat({
   onDone();
 }
 
-export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4AF37" }: AIChatWidgetProps) {
+export default function AIChatWidget({ cardId, cardOwnerName, chatbotName, accentColor = "#D4AF37" }: AIChatWidgetProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -119,9 +122,9 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const firstName = cardOwnerName.trim().split(/\s+/)[0] || "";
-  const assistantName = firstName || "me";
-  const triggerLabel = firstName ? `Ask ${firstName}` : "Ask AI";
+  const displayName = resolveChatbotName(chatbotName, cardOwnerName);
+  const assistantName = displayName || "me";
+  const triggerLabel = chatTriggerLabel(displayName);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -193,7 +196,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="auth-obsidian glass-shimmer !fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex h-14 max-w-[calc(100vw-2rem)] items-center justify-center gap-2.5 rounded-full px-5 active:scale-95"
+          className="auth-obsidian glass-shimmer !fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex min-h-14 max-w-[calc(100vw-2rem)] items-center justify-center gap-2.5 rounded-full px-5 py-2 active:scale-95"
           aria-label={`${triggerLabel} — open AI assistant`}
           title={triggerLabel}
         >
@@ -201,7 +204,9 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
             <Bot className="h-6 w-6" strokeWidth={1.8} />
             <Sparkles className="absolute -right-1.5 -top-1.5 h-3.5 w-3.5 fill-current" strokeWidth={1.5} />
           </span>
-          <span className="max-w-40 truncate text-sm font-semibold tracking-wide">{triggerLabel}</span>
+          <span className="min-w-0 whitespace-normal break-words text-left text-sm font-semibold leading-tight tracking-wide" data-chat-trigger-label>
+            {triggerLabel}
+          </span>
         </button>
       )}
 
@@ -215,12 +220,12 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
             className="flex items-center justify-between px-4 py-3"
             style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` }}
           >
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20">
                 <Bot className="h-4 w-4 text-white" />
               </div>
-              <div>
-                <p className="text-sm font-semibold text-white">{assistantName}&apos;s Assistant</p>
+              <div className="min-w-0">
+                <p className="break-words text-sm font-semibold text-white">{assistantName}&apos;s Assistant</p>
                 <p className="text-[10px] text-white/70">Ask me anything</p>
               </div>
             </div>

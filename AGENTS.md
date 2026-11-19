@@ -33,3 +33,4 @@
 - Mark page-level floating controls with `data-floating-control` and `pointer-events: auto`; shared Dialog/Sheet content ignores outside presses on them, so the draggable Share button stays movable and tappable while any window is open.
 - Give every signed-in or auth-flow page a back arrow through the shared PageBackButton (history back, else an explicit parent), floating top-left on header-less centered pages; only the landing page, dashboard and public/shared card pages omit it because they are entry points.
 - Surface super-admin entry points (Super Admin Console, GCash Payments) from the dashboard and every admin menu, gated by the resolved super-admin role, so admin tools never depend on visiting Resources first.
+- Resolve the card chat assistant name only through src/lib/chatbotName.ts (owner-set cards.chatbot_name, else first name) and keep it out of card snapshots, so templates never carry one owner's assistant name to another card.

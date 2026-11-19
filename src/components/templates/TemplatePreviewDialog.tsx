@@ -40,6 +40,7 @@ export function TemplatePreviewDialog({
     slug: "preview",
     brochure_images: ((layoutData as any).brochure_images as unknown as Json) ?? [],
     showcase_display_mode: ((layoutData as any).showcase_display_mode as string) ?? "carousel",
+    chatbot_name: null,
     ad_banner: null,
     image_carousels: (layoutData.image_carousels as unknown as Json) ?? null,
     show_daily_quote: layoutData.show_daily_quote ?? false,
