@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageCircle, Send, Loader2, Bot, User } from "lucide-react";
+import { Send, Loader2, Bot, Sparkles, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { CloseButton3D } from "@/components/ui/close-button-3d";
@@ -119,7 +119,9 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const firstName = cardOwnerName.split(" ")[0] || "me";
+  const firstName = cardOwnerName.trim().split(/\s+/)[0] || "";
+  const assistantName = firstName || "me";
+  const triggerLabel = firstName ? `Ask ${firstName}` : "Ask AI";
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -179,7 +181,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
   }, [input, isLoading, messages, cardId]);
 
   const suggestedQuestions = [
-    `What does ${firstName} do?`,
+    `What does ${assistantName} do?`,
     "What services are offered?",
     "How can I get in touch?",
   ];
@@ -189,15 +191,17 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
       {/* Floating trigger button */}
       {!open && (
         <button
+          type="button"
           onClick={() => setOpen(true)}
-           className="fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-xl transition-all duration-300 hover:scale-110 active:scale-95"
-          style={{
-            background: `linear-gradient(135deg, ${accentColor}, ${accentColor}dd)`,
-            boxShadow: `0 4px 20px ${accentColor}60`,
-          }}
-          aria-label="Chat with AI assistant"
+          className="auth-obsidian glass-shimmer !fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex h-14 max-w-[calc(100vw-2rem)] items-center justify-center gap-2.5 rounded-full px-5 active:scale-95"
+          aria-label={`${triggerLabel} — open AI assistant`}
+          title={triggerLabel}
         >
-          <MessageCircle className="h-6 w-6 text-white" />
+          <span className="relative flex h-7 w-7 shrink-0 items-center justify-center" aria-hidden="true">
+            <Bot className="h-6 w-6" strokeWidth={1.8} />
+            <Sparkles className="absolute -right-1.5 -top-1.5 h-3.5 w-3.5 fill-current" strokeWidth={1.5} />
+          </span>
+          <span className="max-w-40 truncate text-sm font-semibold tracking-wide">{triggerLabel}</span>
         </button>
       )}
 
@@ -216,7 +220,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
                 <Bot className="h-4 w-4 text-white" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">{firstName}&apos;s Assistant</p>
+                <p className="text-sm font-semibold text-white">{assistantName}&apos;s Assistant</p>
                 <p className="text-[10px] text-white/70">Ask me anything</p>
               </div>
             </div>
@@ -237,7 +241,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, accentColor = "#D4
                   <Bot className="h-6 w-6" style={{ color: accentColor }} />
                 </div>
                 <p className="text-sm font-medium text-foreground mb-1">
-                  Hi! I&apos;m {firstName}&apos;s AI assistant
+                  Hi! I&apos;m {assistantName}&apos;s AI assistant
                 </p>
                 <p className="text-xs text-muted-foreground mb-4">
                   Ask me about services, products, or contact info
