@@ -196,7 +196,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, chatbotName, accen
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="auth-obsidian glass-shimmer !fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex min-h-11 max-w-[calc(100vw-2rem)] items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 active:scale-95 sm:min-h-14 sm:gap-2.5 sm:px-5 sm:py-2"
+          className="auth-obsidian glass-shimmer !fixed bottom-24 right-6 z-50 flex min-h-11 max-w-[calc(100vw-3rem)] items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 active:scale-95 sm:right-[max(1rem,calc((100vw-42rem)/2+1rem))] sm:min-h-14 sm:gap-2.5 sm:px-5 sm:py-2 sm:max-w-[calc(100vw-2rem)]"
           aria-label={`${triggerLabel} — open AI assistant`}
           title={triggerLabel}
         >

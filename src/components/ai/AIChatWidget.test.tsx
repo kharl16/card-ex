@@ -64,6 +64,15 @@ describe("AI assistant trigger", () => {
     expect(icon.className).toMatch(/sm:w-7/);
   });
 
+  it("sits further from the phone screen edge and keeps the laptop offset", () => {
+    render(<AIChatWidget cardId="card-7" cardOwnerName="Gerle Joy Mananans" />);
+
+    const trigger = screen.getByRole("button", { name: "Ask Gerle — open AI assistant" });
+    expect(trigger.className).toMatch(/(^|\s)right-6(\s|$)/);
+    expect(trigger.className).toMatch(/sm:right-\[max\(1rem,calc\(\(100vw-42rem\)\/2\+1rem\)\)\]/);
+    expect(trigger.className).not.toMatch(/(^|\s)right-\[max/);
+  });
+
   it("outlines the open chat window in gold so it separates from the page", () => {
     render(<AIChatWidget cardId="card-5" cardOwnerName="Gerle Joy Mananans" />);
 
