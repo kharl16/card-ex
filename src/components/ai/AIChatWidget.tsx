@@ -196,15 +196,15 @@ export default function AIChatWidget({ cardId, cardOwnerName, chatbotName, accen
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="auth-obsidian glass-shimmer !fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex min-h-14 max-w-[calc(100vw-2rem)] items-center justify-center gap-2.5 rounded-full px-5 py-2 active:scale-95"
+          className="auth-obsidian glass-shimmer !fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex min-h-11 max-w-[calc(100vw-2rem)] items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 active:scale-95 sm:min-h-14 sm:gap-2.5 sm:px-5 sm:py-2"
           aria-label={`${triggerLabel} — open AI assistant`}
           title={triggerLabel}
         >
-          <span className="relative flex h-7 w-7 shrink-0 items-center justify-center" aria-hidden="true">
-            <Bot className="h-6 w-6" strokeWidth={1.8} />
-            <Sparkles className="absolute -right-1.5 -top-1.5 h-3.5 w-3.5 fill-current" strokeWidth={1.5} />
+          <span className="relative flex h-5 w-5 shrink-0 items-center justify-center sm:h-7 sm:w-7" aria-hidden="true">
+            <Bot className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.8} />
+            <Sparkles className="absolute -right-1 -top-1 h-3 w-3 fill-current sm:-right-1.5 sm:-top-1.5 sm:h-3.5 sm:w-3.5" strokeWidth={1.5} />
           </span>
-          <span className="min-w-0 whitespace-normal break-words text-left text-sm font-semibold leading-tight tracking-wide" data-chat-trigger-label>
+          <span className="min-w-0 whitespace-normal break-words text-left text-xs font-semibold leading-tight tracking-wide sm:text-sm" data-chat-trigger-label>
             {triggerLabel}
           </span>
         </button>

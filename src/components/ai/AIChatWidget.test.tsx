@@ -41,6 +41,29 @@ describe("AI assistant trigger", () => {
     expect(screen.getByRole("button", { name: "Ask Ma — open AI assistant" })).toBeTruthy();
   });
 
+  it("keeps the pill compact on phones and full size from the laptop breakpoint up", () => {
+    render(<AIChatWidget cardId="card-6" cardOwnerName="Gerle Joy Mananans" />);
+
+    const trigger = screen.getByRole("button", { name: "Ask Gerle — open AI assistant" });
+    expect(trigger.className).toMatch(/(^|\s)min-h-11(\s|$)/);
+    expect(trigger.className).toMatch(/(^|\s)px-3\.5(\s|$)/);
+    expect(trigger.className).toMatch(/(^|\s)gap-1\.5(\s|$)/);
+    expect(trigger.className).toMatch(/sm:min-h-14/);
+    expect(trigger.className).toMatch(/sm:px-5/);
+    expect(trigger.className).toMatch(/sm:gap-2\.5/);
+    expect(trigger.className).not.toMatch(/(^|\s)min-h-14(\s|$)/);
+
+    const label = trigger.querySelector("[data-chat-trigger-label]") as HTMLElement;
+    expect(label.className).toMatch(/(^|\s)text-xs(\s|$)/);
+    expect(label.className).toMatch(/sm:text-sm/);
+
+    const icon = trigger.querySelector("[aria-hidden='true']") as HTMLElement;
+    expect(icon.className).toMatch(/(^|\s)h-5(\s|$)/);
+    expect(icon.className).toMatch(/(^|\s)w-5(\s|$)/);
+    expect(icon.className).toMatch(/sm:h-7/);
+    expect(icon.className).toMatch(/sm:w-7/);
+  });
+
   it("outlines the open chat window in gold so it separates from the page", () => {
     render(<AIChatWidget cardId="card-5" cardOwnerName="Gerle Joy Mananans" />);
 
