@@ -40,4 +40,16 @@ describe("AI assistant trigger", () => {
     render(<AIChatWidget cardId="card-4" cardOwnerName="Ma Sofia Requejo" chatbotName="   " />);
     expect(screen.getByRole("button", { name: "Ask Ma — open AI assistant" })).toBeTruthy();
   });
+
+  it("outlines the open chat window in gold so it separates from the page", () => {
+    render(<AIChatWidget cardId="card-5" cardOwnerName="Gerle Joy Mananans" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ask Gerle — open AI assistant" }));
+
+    const panel = document.querySelector("[data-chat-panel]") as HTMLElement;
+    expect(panel).not.toBeNull();
+    expect(panel.className).toMatch(/border-gold/);
+    expect(panel.className).not.toMatch(/border-border/);
+    expect(panel.className).toMatch(/shadow-gold/);
+  });
 });

@@ -212,7 +212,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, chatbotName, accen
 
       {/* Chat panel */}
       {open && (
-         <div className="fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl shadow-2xl border border-border/50 animate-in slide-in-from-bottom-4 fade-in duration-300"
+         <div data-chat-panel className="fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-gold/70 shadow-gold animate-in slide-in-from-bottom-4 fade-in duration-300"
           style={{ height: "min(480px, calc(100vh - 140px))" }}
         >
           {/* Header */}
