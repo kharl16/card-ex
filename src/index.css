@@ -485,6 +485,20 @@ All colors MUST be HSL.
   box-shadow: var(--auth-glass-hover-shadow);
 }
 
+/* Soft gold halo around the floating "Ask [Name]" pill. Shadows only, so the
+   pill's size and position never move; the gold token keeps it themeable. */
+.ask-pill-glow {
+  box-shadow: var(--auth-glass-shadow),
+    0 0 18px -2px hsl(var(--gold) / 0.38),
+    0 0 40px -6px hsl(var(--gold) / 0.22);
+}
+
+.ask-pill-glow:hover:not(:disabled) {
+  box-shadow: var(--auth-glass-hover-shadow),
+    0 0 22px -2px hsl(var(--gold) / 0.45),
+    0 0 46px -6px hsl(var(--gold) / 0.26);
+}
+
 /* Email sign-in keeps its outline look; hover adds a cool silver border and glow. */
 .auth-email-silver {
   transition: box-shadow 250ms ease, border-color 250ms ease, transform 150ms ease;

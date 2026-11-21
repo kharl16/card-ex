@@ -196,7 +196,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, chatbotName, accen
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="auth-obsidian glass-shimmer !fixed bottom-28 right-6 z-50 flex min-h-11 max-w-[calc(100vw-3rem)] items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 active:scale-95 sm:bottom-24 sm:right-[max(1rem,calc((100vw-42rem)/2+1rem))] sm:min-h-14 sm:gap-2.5 sm:px-5 sm:py-2 sm:max-w-[calc(100vw-2rem)]"
+          className="auth-obsidian ask-pill-glow glass-shimmer !fixed bottom-28 right-6 z-50 flex min-h-11 max-w-[calc(100vw-3rem)] items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 active:scale-95 sm:bottom-24 sm:right-[max(1rem,calc((100vw-42rem)/2+1rem))] sm:min-h-14 sm:gap-2.5 sm:px-5 sm:py-2 sm:max-w-[calc(100vw-2rem)]"
           aria-label={`${triggerLabel} — open AI assistant`}
           title={triggerLabel}
         >
@@ -225,7 +225,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, chatbotName, accen
                 <Bot className="h-4 w-4 text-white" />
               </div>
               <div className="min-w-0">
-                <p className="break-words text-sm font-semibold text-white">{assistantName}&apos;s Assistant</p>
+                <p className="break-words text-base font-semibold text-white" data-chat-header-name>{assistantName}&apos;s Assistant</p>
                 <p className="text-[10px] text-white/70">Ask me anything</p>
               </div>
             </div>

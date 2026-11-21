@@ -93,4 +93,32 @@ describe("AI assistant trigger", () => {
     expect(panel.className).not.toMatch(/border-border/);
     expect(panel.className).toMatch(/shadow-gold/);
   });
+
+  it("wraps the pill in a soft gold glow without changing its size or position", () => {
+    render(<AIChatWidget cardId="card-9" cardOwnerName="Gerle Joy Mananans" />);
+
+    const trigger = screen.getByRole("button", { name: "Ask Gerle — open AI assistant" });
+    expect(trigger.className).toMatch(/(^|\s)ask-pill-glow(\s|$)/);
+
+    // Size and placement classes are exactly the ones the earlier tests pin.
+    expect(trigger.className).toMatch(/(^|\s)min-h-11(\s|$)/);
+    expect(trigger.className).toMatch(/(^|\s)px-3\.5(\s|$)/);
+    expect(trigger.className).toMatch(/(^|\s)bottom-28(\s|$)/);
+    expect(trigger.className).toMatch(/(^|\s)right-6(\s|$)/);
+    expect(trigger.className).toMatch(/sm:min-h-14/);
+    expect(trigger.className).toMatch(/sm:bottom-24/);
+    expect(trigger.className).toMatch(/sm:right-\[max\(1rem,calc\(\(100vw-42rem\)\/2\+1rem\)\)\]/);
+  });
+
+  it("prints the assistant name in the chat header large enough to read on a phone", () => {
+    render(<AIChatWidget cardId="card-10" cardOwnerName="Gerle Joy Mananans" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ask Gerle — open AI assistant" }));
+
+    const headerName = document.querySelector("[data-chat-header-name]") as HTMLElement;
+    expect(headerName).not.toBeNull();
+    expect(headerName.textContent?.trim()).toBe("Gerle's Assistant");
+    expect(headerName.className).toMatch(/(^|\s)text-base(\s|$)/);
+    expect(headerName.className).not.toMatch(/(^|\s)text-sm(\s|$)/);
+  });
 });
