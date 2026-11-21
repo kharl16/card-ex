@@ -212,7 +212,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, chatbotName, accen
 
       {/* Chat panel */}
       {open && (
-         <div data-chat-panel className="fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-gold/70 shadow-gold animate-in slide-in-from-bottom-4 fade-in duration-300"
+         <div data-chat-panel className="fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-3xl border border-gold/70 shadow-gold animate-in slide-in-from-bottom-4 fade-in duration-300"
           style={{ height: "min(480px, calc(100vh - 140px))" }}
         >
           {/* Header: obsidian glass like the Ask pill, so the champagne name matches it */}
@@ -248,7 +248,7 @@ export default function AIChatWidget({ cardId, cardOwnerName, chatbotName, accen
           </div>
 
           {/* Messages area */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto bg-background p-3 space-y-3">
+          <div ref={scrollRef} data-chat-messages className="flex-1 overflow-y-auto bg-background p-3 space-y-4">
             {messages.length === 0 && (
               <div className="flex flex-col items-center py-6 text-center">
                 <div

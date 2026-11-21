@@ -149,4 +149,27 @@ describe("AI assistant trigger", () => {
     expect(circle.className).toMatch(/(^|\s)h-11(\s|$)/);
     expect(circle.className).toMatch(/(^|\s)w-11(\s|$)/);
   });
+
+  it("rounds the chat window corners further while keeping the gold outline", () => {
+    render(<AIChatWidget cardId="card-13" cardOwnerName="Gerle Joy Mananans" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ask Gerle — open AI assistant" }));
+
+    const panel = document.querySelector("[data-chat-panel]") as HTMLElement;
+    expect(panel.className).toMatch(/(^|\s)rounded-3xl(\s|$)/);
+    expect(panel.className).not.toMatch(/(^|\s)rounded-2xl(\s|$)/);
+    expect(panel.className).toMatch(/border-gold/);
+    expect(panel.className).toMatch(/shadow-gold/);
+  });
+
+  it("leaves more room between chat messages", () => {
+    render(<AIChatWidget cardId="card-14" cardOwnerName="Gerle Joy Mananans" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ask Gerle — open AI assistant" }));
+
+    const messages = document.querySelector("[data-chat-messages]") as HTMLElement;
+    expect(messages).not.toBeNull();
+    expect(messages.className).toMatch(/(^|\s)space-y-4(\s|$)/);
+    expect(messages.className).not.toMatch(/(^|\s)space-y-3(\s|$)/);
+  });
 });
