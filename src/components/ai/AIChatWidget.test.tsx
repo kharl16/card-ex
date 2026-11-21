@@ -121,4 +121,32 @@ describe("AI assistant trigger", () => {
     expect(headerName.className).toMatch(/(^|\s)text-base(\s|$)/);
     expect(headerName.className).not.toMatch(/(^|\s)text-sm(\s|$)/);
   });
+
+  it("tints the chat header name champagne gold to match the Ask pill", () => {
+    render(<AIChatWidget cardId="card-11" cardOwnerName="Gerle Joy Mananans" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ask Gerle — open AI assistant" }));
+
+    const headerName = document.querySelector("[data-chat-header-name]") as HTMLElement;
+    expect(headerName).not.toBeNull();
+    expect(headerName.className).toContain("text-[hsl(var(--auth-champagne))]");
+    expect(headerName.className).not.toMatch(/(^|\s)text-white(\s|$)/);
+  });
+
+  it("gives the chat close button more tap room on phones without resizing the circle", () => {
+    render(<AIChatWidget cardId="card-12" cardOwnerName="Gerle Joy Mananans" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ask Gerle — open AI assistant" }));
+
+    const close = screen.getByRole("button", { name: "Close chat" });
+    expect(close.className).toContain("p-1.5");
+    expect(close.className).toContain("-m-1.5");
+    expect(close.className).toContain("sm:p-0");
+    expect(close.className).toContain("sm:m-0");
+
+    const circle = close.querySelector("[data-close-circle]") as HTMLElement;
+    expect(circle).not.toBeNull();
+    expect(circle.className).toMatch(/(^|\s)h-11(\s|$)/);
+    expect(circle.className).toMatch(/(^|\s)w-11(\s|$)/);
+  });
 });

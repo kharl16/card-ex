@@ -5,11 +5,16 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CloseButton3D } from "@/components/ui/close-button-3d";
 
 describe("standard close button", () => {
-  it("every close button uses the same 44px size", () => {
+  it("every close button uses the same 44px circle", () => {
     render(<CloseButton3D label="Exit full screen" className="absolute top-4 right-4" />);
     const btn = screen.getByRole("button", { name: "Exit full screen" });
-    expect(btn.className).toContain("h-11");
-    expect(btn.className).toContain("w-11");
+    const circle = btn.querySelector("[data-close-circle]") as HTMLElement;
+    expect(circle).not.toBeNull();
+    expect(circle.className).toContain("h-11");
+    expect(circle.className).toContain("w-11");
+    // The button itself carries no size, so a caller can pad the tap area.
+    expect(btn.className).not.toMatch(/(^|\s)h-11(\s|$)/);
+    expect(btn.className).not.toMatch(/(^|\s)w-11(\s|$)/);
   });
 
   it("windows show exactly one close button, or none when they draw their own", () => {

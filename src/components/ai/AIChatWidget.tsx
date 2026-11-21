@@ -215,23 +215,35 @@ export default function AIChatWidget({ cardId, cardOwnerName, chatbotName, accen
          <div data-chat-panel className="fixed bottom-24 right-[max(1rem,calc((100vw-42rem)/2+1rem))] z-50 flex w-[340px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-gold/70 shadow-gold animate-in slide-in-from-bottom-4 fade-in duration-300"
           style={{ height: "min(480px, calc(100vh - 140px))" }}
         >
-          {/* Header */}
+          {/* Header: obsidian glass like the Ask pill, so the champagne name matches it */}
           <div
-            className="flex items-center justify-between px-4 py-3"
-            style={{ background: `linear-gradient(135deg, ${accentColor}, ${accentColor}cc)` }}
+            className="flex items-center justify-between gap-2 border-b border-gold/40 px-4 py-3"
+            style={{
+              background: "var(--auth-glass-highlight), var(--auth-glass-surface)",
+              backdropFilter: "blur(var(--glass-blur))",
+            }}
           >
             <div className="flex min-w-0 items-center gap-2">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/20">
-                <Bot className="h-4 w-4 text-white" />
+              <div
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gold/35"
+                style={{ backgroundColor: `${accentColor}20` }}
+              >
+                <Bot className="h-4 w-4" style={{ color: accentColor }} />
               </div>
               <div className="min-w-0">
-                <p className="break-words text-base font-semibold text-white" data-chat-header-name>{assistantName}&apos;s Assistant</p>
-                <p className="text-[10px] text-white/70">Ask me anything</p>
+                <p
+                  className="break-words text-base font-semibold text-[hsl(var(--auth-champagne))]"
+                  data-chat-header-name
+                >
+                  {assistantName}&apos;s Assistant
+                </p>
+                <p className="text-[10px] text-muted-foreground">Ask me anything</p>
               </div>
             </div>
             <CloseButton3D
               onClick={() => setOpen(false)}
               label="Close chat"
+              className="p-1.5 -m-1.5 sm:p-0 sm:m-0"
             />
           </div>
 
