@@ -94,8 +94,21 @@ serve(async (req) => {
         }))
       : [];
 
+    // Extra contacts (second mobile, work email, office location) live only in
+    // card_links, so always include them — even when socials come from
+    // cards.social_links — so Save Contact matches what the card shows.
+    const contactRowsFromLinks: LinkRow[] = ((cardLinks as LinkRow[] | null) ?? [])
+      .filter((l) => {
+        const k = (l.kind || '').toLowerCase();
+        const lbl = (l.label || '').toLowerCase();
+        if (k === 'phone' || k === 'email') return true;
+        // Extra websites added under Contact Information ("Work Website", etc.)
+        return k === 'url' && ['additional', 'alternate', 'other', 'secondary', 'work', 'home', 'mobile', 'office']
+          .some((w) => lbl.includes(w));
+      });
+
     const linksToProcess: LinkRow[] = socialLinksFromCard.length > 0
-      ? socialLinksFromCard
+      ? [...socialLinksFromCard, ...contactRowsFromLinks]
       : (cardLinks as LinkRow[] | null) ?? [];
 
     console.log("Using links source:", socialLinksFromCard.length > 0 ? 'cards.social_links' : 'card_links table');

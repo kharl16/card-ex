@@ -84,7 +84,10 @@ export async function syncSocialLinksToCardLinks(
       .from("card_links")
       .delete()
       .eq("card_id", cardId)
-      .in("kind", SOCIAL_KINDS);
+      .in("kind", SOCIAL_KINDS)
+      // Keep location contacts added under Contact Information (stored as
+      // kind "custom" with a "... Location" label) — they are not socials.
+      .not("label", "ilike", "%location%");
 
     if (deleteError) throw deleteError;
 
