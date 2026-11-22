@@ -23,6 +23,8 @@ import type { Tables } from "@/integrations/supabase/types";
 import CardExLogo from "@/assets/Card-Ex-Logo-sparkle.webp";
 import LoadingAnimation from "@/components/LoadingAnimation";
 import deepSearchBackdrop from "@/assets/tiles/tile-deep-search.jpg";
+import presentationsBackdrop from "@/assets/dashboard/presentations-boardroom.webp.asset.json";
+import superAdminBackdrop from "@/assets/dashboard/super-admin-control-room.webp.asset.json";
 import eagleImg from "@/assets/disc/eagle.jpg";
 import roosterImg from "@/assets/disc/rooster.jpg";
 import carabaoImg from "@/assets/disc/carabao.jpg";
@@ -517,11 +519,20 @@ export default function Dashboard() {
           <button
             type="button"
             onClick={() => navigate("/dashboard/presentations")}
-            className="relative isolate flex min-h-[64px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/30 bg-card p-4 text-left transition-colors hover:bg-primary/10"
+            className="relative flex min-h-[64px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/30 bg-card p-4 text-left transition-colors hover:border-primary/60"
           >
-            <span aria-hidden className="guilloche-rosette -z-10 -right-8 top-1/2 w-36 -translate-y-1/2" style={{ ["--guilloche-strength" as string]: 0.11 }} />
-            <PresentationIcon className="h-8 w-8 shrink-0 text-primary" />
-            <span className="flex-1">
+            <img
+              src={presentationsBackdrop.url}
+              alt=""
+              aria-hidden="true"
+              width={1536}
+              height={384}
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+            />
+            <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/25" />
+            <span aria-hidden className="guilloche-rosette -right-8 top-1/2 w-36 -translate-y-1/2" style={{ ["--guilloche-strength" as string]: 0.11 }} />
+            <PresentationIcon className="relative h-8 w-8 shrink-0 text-primary" />
+            <span className="relative min-w-0 flex-1">
               <span className="block text-lg font-semibold text-foreground">Presentations</span>
               <span className="block text-sm text-muted-foreground">View slides right here, one at a time</span>
             </span>
@@ -530,14 +541,23 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => navigate("/superadmin")}
-              className="relative isolate flex min-h-[64px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/50 bg-primary/10 p-4 text-left transition-colors hover:bg-primary/20"
+              className="relative flex min-h-[64px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/50 bg-card p-4 text-left transition-colors hover:border-primary/70"
             >
-              <Crown className="h-8 w-8 shrink-0 text-primary" />
-              <span className="flex-1">
+              <img
+                src={superAdminBackdrop.url}
+                alt=""
+                aria-hidden="true"
+                width={1536}
+                height={384}
+                className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+              />
+              <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/25" />
+              <Crown className="relative h-8 w-8 shrink-0 text-primary" />
+              <span className="relative min-w-0 flex-1">
                 <span className="block text-lg font-semibold text-foreground">Super Admin</span>
                 <span className="block text-sm text-muted-foreground">Users, GCash payments, AI training and system controls</span>
               </span>
-              <ChevronRight className="h-6 w-6 shrink-0 text-primary" />
+              <ChevronRight className="relative h-6 w-6 shrink-0 text-primary" />
             </button>
           )}
           <TodaySummary cards={cards} />
