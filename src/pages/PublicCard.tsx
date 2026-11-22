@@ -8,6 +8,7 @@ import CardView, { SocialLink, ProductImage, AdditionalContact } from "@/compone
 import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/ThemeCustomizer";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
 import { getPublicCardUrl } from "@/lib/cardUrl";
+import { fetchAdditionalContacts } from "@/lib/cardContacts";
 import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
 import { Plus, Download, CalendarDays, Users, MapPin } from "lucide-react";
@@ -18,17 +19,6 @@ import { Link } from "react-router-dom";
 import { setHomeScreenIdentity } from "@/lib/homeScreenIdentity";
 
 type CardData = Tables<"cards">;
-
-type ContactKind = "email" | "phone" | "url" | "custom";
-type ContactType = "work" | "home" | "mobile" | "office" | "other";
-
-function inferTypeFromLabel(labelLower: string): ContactType {
-  if (labelLower.includes("work")) return "work";
-  if (labelLower.includes("home")) return "home";
-  if (labelLower.includes("mobile") || labelLower.includes("cell")) return "mobile";
-  if (labelLower.includes("office")) return "office";
-  return "other";
-}
 
 interface PublicCardProps {
   customSlug?: boolean;
@@ -217,43 +207,9 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         setProductImages(images);
       }
 
-      // Load additional contacts
-      const { data: contactLinks } = await supabase
-        .from("card_links")
-        .select("id, kind, label, value")
-        .eq("card_id", data.id)
-        .in("kind", ["email", "phone", "url", "custom"])
-        .order("sort_index", { ascending: true });
-
-      if (contactLinks) {
-        const contacts: AdditionalContact[] = contactLinks
-          .filter((link) => {
-            const label = (link.label || "").toLowerCase();
-            return (
-              label.includes("additional") ||
-              label.includes("alternate") ||
-              label.includes("other") ||
-              label.includes("secondary") ||
-              label.includes("work") ||
-              label.includes("home") ||
-              label.includes("mobile") ||
-              label.includes("office")
-            );
-          })
-          .map((link) => {
-            const rawLabel = link.label || "";
-            const labelLower = rawLabel.toLowerCase();
-            const contactType = inferTypeFromLabel(labelLower);
-            return {
-              id: link.id,
-              kind: link.kind as ContactKind,
-              label: rawLabel,
-              value: link.value || "",
-              contactType,
-            };
-          });
-        setAdditionalContacts(contacts);
-      }
+      // Load additional contacts (shared with the editor preview)
+      const contacts = await fetchAdditionalContacts(data.id);
+      if (contacts) setAdditionalContacts(contacts);
     }
     setLoading(false);
   };

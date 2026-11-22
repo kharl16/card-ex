@@ -51,7 +51,8 @@ import { SmartAccordion, EditorSection } from "@/components/editor/SmartAccordio
 import { SectionNavigator } from "@/components/editor/SectionNavigator";
 import { EditorWizard, WizardStep } from "@/components/editor/EditorWizard";
 import { BasicInformationSection } from "@/components/editor/sections/BasicInformationSection";
-import { ContactInformationSection, AdditionalContact } from "@/components/editor/sections/ContactInformationSection";
+import { ContactInformationSection } from "@/components/editor/sections/ContactInformationSection";
+import { fetchAdditionalContacts, type AdditionalContact } from "@/lib/cardContacts";
 
 import { CarouselSettingsSection } from "@/components/editor/sections/CarouselSettingsSection";
 import { AdBannerSection } from "@/components/editor/sections/AdBannerSection";
@@ -189,6 +190,7 @@ export default function CardEditor() {
   useEffect(() => {
     loadCard();
     loadSocialLinks();
+    loadAdditionalContacts();
     loadProductImages();
     loadBookingStatus();
   }, [id]);
@@ -330,6 +332,14 @@ export default function CardEditor() {
       setAutosaveStatus("saved");
     }
   }, [card]);
+
+  // Load extra contacts (e.g. a second mobile number) with the card itself so the
+  // preview always shows them, even while the Contact Information section is closed.
+  const loadAdditionalContacts = async () => {
+    if (!id) return;
+    const contacts = await fetchAdditionalContacts(id);
+    if (contacts) setAdditionalContacts(contacts);
+  };
 
   const loadSocialLinks = async () => {
     if (!id) return;

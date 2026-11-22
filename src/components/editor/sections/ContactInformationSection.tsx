@@ -7,20 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
 import type { Tables } from "@/integrations/supabase/types";
+import { fetchAdditionalContacts, type AdditionalContact, type ContactKind, type ContactType } from "@/lib/cardContacts";
 
 type CardData = Tables<"cards">;
 
-type ContactKind = "email" | "phone" | "url" | "custom";
-type ContactType = "work" | "home" | "mobile" | "office" | "other";
-
-export interface AdditionalContact {
-  id: string;
-  kind: ContactKind;
-  label: string;
-  value: string;
-  contactType: ContactType;
-  isNew?: boolean;
-}
+export type { AdditionalContact };
 
 interface ContactInformationSectionProps {
   card: CardData;
@@ -30,14 +21,6 @@ interface ContactInformationSectionProps {
 }
 
 // --- helpers ----------------------------------------------------
-
-function inferTypeFromLabel(labelLower: string): ContactType {
-  if (labelLower.includes("work")) return "work";
-  if (labelLower.includes("home")) return "home";
-  if (labelLower.includes("mobile") || labelLower.includes("cell")) return "mobile";
-  if (labelLower.includes("office")) return "office";
-  return "other";
-}
 
 function getContactTypeLabel(type: ContactType): string {
   switch (type) {
@@ -118,68 +101,8 @@ export function ContactInformationSection({
 
   const loadAdditionalContacts = async () => {
     if (!card?.id) return;
-
-    const { data, error } = await supabase
-      .from("card_links")
-      .select("id, kind, label, value, sort_index")
-      .eq("card_id", card.id)
-      .in("kind", ["email", "phone", "url", "custom"])
-      .order("sort_index", { ascending: true });
-
-    if (error) {
-      console.error("Error loading additional contacts:", error);
-      return;
-    }
-
-    if (!data) {
-      setAdditionalContacts([]);
-      onAdditionalContactsChange?.([]);
-      return;
-    }
-
-    const contactLinks = data.filter((link) => {
-      const labelLower = (link.label || "").toLowerCase();
-
-      return (
-        link.kind === "email" ||
-        link.kind === "phone" ||
-        (link.kind === "custom" && labelLower.includes("location")) ||
-        (link.kind === "url" &&
-          !["facebook", "linkedin", "instagram", "x", "youtube", "telegram", "tiktok"].some((social) =>
-            labelLower.includes(social),
-          ))
-      );
-    });
-
-    const contacts: AdditionalContact[] = contactLinks
-      .filter((link) => {
-        const label = (link.label || "").toLowerCase();
-        return (
-          label.includes("additional") ||
-          label.includes("alternate") ||
-          label.includes("other") ||
-          label.includes("secondary") ||
-          label.includes("work") ||
-          label.includes("home") ||
-          label.includes("mobile") ||
-          label.includes("office")
-        );
-      })
-      .map((link) => {
-        const rawLabel = link.label || "";
-        const labelLower = rawLabel.toLowerCase();
-        const contactType = inferTypeFromLabel(labelLower);
-
-        return {
-          id: link.id,
-          kind: link.kind as ContactKind,
-          label: rawLabel || buildLabelFromKindAndType(link.kind as ContactKind, contactType),
-          value: link.value || "",
-          contactType,
-          isNew: false,
-        };
-      });
-
+    const contacts = await fetchAdditionalContacts(card.id);
+    if (!contacts) return;
     setAdditionalContacts(contacts);
     onAdditionalContactsChange?.(contacts);
   };
