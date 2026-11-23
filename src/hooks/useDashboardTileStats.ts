@@ -28,6 +28,8 @@ export interface DashboardTileStats {
   videos: number;
   newVideos: number;
   resources: number;
+  /** Quick Links count (iam_links), shown on its own dashboard tile. */
+  links: number;
   latestResource: string | null;
   leads: number;
   appointments: number;
@@ -41,6 +43,7 @@ const emptyStats: DashboardTileStats = {
   videos: 0,
   newVideos: 0,
   resources: 0,
+  links: 0,
   latestResource: null,
   leads: 0,
   appointments: 0,
@@ -152,6 +155,7 @@ export function useDashboardTileStats(): DashboardTileStats {
         videos: videosRes.count ?? 0,
         newVideos: newVideosRes.count ?? 0,
         resources: (filesRes.count ?? 0) + (linksRes.count ?? 0) + (ambassadorsRes.count ?? 0),
+        links: linksRes.count ?? 0,
         latestResource: latestFileRes.data?.[0]?.file_name ?? null,
         leads: leadsRes.count ?? 0,
         appointments: apptRes.count ?? 0,

@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { MapPin, PlayCircle, BookOpen, LayoutGrid, ArrowUpRight } from "lucide-react";
+import { MapPin, PlayCircle, BookOpen, LayoutGrid, Link2, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TileAuraBackground } from "./TileAuraBackground";
 import { TilePhotoBackdrop } from "./TilePhotoBackdrop";
-import { useDashboardTileStats } from "@/hooks/useDashboardTileStats";
+import { useDashboardTileStats, type DashboardTileStats } from "@/hooks/useDashboardTileStats";
 import locatorBackdrop from "@/assets/tiles/tile-locator.jpg";
 import videosBackdrop from "@/assets/tiles/tile-videos.jpg";
 import resourcesBackdrop from "@/assets/tiles/tile-resources.jpg";
 import workspaceBackdrop from "@/assets/tiles/tile-workspace.jpg";
+import linksBackdrop from "@/assets/tiles/tile-links.jpg";
 
 
 interface DashboardQuadrantTilesProps {
@@ -73,6 +74,17 @@ const themes: Record<string, TileTheme> = {
     focusBorder: "focus-visible:border-blue-300",
     focusRing: "focus-visible:ring-blue-300",
   },
+  links: {
+    color: "from-cyan-500/20 to-cyan-500/5",
+    auraColor: "185 80% 50%",
+    iconBg: "bg-cyan-500/15",
+    iconColor: "text-cyan-300",
+    textColor: "text-cyan-200",
+    badgeClass: "bg-cyan-500/25 text-cyan-100",
+    hoverBorder: "hover:border-cyan-400/60",
+    focusBorder: "focus-visible:border-cyan-300",
+    focusRing: "focus-visible:ring-cyan-300",
+  },
 };
 
 const backdrops: Record<string, string> = {
@@ -81,15 +93,26 @@ const backdrops: Record<string, string> = {
   videos: videosBackdrop,
   resources: resourcesBackdrop,
   workspace: workspaceBackdrop,
+  links: linksBackdrop,
 };
 
 
 
-export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
-  const navigate = useNavigate();
-  const stats = useDashboardTileStats();
+export interface DashboardTile {
+  id: string;
+  label: string;
+  icon: typeof MapPin;
+  path: string;
+  primary: string;
+  secondary: string;
+  badge: string | null;
+  /** Spans the full row on laptops (sm:col-span-2). */
+  wide?: boolean;
+}
 
-  const tiles = [
+/** The five command-center tiles, in display order. Quick Links is the 5th, full-width. */
+export function buildDashboardTiles(stats: DashboardTileStats): DashboardTile[] {
+  return [
     {
       id: "locator",
       label: "Locator",
@@ -97,7 +120,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
       path: "/locator",
       primary: stats.loading ? "—" : `${stats.branches} Branches`,
       secondary: stats.nearestBranch ? `Nearest: ${stats.nearestBranch}` : "Find a branch near you",
-      badge: null as string | null,
+      badge: null,
     },
     {
       id: "videos",
@@ -126,7 +149,23 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
       secondary: "Prospect List · D.I.S.C. · 5 Love Languages · Tools",
       badge: stats.appointments > 0 ? `${stats.appointments}` : null,
     },
+    {
+      id: "links",
+      label: "Quick Links",
+      icon: Link2,
+      path: "/resources/links",
+      primary: stats.loading ? "—" : `${stats.links} ${stats.links === 1 ? "Link" : "Links"}`,
+      secondary: "Shop, sign-up & important pages in one tap",
+      badge: null,
+      wide: true,
+    },
   ];
+}
+
+export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
+  const navigate = useNavigate();
+  const stats = useDashboardTileStats();
+  const tiles = buildDashboardTiles(stats);
 
   return (
     <nav aria-label="Dashboard sections">
@@ -136,7 +175,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
           const Icon = tile.icon;
 
           return (
-            <li key={tile.id} className="min-w-0">
+            <li key={tile.id} data-tile-id={tile.id} className={cn("min-w-0", tile.wide && "sm:col-span-2")}>
               <button
                 type="button"
                 onClick={() => navigate(tile.path)}
@@ -155,7 +194,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                 <TilePhotoBackdrop
                   src={backdrops[tile.id]}
                   color={theme.auraColor}
-                  objectPosition={tile.id === "videos" ? "center bottom" : "center"}
+                  objectPosition={tile.id === "videos" ? "center bottom" : tile.id === "links" ? "right center" : "center"}
                   objectFit="cover"
                 />
                 <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-[0.08]", theme.color)} aria-hidden />
