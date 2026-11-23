@@ -190,7 +190,7 @@ function LinksPageContent() {
               return (
                 <Card
                   key={link.id}
-                  className="group transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 bg-card/80 backdrop-blur border-border/50"
+                  className="group rounded-2xl border-primary/40 bg-card/80 backdrop-blur transition-all duration-300 hover:border-primary/60 hover:shadow-lg hover:shadow-primary/10"
                 >
                   <CardContent className="p-4 sm:p-5">
                     <div className="mb-4 flex items-start justify-between gap-3">
