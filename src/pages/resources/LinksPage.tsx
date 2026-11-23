@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Search, ExternalLink, Copy, Heart, X, Plus, Pencil, Share2 } from "lucide-react";
+import { Search, ExternalLink, Copy, Heart, X, Plus, Pencil, Share2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +13,7 @@ import { useResourceData } from "@/hooks/useResourceData";
 import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 import AdminLinkDialog from "@/components/tools/admin/AdminLinkDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { PageBackButton } from "@/components/PageBackButton";
 
 function LinksPageContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -86,30 +86,30 @@ function LinksPageContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b">
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-4">
-            <Link to="/resources">
-              <Button variant="ghost" size="lg" className="h-12 w-12">
-                <ArrowLeft className="h-6 w-6" />
-              </Button>
-            </Link>
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-full bg-primary/10">
-                <ExternalLink className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">Quick Links</h1>
-                <p className="text-sm text-muted-foreground">Important resources at your fingertips</p>
-              </div>
+          <div data-links-header className="mb-4 flex items-center gap-3 sm:gap-4">
+            <PageBackButton to="/dashboard" />
+            <div className="hidden shrink-0 rounded-full bg-primary/10 p-3 sm:block">
+              <ExternalLink className="h-6 w-6 text-primary" />
             </div>
-            <Badge variant="secondary" className="ml-auto text-base px-3 py-1">
-              {filteredLinks.length} links
-            </Badge>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h1 className="truncate text-xl font-bold sm:text-2xl md:text-3xl">Quick Links</h1>
+                <Badge
+                  variant="secondary"
+                  data-links-count
+                  className="shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs sm:text-sm"
+                >
+                  {filteredLinks.length} {filteredLinks.length === 1 ? "link" : "links"}
+                </Badge>
+              </div>
+              <p className="truncate text-sm text-muted-foreground">Important resources at your fingertips</p>
+            </div>
             {isSuperAdmin && (
               <Button
                 size="lg"
-                className="h-12 gap-2"
+                className="hidden h-12 shrink-0 gap-2 sm:inline-flex"
                 onClick={() => {
                   setEditItem(null);
                   setDialogOpen(true);
@@ -122,39 +122,59 @@ function LinksPageContent() {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <div data-links-filters className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="relative w-full sm:min-w-[200px] sm:max-w-md sm:flex-1">
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search links..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-12 h-12 text-lg"
+                className="h-12 pl-12 text-base sm:text-lg"
               />
             </div>
 
-            <Button
-              variant={showFavoritesOnly ? "default" : "outline"}
-              size="lg"
-              className="h-12 gap-2"
-              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-            >
-              <Heart className={cn("h-5 w-5", showFavoritesOnly && "fill-current")} />
-              Favorites
-            </Button>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" size="lg" className="h-12" onClick={clearFilters}>
-                <X className="h-5 w-5 mr-2" />
-                Clear
+            <div className={cn("grid gap-3 sm:flex", isSuperAdmin ? "grid-cols-2" : "grid-cols-1")}>
+              <Button
+                variant={showFavoritesOnly ? "default" : "outline"}
+                size="lg"
+                className="h-12 min-w-0 gap-2"
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              >
+                <Heart className={cn("h-5 w-5", showFavoritesOnly && "fill-current")} />
+                Favorites
               </Button>
-            )}
+              {isSuperAdmin && (
+                <Button
+                  size="lg"
+                  data-links-add-mobile
+                  className="h-12 min-w-0 gap-2 sm:hidden"
+                  onClick={() => {
+                    setEditItem(null);
+                    setDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-5 w-5" />
+                  Add Link
+                </Button>
+              )}
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="lg"
+                  className={cn("h-12", isSuperAdmin && "col-span-2")}
+                  onClick={clearFilters}
+                >
+                  <X className="mr-2 h-5 w-5" />
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-5 sm:py-8">
         {filteredLinks.length === 0 ? (
           <div className="text-center py-16">
             <ExternalLink className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
@@ -172,60 +192,64 @@ function LinksPageContent() {
                   key={link.id}
                   className="group transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 bg-card/80 backdrop-blur border-border/50"
                 >
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between gap-4 mb-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg md:text-xl mb-2">{link.name}</h3>
+                  <CardContent className="p-4 sm:p-5">
+                    <div className="mb-4 flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="mb-1.5 text-lg font-semibold leading-snug md:text-xl">{link.name}</h3>
                         <a
                           href={link.link}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => logEvent("link", link.id, "open_link")}
-                          className="block text-sm text-blue-400 underline-offset-2 hover:text-blue-300 hover:underline truncate"
+                          className="block truncate text-sm text-blue-400 underline-offset-2 hover:text-blue-300 hover:underline"
                         >
                           {link.link}
                         </a>
                       </div>
                       <Button
-                        size="lg"
+                        size="icon"
                         variant="ghost"
-                        className={cn("h-12 w-12 flex-shrink-0", favorite && "text-red-500")}
+                        aria-label={favorite ? "Remove from favorites" : "Add to favorites"}
+                        className={cn("-mr-2 -mt-1 h-11 w-11 shrink-0", favorite && "text-red-500")}
                         onClick={() => toggleFavorite("link", link.id)}
                       >
                         <Heart className={cn("h-6 w-6", favorite && "fill-current")} />
                       </Button>
                     </div>
-                    <div className="flex gap-3">
+                    <div
+                      data-link-actions
+                      className={cn("grid gap-2 sm:gap-3", isSuperAdmin ? "grid-cols-3" : "grid-cols-2")}
+                    >
                       {isSuperAdmin && (
                         <Button
                           variant="secondary"
                           size="lg"
-                          className="h-12 gap-2 text-base"
+                          className="h-12 min-w-0 gap-1.5 px-2 text-sm sm:gap-2 sm:px-4 sm:text-base"
                           onClick={() => {
                             setEditItem(link);
                             setDialogOpen(true);
                           }}
                         >
-                          <Pencil className="h-5 w-5" />
+                          <Pencil className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
                           Edit
                         </Button>
                       )}
                       <Button
                         variant="outline"
                         size="lg"
-                        className="flex-1 h-12 gap-2 text-base"
+                        className="h-12 min-w-0 gap-1.5 px-2 text-sm sm:gap-2 sm:px-4 sm:text-base"
                         onClick={() => handleCopy(link)}
                       >
-                        <Copy className="h-5 w-5" />
+                        <Copy className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
                         Copy
                       </Button>
                       <Button
                         variant="default"
                         size="lg"
-                        className="flex-1 h-12 gap-2 text-base"
+                        className="h-12 min-w-0 gap-1.5 px-2 text-sm sm:gap-2 sm:px-4 sm:text-base"
                         onClick={() => handleShare(link)}
                       >
-                        <Share2 className="h-5 w-5" />
+                        <Share2 className="h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
                         Share
                       </Button>
                     </div>
