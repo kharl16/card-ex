@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { FileText, Link2, BookOpen, Sparkles, Heart, Clock, Plus, Search, X } from "lucide-react";
+import { FileText, Link2, BookOpen, Sparkles, Heart, Clock, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,16 +16,12 @@ import { FilePreviewDialog } from "@/components/resources/FilePreviewDialog";
 import { ImmersivePavilion } from "@/components/resources/ImmersivePavilion";
 import { ImmersiveShelf } from "@/components/resources/ImmersiveShelf";
 import type { FileResource } from "@/types/resources";
-import AdminLinkDialog from "@/components/tools/admin/AdminLinkDialog";
-import { useAuth } from "@/contexts/AuthContext";
 import { useSearchQueryParam } from "@/hooks/useSearchQueryParam";
 
 function ResourcesHubContent() {
   const [searchTerm, setSearchTerm] = useState("");
   useSearchQueryParam(setSearchTerm);
   const [previewFile, setPreviewFile] = useState<FileResource | null>(null);
-  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const { isSuperAdmin } = useAuth();
   const {
     files,
     links,
@@ -36,7 +32,6 @@ function ResourcesHubContent() {
     toggleFavorite,
     logEvent,
     isFavorite,
-    refetch,
   } = useResourceData();
 
   const term = searchTerm.trim().toLowerCase();
@@ -112,7 +107,6 @@ function ResourcesHubContent() {
   const shortcuts = [
     { key: "featured", label: "Featured", icon: Sparkles, show: featured.length > 0 && !isSearching },
     { key: "folders", label: "Folders", icon: FileText, show: !isSearching && folders.length > 0 },
-    { key: "links", label: "Links", icon: Link2, show: !isSearching && (filteredLinks.length > 0 || isSuperAdmin) },
     { key: "ways", label: "13 Ways", icon: BookOpen, show: !isSearching && filteredWays.length > 0 },
   ].filter((s) => s.show);
 
@@ -291,32 +285,8 @@ function ResourcesHubContent() {
             </ImmersiveShelf>
           )}
 
-          {/* Quick Links */}
-          {(filteredLinks.length > 0 || isSuperAdmin) && (
-            <ImmersiveShelf
-              id="resources-links"
-              icon={Link2}
-              title="Quick Links"
-              subtitle="Essential resources"
-              viewAllHref="/resources/links"
-              count={filteredLinks.length}
-            >
-              {isSuperAdmin && (
-                <div className="mb-4">
-                  <Button size="sm" className="gap-2" onClick={() => setLinkDialogOpen(true)}>
-                    <Plus className="h-4 w-4" />
-                    Add Quick Link
-                  </Button>
-                </div>
-              )}
-              <QuickLinksGrid
-                links={filteredLinks.slice(0, 8)}
-                favorites={new Set()}
-                onToggleFavorite={(id) => toggleFavorite("link", id)}
-                onLogEvent={(id, e) => logEvent("link", id, e)}
-              />
-            </ImmersiveShelf>
-          )}
+          {/* Quick Links now live on their own page (/resources/links),
+              reached from the dashboard tile — no shelf here. */}
 
           {/* 13 Ways */}
           {filteredWays.length > 0 && (
@@ -383,15 +353,6 @@ function ResourcesHubContent() {
         }}
         onNavigate={setPreviewFile}
       />
-
-      {isSuperAdmin && (
-        <AdminLinkDialog
-          open={linkDialogOpen}
-          onOpenChange={setLinkDialogOpen}
-          item={null}
-          onSaved={() => refetch()}
-        />
-      )}
 
     </div>
   );

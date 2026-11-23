@@ -39,4 +39,10 @@ describe("dashboard command-center tiles", () => {
   it("spans the full row on laptops", () => {
     expect(buildDashboardTiles(stats)[4].wide).toBe(true);
   });
+
+  it("renders Quick Links phone-compact while the other four stay full size", () => {
+    const tiles = buildDashboardTiles(stats);
+    expect(tiles[4].compact).toBe(true);
+    expect(tiles.slice(0, 4).map((t) => Boolean(t.compact))).toEqual([false, false, false, false]);
+  });
 });

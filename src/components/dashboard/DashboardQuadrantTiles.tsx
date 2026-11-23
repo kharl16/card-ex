@@ -108,6 +108,8 @@ export interface DashboardTile {
   badge: string | null;
   /** Spans the full row on laptops (sm:col-span-2). */
   wide?: boolean;
+  /** Phone-compact rendering: shorter tile, smaller icon, no secondary line. */
+  compact?: boolean;
 }
 
 /** The five command-center tiles, in display order. Quick Links is the 5th, full-width. */
@@ -158,6 +160,7 @@ export function buildDashboardTiles(stats: DashboardTileStats): DashboardTile[] 
       secondary: "Shop, sign-up & important pages in one tap",
       badge: null,
       wide: true,
+      compact: true,
     },
   ];
 }
@@ -183,6 +186,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                 style={{ "--aura-color": theme.auraColor } as React.CSSProperties}
                 className={cn(
                   "group relative flex min-h-[132px] w-full min-w-0 flex-col justify-between gap-3 overflow-hidden rounded-3xl border border-border/40 bg-card/40 p-4 text-left backdrop-blur-xl transition-all duration-300",
+                  tile.compact && "min-h-[84px] gap-2 p-3.5 sm:min-h-[132px] sm:gap-3 sm:p-4",
                   "tile-pulsating-border shadow-lg shadow-black/20",
                   "hover:-translate-y-0.5 hover:bg-card/60 hover:shadow-xl active:scale-[0.99]",
                   "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:-translate-y-0.5 focus-visible:bg-card/60",
@@ -212,18 +216,19 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                   <div
                     className={cn(
                       "flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/10 transition-transform duration-300 group-hover:scale-110 group-focus-visible:scale-110",
+                      tile.compact && "h-10 w-10 rounded-xl sm:h-14 sm:w-14 sm:rounded-2xl",
                       theme.iconBg,
                       theme.iconColor,
                       "shadow-[0_0_24px_-6px_currentColor]"
                     )}
                     aria-hidden
                   >
-                    <Icon className="h-7 w-7" />
+                    <Icon className={cn("h-7 w-7", tile.compact && "h-5 w-5 sm:h-7 sm:w-7")} />
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="truncate text-base font-bold tracking-tight text-foreground sm:text-lg">
+                      <h3 className={cn("truncate font-bold tracking-tight text-foreground", tile.compact ? "text-sm sm:text-lg" : "text-base sm:text-lg")}>
                         {tile.label}
                       </h3>
                       {tile.badge && (
@@ -237,7 +242,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                         </span>
                       )}
                     </div>
-                    <p className={cn("truncate text-sm font-semibold", theme.textColor)}>{tile.primary}</p>
+                    <p className={cn("truncate font-semibold", theme.textColor, tile.compact ? "text-xs sm:text-sm" : "text-sm")}>{tile.primary}</p>
                   </div>
 
                   <ArrowUpRight
@@ -246,7 +251,7 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                   />
                 </div>
 
-                <p className="relative z-10 truncate text-xs text-foreground/80 [text-shadow:0_1px_6px_rgba(0,0,0,0.85)]">{tile.secondary}</p>
+                <p className={cn("relative z-10 truncate text-xs text-foreground/80 [text-shadow:0_1px_6px_rgba(0,0,0,0.85)]", tile.compact && "hidden sm:block")}>{tile.secondary}</p>
               </button>
             </li>
           );
