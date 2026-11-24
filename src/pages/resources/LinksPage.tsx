@@ -73,7 +73,7 @@ function LinksPageContent() {
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           <Skeleton className="h-10 w-48 mb-8" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[...Array(6)].map((_, i) => (
               <Skeleton key={i} className="h-20" />
             ))}
@@ -99,7 +99,7 @@ function LinksPageContent() {
                 <Badge
                   variant="secondary"
                   data-links-count
-                  className="shrink-0 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs sm:text-sm"
+                  className="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1 text-base font-semibold sm:px-4 sm:py-1.5 sm:text-lg"
                 >
                   {filteredLinks.length} {filteredLinks.length === 1 ? "link" : "links"}
                 </Badge>
@@ -184,7 +184,7 @@ function LinksPageContent() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {filteredLinks.map((link) => {
               const favorite = isFavorite("link", link.id);
               return (
