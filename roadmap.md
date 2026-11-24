@@ -42,3 +42,5 @@
 - [x] Publish so the live site keeps the payment page through sign-in; verified signed-out on tagex.app and www.tagex.app (redirect preserved). Signed-in completion on live unverified (no session available).
 - [x] Let members pay the owner's GCash directly (QR/number on the payment page) and have super admins approve before activation; database rules verified with trial runs, 5 tests pass. Signed-in click-through unverified (no preview session).
 - [ ] Enter the real GCash account name, number and QR, then switch GCash on. Waiting on the owner (Super Admin → GCash Payments).
+- [x] Apply the Executive Cockpit dashboard: live telemetry, prominent primary-card actions, and a streamlined bento command grid.
+- [x] Verify the redesigned dashboard on phone and laptop, run dashboard tests, and check the preview build.

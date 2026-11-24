@@ -88,6 +88,11 @@ All colors MUST be HSL.
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-luxury: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Executive dashboard cockpit */
+    --cockpit-surface: linear-gradient(145deg, hsl(var(--surface-elevated) / 0.96), hsl(var(--background) / 0.98) 68%);
+    --cockpit-grid: linear-gradient(hsl(var(--gold) / 0.035) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--gold) / 0.035) 1px, transparent 1px);
+    --cockpit-shadow: 0 24px 70px -34px hsl(var(--gold) / 0.28), inset 0 1px 0 hsl(var(--foreground) / 0.06);
   }
 }
 
@@ -525,6 +530,24 @@ All colors MUST be HSL.
   .cover-gold-frame::after {
     animation: none !important;
   }
+}
+
+/* Executive cockpit: a lightweight technical grid over obsidian glass. */
+.dashboard-cockpit {
+  background: var(--cockpit-surface);
+  box-shadow: var(--cockpit-shadow);
+  backdrop-filter: blur(var(--glass-blur));
+}
+.dashboard-cockpit::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--cockpit-grid);
+  background-size: 32px 32px;
+  -webkit-mask-image: linear-gradient(to bottom, hsl(var(--background)), transparent 72%);
+  mask-image: linear-gradient(to bottom, hsl(var(--background)), transparent 72%);
 }
 
 /* Guilloche watermark: hairline watch-dial engraving tinted with the gold token.

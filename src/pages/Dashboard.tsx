@@ -45,9 +45,8 @@ import { MyTemplatesManager } from "@/components/templates/MyTemplatesManager";
 import { DuplicateCardDialog } from "@/components/DuplicateCardDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { TodaySummary } from "@/components/dashboard/TodaySummary";
-import { Pencil, Upload, Copy as CopyIcon, QrCode, Share2, FilePlus2 } from "lucide-react";
+import { Pencil, Upload, Copy as CopyIcon, QrCode, Share2, FilePlus2, Plus } from "lucide-react";
 
 
 import { DashboardCardTile } from "@/components/dashboard/DashboardCardTile";
@@ -62,7 +61,7 @@ import { FreeAccessBanner } from "@/components/dashboard/FreeAccessBanner";
 import { hasCardAccess } from "@/lib/freeAccess";
 import { Presentation as PresentationIcon, Crown, ChevronRight } from "lucide-react";
 import { DashboardQuadrantTiles } from "@/components/dashboard/DashboardQuadrantTiles";
-import { CardPreviewCarousel } from "@/components/dashboard/CardPreviewCarousel";
+import { ExecutiveCockpit } from "@/components/dashboard/ExecutiveCockpit";
 import { GlobalSearch } from "@/components/dashboard/GlobalSearch";
 import { ProgressTracker } from "@/components/dashboard/ProgressTracker";
 import { ReferralEarningsBadge } from "@/components/referral/ReferralEarningsBadge";
@@ -507,44 +506,58 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <main className="container mx-auto px-4 py-6 space-y-6 overflow-hidden">
-        {/* Welcome + Quote */}
-        <div className="space-y-4">
-          <WelcomeBanner profile={profile} cards={cards} />
-          <FreeAccessBanner card={primaryCard as any} />
-          <div className="w-full sm:max-w-xs">
-            <AddToHomeScreenButton label="Install Card-Ex" variant="outline" />
+      <main className="container mx-auto space-y-8 overflow-hidden px-4 py-6">
+        <FreeAccessBanner card={primaryCard as any} />
+
+        <ExecutiveCockpit
+          profile={profile}
+          cards={cards}
+          primaryCard={primaryCard}
+          primaryCardViews={primaryCard ? (cardViewsMap[primaryCard.id] ?? primaryCard.views_count ?? 0) : 0}
+          onShare={openShareDialog}
+          onCreateCard={() => setNewCardDialogOpen(true)}
+          loading={loading}
+          error={cardsError}
+        />
+
+        <section aria-labelledby="command-center-heading" className="space-y-3">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Command center</p>
+              <h2 id="command-center-heading" className="mt-1 text-xl font-bold tracking-tight text-foreground sm:text-2xl">Everything within reach</h2>
+            </div>
+            <span className="hidden rounded-full border border-primary/25 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary sm:block">5 tools</span>
+          </div>
+          <DashboardQuadrantTiles />
+        </section>
+
+        <section aria-labelledby="daily-briefing-heading" className="space-y-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Daily briefing</p>
+            <h2 id="daily-briefing-heading" className="mt-1 text-xl font-bold tracking-tight text-foreground sm:text-2xl">A clear next step</h2>
           </div>
           <MotivationalQuote />
-          <button
-            type="button"
-            onClick={() => navigate("/dashboard/presentations")}
-            className="relative flex min-h-[64px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/30 bg-card p-4 text-left transition-colors hover:border-primary/60"
-          >
-            <img
-              src={presentationsBackdrop.url}
-              alt=""
-              aria-hidden="true"
-              width={1536}
-              height={384}
-              className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
-            />
-            <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/25" />
-            <span aria-hidden className="guilloche-rosette -right-8 top-1/2 w-36 -translate-y-1/2" style={{ ["--guilloche-strength" as string]: 0.11 }} />
-            <PresentationIcon className="relative h-8 w-8 shrink-0 text-primary" />
-            <span className="relative min-w-0 flex-1">
-              <span className="block text-lg font-semibold text-foreground">Presentations</span>
-              <span className="block text-sm text-muted-foreground">View slides right here, one at a time</span>
-            </span>
-          </button>
-          {isSuperAdmin && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center rounded-2xl border border-primary/20 bg-card/40 p-2">
+              <AddToHomeScreenButton label="Install Card-Ex" variant="outline" />
+            </div>
+            <TodaySummary cards={cards} />
+          </div>
+        </section>
+
+        <section aria-labelledby="member-tools-heading" className="space-y-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Member tools</p>
+            <h2 id="member-tools-heading" className="mt-1 text-xl font-bold tracking-tight text-foreground sm:text-2xl">Learn and manage</h2>
+          </div>
+          <div className="grid gap-3 lg:grid-cols-2">
             <button
               type="button"
-              onClick={() => navigate("/superadmin")}
-              className="relative flex min-h-[64px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/50 bg-card p-4 text-left transition-colors hover:border-primary/70"
+              onClick={() => navigate("/dashboard/presentations")}
+              className={`relative flex min-h-[88px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/30 bg-card p-4 text-left transition-colors hover:border-primary/60 ${!isSuperAdmin ? "lg:col-span-2" : ""}`}
             >
               <img
-                src={superAdminBackdrop.url}
+                src={presentationsBackdrop.url}
                 alt=""
                 aria-hidden="true"
                 width={1536}
@@ -552,37 +565,55 @@ export default function Dashboard() {
                 className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
               />
               <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/25" />
-              <Crown className="relative h-8 w-8 shrink-0 text-primary" />
+              <span aria-hidden className="guilloche-rosette -right-8 top-1/2 w-36 -translate-y-1/2" style={{ ["--guilloche-strength" as string]: 0.11 }} />
+              <PresentationIcon className="relative h-8 w-8 shrink-0 text-primary" />
               <span className="relative min-w-0 flex-1">
-                <span className="block text-lg font-semibold text-foreground">Super Admin</span>
-                <span className="block text-sm text-muted-foreground">Users, GCash payments, AI training and system controls</span>
+                <span className="block text-lg font-semibold text-foreground">Presentations</span>
+                <span className="block text-sm text-muted-foreground">View slides right here, one at a time</span>
               </span>
               <ChevronRight className="relative h-6 w-6 shrink-0 text-primary" />
             </button>
-          )}
-          <TodaySummary cards={cards} />
-          <DashboardQuadrantTiles />
-        </div>
+            {isSuperAdmin && (
+              <button
+                type="button"
+                onClick={() => navigate("/superadmin")}
+                className="relative flex min-h-[88px] w-full items-center gap-4 overflow-hidden rounded-2xl border border-primary/50 bg-card p-4 text-left transition-colors hover:border-primary/70"
+              >
+                <img
+                  src={superAdminBackdrop.url}
+                  alt=""
+                  aria-hidden="true"
+                  width={1536}
+                  height={384}
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
+                />
+                <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/25" />
+                <Crown className="relative h-8 w-8 shrink-0 text-primary" />
+                <span className="relative min-w-0 flex-1">
+                  <span className="block text-lg font-semibold text-foreground">Super Admin</span>
+                  <span className="block text-sm text-muted-foreground">Users, GCash payments, AI training and system controls</span>
+                </span>
+                <ChevronRight className="relative h-6 w-6 shrink-0 text-primary" />
+              </button>
+            )}
+          </div>
+        </section>
 
-
-
-
-        {/* Referral Commissions Dashboard */}
         {!loading && profile?.id && (
-          <div className="space-y-3">
+          <section aria-label="Referral commissions" className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <PendingReferralCommissions />
               <button
                 type="button"
                 onClick={() => setReferralsExpanded((v) => !v)}
-                className="w-full text-left transition-transform hover:scale-[1.005] active:scale-[0.995] focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/60 rounded-2xl"
+                className="w-full rounded-2xl text-left transition-transform hover:scale-[1.005] active:scale-[0.995] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                 aria-expanded={referralsExpanded}
                 aria-controls="referrals-feed-panel"
               >
                 <ReferralEarningsBadge userId={profile.id} variant="dashboard" />
               </button>
             </div>
-            <p className="px-2 text-[11px] text-muted-foreground">
+            <p className="px-2 text-xs text-muted-foreground">
               {referralsExpanded ? "Tap paid-out card to hide referrals ▲" : "Tap paid-out card to view your referrals ▼"}
             </p>
             {referralsExpanded && (
@@ -590,74 +621,73 @@ export default function Dashboard() {
                 <ReferralsFeed />
               </div>
             )}
-          </div>
+          </section>
         )}
 
-
-
-        {/* Cards section */}
-        {loading ? (
-          <LoadingAnimation />
-        ) : cardsError ? (
-          <Card className="border-primary/30 bg-card/60">
-            <CardContent className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                <AlertTriangle className="h-8 w-8 text-primary/70" />
-              </div>
-              <h3 className="mb-2 text-lg font-bold">We couldn't load your cards</h3>
-              <p className="mb-6 max-w-xs text-sm text-muted-foreground">
-                Something went wrong while connecting. Check your internet connection and try again — your cards are safe.
-              </p>
-              <Button
-                onClick={loadCards}
-                className="h-12 gap-2 rounded-xl px-8 text-base font-semibold"
-              >
-                <RefreshCw className="h-5 w-5" />
-                Retry
-              </Button>
-            </CardContent>
-          </Card>
-        ) : cards.length === 0 ? (
-          <Card className="border-dashed border-border/40 bg-card/50">
-            <CardContent className="flex flex-col items-center justify-center py-20">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-                <CreditCard className="h-8 w-8 text-primary/60" />
-              </div>
-              <h3 className="mb-2 text-lg font-bold">No cards yet</h3>
-              <p className="mb-6 max-w-xs text-center text-sm text-muted-foreground">
-                Create your first digital business card and start networking smarter.
-              </p>
-              <Button onClick={() => setNewCardDialogOpen(true)} className="h-12 gap-2 rounded-xl px-8 text-base font-semibold">
-                Create Your First Card
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {/* Card list — stacked on mobile for readability, grid on desktop */}
-            {filteredAndSortedCards.length === 0 ? (
-              <p className="py-12 text-center text-sm text-muted-foreground">No cards match your search.</p>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                {filteredAndSortedCards.map((card) => (
-                  <DashboardCardTile
-                    key={card.id}
-                    card={card}
-                    analyticsViews={cardViewsMap[card.id] ?? null}
-                    onShare={openShareDialog}
-                    onDuplicate={openDuplicateDialog}
-                    onDelete={handleDeleteCard}
-                    onRename={openRenameDialog}
-                    onTogglePublish={handleTogglePublish}
-                  />
-                ))}
-              </div>
-            )}
+        <section aria-labelledby="your-cards-heading" className="space-y-4">
+          <div className="flex flex-col gap-3 xs:flex-row xs:items-end xs:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Card fleet</p>
+              <h2 id="your-cards-heading" className="mt-1 text-xl font-bold tracking-tight text-foreground sm:text-2xl">Your Cards</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Manage every card from one place.</p>
+            </div>
+            <Button onClick={() => setNewCardDialogOpen(true)} className="h-11 w-full gap-2 rounded-xl xs:w-auto">
+              <Plus className="h-5 w-5" aria-hidden />
+              New Card
+            </Button>
           </div>
-        )}
 
+          {loading ? (
+            <LoadingAnimation />
+          ) : cardsError ? (
+            <Card className="border-primary/30 bg-card/60">
+              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                  <AlertTriangle className="h-8 w-8 text-primary/70" />
+                </div>
+                <h3 className="mb-2 text-lg font-bold">We couldn't load your cards</h3>
+                <p className="mb-6 max-w-xs text-sm text-muted-foreground">
+                  Something went wrong while connecting. Check your internet connection and try again — your cards are safe.
+                </p>
+                <Button onClick={loadCards} className="h-12 gap-2 rounded-xl px-8 text-base font-semibold">
+                  <RefreshCw className="h-5 w-5" />
+                  Retry
+                </Button>
+              </CardContent>
+            </Card>
+          ) : cards.length === 0 ? (
+            <Card className="border-dashed border-primary/30 bg-card/50">
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                  <CreditCard className="h-8 w-8 text-primary/60" />
+                </div>
+                <h3 className="mb-2 text-lg font-bold">No cards yet</h3>
+                <p className="mb-6 max-w-xs text-center text-sm text-muted-foreground">
+                  Create your first digital business card and start networking smarter.
+                </p>
+                <Button onClick={() => setNewCardDialogOpen(true)} className="h-12 gap-2 rounded-xl px-8 text-base font-semibold">
+                  Create Your First Card
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {filteredAndSortedCards.map((card) => (
+                <DashboardCardTile
+                  key={card.id}
+                  card={card}
+                  analyticsViews={cardViewsMap[card.id] ?? null}
+                  onShare={openShareDialog}
+                  onDuplicate={openDuplicateDialog}
+                  onDelete={handleDeleteCard}
+                  onRename={openRenameDialog}
+                  onTogglePublish={handleTogglePublish}
+                />
+              ))}
+            </div>
+          )}
+        </section>
 
-        {/* Progress tracker */}
         {!loading && cards.length > 0 && (
           <ProgressTracker cards={cards} profile={profile} cardViewsMap={cardViewsMap} />
         )}

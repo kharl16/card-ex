@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { MapPin, PlayCircle, BookOpen, LayoutGrid, Link2, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { TileAuraBackground } from "./TileAuraBackground";
 import { TilePhotoBackdrop } from "./TilePhotoBackdrop";
 import { useDashboardTileStats, type DashboardTileStats } from "@/hooks/useDashboardTileStats";
 import locatorBackdrop from "@/assets/tiles/tile-locator.jpg";
@@ -183,11 +182,11 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                 type="button"
                 onClick={() => navigate(tile.path)}
                 aria-label={`${tile.label}. ${tile.primary}. ${tile.secondary}`}
-                style={{ "--aura-color": theme.auraColor } as React.CSSProperties}
+                data-command-tile={tile.id}
                 className={cn(
-                  "group relative flex min-h-[132px] w-full min-w-0 flex-col justify-between gap-3 overflow-hidden rounded-3xl border border-border/40 bg-card/40 p-4 text-left backdrop-blur-xl transition-all duration-300",
+                  "group relative flex min-h-[132px] w-full min-w-0 flex-col justify-between gap-3 overflow-hidden rounded-3xl border border-primary/25 bg-card/40 p-4 text-left backdrop-blur-xl transition-all duration-300",
                   tile.compact && "min-h-[84px] gap-2 p-3.5 sm:min-h-[132px] sm:gap-3 sm:p-4",
-                  "tile-pulsating-border shadow-lg shadow-black/20",
+                  "glass-shimmer shadow-luxury",
                   "hover:-translate-y-0.5 hover:bg-card/60 hover:shadow-xl active:scale-[0.99]",
                   "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:-translate-y-0.5 focus-visible:bg-card/60",
                   theme.hoverBorder,
@@ -202,7 +201,6 @@ export function DashboardQuadrantTiles(_props: DashboardQuadrantTilesProps) {
                   objectFit="cover"
                 />
                 <div className={cn("absolute inset-0 z-0 bg-gradient-to-br opacity-[0.08]", theme.color)} aria-hidden />
-                <TileAuraBackground color={theme.auraColor} />
 
                 <div
                   className={cn(
