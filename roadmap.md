@@ -44,3 +44,4 @@
 - [ ] Enter the real GCash account name, number and QR, then switch GCash on. Waiting on the owner (Super Admin → GCash Payments).
 - [x] Apply the Executive Cockpit dashboard: live telemetry, prominent primary-card actions, and a streamlined bento command grid.
 - [x] Verify the redesigned dashboard on phone and laptop, run dashboard tests, and check the preview build.
+- [x] Tighten phone cockpit spacing; gauges and 48px actions fit first screen on 390×844, 360×740 and 375×667 samples, laptop preserved. Real signed-in dashboard verification unavailable (user-managed Supabase session).

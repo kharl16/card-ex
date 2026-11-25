@@ -141,17 +141,17 @@ export function AnimatedStatsCards({ cards, variant = "default" }: AnimatedStats
           const Icon = stat.icon;
           const showSparkline = stat.key === "views" || stat.key === "growth";
           return (
-            <div key={stat.key} className="relative min-w-0 bg-background/85 p-3.5 backdrop-blur-xl sm:p-4" data-stat-key={stat.key}>
+            <div key={stat.key} className="relative grid min-w-0 grid-cols-[28px_minmax(0,1fr)] items-center gap-x-2 bg-background/85 p-2 backdrop-blur-xl sm:block sm:p-4" data-stat-key={stat.key}>
               <div className="flex items-center justify-between gap-2">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 text-primary sm:h-8 sm:w-8">
                   <Icon className="h-4 w-4" aria-hidden />
                 </span>
-                {showSparkline && <WeeklySparkline values={weeklySeries} />}
+                {showSparkline && <div className="hidden sm:block"><WeeklySparkline values={weeklySeries} /></div>}
               </div>
-              <p className="mt-3 text-2xl font-bold tabular-nums tracking-tight text-foreground sm:text-3xl">
+              <p className="break-words text-2xl font-bold tabular-nums tracking-tight text-foreground sm:mt-3 sm:text-3xl">
                 {animatedValues[stat.key].toLocaleString()}
               </p>
-              <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:text-sm">
+              <p className="col-span-2 mt-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground sm:mt-0.5 sm:text-sm">
                 {stat.label}
               </p>
             </div>

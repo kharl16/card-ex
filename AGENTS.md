@@ -36,3 +36,4 @@
 - Surface super-admin entry points (Super Admin Console, GCash Payments) from the dashboard and every admin menu, gated by the resolved super-admin role, so admin tools never depend on visiting Resources first.
 - Resolve the card chat assistant name only through src/lib/chatbotName.ts (owner-set cards.chatbot_name, else first name) and keep it out of card snapshots, so templates never carry one owner's assistant name to another card.
 - Load card extra contacts only via src/lib/cardContacts.ts, at editor page level (not only in the collapsible section), so preview, public and shared cards match; generate-vcard always adds card_links contact rows, and the social sync never deletes location contacts.
+- Compact cockpit spacing below sm only; keep 48px actions above secondary card details so phones prioritize commands.

@@ -32,6 +32,17 @@ export function ExecutiveCockpit({
 }: ExecutiveCockpitProps) {
   const navigate = useNavigate();
   const isLive = Boolean(primaryCard?.is_published);
+  const cardDetails = (
+    <>
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/60 px-2 py-0.5 sm:px-3 sm:py-1.5">
+        <Eye className="h-4 w-4 text-primary" aria-hidden />
+        {primaryCardViews.toLocaleString()} total views
+      </span>
+      <span className="rounded-full border border-border/60 bg-background/60 px-2 py-0.5 sm:px-3 sm:py-1.5">
+        {isLive ? "Visible to everyone" : "Only you can see this draft"}
+      </span>
+    </>
+  );
 
   return (
     <section
@@ -45,15 +56,15 @@ export function ExecutiveCockpit({
         style={{ ["--guilloche-strength" as string]: 0.11 }}
       />
 
-      <div className="relative z-10 space-y-5 p-4 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <WelcomeBanner profile={profile} cards={cards} />
-          <div className="flex min-h-11 w-fit items-center gap-2.5 rounded-full border border-primary/30 bg-background/70 px-4 py-2 backdrop-blur-xl">
+      <div className="relative z-10 space-y-3 p-3 sm:space-y-5 sm:p-6">
+        <div className="relative flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <WelcomeBanner profile={profile} cards={cards} compact />
+          <div className={`${!loading && !error ? "absolute right-0 -top-1 sm:static" : ""} flex w-fit items-center gap-2 rounded-full border border-primary/30 bg-background/70 px-2 py-0.5 sm:min-h-11 sm:gap-2.5 sm:px-4 sm:py-2 backdrop-blur-xl`}>
             <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden>
               {isLive && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/50" />}
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
             </span>
-            <span className="text-sm font-semibold text-foreground">
+            <span className="text-xs font-semibold text-foreground sm:text-sm">
               {loading
                 ? "Syncing your dashboard"
                 : error
@@ -66,7 +77,7 @@ export function ExecutiveCockpit({
         </div>
 
         {cards.length > 0 && (
-          <div className="space-y-2">
+          <div className="space-y-1.5 sm:space-y-2">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
               <Activity className="h-4 w-4" aria-hidden />
               Live activity
@@ -98,36 +109,30 @@ export function ExecutiveCockpit({
               </div>
             )}
 
-            <div className="relative grid gap-5 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-              <div className="flex min-w-0 items-center gap-4">
+            <div className="relative grid gap-3 p-3 sm:gap-5 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+              <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                 {primaryCard.avatar_url ? (
                   <img
                     src={primaryCard.avatar_url}
                     alt={primaryCard.full_name || "Card owner"}
-                    className="h-20 w-20 shrink-0 rounded-2xl border border-primary/50 object-cover shadow-gold sm:h-24 sm:w-24"
+                    className="h-14 w-14 shrink-0 rounded-2xl border border-primary/50 object-cover shadow-gold sm:h-24 sm:w-24"
                   />
                 ) : (
-                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-primary/50 bg-primary/15 text-3xl font-bold text-primary sm:h-24 sm:w-24">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-primary/50 bg-primary/15 text-3xl font-bold text-primary sm:h-24 sm:w-24">
                     {(primaryCard.full_name || "C")[0].toUpperCase()}
                   </div>
                 )}
 
                 <div className="min-w-0">
                   <p className="mb-1 text-xs font-semibold uppercase tracking-[0.18em] text-primary">Your main card</p>
-                  <h2 className="break-words text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  <h2 className="break-words text-xl font-bold tracking-tight text-foreground sm:text-3xl">
                     {primaryCard.full_name || "Untitled Card"}
                   </h2>
-                  <p className="mt-1 break-words text-base text-foreground/75">
+                  <p className="mt-0.5 break-words text-base text-foreground/75 sm:mt-1">
                     {[primaryCard.title, primaryCard.company].filter(Boolean).join(" · ") || "Your digital business card"}
                   </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background/60 px-3 py-1.5">
-                      <Eye className="h-4 w-4 text-primary" aria-hidden />
-                      {primaryCardViews.toLocaleString()} total views
-                    </span>
-                    <span className="rounded-full border border-border/60 bg-background/60 px-3 py-1.5">
-                      {isLive ? "Visible to everyone" : "Only you can see this draft"}
-                    </span>
+                  <div className="mt-3 hidden flex-wrap items-center gap-2 text-sm text-muted-foreground sm:flex">
+                    {cardDetails}
                   </div>
                 </div>
               </div>
@@ -165,6 +170,9 @@ export function ExecutiveCockpit({
                   <ArrowUpRight className="h-4 w-4" aria-hidden />
                   View
                 </Button>
+              </div>
+              <div className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground sm:hidden">
+                {cardDetails}
               </div>
             </div>
           </article>

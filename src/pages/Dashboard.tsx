@@ -506,7 +506,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <main className="container mx-auto space-y-8 overflow-hidden px-4 py-6">
+      <main className="container mx-auto space-y-4 overflow-hidden px-4 py-3 sm:space-y-8 sm:py-6">
         <FreeAccessBanner card={primaryCard as any} />
 
         <ExecutiveCockpit

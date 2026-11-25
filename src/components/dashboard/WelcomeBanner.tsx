@@ -8,9 +8,10 @@ type CardData = Tables<"cards">;
 interface WelcomeBannerProps {
   profile: any;
   cards: CardData[];
+  compact?: boolean;
 }
 
-export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
+export function WelcomeBanner({ profile, cards, compact = false }: WelcomeBannerProps) {
   const [totalViews, setTotalViews] = useState(0);
 
   // Ticks every minute but only re-renders when the slot boundary is crossed,
@@ -54,11 +55,11 @@ export function WelcomeBanner({ profile, cards }: WelcomeBannerProps) {
   }, [cards]);
 
   return (
-    <div className="relative isolate space-y-0.5 overflow-hidden py-2">
+    <div className={`relative isolate space-y-0.5 overflow-hidden ${compact ? "py-0 sm:py-2" : "py-2"}`}>
       <div aria-hidden className="guilloche-rosette -z-10 -right-12 top-1/2 w-44 -translate-y-1/2 sm:w-60" style={{ ["--guilloche-strength" as string]: 0.11 }} />
       <div aria-hidden className="guilloche-band -z-10 inset-x-0 bottom-0 h-3" style={{ ["--guilloche-strength" as string]: 0.09 }} />
       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/70">Dashboard</p>
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl break-words">
+      <h1 className={`${compact ? "text-xl" : "text-2xl"} font-bold tracking-tight sm:text-3xl break-words`}>
         {greeting},{" "}
         <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent break-words">
           {name}
