@@ -32,8 +32,9 @@
 - Render every window/viewer close (X) through the single variant-free CloseButton3D; Dialog/Sheet content takes `hideClose` when a window draws its own, so no surface ever shows two or mismatched close buttons.
 - Keep the close button's visible circle a fixed 44px inner element; grow a tap target only by passing transparent padding through `className` (with equal negative margin), never by resizing the circle, so every X stays identical.
 - Mark page-level floating controls with `data-floating-control` and `pointer-events: auto`; shared Dialog/Sheet content ignores outside presses on them, so the draggable Share button stays movable and tappable while any window is open.
-- Give every signed-in or auth-flow page a back arrow through the shared PageBackButton (history back, else an explicit parent), floating top-left on header-less centered pages; only the landing page, dashboard and public/shared card pages omit it because they are entry points.
+- Use PageBackButton on signed-in/auth pages (history back, else parent), floating top-left when header-less; omit landing, dashboard and public/shared entry pages.
 - Surface super-admin entry points (Super Admin Console, GCash Payments) from the dashboard and every admin menu, gated by the resolved super-admin role, so admin tools never depend on visiting Resources first.
 - Resolve the card chat assistant name only through src/lib/chatbotName.ts (owner-set cards.chatbot_name, else first name) and keep it out of card snapshots, so templates never carry one owner's assistant name to another card.
 - Load card extra contacts only via src/lib/cardContacts.ts, at editor page level (not only in the collapsible section), so preview, public and shared cards match; generate-vcard always adds card_links contact rows, and the social sync never deletes location contacts.
-- Compact cockpit spacing below sm only; keep 48px actions above secondary card details so phones prioritize commands.
+- Below sm, compact cockpit spacing but keep 48px actions above secondary details.
+- Store ambience in cards.theme.ambientTheme; dashboardThemeSync is owner-only, follows the latest edited synced card, and shared CSS layers honor reduced motion.

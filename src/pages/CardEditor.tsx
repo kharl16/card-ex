@@ -35,6 +35,9 @@ import ShareCardDialog from "@/components/ShareCardDialog";
 import type { Tables } from "@/integrations/supabase/types";
 import { z } from "zod";
 import ThemeCustomizer from "@/components/ThemeCustomizer";
+import AmbientThemeSection from "@/components/editor/sections/AmbientThemeSection";
+import AmbientThemeBackground from "@/components/ambient/AmbientThemeBackground";
+import { getCardAmbientTheme } from "@/lib/ambientThemes";
 import SocialMediaLinks from "@/components/SocialMediaLinks";
 import QRCodeCustomizer from "@/components/QRCodeCustomizer";
 import QRCode from "qrcode";
@@ -901,10 +904,16 @@ export default function CardEditor() {
         icon: <Palette className="h-4 w-4" />,
         progress: calculateProgress("theme"),
         content: (
-          <ThemeCustomizer
-            theme={(card.theme as any) || { primary: "#D4AF37", background: "#0B0B0C", text: "#F8F8F8" }}
-            onChange={(theme) => setCard({ ...card, theme: theme as any })}
-          />
+          <div className="space-y-6">
+            <ThemeCustomizer
+              theme={(card.theme as any) || { primary: "#D4AF37", background: "#0B0B0C", text: "#F8F8F8" }}
+              onChange={(theme) => setCard({ ...card, theme: theme as any })}
+            />
+            <AmbientThemeSection
+              theme={(card.theme as any) || {}}
+              onChange={(theme) => setCard({ ...card, theme: theme as any })}
+            />
+          </div>
         ),
       },
       "custom-url": {
@@ -1167,8 +1176,10 @@ export default function CardEditor() {
             <CardContent className="p-2 sm:p-4">
               <div 
                 ref={previewContainerRef}
-                className="relative w-full max-w-full rounded-xl"
+                className="relative isolate w-full max-w-full overflow-hidden rounded-xl"
+                data-preview-ambient-theme={getCardAmbientTheme(card.theme)}
               >
+                <AmbientThemeBackground theme={getCardAmbientTheme(card.theme)} contained />
                 <CardView
                   card={card}
                   socialLinks={socialLinks}

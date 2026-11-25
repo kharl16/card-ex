@@ -4,6 +4,8 @@ import { Check, X } from "lucide-react";
 import CardView from "@/components/CardView";
 import type { CardTemplate, LayoutData } from "@/hooks/useTemplates";
 import type { Tables, Json } from "@/integrations/supabase/types";
+import AmbientThemeBackground from "@/components/ambient/AmbientThemeBackground";
+import { getCardAmbientTheme } from "@/lib/ambientThemes";
 
 interface TemplatePreviewDialogProps {
   template: CardTemplate | null;
@@ -139,7 +141,8 @@ export function TemplatePreviewDialog({
         {/* Native scroll container — Radix ScrollArea was hiding the inner
             CardView. A plain overflow-y-auto div renders CardView exactly as
             it appears on the actual card page. */}
-        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 pb-4">
+        <div className="relative isolate flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-4 pb-4">
+          <AmbientThemeBackground theme={getCardAmbientTheme(layoutData.theme)} contained />
           <CardView
             card={mockCard}
             socialLinks={socialLinks}

@@ -52,6 +52,7 @@ import { getGradientCSS, getPatternCSS, getPatternSize } from "@/components/Them
 import AdBanner from "@/components/AdBanner";
 import { ReferralEarningsBadge } from "@/components/referral/ReferralEarningsBadge";
 import { getActiveTheme, CardTheme } from "@/lib/theme";
+import { getCardAmbientTheme } from "@/lib/ambientThemes";
 import { mergeCarouselSettings, type CarouselSettingsData } from "@/lib/carouselTypes";
 import type { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
@@ -313,6 +314,8 @@ export default function CardView({
     text: "#F8F8F8",
   };
 
+  const ambientTheme = getCardAmbientTheme(theme);
+
   const getBackgroundStyle = () => {
     if (!theme) return {};
     if (theme.backgroundType === "gradient") {
@@ -368,9 +371,12 @@ export default function CardView({
 
   return (
     <Card
+      data-card-ambient-theme={ambientTheme}
       className="relative border-0 rounded-2xl shadow-luxury transition-all duration-500 ease-out overflow-visible"
       style={{
-        ...getBackgroundStyle(),
+        ...(ambientTheme === "classic"
+          ? getBackgroundStyle()
+          : { background: `color-mix(in srgb, ${theme.background || "#010309"} 82%, transparent)` }),
         color: theme?.text || undefined,
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
         boxShadow: `var(--shadow-luxury), 0 0 0 1px ${basePrimary}15`,

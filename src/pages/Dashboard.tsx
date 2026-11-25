@@ -66,6 +66,8 @@ import { GlobalSearch } from "@/components/dashboard/GlobalSearch";
 import { ProgressTracker } from "@/components/dashboard/ProgressTracker";
 import { ReferralEarningsBadge } from "@/components/referral/ReferralEarningsBadge";
 import { PendingReferralCommissions } from "@/components/referral/PendingReferralCommissions";
+import AmbientThemeBackground from "@/components/ambient/AmbientThemeBackground";
+import { resolveDashboardAmbientTheme } from "@/lib/ambientThemes";
 
 type CardData = Tables<"cards">;
 
@@ -294,6 +296,8 @@ export default function Dashboard() {
     return byOldest.find((c) => c.is_published) || byOldest[0];
   }, [cards]);
 
+  const dashboardAmbientTheme = useMemo(() => resolveDashboardAmbientTheme(cards), [cards]);
+
   const handleQuickShare = () => {
     if (primaryCard) {
       setSelectedCardId(primaryCard.id);
@@ -333,7 +337,11 @@ export default function Dashboard() {
   }, [cards]);
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden max-w-[100vw] pb-20 sm:pb-0">
+    <div
+      className={`min-h-screen bg-background overflow-x-hidden max-w-[100vw] pb-20 sm:pb-0 ${dashboardAmbientTheme !== "classic" ? "dashboard-ambient" : ""}`}
+      data-dashboard-ambient-theme={dashboardAmbientTheme}
+    >
+      <AmbientThemeBackground theme={dashboardAmbientTheme} />
       {viewAsUserId && (
         <div className="sticky top-0 z-50 bg-amber-500 text-black px-4 py-2 text-sm font-medium flex items-center justify-between gap-3">
           <span className="truncate">
@@ -506,7 +514,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <main className="container mx-auto space-y-4 overflow-hidden px-4 py-3 sm:space-y-8 sm:py-6">
+      <main className="container relative z-10 mx-auto space-y-4 overflow-hidden px-4 py-3 sm:space-y-8 sm:py-6">
         <FreeAccessBanner card={primaryCard as any} />
 
         <ExecutiveCockpit

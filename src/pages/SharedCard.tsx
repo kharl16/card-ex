@@ -12,6 +12,8 @@ import { toHslTriplet } from "@/lib/color";
 import { Button } from "@/components/ui/button";
 import { Plus, CalendarDays } from "lucide-react";
 import AppointmentBookingDialog from "@/components/appointments/AppointmentBookingDialog";
+import AmbientThemeBackground from "@/components/ambient/AmbientThemeBackground";
+import { getCardAmbientTheme } from "@/lib/ambientThemes";
 
 type CardData = Tables<"cards">;
 
@@ -231,6 +233,8 @@ export default function SharedCard() {
     }
   };
 
+  const ambientTheme = getCardAmbientTheme(theme);
+
   return (
     <div
       className="min-h-screen bg-background transition-all duration-500 overflow-x-hidden max-w-[100vw]"
@@ -239,7 +243,8 @@ export default function SharedCard() {
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      <div className="mx-auto max-w-2xl transition-all duration-500 overflow-x-hidden">
+      <AmbientThemeBackground theme={ambientTheme} />
+      <div className="relative z-10 mx-auto max-w-2xl transition-all duration-500 overflow-x-hidden">
         <CardView
           card={cardWithEffectiveTheme}
           socialLinks={socialLinks}

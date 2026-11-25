@@ -1,0 +1,427 @@
+/* Multi-plane ambient themes. All artwork is decorative CSS: no WebGL, images,
+   layout space, or pointer interception. Theme colors remain global HSL tokens. */
+[data-ambient-theme="classic"] {
+  --ambient-base-color: 220 6% 4%;
+  --ambient-base: linear-gradient(180deg, hsl(220 6% 4%), hsl(220 7% 6%));
+  --ambient-primary: 45 72% 53%;
+  --ambient-secondary: 45 68% 66%;
+  --ambient-tertiary: 220 10% 18%;
+  --ambient-shade: 220 40% 2%;
+}
+
+[data-ambient-theme="obsidian"] {
+  --ambient-base-color: 225 35% 3%;
+  --ambient-base: radial-gradient(ellipse at 50% -10%, hsl(45 40% 12% / 0.5), transparent 55%), linear-gradient(165deg, hsl(225 35% 3%), hsl(220 24% 6%) 55%, hsl(45 24% 5%));
+  --ambient-primary: 45 78% 58%;
+  --ambient-secondary: 43 62% 78%;
+  --ambient-tertiary: 36 60% 34%;
+  --ambient-shade: 225 45% 2%;
+}
+
+[data-ambient-theme="hyperdrive"] {
+  --ambient-base-color: 225 70% 4%;
+  --ambient-base: radial-gradient(ellipse at 50% 44%, hsl(190 90% 20% / 0.25), transparent 46%), linear-gradient(180deg, hsl(230 70% 4%), hsl(222 65% 8%) 55%, hsl(230 80% 3%));
+  --ambient-primary: 187 95% 58%;
+  --ambient-secondary: 45 85% 60%;
+  --ambient-tertiary: 217 95% 60%;
+  --ambient-shade: 230 80% 2%;
+}
+
+[data-ambient-theme="cosmic"] {
+  --ambient-base-color: 265 55% 5%;
+  --ambient-base: radial-gradient(ellipse at 15% 15%, hsl(280 70% 25% / 0.42), transparent 46%), radial-gradient(ellipse at 90% 55%, hsl(220 75% 24% / 0.32), transparent 50%), linear-gradient(160deg, hsl(265 55% 5%), hsl(250 45% 9%) 50%, hsl(230 55% 4%));
+  --ambient-primary: 45 85% 68%;
+  --ambient-secondary: 280 80% 70%;
+  --ambient-tertiary: 210 90% 65%;
+  --ambient-shade: 265 65% 3%;
+}
+
+[data-ambient-theme="emerald"] {
+  --ambient-base-color: 160 55% 4%;
+  --ambient-base: radial-gradient(ellipse at 85% 5%, hsl(150 60% 18% / 0.35), transparent 48%), linear-gradient(155deg, hsl(160 55% 4%), hsl(158 45% 8%) 55%, hsl(170 60% 3%));
+  --ambient-primary: 150 65% 55%;
+  --ambient-secondary: 45 72% 62%;
+  --ambient-tertiary: 165 55% 34%;
+  --ambient-shade: 165 65% 2%;
+}
+
+[data-ambient-theme="titanium"] {
+  --ambient-base-color: 220 12% 6%;
+  --ambient-base: linear-gradient(135deg, hsl(220 12% 5%), hsl(215 10% 10%) 48%, hsl(220 14% 4%));
+  --ambient-primary: 210 16% 82%;
+  --ambient-secondary: 45 45% 62%;
+  --ambient-tertiary: 215 12% 42%;
+  --ambient-shade: 220 20% 3%;
+}
+
+.ambient-theme {
+  --ambient-far-shift: 0px;
+  --ambient-middle-shift: 0px;
+  --ambient-near-shift: 0px;
+  --ambient-pointer-x: 0px;
+  --ambient-pointer-y: 0px;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  isolation: isolate;
+  background: hsl(var(--ambient-base-color));
+}
+
+.ambient-theme--contained {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.ambient-base,
+.ambient-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.ambient-base {
+  background: var(--ambient-base);
+}
+
+.ambient-vignette {
+  background: radial-gradient(ellipse at center, transparent 35%, hsl(var(--ambient-shade) / 0.34) 100%), linear-gradient(180deg, hsl(var(--ambient-shade) / 0.08), transparent 28%, hsl(var(--ambient-shade) / 0.28));
+}
+
+.ambient-layer {
+  position: absolute;
+  inset: -14%;
+  pointer-events: none;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.ambient-layer--far {
+  transform: translate3d(var(--ambient-pointer-x), var(--ambient-far-shift), 0) scale(1.04);
+}
+
+.ambient-layer--middle {
+  transform: translate3d(calc(var(--ambient-pointer-x) * -0.6), calc(var(--ambient-middle-shift) + var(--ambient-pointer-y)), 0) scale(1.05);
+}
+
+.ambient-layer--near {
+  transform: translate3d(calc(var(--ambient-pointer-x) * 0.8), var(--ambient-near-shift), 0) scale(1.06);
+}
+
+.ambient-orb,
+.ambient-ring,
+.ambient-grid,
+.ambient-carbon,
+.ambient-rosette,
+.ambient-horizon,
+.ambient-sheen,
+.ambient-particle {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.ambient-orb {
+  width: 46vw;
+  min-width: 280px;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: radial-gradient(circle, hsl(var(--ambient-primary) / 0.26), hsl(var(--ambient-secondary) / 0.08) 42%, transparent 70%);
+  filter: blur(24px);
+  animation: ambient-orb-breathe 9s ease-in-out infinite alternate;
+}
+
+.ambient-orb--a {
+  top: 0;
+  left: -10%;
+}
+
+.ambient-orb--b {
+  right: -8%;
+  bottom: 0;
+  animation-delay: -4s;
+  background: radial-gradient(circle, hsl(var(--ambient-secondary) / 0.2), transparent 68%);
+}
+
+.ambient-orb--c {
+  top: 26%;
+  left: 32%;
+  width: 34vw;
+  opacity: 0.7;
+  animation-delay: -2s;
+  background: radial-gradient(circle, hsl(var(--ambient-tertiary) / 0.25), transparent 70%);
+}
+
+.ambient-ring {
+  width: min(62vw, 680px);
+  aspect-ratio: 1;
+  border: 1px solid hsl(var(--ambient-primary) / 0.2);
+  border-radius: 50%;
+  box-shadow: inset 0 0 50px hsl(var(--ambient-primary) / 0.05), 0 0 36px hsl(var(--ambient-primary) / 0.06);
+  animation: ambient-ring-turn 24s linear infinite;
+}
+
+.ambient-ring::before,
+.ambient-ring::after {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border: 1px solid hsl(var(--ambient-secondary) / 0.13);
+  border-radius: inherit;
+}
+
+.ambient-ring::after {
+  inset: 22%;
+  border-style: dashed;
+}
+
+.ambient-ring--a {
+  top: 6%;
+  right: -12%;
+  transform: rotateX(62deg) rotateZ(-14deg);
+}
+
+.ambient-ring--b {
+  bottom: -6%;
+  left: -18%;
+  width: min(54vw, 560px);
+  animation-direction: reverse;
+  animation-duration: 30s;
+  transform: rotateX(68deg) rotateZ(18deg);
+}
+
+.ambient-particle {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: hsl(var(--ambient-primary) / 0.8);
+  box-shadow: 0 0 12px hsl(var(--ambient-primary) / 0.65);
+  animation: ambient-particle-drift 8s ease-in-out infinite alternate;
+}
+
+.ambient-particle:nth-child(1) { left: 12%; top: 18%; animation-delay: -1s; }
+.ambient-particle:nth-child(2) { left: 28%; top: 42%; width: 2px; height: 2px; animation-delay: -5s; }
+.ambient-particle:nth-child(3) { left: 76%; top: 16%; width: 3px; height: 3px; animation-delay: -3s; }
+.ambient-particle:nth-child(4) { left: 88%; top: 48%; animation-delay: -7s; }
+.ambient-particle:nth-child(5) { left: 62%; top: 70%; width: 2px; height: 2px; animation-delay: -2s; }
+.ambient-particle:nth-child(6) { left: 18%; top: 78%; width: 3px; height: 3px; animation-delay: -6s; }
+.ambient-particle:nth-child(7) { left: 46%; top: 12%; width: 2px; height: 2px; animation-delay: -4s; }
+.ambient-particle:nth-child(8) { left: 52%; top: 52%; animation-delay: -8s; }
+.ambient-particle:nth-child(9) { left: 8%; top: 54%; width: 2px; height: 2px; animation-delay: -2.5s; }
+.ambient-particle:nth-child(10) { left: 92%; top: 82%; width: 3px; height: 3px; animation-delay: -5.5s; }
+.ambient-particle:nth-child(11) { left: 38%; top: 88%; animation-delay: -3.5s; }
+.ambient-particle:nth-child(12) { left: 70%; top: 34%; width: 2px; height: 2px; animation-delay: -6.5s; }
+
+.ambient-rosette {
+  top: 12%;
+  left: 50%;
+  width: min(72vw, 720px);
+  aspect-ratio: 1;
+  opacity: 0.22;
+  background-color: hsl(var(--ambient-primary) / 0.42);
+  -webkit-mask-image: var(--guilloche-rosette);
+  mask-image: var(--guilloche-rosette);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  animation: ambient-rosette-float 16s ease-in-out infinite alternate;
+}
+
+.ambient-grid,
+.ambient-carbon,
+.ambient-horizon,
+.ambient-sheen {
+  display: none;
+}
+
+[data-ambient-theme="hyperdrive"] .ambient-grid {
+  display: block;
+  left: -20%;
+  right: -20%;
+  bottom: -8%;
+  height: 70%;
+  background-image: linear-gradient(hsl(var(--ambient-primary) / 0.28) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--ambient-primary) / 0.28) 1px, transparent 1px);
+  background-size: 54px 42px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 4%, hsl(0 0% 100%) 60%, transparent 98%);
+  mask-image: linear-gradient(to bottom, transparent 4%, hsl(0 0% 100%) 60%, transparent 98%);
+  transform: perspective(340px) rotateX(58deg) translateY(18%);
+  transform-origin: center bottom;
+  animation: ambient-grid-travel 5s linear infinite;
+}
+
+[data-ambient-theme="hyperdrive"] .ambient-horizon {
+  display: block;
+  left: 10%;
+  right: 10%;
+  top: 48%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, hsl(var(--ambient-primary) / 0.85), hsl(var(--ambient-secondary) / 0.75), transparent);
+  box-shadow: 0 0 22px hsl(var(--ambient-primary) / 0.55), 0 0 80px hsl(var(--ambient-primary) / 0.28);
+}
+
+[data-ambient-theme="hyperdrive"] .ambient-rosette,
+[data-ambient-theme="hyperdrive"] .ambient-ring,
+[data-ambient-theme="titanium"] .ambient-rosette,
+[data-ambient-theme="titanium"] .ambient-ring {
+  display: none;
+}
+
+[data-ambient-theme="cosmic"] .ambient-particle {
+  box-shadow: 0 0 8px hsl(var(--ambient-primary) / 0.8), 0 0 22px hsl(var(--ambient-secondary) / 0.35);
+}
+
+[data-ambient-theme="cosmic"] .ambient-ring {
+  opacity: 0.35;
+}
+
+[data-ambient-theme="titanium"] .ambient-carbon {
+  display: block;
+  inset: 0;
+  background-image: repeating-linear-gradient(45deg, hsl(var(--ambient-primary) / 0.035) 0 2px, transparent 2px 6px), repeating-linear-gradient(-45deg, hsl(var(--ambient-tertiary) / 0.08) 0 2px, transparent 2px 6px);
+  background-size: 12px 12px;
+  -webkit-mask-image: linear-gradient(115deg, transparent, hsl(0 0% 100%) 35%, hsl(0 0% 100%) 75%, transparent);
+  mask-image: linear-gradient(115deg, transparent, hsl(0 0% 100%) 35%, hsl(0 0% 100%) 75%, transparent);
+}
+
+[data-ambient-theme="titanium"] .ambient-sheen {
+  display: block;
+  top: -30%;
+  bottom: -30%;
+  left: -30%;
+  width: 24%;
+  background: linear-gradient(100deg, transparent, hsl(var(--ambient-primary) / 0.16), transparent);
+  filter: blur(12px);
+  transform: rotate(18deg);
+  animation: ambient-metal-sheen 10s ease-in-out infinite;
+}
+
+[data-ambient-theme="titanium"] .ambient-particle {
+  background: hsl(var(--ambient-primary) / 0.45);
+  box-shadow: none;
+}
+
+.ambient-theme-choice-art {
+  position: relative;
+  height: 96px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--ambient-base);
+  border-bottom: 1px solid hsl(var(--primary) / 0.16);
+}
+
+.ambient-choice-mock {
+  position: absolute;
+  z-index: 10;
+  left: 14px;
+  right: 14px;
+  bottom: -12px;
+  height: 72px;
+  padding: 13px;
+  border: 1px solid hsl(var(--primary) / 0.3);
+  border-radius: 12px;
+  background: hsl(var(--card) / 0.72);
+  box-shadow: 0 12px 26px hsl(var(--ambient-shade) / 0.5), inset 0 1px 0 hsl(var(--foreground) / 0.08);
+  backdrop-filter: blur(12px);
+  transform: perspective(220px) rotateX(4deg);
+}
+
+.ambient-choice-mock-line {
+  display: block;
+  width: 56%;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: hsl(var(--foreground) / 0.2);
+}
+
+.ambient-choice-mock-line--wide {
+  width: 78%;
+  margin-top: 0;
+  background: hsl(var(--primary) / 0.55);
+}
+
+.ambient-choice-mock-button {
+  display: block;
+  width: 36px;
+  height: 12px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: hsl(var(--primary) / 0.7);
+}
+
+.dashboard-ambient {
+  --cockpit-surface: linear-gradient(145deg, hsl(var(--surface-elevated) / 0.84), hsl(var(--background) / 0.88) 68%);
+}
+
+
+@keyframes ambient-orb-breathe {
+  from { opacity: 0.55; scale: 0.94; }
+  to { opacity: 0.9; scale: 1.08; }
+}
+
+@keyframes ambient-ring-turn {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+
+@keyframes ambient-particle-drift {
+  from { translate: 0 12px; opacity: 0.25; }
+  to { translate: 8px -18px; opacity: 0.9; }
+}
+
+@keyframes ambient-rosette-float {
+  from { transform: translate(-50%, -2%) rotate(-4deg); }
+  to { transform: translate(-50%, 5%) rotate(5deg); }
+}
+
+@keyframes ambient-grid-travel {
+  from { background-position: 0 0; }
+  to { background-position: 0 42px; }
+}
+
+@keyframes ambient-metal-sheen {
+  0%, 18% { translate: 0 0; opacity: 0; }
+  42% { opacity: 1; }
+  72%, 100% { translate: 620% 0; opacity: 0; }
+}
+
+@media (max-width: 640px) {
+  .ambient-layer {
+    inset: -8%;
+  }
+
+  .ambient-orb {
+    min-width: 230px;
+    filter: blur(20px);
+  }
+
+  .ambient-ring {
+    width: 94vw;
+  }
+
+  .ambient-rosette {
+    width: 110vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-layer {
+    transform: none !important;
+    will-change: auto;
+  }
+
+  .ambient-orb,
+  .ambient-ring,
+  .ambient-particle,
+  .ambient-rosette,
+  .ambient-grid,
+  .ambient-sheen {
+    animation: none !important;
+  }
+}

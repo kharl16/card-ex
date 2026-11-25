@@ -120,6 +120,8 @@ export function buildCardSnapshot(
     delete theme.qrSettings.data;
     delete theme.qrSettings.url;
   }
+  // Visual ambience belongs to the design; dashboard syncing belongs to the owner.
+  delete theme.dashboardThemeSync;
   
   /**
    * Normalize any carousel image array to unified {url, alt, order} shape

@@ -1,3 +1,5 @@
+import type { AmbientThemeId } from "./ambientThemes";
+
 // Product image stored in cards.product_images JSONB column
 export interface CardProductImage {
   image_url: string;
@@ -56,6 +58,10 @@ export interface ThemeVariant {
   showLocatorButton?: boolean;
   /** Show the glamorous photographic background behind the Bio block. Defaults to true. */
   showBioBackground?: boolean;
+  /** Optional layered page ambience. Missing values intentionally mean Classic Minimal. */
+  ambientTheme?: AmbientThemeId;
+  /** Personal dashboard preference; stripped from templates and duplicated cards. */
+  dashboardThemeSync?: boolean;
 }
 
 // Full card theme with A/B variants

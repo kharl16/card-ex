@@ -17,6 +17,8 @@ import AIChatWidget from "@/components/ai/AIChatWidget";
 import AppointmentBookingDialog from "@/components/appointments/AppointmentBookingDialog";
 import { Link } from "react-router-dom";
 import { setHomeScreenIdentity } from "@/lib/homeScreenIdentity";
+import AmbientThemeBackground from "@/components/ambient/AmbientThemeBackground";
+import { getCardAmbientTheme } from "@/lib/ambientThemes";
 
 type CardData = Tables<"cards">;
 
@@ -274,6 +276,7 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
   };
 
   const saveButtonColor = theme?.buttonColor || theme?.primary || "#22c55e";
+  const ambientTheme = getCardAmbientTheme(theme);
 
   return (
     <div
@@ -283,8 +286,8 @@ export default function PublicCard({ customSlug = false }: PublicCardProps) {
         fontFamily: theme?.font ? `"${theme.font}", sans-serif` : undefined,
       }}
     >
-      
-      <div data-card-page className="mx-auto max-w-2xl overflow-x-hidden">
+      <AmbientThemeBackground theme={ambientTheme} />
+      <div data-card-page className="relative z-10 mx-auto max-w-2xl overflow-x-hidden">
         <CardView
           card={cardWithEffectiveTheme}
           socialLinks={socialLinks}
