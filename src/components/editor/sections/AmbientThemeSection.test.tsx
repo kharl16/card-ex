@@ -36,6 +36,14 @@ describe("AmbientThemeSection", () => {
     const nameLabel = cosmic.querySelector("span.block > span");
     expect(nameLabel?.className).toContain("text-base");
     expect(nameLabel?.className).toContain("sm:text-sm");
+
+    const inUsePill = screen.getByText("In use");
+    expect(inUsePill.className).toContain("text-[13px]");
+    expect(inUsePill.className).toContain("sm:text-[11px]");
+
+    const checkBadge = cosmic.querySelector("[data-ambient-theme] > span.absolute");
+    expect(checkBadge?.className).toContain("h-11");
+    expect(checkBadge?.className).toContain("sm:h-7");
   });
 
   it("saves dashboard sync independently through a large switch target", () => {
