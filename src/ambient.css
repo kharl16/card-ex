@@ -308,7 +308,7 @@
 
 .ambient-theme-choice-art {
   position: relative;
-  height: 96px;
+  height: var(--ambient-choice-art-height, 96px);
   overflow: hidden;
   isolation: isolate;
   background: var(--ambient-base);
