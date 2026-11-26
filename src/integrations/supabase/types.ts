@@ -2108,6 +2108,42 @@ export type Database = {
           },
         ]
       }
+      global_videos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          sort_index: number
+          title: string | null
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          title?: string | null
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          sort_index?: number
+          title?: string | null
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
       "IAM Files": {
         Row: {
           "Check Match": string | null

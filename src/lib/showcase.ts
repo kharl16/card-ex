@@ -89,6 +89,8 @@ export interface ShowcaseGlobals {
   products?: GlobalImageLike[];
   packages?: GlobalImageLike[];
   testimonies?: GlobalImageLike[];
+  /** Super-admin Global Videos appended to every card's Videos carousel */
+  videos?: VideoItem[];
 }
 
 /**
@@ -222,7 +224,9 @@ export function buildShowcaseCategories(
     ...globalsToCarouselImages(globals.testimonies, ownTestimonies.length, false),
   ];
 
-  const videos = normalizeVideos(card?.video_items);
+  const ownVideos = normalizeVideos(card?.video_items);
+  const ownUrls = new Set(ownVideos.map((v) => v.url));
+  const videos = [...ownVideos, ...(globals.videos ?? []).filter((v) => !ownUrls.has(v.url))];
 
   const byKey: Record<CarouselKey, { images: CarouselImage[]; videos: VideoItem[] }> = {
     brochure: { images: brochureImages, videos: [] },

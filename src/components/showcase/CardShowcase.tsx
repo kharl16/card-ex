@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import ClassicShowcase from "@/components/showcase/ClassicShowcase";
 import ImmersiveShowcase from "@/components/showcase/ImmersiveShowcase";
 import ShowcaseScrollCue from "@/components/showcase/ShowcaseScrollCue";
+import { useGlobalVideos } from "@/hooks/useGlobalVideos";
 import { mergeCarouselSettings, type CarouselSettingsData } from "@/lib/carouselTypes";
 import {
   buildShowcaseCategories,
@@ -33,9 +34,10 @@ export default function CardShowcase({
     [card?.carousel_settings]
   );
 
+  const globalVideos = useGlobalVideos();
   const categories = useMemo(
-    () => buildShowcaseCategories(card, settings, globals),
-    [card, settings, globals]
+    () => buildShowcaseCategories(card, settings, { ...(globals ?? {}), videos: globalVideos }),
+    [card, settings, globals, globalVideos]
   );
 
   const mode = getShowcaseDisplayMode(card);
