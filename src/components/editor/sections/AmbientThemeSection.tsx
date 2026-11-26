@@ -84,30 +84,48 @@ export default function AmbientThemeSection({ theme, onChange }: AmbientThemeSec
         aria-checked={dashboardSynced}
         data-dashboard-theme-sync
         onClick={() => onChange(withAmbientTheme(theme, selectedTheme, !dashboardSynced))}
-        className="flex min-h-14 w-full items-center justify-between gap-4 rounded-xl border border-primary/25 bg-primary/5 px-4 py-3 text-left transition-colors hover:border-primary/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:min-h-12"
+        className={cn(
+          "flex min-h-[76px] w-full items-center justify-between gap-4 rounded-xl border px-4 py-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:min-h-12 sm:px-4 sm:py-3",
+          dashboardSynced
+            ? "border-primary/60 bg-primary/10 hover:border-primary/75"
+            : "border-border/70 bg-card/40 hover:border-primary/45",
+        )}
       >
         <span className="flex min-w-0 items-start gap-3">
-          <Monitor className="mt-0.5 h-5 w-5 shrink-0 text-primary" aria-hidden />
-          <span>
-            <span className="block text-sm font-semibold text-foreground">Use this theme on my Dashboard</span>
-            <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+          <Monitor className="mt-0.5 h-6 w-6 shrink-0 text-primary sm:h-5 sm:w-5" aria-hidden />
+          <span className="min-w-0">
+            <span className="block text-base font-semibold leading-snug text-foreground sm:text-sm">
+              Show this theme on my Dashboard
+            </span>
+            <span className="mt-1 block text-sm leading-relaxed text-muted-foreground sm:mt-0.5 sm:text-xs">
               Your most recently edited synced card sets the dashboard ambience.
             </span>
           </span>
         </span>
-        <span
-          aria-hidden="true"
-          className={cn(
-            "relative h-7 w-12 shrink-0 rounded-full border transition-colors",
-            dashboardSynced ? "border-primary bg-primary" : "border-border bg-input",
-          )}
-        >
+        <span className="flex shrink-0 items-center gap-2.5 sm:gap-2">
           <span
+            aria-hidden="true"
             className={cn(
-              "absolute left-1 top-1 h-[18px] w-[18px] rounded-full bg-background shadow-sm transition-transform",
-              dashboardSynced && "translate-x-5",
+              "text-base font-bold uppercase tracking-wide sm:text-xs",
+              dashboardSynced ? "text-primary" : "text-muted-foreground",
             )}
-          />
+          >
+            {dashboardSynced ? "On" : "Off"}
+          </span>
+          <span
+            aria-hidden="true"
+            className={cn(
+              "relative h-8 w-14 shrink-0 rounded-full border transition-colors sm:h-7 sm:w-12",
+              dashboardSynced ? "border-primary bg-primary" : "border-border bg-input",
+            )}
+          >
+            <span
+              className={cn(
+                "absolute left-1 top-1 h-6 w-6 rounded-full shadow-sm transition-transform sm:h-[18px] sm:w-[18px]",
+                dashboardSynced ? "translate-x-6 bg-background sm:translate-x-5" : "translate-x-0 bg-muted-foreground",
+              )}
+            />
+          </span>
         </span>
       </button>
 

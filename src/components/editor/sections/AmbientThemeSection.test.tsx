@@ -50,10 +50,26 @@ describe("AmbientThemeSection", () => {
     const onChange = vi.fn();
     render(<AmbientThemeSection theme={{ primary: "#123456", background: "#010309", text: "#ffffff", ambientTheme: "obsidian" }} onChange={onChange} />);
 
-    const sync = screen.getByRole("switch", { name: /Use this theme on my Dashboard/ });
+    const sync = screen.getByRole("switch", { name: /Show this theme on my Dashboard/ });
     expect(sync).toHaveAttribute("aria-checked", "false");
+    expect(sync).toHaveTextContent("Off");
+    expect(sync).not.toHaveTextContent("On");
     fireEvent.click(sync);
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ ambientTheme: "obsidian", dashboardThemeSync: true }));
+  });
+
+  it("states the dashboard sync outcome in words and enlarges its type on phones", () => {
+    render(<AmbientThemeSection theme={{ primary: "#123456", background: "#010309", text: "#ffffff", ambientTheme: "obsidian", dashboardThemeSync: true }} onChange={vi.fn()} />);
+
+    const sync = screen.getByRole("switch", { name: /Show this theme on my Dashboard/ });
+    expect(sync).toHaveAttribute("aria-checked", "true");
+    expect(sync).toHaveTextContent("On");
+
+    const label = sync.querySelector("span.min-w-0 > span:first-child");
+    expect(label?.className).toContain("text-base");
+    expect(label?.className).toContain("sm:text-sm");
+    expect(sync.className).toContain("min-h-[76px]");
+    expect(sync.className).toContain("sm:min-h-12");
   });
 });
 
