@@ -1,3 +1,4 @@
+import { useGlobalLibraryRefresh } from "./useGlobalLibraryRefresh";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,7 +43,7 @@ export function useGlobalPackageImages(cardId: string | null | undefined) {
       .from("global_package_images")
       .select("id,url,url_2,caption,srp,sort_index,is_active")
       .eq("is_active", true)
-      .order("sort_index", { ascending: true });
+      .order("sort_index", { ascending: true }).order("created_at", { ascending: false });
     if (companyId) globalsQuery = globalsQuery.eq("company_id", companyId);
 
     const [{ data: globals }, overridesResult] = await Promise.all([
@@ -65,6 +66,8 @@ export function useGlobalPackageImages(cardId: string | null | undefined) {
     );
     setLoading(false);
   }, [cardId]);
+
+  useGlobalLibraryRefresh("global_package_images", load);
 
   useEffect(() => {
     load();

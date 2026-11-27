@@ -1,17 +1,21 @@
-import { useEffect, useState } from "react";
+import { useGlobalLibraryRefresh } from "./useGlobalLibraryRefresh";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { parseVideoUrl, type VideoItem } from "@/lib/videoUtils";
 
 /** Active super-admin Global Videos, shown on every card's Videos carousel. */
 export function useGlobalVideos(): VideoItem[] {
   const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [revision, setRevision] = useState(0);
+  const reload = useCallback(() => setRevision((value) => value + 1), []);
+  useGlobalLibraryRefresh("global_videos", reload);
   useEffect(() => {
     let alive = true;
     (supabase as any)
       .from("global_videos")
       .select("url,title,description,sort_index")
       .eq("is_active", true)
-      .order("sort_index", { ascending: true })
+      .order("sort_index", { ascending: true }).order("created_at", { ascending: false })
       .then(({ data }: { data: any[] | null }) => {
         if (!alive) return;
         setVideos(
@@ -24,6 +28,6 @@ export function useGlobalVideos(): VideoItem[] {
         );
       });
     return () => { alive = false; };
-  }, []);
+  }, [revision]);
   return videos;
 }

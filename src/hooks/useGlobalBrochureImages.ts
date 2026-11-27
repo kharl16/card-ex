@@ -1,3 +1,4 @@
+import { useGlobalLibraryRefresh } from "./useGlobalLibraryRefresh";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { BrochurePageShape } from "@/lib/carouselTypes";
@@ -72,7 +73,7 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
         .from("global_brochure_images")
         .select("id,url,url_2,caption,srp,sort_index,is_active,section_id")
         .eq("is_active", true)
-        .order("sort_index", { ascending: true });
+        .order("sort_index", { ascending: true }).order("created_at", { ascending: false });
       if (company) q = q.eq("company_id", company);
       const { data } = await q;
       return (data as GlobalBrochureImage[]) ?? [];
@@ -148,6 +149,8 @@ export function useGlobalBrochureImages(cardId: string | null | undefined) {
     );
     setLoading(false);
   }, [cardId]);
+
+  useGlobalLibraryRefresh("global_brochure_images", load);
 
   useEffect(() => {
     load();

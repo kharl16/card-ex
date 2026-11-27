@@ -1,3 +1,5 @@
+import { GlobalOrderControls } from "@/components/admin/GlobalOrderControls";
+import { getGlobalInsertIndex, moveGlobalItem } from "@/lib/globalOrdering";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,7 +24,7 @@ export default function AdminGlobalVideos() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const { data, error } = await db.from("global_videos").select("id,url,title,sort_index,is_active").order("sort_index");
+    const { data, error } = await db.from("global_videos").select("id,url,title,sort_index,is_active").order("sort_index").order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setRows(data ?? []);
   }, []);
@@ -36,7 +38,8 @@ export default function AdminGlobalVideos() {
   const add = async () => {
     if (!parseVideoUrl(url.trim())) { toast.error("Paste a YouTube, Google Drive or Facebook video link"); return; }
     setBusy(true);
-    const next = rows.length ? Math.max(...rows.map((r) => r.sort_index)) + 1 : 0;
+    const next = await getGlobalInsertIndex("global_videos").catch((error: Error) => { toast.error(error.message); return null; });
+    if (next === null) { setBusy(false); return; }
     const { error } = await db.from("global_videos").insert({ url: url.trim(), title: title.trim() || null, sort_index: next });
     setBusy(false);
     if (error) return toast.error(error.message);
@@ -49,11 +52,17 @@ export default function AdminGlobalVideos() {
   };
 
   const move = async (i: number, dir: -1 | 1) => {
-    const a = rows[i], b = rows[i + dir];
-    if (!a || !b) return;
-    await db.from("global_videos").update({ sort_index: b.sort_index }).eq("id", a.id);
-    await db.from("global_videos").update({ sort_index: a.sort_index }).eq("id", b.id);
-    load();
+    const ordered = moveGlobalItem(rows, i, dir);
+    if (ordered === rows) return;
+    setBusy(true);
+    setRows(ordered);
+    const results = await Promise.all(ordered.map((row) =>
+      db.from("global_videos").update({ sort_index: row.sort_index }).eq("id", row.id)
+    ));
+    const failed = results.find((result) => result.error);
+    if (failed?.error) toast.error(failed.error.message);
+    await load();
+    setBusy(false);
   };
 
   const remove = async (id: string) => {
@@ -99,8 +108,7 @@ export default function AdminGlobalVideos() {
                     onBlur={(e) => e.target.value !== (r.title ?? "") && update(r.id, { title: e.target.value || null })} />
                   <a href={r.url} target="_blank" rel="noreferrer" className="block text-sm text-primary underline truncate">{r.url}</a>
                   <div className="flex flex-wrap gap-2">
-                    <Button size="sm" variant="outline" className="h-11" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move up"><ArrowUp className="h-4 w-4" /></Button>
-                    <Button size="sm" variant="outline" className="h-11" onClick={() => move(i, 1)} disabled={i === rows.length - 1} aria-label="Move down"><ArrowDown className="h-4 w-4" /></Button>
+                    <GlobalOrderControls index={i} total={rows.length} disabled={busy} onMove={(dir) => void move(i, dir)} />
                     <Button size="sm" variant="outline" className="h-11 gap-1" onClick={() => update(r.id, { is_active: !r.is_active })}>
                       {r.is_active ? <><Eye className="h-4 w-4" />Showing</> : <><EyeOff className="h-4 w-4" />Hidden</>}
                     </Button>

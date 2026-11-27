@@ -1,3 +1,5 @@
+import { GlobalOrderControls } from "@/components/admin/GlobalOrderControls";
+import { getGlobalInsertIndex, moveGlobalItem } from "@/lib/globalOrdering";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowDown, ArrowUp, Eye, EyeOff, Trash2 } from "lucide-react";
@@ -34,7 +36,7 @@ export default function AdminGlobalCoverPhotos() {
     const { data, error } = await supabase
       .from("global_cover_photos")
       .select("id,url,title,sort_index,is_active")
-      .order("sort_index", { ascending: true });
+      .order("sort_index", { ascending: true }).order("created_at", { ascending: true });
     if (error) toast.error(error.message);
     setRows(data ?? []);
     setLoading(false);
@@ -53,7 +55,6 @@ export default function AdminGlobalCoverPhotos() {
   const onFilesSelected = async (files: FileList | null) => {
     if (!files?.length || !user) return;
     setBusy(true);
-    let nextSort = rows.length ? Math.max(...rows.map((row) => row.sort_index)) + 1 : 0;
     let added = 0;
 
     for (const file of Array.from(files)) {
@@ -75,12 +76,11 @@ export default function AdminGlobalCoverPhotos() {
         const { error } = await supabase.from("global_cover_photos").insert({
           url: publicUrl,
           title: uploadTitle.trim() || null,
-          sort_index: nextSort,
+          sort_index: await getGlobalInsertIndex("global_cover_photos"),
           is_active: true,
           created_by: user.id,
         });
         if (error) throw error;
-        nextSort += 1;
         added += 1;
       } catch (error) {
         toast.error(`${file.name}: ${(error as Error).message || "Upload failed"}`);
@@ -192,26 +192,7 @@ export default function AdminGlobalCoverPhotos() {
                   }}
                 />
                 <div className="flex flex-wrap gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-11"
-                    onClick={() => void move(index, -1)}
-                    disabled={index === 0}
-                    aria-label="Move cover photo up"
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-11"
-                    onClick={() => void move(index, 1)}
-                    disabled={index === rows.length - 1}
-                    aria-label="Move cover photo down"
-                  >
-                    <ArrowDown className="h-4 w-4" />
-                  </Button>
+                  <GlobalOrderControls index={index} total={rows.length} disabled={busy} onMove={(dir) => void move(index, dir)} />
                   <Button
                     size="sm"
                     variant="outline"

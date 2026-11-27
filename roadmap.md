@@ -48,3 +48,6 @@
 - [x] Add six saved 3D ambience choices with live Edit Card preview and dashboard sync; existing cards stay Classic Minimal.
 - [x] Render layered scroll parallax on public/shared cards and the synced dashboard, with static reduced-motion fallbacks.
 - [x] Test theme persistence rules and verify phone/laptop visuals, scrolling, overflow and the preview build; 237 tests pass. Signed-in saving remains unverified because the user-managed Supabase session is unavailable.
+- [x] Standardize Global ordering controls across all six libraries; prepend new entries except Cover Photos, which append, preserving existing custom order.
+- [x] Test default insertion and custom ordering; 255 tests pass, preview builds cleanly, real public card opens without errors.
+- [ ] Verify signed-in Global uploads and rearrangement through to an Actual Card; blocked by unavailable session for user-managed Supabase.

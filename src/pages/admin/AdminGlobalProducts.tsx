@@ -1,3 +1,5 @@
+import { GlobalOrderControls } from "@/components/admin/GlobalOrderControls";
+import { getGlobalInsertIndex, moveGlobalItem } from "@/lib/globalOrdering";
 import { uploadOptimizedFile, getRenderUrl } from "@/lib/images";
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -41,7 +43,7 @@ export default function AdminGlobalProducts() {
       .from("global_product_images")
       .select("id,url,url_2,caption,srp,sort_index,is_active")
       .eq("company_id", activeCompanyId)
-      .order("sort_index", { ascending: true });
+      .order("sort_index", { ascending: true }).order("created_at", { ascending: false });
     if (error) toast.error(error.message);
     setRows((data as Row[]) ?? []);
     setLoading(false);
@@ -83,7 +85,8 @@ export default function AdminGlobalProducts() {
 
   async function addRow(url: string, caption: string) {
     if (!user || !activeCompanyId) return;
-    const nextSort = rows.length ? Math.max(...rows.map((r) => r.sort_index)) + 1 : 0;
+    const nextSort = await getGlobalInsertIndex("global_product_images", activeCompanyId).catch((error: Error) => { toast.error(error.message); return null; });
+    if (nextSort === null) return;
     const { error } = await supabase.from("global_product_images").insert({
       url,
       caption: caption.trim() || null,
@@ -259,12 +262,7 @@ export default function AdminGlobalProducts() {
                 }}
               />
               <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="outline" onClick={() => move(r, -1)} disabled={i === 0}>
-                  ↑
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => move(r, 1)} disabled={i === rows.length - 1}>
-                  ↓
-                </Button>
+                <GlobalOrderControls index={i} total={rows.length} onMove={(dir) => move(r, dir)} />
                 <Button size="sm" variant="outline" onClick={() => toggleActive(r)}>
                   {r.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
