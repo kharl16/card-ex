@@ -128,4 +128,30 @@ describe("VideoCarousel swipe vs tap regression", () => {
 
     expect(screen.getByTestId("fullscreen-state")).toHaveTextContent("closed");
   });
+
+  it("opens a global cover photo as a photo instead of a video player", () => {
+    const cover: VideoItem = {
+      url: "https://example.com/original-cover.jpg",
+      thumbnail: "https://example.com/cover-preview.jpg",
+      source: "unknown",
+      mediaType: "image",
+      title: "Global cover",
+    };
+    render(<VideoCarousel videos={[cover]} />);
+
+    expect(screen.getByRole("img", { name: "Global cover" })).toHaveAttribute(
+      "src",
+      "https://example.com/cover-preview.jpg",
+    );
+    expect(screen.getByRole("button", { name: "View photo full screen" })).toBeInTheDocument();
+
+    const thumb = screen
+      .getAllByRole("button")
+      .find((el) => el.className.includes("cursor-pointer"));
+    act(() => {
+      firePointer(thumb!, "pointerdown", 50, 50);
+      firePointer(thumb!, "pointerup", 50, 50);
+    });
+    expect(screen.getByTestId("fullscreen-state")).toHaveTextContent("open");
+  });
 });

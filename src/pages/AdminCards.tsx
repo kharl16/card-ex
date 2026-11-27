@@ -36,6 +36,7 @@ import {
   Filter,
   Smartphone,
   Shield,
+  Images,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
@@ -1058,6 +1059,10 @@ export default function AdminCards() {
           <Button onClick={() => navigate("/admin/global-videos")} variant="outline" className="gap-2">
             <Globe className="h-4 w-4" />
             Global Videos
+          </Button>
+          <Button onClick={() => navigate("/admin/global-cover-photos")} variant="outline" className="gap-2">
+            <Images className="h-4 w-4" />
+            Global Cover Photos
           </Button>
           <Button onClick={() => setShowCreateUserDialog(true)} variant="outline" className="gap-2">
             <UserPlus className="h-4 w-4" />

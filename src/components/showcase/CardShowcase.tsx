@@ -3,6 +3,7 @@ import ClassicShowcase from "@/components/showcase/ClassicShowcase";
 import ImmersiveShowcase from "@/components/showcase/ImmersiveShowcase";
 import ShowcaseScrollCue from "@/components/showcase/ShowcaseScrollCue";
 import { useGlobalVideos } from "@/hooks/useGlobalVideos";
+import { useGlobalCoverPhotos } from "@/hooks/useGlobalCoverPhotos";
 import { mergeCarouselSettings, type CarouselSettingsData } from "@/lib/carouselTypes";
 import {
   buildShowcaseCategories,
@@ -35,9 +36,14 @@ export default function CardShowcase({
   );
 
   const globalVideos = useGlobalVideos();
+  const globalCoverPhotos = useGlobalCoverPhotos();
+  const globalCarouselItems = useMemo(
+    () => [...globalCoverPhotos, ...globalVideos],
+    [globalCoverPhotos, globalVideos]
+  );
   const categories = useMemo(
-    () => buildShowcaseCategories(card, settings, { ...(globals ?? {}), videos: globalVideos }),
-    [card, settings, globals, globalVideos]
+    () => buildShowcaseCategories(card, settings, { ...(globals ?? {}), videos: globalCarouselItems }),
+    [card, settings, globals, globalCarouselItems]
   );
 
   const mode = getShowcaseDisplayMode(card);

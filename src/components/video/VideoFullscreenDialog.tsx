@@ -28,15 +28,18 @@ export default function VideoFullscreenDialog({
 }: VideoFullscreenDialogProps) {
   if (!video) return null;
 
-  const embedUrl = getEmbedUrl(video.url, true);
+  const isImage = video.mediaType === "image";
+  const embedUrl = isImage ? null : getEmbedUrl(video.url, true);
   const shareLink = getShareUrl(video.url);
-  const downloadLink = getDownloadUrl(video.url);
+  const downloadLink = isImage ? video.url : getDownloadUrl(video.url);
 
   const handleShare = async () => {
-    const text = `🎬 ${video.title || "Check out this video!"}\n${shareLink}`;
+    const text = isImage
+      ? `${video.title || "Check out this photo!"}\n${shareLink}`
+      : `🎬 ${video.title || "Check out this video!"}\n${shareLink}`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: video.title || "Video", url: shareLink });
+        await navigator.share({ title: video.title || (isImage ? "Photo" : "Video"), url: shareLink });
       } catch {
         // User cancelled or share failed
       }
@@ -50,9 +53,8 @@ export default function VideoFullscreenDialog({
     if (downloadLink) {
       window.open(downloadLink, "_blank");
     } else {
-      // YouTube - just open the video page
       window.open(shareLink, "_blank");
-      toast.info("YouTube videos can be viewed at the link");
+      toast.info("This video can be viewed at the link");
     }
   };
 
@@ -69,7 +71,7 @@ export default function VideoFullscreenDialog({
 
           {/* Controls */}
           <div className="absolute top-4 left-4 z-20 flex gap-2">
-            {isFacebookVideoUrl(video.url) && (
+            {!isImage && isFacebookVideoUrl(video.url) && (
               <Button
                 variant="outline"
                 onClick={() => window.open(shareLink, "_blank", "noopener,noreferrer")}
@@ -85,7 +87,7 @@ export default function VideoFullscreenDialog({
                 size="icon"
                 onClick={handleDownload}
                 className="bg-black/60 hover:bg-black/80 text-white rounded-full"
-                aria-label="Download video"
+                aria-label={isImage ? "Download photo" : "Download video"}
               >
                 <Download className="h-5 w-5" />
               </Button>
@@ -95,7 +97,7 @@ export default function VideoFullscreenDialog({
               size="icon"
               onClick={handleShare}
               className="bg-black/60 hover:bg-black/80 text-white rounded-full"
-              aria-label="Share video"
+              aria-label={isImage ? "Share photo" : "Share video"}
             >
               <Share2 className="h-5 w-5" />
             </Button>
@@ -108,7 +110,7 @@ export default function VideoFullscreenDialog({
                 type="button"
                 onClick={onPrev}
                 className="absolute left-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white shadow-lg hover:bg-black/80 active:scale-95"
-                aria-label="Previous video"
+                aria-label="Previous media item"
               >
                 <ChevronLeft className="h-6 w-6" />
               </button>
@@ -116,16 +118,22 @@ export default function VideoFullscreenDialog({
                 type="button"
                 onClick={onNext}
                 className="absolute right-4 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white shadow-lg hover:bg-black/80 active:scale-95"
-                aria-label="Next video"
+                aria-label="Next media item"
               >
                 <ChevronRight className="h-6 w-6" />
               </button>
             </>
           )}
 
-          {/* Video player */}
+          {/* Video player or full-screen global cover photo */}
           <div className="w-full h-full flex items-center justify-center p-8">
-            {embedUrl ? (
+            {isImage ? (
+              <img
+                src={video.url}
+                alt={video.title || `Cover photo ${index + 1}`}
+                className="max-h-[85vh] max-w-full rounded-lg object-contain"
+              />
+            ) : embedUrl ? (
               <iframe
                 src={embedUrl}
                 className="w-full h-full max-w-4xl max-h-[80vh] rounded-lg"

@@ -89,7 +89,7 @@ export interface ShowcaseGlobals {
   products?: GlobalImageLike[];
   packages?: GlobalImageLike[];
   testimonies?: GlobalImageLike[];
-  /** Super-admin Global Videos appended to every card's Videos carousel */
+  /** Super-admin Global Cover Photos and Global Videos appended to every card's Videos carousel */
   videos?: VideoItem[];
 }
 

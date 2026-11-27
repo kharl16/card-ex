@@ -8,6 +8,8 @@ export type VideoSource = "youtube" | "gdrive" | "facebook" | "unknown";
 export interface VideoItem {
   url: string;
   source: VideoSource;
+  /** Global cover photos share the Videos carousel but render as still images. */
+  mediaType?: "video" | "image";
   title?: string;
   thumbnail?: string;
   order?: number;

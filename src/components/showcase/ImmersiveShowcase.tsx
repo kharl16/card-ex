@@ -133,10 +133,10 @@ export default function ImmersiveShowcase({
               cta,
               tiles: videos.map((video, index) => ({
                 id: `${category.key}-${index}`,
-                src: getThumbnailUrl(video.url) || "",
+                src: video.thumbnail || getThumbnailUrl(video.url) || (video.mediaType === "image" ? video.url : ""),
                 alt: video.title || `${category.title} ${index + 1}`,
                 caption: video.title || undefined,
-                isVideo: true,
+                isVideo: video.mediaType !== "image",
                 originalIndex: index,
               })),
             },

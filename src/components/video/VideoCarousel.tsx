@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import AutoScroll from "embla-carousel-auto-scroll";
 import { cn } from "@/lib/utils";
-import { Play, Share2, Download, Film } from "lucide-react";
+import { Play, Share2, Download, Film, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExpandableText } from "@/components/ui/expandable-text";
 import VideoFullscreenDialog from "@/components/video/VideoFullscreenDialog";
@@ -92,10 +92,13 @@ export default function VideoCarousel({
 
   const handleShare = useCallback(async (video: VideoItem) => {
     const link = getShareUrl(video.url);
-    const text = `🎬 ${video.title || "Check out this video!"}\n${link}`;
+    const isImage = video.mediaType === "image";
+    const text = isImage
+      ? `${video.title || "Check out this photo!"}\n${link}`
+      : `🎬 ${video.title || "Check out this video!"}\n${link}`;
     if (navigator.share) {
       try {
-        await navigator.share({ title: video.title || "Video", url: link });
+        await navigator.share({ title: video.title || (isImage ? "Photo" : "Video"), url: link });
       } catch { /* cancelled */ }
     } else {
       await navigator.clipboard.writeText(text);
@@ -131,8 +134,10 @@ export default function VideoCarousel({
               const originalIndex = index % videos.length;
               const isActive = index === activeSnap;
               const isVisuallyActive = originalIndex === activeIndex;
-              const thumbnail = video.thumbnail || getThumbnailUrl(video.url);
-              const embedUrl = getEmbedUrl(video.url, true);
+              const isImage = video.mediaType === "image";
+              const thumbnail = video.thumbnail || getThumbnailUrl(video.url) || (isImage ? video.url : null);
+              const embedUrl = isImage ? null : getEmbedUrl(video.url, true);
+              const downloadUrl = isImage ? video.url : getDownloadUrl(video.url);
 
               return (
                 <CarouselItem
@@ -197,11 +202,13 @@ export default function VideoCarousel({
                               <Film className="h-12 w-12 text-muted-foreground/50" />
                             </div>
                           )}
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
-                            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 shadow-lg group-hover:scale-110 transition-transform">
-                              <Play className="h-7 w-7 text-foreground ml-1" />
+                          {!isImage && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
+                              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 shadow-lg group-hover:scale-110 transition-transform">
+                                <Play className="h-7 w-7 text-foreground ml-1" />
+                              </div>
                             </div>
-                          </div>
+                          )}
                         </div>
                       )}
 
@@ -213,9 +220,9 @@ export default function VideoCarousel({
                             size="icon"
                             className="h-8 w-8 bg-black/60 hover:bg-black/80 text-white rounded-full"
                             onClick={(e) => { e.stopPropagation(); openFullscreen(originalIndex); }}
-                            aria-label="Fullscreen"
+                            aria-label={isImage ? "View photo full screen" : "Fullscreen"}
                           >
-                            <Play className="h-4 w-4" />
+                            {isImage ? <Maximize2 className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                           </Button>
                           <Button
                             variant="ghost"
@@ -226,17 +233,16 @@ export default function VideoCarousel({
                           >
                             <Share2 className="h-4 w-4" />
                           </Button>
-                          {getDownloadUrl(video.url) && (
+                          {downloadUrl && (
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 bg-black/60 hover:bg-black/80 text-white rounded-full"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                const dl = getDownloadUrl(video.url);
-                                if (dl) window.open(dl, "_blank");
+                                window.open(downloadUrl, "_blank");
                               }}
-                              aria-label="Download"
+                              aria-label={isImage ? "Download photo" : "Download"}
                             >
                               <Download className="h-4 w-4" />
                             </Button>

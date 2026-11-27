@@ -51,6 +51,7 @@ import AdminBrochurePreview from "./pages/admin/AdminBrochurePreview";
 import AdminBrochureTemplates from "./pages/admin/AdminBrochureTemplates";
 import AdminGlobalPackages from "./pages/admin/AdminGlobalPackages";
 import AdminGlobalVideos from "./pages/admin/AdminGlobalVideos";
+import AdminGlobalCoverPhotos from "./pages/admin/AdminGlobalCoverPhotos";
 import AdminGlobalTestimonies from "./pages/admin/AdminGlobalTestimonies";
 import AdminOtpAudit from "./pages/admin/AdminOtpAudit";
 import AdminDeviceApprovals from "./pages/admin/AdminDeviceApprovals";
@@ -364,6 +365,16 @@ const AnimatedRoutes = () => {
             <PageTransition>
               <RequireAuth>
                 <AdminGlobalVideos />
+              </RequireAuth>
+            </PageTransition>
+          }
+        />
+        <Route
+          path="/admin/global-cover-photos"
+          element={
+            <PageTransition>
+              <RequireAuth>
+                <AdminGlobalCoverPhotos />
               </RequireAuth>
             </PageTransition>
           }
